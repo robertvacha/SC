@@ -1,0 +1,8 @@
+<map id="Inicializer::fillTypes" name="Inicializer::fillTypes">
+<area shape="rect" id="node2" href="$simlib_8cpp.html#aa96c663c52ddb5c99609cecef6067066" title="return string that goes before comand character " alt="" coords="215,5,329,32"/>
+<area shape="rect" id="node6" href="$simlib_8cpp.html#a7f630f3bda6a2a1e395762323bbfe251" title="return string that goes after command character " alt="" coords="220,56,324,83"/>
+<area shape="rect" id="node7" href="$class_inicializer.html#a5fdd81d2acf5ead8bcc87fab2a2b8809" title="Converts the geometrical type string into a number. " alt="" coords="185,107,359,133"/>
+<area shape="rect" id="node3" href="$simlib_8cpp.html#a60ea663401e86ca2a60a29e76c716679" title="trim string from left and right " alt="" coords="409,31,453,57"/>
+<area shape="rect" id="node4" href="$simlib_8cpp.html#a1d9ff13ca6fbfeed019ff8459a2d7b27" title="trim string from left " alt="" coords="502,5,549,32"/>
+<area shape="rect" id="node5" href="$simlib_8cpp.html#a36c31afc53e5a1e87177eff988d6d17e" title="trim string from right " alt="" coords="501,56,549,83"/>
+</map>

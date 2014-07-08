@@ -1,0 +1,12 @@
+<map id="Inicializer::readOptions" name="Inicializer::readOptions">
+<area shape="rect" id="node2" href="$mygetline_8h.html#a9ec059b1dbefbcc097f388e5a08911e2" title="myGetLine" alt="" coords="227,5,312,32"/>
+<area shape="rect" id="node4" href="$simlib_8cpp.html#a4371bd7d8210d09a110b9642b42b7e7f" title="removes comments " alt="" coords="215,56,323,83"/>
+<area shape="rect" id="node5" href="$simlib_8cpp.html#a60ea663401e86ca2a60a29e76c716679" title="trim string from left and right " alt="" coords="383,132,427,159"/>
+<area shape="rect" id="node8" href="$class_inicializer.html#a59b1de21fff55d47d71f1e3f56a6b23f" title="convert string num into two integers " alt="" coords="208,157,331,184"/>
+<area shape="rect" id="node9" href="$class_inicializer.html#ab20cbac5cc1211b24da005557a67ea10" title="convert string num into integer " alt="" coords="210,208,329,235"/>
+<area shape="rect" id="node10" href="$class_inicializer.html#added4b028cc3d6118d1b8c92c3eedd82" title="convert string num into long " alt="" coords="210,259,329,285"/>
+<area shape="rect" id="node11" href="$class_inicializer.html#a93fa1c3e89f1a519611e9861d9f30989" title="convert string num into double " alt="" coords="208,309,331,336"/>
+<area shape="rect" id="node3" href="$mygetline_8h.html#afe1d973411ec6554e24bae11e58612a9" title="fgetln" alt="" coords="379,5,432,32"/>
+<area shape="rect" id="node6" href="$simlib_8cpp.html#a1d9ff13ca6fbfeed019ff8459a2d7b27" title="trim string from left " alt="" coords="481,107,527,133"/>
+<area shape="rect" id="node7" href="$simlib_8cpp.html#a36c31afc53e5a1e87177eff988d6d17e" title="trim string from right " alt="" coords="480,157,528,184"/>
+</map>

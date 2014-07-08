@@ -1,0 +1,662 @@
+\hypertarget{class_total_energy_calculator}{\section{Total\+Energy\+Calculator Class Reference}
+\label{class_total_energy_calculator}\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+}
+
+
+{\ttfamily \#include $<$totalenergycalculator.\+h$>$}
+
+
+
+Collaboration diagram for Total\+Energy\+Calculator\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_total_energy_calculator_a0cb93271cde50b1c5141d13b8b57cf5e}{Total\+Energy\+Calculator} (\hyperlink{struct_topo}{Topo} $\ast$\hyperlink{class_total_energy_calculator_aed85fe4b47789143751a8da4f533e615}{topo}, \hyperlink{struct_sim}{Sim} $\ast$\hyperlink{class_total_energy_calculator_abc83a6fe12e76bdbff49d40667819edc}{sim}, \hyperlink{class_conf}{Conf} $\ast$\hyperlink{class_total_energy_calculator_ae868ad495fea34a95ccbee693e9ef9ae}{conf})
+\item 
+double \hyperlink{class_total_energy_calculator_a8cf80da65e373aac898e7254f900f6fe}{operator()} (\hyperlink{class_particle}{Particle} $\ast$target, int mode, int chainnum)
+\begin{DoxyCompactList}\small\item\em calc\+\_\+energy Calculate the different energy contributions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_pair_energy_calculator}{Pair\+Energy\+Calculator} \hyperlink{class_total_energy_calculator_a42d9a9a956351ee23ba23fb7dd30d4d0}{pair\+E}
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{class_total_energy_calculator_a89a6dcc55f2f0528c12f8802508fbf5b}{extere2} (\hyperlink{class_particle}{Particle} $\ast$target)
+\begin{DoxyCompactList}\small\item\em extere2 Calculates interaction of target particle and external field version 2 calculate projection of spherocylinder in direction of patch and calculate interacting line segment within cutoff \end{DoxyCompactList}\item 
+void \hyperlink{class_total_energy_calculator_aa0e675faa678a69f36486561b50765d4}{exter2\+Closest\+Dist} ()
+\begin{DoxyCompactList}\small\item\em exter2\+Closest\+Dist \end{DoxyCompactList}\item 
+double \hyperlink{class_total_energy_calculator_ae6894b0058a8dc9137935d5aa4cad517}{exter2\+Atre} (double $\ast$ndist, int numpatch, double halfl)
+\begin{DoxyCompactList}\small\item\em exter2\+\_\+atre \end{DoxyCompactList}\item 
+double \hyperlink{class_total_energy_calculator_a5b1555512d0d6891a77bf7d036df5d35}{exter\+Atre} (double $\ast$ndist, int numpatch, double halfl)
+\begin{DoxyCompactList}\small\item\em exter\+\_\+atre Calculates interaction of target particle and external field calculate projection of patch of spherocylinder on wall evaluate intersection area and calculate interaction from that \end{DoxyCompactList}\item 
+double \hyperlink{class_total_energy_calculator_a45ad49b5c9e4fd20cde632c228ac1114}{area\+Eight\+Points} (\hyperlink{class_vector}{Vector} $\ast$p1, \hyperlink{class_vector}{Vector} $\ast$p2, \hyperlink{class_vector}{Vector} $\ast$p3, \hyperlink{class_vector}{Vector} $\ast$p4, \hyperlink{class_vector}{Vector} $\ast$p5, \hyperlink{class_vector}{Vector} $\ast$p6, \hyperlink{class_vector}{Vector} $\ast$p7, \hyperlink{class_vector}{Vector} $\ast$p8)
+\begin{DoxyCompactList}\small\item\em areaeightpoints calculates area defined by six points in z=0 plane \end{DoxyCompactList}\item 
+int \hyperlink{class_total_energy_calculator_a41e962b0b531514d13ed5197f1ec21e7}{psc\+Wall} (\hyperlink{class_vector}{Vector} $\ast$pbeg, \hyperlink{class_vector}{Vector} $\ast$pend, \hyperlink{class_vector}{Vector} $\ast$projectdir, \hyperlink{class_vector}{Vector} $\ast$partdir, double $\ast$cutdist, \hyperlink{class_vector}{Vector} $\ast$partbeg, \hyperlink{class_vector}{Vector} $\ast$partend)
+\begin{DoxyCompactList}\small\item\em psc\+\_\+wall Find projection of cpsc on plane (0,0,1) including cutoff and return vector2 to its begining and end and cm \end{DoxyCompactList}\item 
+int \hyperlink{class_total_energy_calculator_a5a8e2104a52069da69d55e8e73b912e1}{cpsc\+Wall} (\hyperlink{class_vector}{Vector} $\ast$pbeg, \hyperlink{class_vector}{Vector} $\ast$pend, \hyperlink{class_vector}{Vector} $\ast$projectdir, \hyperlink{class_vector}{Vector} $\ast$partdir, double $\ast$halfl, double $\ast$cutdist, \hyperlink{class_vector}{Vector} $\ast$partbeg, \hyperlink{class_vector}{Vector} $\ast$partend)
+\begin{DoxyCompactList}\small\item\em cpsc\+\_\+wall \end{DoxyCompactList}\item 
+int \hyperlink{class_total_energy_calculator_a846388c0d124ff2952c9c4446e250d56}{cut\+Project\+At\+Wall} (\hyperlink{class_vector}{Vector} $\ast$pextr1, \hyperlink{class_vector}{Vector} $\ast$pextr2, \hyperlink{class_vector}{Vector} $\ast$pextr3, \hyperlink{class_vector}{Vector} $\ast$pextr4, \hyperlink{class_vector}{Vector} $\ast$projectdir, \hyperlink{class_vector}{Vector} $\ast$partdir, double $\ast$cutdist, \hyperlink{class_vector}{Vector} $\ast$partbeg, \hyperlink{class_vector}{Vector} $\ast$partend, \hyperlink{class_vector}{Vector} $\ast$pend, double $\ast$cuttoproject)
+\begin{DoxyCompactList}\small\item\em cutprojectatwall \end{DoxyCompactList}\item 
+void \hyperlink{class_total_energy_calculator_ac5d1c3dde1b6986d95ff40254ed10419}{projectin\+Z} (\hyperlink{class_vector}{Vector} $\ast$vec1, \hyperlink{class_vector}{Vector} $\ast$projectdir, \hyperlink{class_vector}{Vector} $\ast$projection)
+\begin{DoxyCompactList}\small\item\em projectinz project a point in project direction to z plane z=0 \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{struct_topo}{Topo} $\ast$ \hyperlink{class_total_energy_calculator_aed85fe4b47789143751a8da4f533e615}{topo}
+\item 
+\hyperlink{struct_sim}{Sim} $\ast$ \hyperlink{class_total_energy_calculator_abc83a6fe12e76bdbff49d40667819edc}{sim}
+\item 
+\hyperlink{class_conf}{Conf} $\ast$ \hyperlink{class_total_energy_calculator_ae868ad495fea34a95ccbee693e9ef9ae}{conf}
+\item 
+double \hyperlink{class_total_energy_calculator_a3312e4e4960e0b0d8e9beee49b564be3}{dist}
+\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_total_energy_calculator_a36f86f8f18de4b67cf7cece255e2bd24}{distvec}
+\item 
+\hyperlink{class_particle}{Particle} $\ast$ \hyperlink{class_total_energy_calculator_af248d853457c79697dd8ee0a6bf51009}{part1}
+\item 
+\hyperlink{class_particle}{Particle} $\ast$ \hyperlink{class_total_energy_calculator_acdf5494d79d86b8a858986fbe217cf07}{part2}
+\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_total_energy_calculator_a2b8554506010ed5959493d7e54e8771a}{box}
+\item 
+\hyperlink{struct_ia__param}{Ia\+\_\+param} $\ast$ \hyperlink{class_total_energy_calculator_ab1b79a941c5162d24bebe9457e80c60c}{param}
+\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_total_energy_calculator_a3436677c3c7642b1199a4ea2baea0341}{r\+\_\+cm}
+\item 
+double \hyperlink{class_total_energy_calculator_a34c513a4a5061ee58ab140e134c10da7}{distcm}
+\item 
+double \hyperlink{class_total_energy_calculator_a4c3b02cf48e37b7da57e64581ac32c0e}{dotrcm}
+\item 
+double \hyperlink{class_total_energy_calculator_a84807f31d0125c1b477443e7de5d0df1}{contt}
+\item 
+bool \hyperlink{class_total_energy_calculator_a8eaba0c4862050d5c1a155ff6e14f4b7}{positive}
+\item 
+bool \hyperlink{class_total_energy_calculator_ab336879dc53e5f9431b5786c8b236fdf}{orientin}
+\item 
+double \hyperlink{class_total_energy_calculator_ad1c7a488e8ccddf539fba752d71918f4}{orient}
+\item 
+double \hyperlink{class_total_energy_calculator_acbaf4435cba069d4284cbeaedbbba208}{rcmz}
+\item 
+double \hyperlink{class_total_energy_calculator_a8a5eef194118c4d4c5113ee00636aeb0}{interendz}
+\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_total_energy_calculator_adce0cf6f252e038cf16ef1bdf7627e12}{project}
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_total_energy_calculator_a0cb93271cde50b1c5141d13b8b57cf5e}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{Total\+Energy\+Calculator}]{\setlength{\rightskip}{0pt plus 5cm}Total\+Energy\+Calculator\+::\+Total\+Energy\+Calculator (
+\begin{DoxyParamCaption}
+\item[{{\bf Topo} $\ast$}]{topo, }
+\item[{{\bf Sim} $\ast$}]{sim, }
+\item[{{\bf Conf} $\ast$}]{conf}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_total_energy_calculator_a0cb93271cde50b1c5141d13b8b57cf5e}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a0cb93271cde50b1c5141d13b8b57cf5e_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_total_energy_calculator_a45ad49b5c9e4fd20cde632c228ac1114}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!area\+Eight\+Points@{area\+Eight\+Points}}
+\index{area\+Eight\+Points@{area\+Eight\+Points}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{area\+Eight\+Points}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::area\+Eight\+Points (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{p1, }
+\item[{{\bf Vector} $\ast$}]{p2, }
+\item[{{\bf Vector} $\ast$}]{p3, }
+\item[{{\bf Vector} $\ast$}]{p4, }
+\item[{{\bf Vector} $\ast$}]{p5, }
+\item[{{\bf Vector} $\ast$}]{p6, }
+\item[{{\bf Vector} $\ast$}]{p7, }
+\item[{{\bf Vector} $\ast$}]{p8}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a45ad49b5c9e4fd20cde632c228ac1114}
+
+
+areaeightpoints calculates area defined by six points in z=0 plane 
+
+
+\begin{DoxyParams}{Parameters}
+{\em p1} & \\
+\hline
+{\em p2} & \\
+\hline
+{\em p3} & \\
+\hline
+{\em p4} & \\
+\hline
+{\em p5} & \\
+\hline
+{\em p6} & \\
+\hline
+{\em p7} & \\
+\hline
+{\em p8} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a45ad49b5c9e4fd20cde632c228ac1114_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a5a8e2104a52069da69d55e8e73b912e1}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!cpsc\+Wall@{cpsc\+Wall}}
+\index{cpsc\+Wall@{cpsc\+Wall}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{cpsc\+Wall}]{\setlength{\rightskip}{0pt plus 5cm}int Total\+Energy\+Calculator\+::cpsc\+Wall (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{pbeg, }
+\item[{{\bf Vector} $\ast$}]{pend, }
+\item[{{\bf Vector} $\ast$}]{projectdir, }
+\item[{{\bf Vector} $\ast$}]{partdir, }
+\item[{double $\ast$}]{halfl, }
+\item[{double $\ast$}]{cutdist, }
+\item[{{\bf Vector} $\ast$}]{partbeg, }
+\item[{{\bf Vector} $\ast$}]{partend}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a5a8e2104a52069da69d55e8e73b912e1}
+
+
+cpsc\+\_\+wall 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbeg} & \\
+\hline
+{\em pend} & \\
+\hline
+{\em projectdir} & \\
+\hline
+{\em partdir} & \\
+\hline
+{\em halfl} & \\
+\hline
+{\em cutdist} & \\
+\hline
+{\em partbeg} & \\
+\hline
+{\em partend} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a5a8e2104a52069da69d55e8e73b912e1_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a5a8e2104a52069da69d55e8e73b912e1_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a846388c0d124ff2952c9c4446e250d56}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!cut\+Project\+At\+Wall@{cut\+Project\+At\+Wall}}
+\index{cut\+Project\+At\+Wall@{cut\+Project\+At\+Wall}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{cut\+Project\+At\+Wall}]{\setlength{\rightskip}{0pt plus 5cm}int Total\+Energy\+Calculator\+::cut\+Project\+At\+Wall (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{pextr1, }
+\item[{{\bf Vector} $\ast$}]{pextr2, }
+\item[{{\bf Vector} $\ast$}]{pextr3, }
+\item[{{\bf Vector} $\ast$}]{pextr4, }
+\item[{{\bf Vector} $\ast$}]{projectdir, }
+\item[{{\bf Vector} $\ast$}]{partdir, }
+\item[{double $\ast$}]{cutdist, }
+\item[{{\bf Vector} $\ast$}]{partbeg, }
+\item[{{\bf Vector} $\ast$}]{partend, }
+\item[{{\bf Vector} $\ast$}]{pend, }
+\item[{double $\ast$}]{cuttoproject}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a846388c0d124ff2952c9c4446e250d56}
+
+
+cutprojectatwall 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pextr1} & \\
+\hline
+{\em pextr2} & \\
+\hline
+{\em pextr3} & \\
+\hline
+{\em pextr4} & \\
+\hline
+{\em projectdir} & \\
+\hline
+{\em partdir} & \\
+\hline
+{\em cutdist} & \\
+\hline
+{\em partbeg} & \\
+\hline
+{\em partend} & \\
+\hline
+{\em pend} & \\
+\hline
+{\em cuttoproject} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a846388c0d124ff2952c9c4446e250d56_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a846388c0d124ff2952c9c4446e250d56_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_ae6894b0058a8dc9137935d5aa4cad517}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!exter2\+Atre@{exter2\+Atre}}
+\index{exter2\+Atre@{exter2\+Atre}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{exter2\+Atre}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::exter2\+Atre (
+\begin{DoxyParamCaption}
+\item[{double $\ast$}]{ndist, }
+\item[{int}]{numpatch, }
+\item[{double}]{halfl}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_ae6894b0058a8dc9137935d5aa4cad517}
+
+
+exter2\+\_\+atre 
+
+
+\begin{DoxyParams}{Parameters}
+{\em interact} & \\
+\hline
+{\em ndist} & \\
+\hline
+{\em numpatch} & \\
+\hline
+{\em halfl} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_ae6894b0058a8dc9137935d5aa4cad517_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_ae6894b0058a8dc9137935d5aa4cad517_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_aa0e675faa678a69f36486561b50765d4}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!exter2\+Closest\+Dist@{exter2\+Closest\+Dist}}
+\index{exter2\+Closest\+Dist@{exter2\+Closest\+Dist}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{exter2\+Closest\+Dist}]{\setlength{\rightskip}{0pt plus 5cm}void Total\+Energy\+Calculator\+::exter2\+Closest\+Dist (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_aa0e675faa678a69f36486561b50765d4}
+
+
+exter2\+Closest\+Dist 
+
+
+\begin{DoxyParams}{Parameters}
+{\em interact} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_aa0e675faa678a69f36486561b50765d4_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a5b1555512d0d6891a77bf7d036df5d35}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!exter\+Atre@{exter\+Atre}}
+\index{exter\+Atre@{exter\+Atre}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{exter\+Atre}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::exter\+Atre (
+\begin{DoxyParamCaption}
+\item[{double $\ast$}]{ndist, }
+\item[{int}]{numpatch, }
+\item[{double}]{halfl}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a5b1555512d0d6891a77bf7d036df5d35}
+
+
+exter\+\_\+atre Calculates interaction of target particle and external field calculate projection of patch of spherocylinder on wall evaluate intersection area and calculate interaction from that 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ndist} & \\
+\hline
+{\em numpatch} & \\
+\hline
+{\em halfl} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\begin{DoxyRefDesc}{Deprecated}
+\item[\hyperlink{deprecated__deprecated000001}{Deprecated}]\end{DoxyRefDesc}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a5b1555512d0d6891a77bf7d036df5d35_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a89a6dcc55f2f0528c12f8802508fbf5b}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!extere2@{extere2}}
+\index{extere2@{extere2}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{extere2}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::extere2 (
+\begin{DoxyParamCaption}
+\item[{{\bf Particle} $\ast$}]{target}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a89a6dcc55f2f0528c12f8802508fbf5b}
+
+
+extere2 Calculates interaction of target particle and external field version 2 calculate projection of spherocylinder in direction of patch and calculate interacting line segment within cutoff 
+
+
+\begin{DoxyParams}{Parameters}
+{\em target} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a89a6dcc55f2f0528c12f8802508fbf5b_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a89a6dcc55f2f0528c12f8802508fbf5b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a8cf80da65e373aac898e7254f900f6fe}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!operator()@{operator()}}
+\index{operator()@{operator()}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::operator() (
+\begin{DoxyParamCaption}
+\item[{{\bf Particle} $\ast$}]{target, }
+\item[{int}]{mode, }
+\item[{int}]{chainnum}
+\end{DoxyParamCaption}
+)}}\label{class_total_energy_calculator_a8cf80da65e373aac898e7254f900f6fe}
+
+
+calc\+\_\+energy Calculate the different energy contributions. 
+
+This is a merge of the different energy calculation functions (energyone, -\/chain, -\/all) 0\+: all 1\+: one 2\+: chain
+
+
+\begin{DoxyParams}{Parameters}
+{\em target} & \\
+\hline
+{\em mode} & \\
+\hline
+{\em chainnum} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a8cf80da65e373aac898e7254f900f6fe_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_ac5d1c3dde1b6986d95ff40254ed10419}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!projectin\+Z@{projectin\+Z}}
+\index{projectin\+Z@{projectin\+Z}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{projectin\+Z}]{\setlength{\rightskip}{0pt plus 5cm}void Total\+Energy\+Calculator\+::projectin\+Z (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{vec1, }
+\item[{{\bf Vector} $\ast$}]{projectdir, }
+\item[{{\bf Vector} $\ast$}]{projection}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [private]}}}\label{class_total_energy_calculator_ac5d1c3dde1b6986d95ff40254ed10419}
+
+
+projectinz project a point in project direction to z plane z=0 
+
+
+\begin{DoxyParams}{Parameters}
+{\em vec1} & \\
+\hline
+{\em projectdir} & \\
+\hline
+{\em projection} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_ac5d1c3dde1b6986d95ff40254ed10419_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_total_energy_calculator_a41e962b0b531514d13ed5197f1ec21e7}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!psc\+Wall@{psc\+Wall}}
+\index{psc\+Wall@{psc\+Wall}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{psc\+Wall}]{\setlength{\rightskip}{0pt plus 5cm}int Total\+Energy\+Calculator\+::psc\+Wall (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{pbeg, }
+\item[{{\bf Vector} $\ast$}]{pend, }
+\item[{{\bf Vector} $\ast$}]{projectdir, }
+\item[{{\bf Vector} $\ast$}]{partdir, }
+\item[{double $\ast$}]{cutdist, }
+\item[{{\bf Vector} $\ast$}]{partbeg, }
+\item[{{\bf Vector} $\ast$}]{partend}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a41e962b0b531514d13ed5197f1ec21e7}
+
+
+psc\+\_\+wall Find projection of cpsc on plane (0,0,1) including cutoff and return vector2 to its begining and end and cm 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbeg} & \\
+\hline
+{\em pend} & \\
+\hline
+{\em projectdir} & \\
+\hline
+{\em partdir} & \\
+\hline
+{\em cutdist} & \\
+\hline
+{\em partbeg} & \\
+\hline
+{\em partend} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{class_total_energy_calculator_a41e962b0b531514d13ed5197f1ec21e7_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_total_energy_calculator_a41e962b0b531514d13ed5197f1ec21e7_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_total_energy_calculator_a2b8554506010ed5959493d7e54e8771a}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!box@{box}}
+\index{box@{box}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{box}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Total\+Energy\+Calculator\+::box\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a2b8554506010ed5959493d7e54e8771a}
+\hypertarget{class_total_energy_calculator_ae868ad495fea34a95ccbee693e9ef9ae}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!conf@{conf}}
+\index{conf@{conf}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf}$\ast$ Total\+Energy\+Calculator\+::conf\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_ae868ad495fea34a95ccbee693e9ef9ae}
+\hypertarget{class_total_energy_calculator_a84807f31d0125c1b477443e7de5d0df1}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!contt@{contt}}
+\index{contt@{contt}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{contt}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::contt\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a84807f31d0125c1b477443e7de5d0df1}
+\hypertarget{class_total_energy_calculator_a3312e4e4960e0b0d8e9beee49b564be3}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!dist@{dist}}
+\index{dist@{dist}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{dist}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::dist\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a3312e4e4960e0b0d8e9beee49b564be3}
+\hypertarget{class_total_energy_calculator_a34c513a4a5061ee58ab140e134c10da7}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!distcm@{distcm}}
+\index{distcm@{distcm}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{distcm}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::distcm\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a34c513a4a5061ee58ab140e134c10da7}
+\hypertarget{class_total_energy_calculator_a36f86f8f18de4b67cf7cece255e2bd24}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!distvec@{distvec}}
+\index{distvec@{distvec}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{distvec}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Total\+Energy\+Calculator\+::distvec\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a36f86f8f18de4b67cf7cece255e2bd24}
+\hypertarget{class_total_energy_calculator_a4c3b02cf48e37b7da57e64581ac32c0e}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!dotrcm@{dotrcm}}
+\index{dotrcm@{dotrcm}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{dotrcm}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::dotrcm\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a4c3b02cf48e37b7da57e64581ac32c0e}
+\hypertarget{class_total_energy_calculator_a8a5eef194118c4d4c5113ee00636aeb0}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!interendz@{interendz}}
+\index{interendz@{interendz}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{interendz}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::interendz\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a8a5eef194118c4d4c5113ee00636aeb0}
+\hypertarget{class_total_energy_calculator_ad1c7a488e8ccddf539fba752d71918f4}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!orient@{orient}}
+\index{orient@{orient}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{orient}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::orient\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_ad1c7a488e8ccddf539fba752d71918f4}
+\hypertarget{class_total_energy_calculator_ab336879dc53e5f9431b5786c8b236fdf}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!orientin@{orientin}}
+\index{orientin@{orientin}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{orientin}]{\setlength{\rightskip}{0pt plus 5cm}bool Total\+Energy\+Calculator\+::orientin\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_ab336879dc53e5f9431b5786c8b236fdf}
+\hypertarget{class_total_energy_calculator_a42d9a9a956351ee23ba23fb7dd30d4d0}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!pair\+E@{pair\+E}}
+\index{pair\+E@{pair\+E}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{pair\+E}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Pair\+Energy\+Calculator} Total\+Energy\+Calculator\+::pair\+E}}\label{class_total_energy_calculator_a42d9a9a956351ee23ba23fb7dd30d4d0}
+\hypertarget{class_total_energy_calculator_ab1b79a941c5162d24bebe9457e80c60c}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!param@{param}}
+\index{param@{param}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{param}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Ia\+\_\+param}$\ast$ Total\+Energy\+Calculator\+::param\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_ab1b79a941c5162d24bebe9457e80c60c}
+\hypertarget{class_total_energy_calculator_af248d853457c79697dd8ee0a6bf51009}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!part1@{part1}}
+\index{part1@{part1}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{part1}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Particle}$\ast$ Total\+Energy\+Calculator\+::part1\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_af248d853457c79697dd8ee0a6bf51009}
+\hypertarget{class_total_energy_calculator_acdf5494d79d86b8a858986fbe217cf07}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!part2@{part2}}
+\index{part2@{part2}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{part2}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Particle}$\ast$ Total\+Energy\+Calculator\+::part2\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_acdf5494d79d86b8a858986fbe217cf07}
+\hypertarget{class_total_energy_calculator_a8eaba0c4862050d5c1a155ff6e14f4b7}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!positive@{positive}}
+\index{positive@{positive}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{positive}]{\setlength{\rightskip}{0pt plus 5cm}bool Total\+Energy\+Calculator\+::positive\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a8eaba0c4862050d5c1a155ff6e14f4b7}
+\hypertarget{class_total_energy_calculator_adce0cf6f252e038cf16ef1bdf7627e12}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!project@{project}}
+\index{project@{project}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{project}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Total\+Energy\+Calculator\+::project\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_adce0cf6f252e038cf16ef1bdf7627e12}
+\hypertarget{class_total_energy_calculator_a3436677c3c7642b1199a4ea2baea0341}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!r\+\_\+cm@{r\+\_\+cm}}
+\index{r\+\_\+cm@{r\+\_\+cm}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{r\+\_\+cm}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Total\+Energy\+Calculator\+::r\+\_\+cm\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_a3436677c3c7642b1199a4ea2baea0341}
+\hypertarget{class_total_energy_calculator_acbaf4435cba069d4284cbeaedbbba208}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!rcmz@{rcmz}}
+\index{rcmz@{rcmz}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{rcmz}]{\setlength{\rightskip}{0pt plus 5cm}double Total\+Energy\+Calculator\+::rcmz\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_acbaf4435cba069d4284cbeaedbbba208}
+\hypertarget{class_total_energy_calculator_abc83a6fe12e76bdbff49d40667819edc}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!sim@{sim}}
+\index{sim@{sim}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{sim}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sim}$\ast$ Total\+Energy\+Calculator\+::sim\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_abc83a6fe12e76bdbff49d40667819edc}
+\hypertarget{class_total_energy_calculator_aed85fe4b47789143751a8da4f533e615}{\index{Total\+Energy\+Calculator@{Total\+Energy\+Calculator}!topo@{topo}}
+\index{topo@{topo}!Total\+Energy\+Calculator@{Total\+Energy\+Calculator}}
+\subsubsection[{topo}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Topo}$\ast$ Total\+Energy\+Calculator\+::topo\hspace{0.3cm}{\ttfamily [private]}}}\label{class_total_energy_calculator_aed85fe4b47789143751a8da4f533e615}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{totalenergycalculator_8h}{totalenergycalculator.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{totalenergycalculator_8cpp}{totalenergycalculator.\+cpp}\end{DoxyCompactItemize}

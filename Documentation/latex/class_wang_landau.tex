@@ -1,0 +1,429 @@
+\hypertarget{class_wang_landau}{\section{Wang\+Landau Class Reference}
+\label{class_wang_landau}\index{Wang\+Landau@{Wang\+Landau}}
+}
+
+
+{\ttfamily \#include $<$wanglandau.\+h$>$}
+
+
+
+Collaboration diagram for Wang\+Landau\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_wang_landau_ab53f526003716a3b44563e5d2e5bed30}{Wang\+Landau} ()
+\item 
+void \hyperlink{class_wang_landau_a7d5506109f6c750565616c08b726d9f9}{set\+Topo\+Conf} (\hyperlink{struct_topo}{Topo} $\ast$\hyperlink{class_wang_landau_a501fc7de450a2e78e5817331ec748517}{topo}, \hyperlink{class_conf}{Conf} $\ast$\hyperlink{class_wang_landau_acffd727c52c62ecf4bb12afbef005f91}{conf})
+\item 
+long \hyperlink{class_wang_landau_a4df29efa3a6199173058ffd12710c7e8}{z\+Order} (int wli)
+\begin{DoxyCompactList}\small\item\em z\+\_\+order \end{DoxyCompactList}\item 
+long \hyperlink{class_wang_landau_a14b34abee0916008aa263444926148e5}{two\+Part\+Dist} (int wli)
+\begin{DoxyCompactList}\small\item\em twopartdist \end{DoxyCompactList}\item 
+int \hyperlink{class_wang_landau_aa4f3858393f8cc34e0fb3f8274c4d742}{write} (char filename\mbox{[}30\mbox{]})
+\begin{DoxyCompactList}\small\item\em wlwrite \end{DoxyCompactList}\item 
+void \hyperlink{class_wang_landau_a66c79a6c8c0daa072426fa49476eca2f}{reject} (long oldlength, int wlm\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em wlreject \end{DoxyCompactList}\item 
+void \hyperlink{class_wang_landau_a92b05d49c04b18f80a2532ced9e1ab5e}{accept} (int wlm)
+\begin{DoxyCompactList}\small\item\em wlaccept \end{DoxyCompactList}\item 
+int \hyperlink{class_wang_landau_a8ae98a180e7b4558de2a284e98c36f64}{end} ()
+\begin{DoxyCompactList}\small\item\em wlend \end{DoxyCompactList}\item 
+int \hyperlink{class_wang_landau_a4f96f435c69135fb5597cb708cb67ed5}{init\+Calc} (char filename\mbox{[}30\mbox{]})
+\begin{DoxyCompactList}\small\item\em wlinit Initiate Wang-\/\+Landau calculation. \end{DoxyCompactList}\item 
+char $\ast$ \hyperlink{class_wang_landau_a94ec92068a3d35b48a3dcb49e69cfbab}{wlfgets} (char $\ast$line, int n, F\+I\+L\+E $\ast$stream)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{struct_topo}{Topo} $\ast$ \hyperlink{class_wang_landau_a501fc7de450a2e78e5817331ec748517}{topo}
+\item 
+\hyperlink{class_conf}{Conf} $\ast$ \hyperlink{class_wang_landau_acffd727c52c62ecf4bb12afbef005f91}{conf}
+\item 
+double $\ast$ \hyperlink{class_wang_landau_ad496dccf54ec8d44362b51e4e9df6a0a}{weights}
+\item 
+long $\ast$ \hyperlink{class_wang_landau_aeec23524069d5194edccbe4a62337b49}{hist}
+\item 
+long \hyperlink{class_wang_landau_a252b732514b252e242214c9af3d5a462}{length} \mbox{[}2\mbox{]}
+\item 
+double \hyperlink{class_wang_landau_afaa523a1ec9e61fcb7045fafd2612482}{dorder} \mbox{[}2\mbox{]}
+\item 
+double \hyperlink{class_wang_landau_a8e8133ccc74e6d1c04d1cabc6ec7f75b}{minorder} \mbox{[}2\mbox{]}
+\item 
+double \hyperlink{class_wang_landau_a8bb1140ae96416553fe3c286e33446fa}{alpha}
+\item 
+long \hyperlink{class_wang_landau_a1d6cf967b7c33ff4140109e17df8c842}{currorder} \mbox{[}2\mbox{]}
+\item 
+long \hyperlink{class_wang_landau_a0b32be956e40083026f9b8bb1021f30b}{neworder} \mbox{[}2\mbox{]}
+\item 
+long \hyperlink{class_wang_landau_ad2954970aa554f2ea0031d943eab9bb7}{max}
+\item 
+long \hyperlink{class_wang_landau_ab863f19bb4921b6f3cd4f9dbe062cef2}{min}
+\item 
+double \hyperlink{class_wang_landau_a322c81039b5e71972667d3fac00e2576}{wmin}
+\item 
+int \hyperlink{class_wang_landau_a7ad19ee80822168ea3ee712529f1b96d}{wlmdim}
+\item 
+int \hyperlink{class_wang_landau_ae307e86eafae0c11461c0beac5462868}{wlmtype}
+\item 
+double \hyperlink{class_wang_landau_ae8655cc00c6200de6523e4eef767d5ed}{wl\+\_\+meshsize}
+\item 
+\hyperlink{class_mesh}{Mesh} \hyperlink{class_wang_landau_a9ba65a2907470556cf8dae45ffdf9085}{mesh}
+\item 
+\hyperlink{class_mesh}{Mesh} \hyperlink{class_wang_landau_a29946e441e8100d7b45e29abc2240f5c}{origmesh}
+\item 
+long $\ast$ \hyperlink{class_wang_landau_afb3517ab3785c692092a9098d592f33f}{radiushole}
+\item 
+long $\ast$ \hyperlink{class_wang_landau_acbbebbb8ef7c4027f12e622e5483d629}{radiusholeold}
+\item 
+long \hyperlink{class_wang_landau_a835edf20e91bf48a036fa67fabe50b01}{radiusholemax}
+\item 
+long \hyperlink{class_wang_landau_a42ffd226c98ae4e51394bb6cb0601da9}{partincontact}
+\item 
+long \hyperlink{class_wang_landau_abb27a328f511d7eb10c5d511f19d5e43}{partincontactold}
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_wang_landau_ab53f526003716a3b44563e5d2e5bed30}{\index{Wang\+Landau@{Wang\+Landau}!Wang\+Landau@{Wang\+Landau}}
+\index{Wang\+Landau@{Wang\+Landau}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{Wang\+Landau}]{\setlength{\rightskip}{0pt plus 5cm}Wang\+Landau\+::\+Wang\+Landau (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_wang_landau_ab53f526003716a3b44563e5d2e5bed30}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_wang_landau_a92b05d49c04b18f80a2532ced9e1ab5e}{\index{Wang\+Landau@{Wang\+Landau}!accept@{accept}}
+\index{accept@{accept}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{accept}]{\setlength{\rightskip}{0pt plus 5cm}void Wang\+Landau\+::accept (
+\begin{DoxyParamCaption}
+\item[{int}]{wlm}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a92b05d49c04b18f80a2532ced9e1ab5e}
+
+
+wlaccept 
+
+
+\begin{DoxyParams}{Parameters}
+{\em wlm} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a92b05d49c04b18f80a2532ced9e1ab5e_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a8ae98a180e7b4558de2a284e98c36f64}{\index{Wang\+Landau@{Wang\+Landau}!end@{end}}
+\index{end@{end}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{end}]{\setlength{\rightskip}{0pt plus 5cm}int Wang\+Landau\+::end (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a8ae98a180e7b4558de2a284e98c36f64}
+
+
+wlend 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a8ae98a180e7b4558de2a284e98c36f64_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a4f96f435c69135fb5597cb708cb67ed5}{\index{Wang\+Landau@{Wang\+Landau}!init\+Calc@{init\+Calc}}
+\index{init\+Calc@{init\+Calc}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{init\+Calc}]{\setlength{\rightskip}{0pt plus 5cm}int Wang\+Landau\+::init\+Calc (
+\begin{DoxyParamCaption}
+\item[{char}]{filename\mbox{[}30\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a4f96f435c69135fb5597cb708cb67ed5}
+
+
+wlinit Initiate Wang-\/\+Landau calculation. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a4f96f435c69135fb5597cb708cb67ed5_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a4f96f435c69135fb5597cb708cb67ed5_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a66c79a6c8c0daa072426fa49476eca2f}{\index{Wang\+Landau@{Wang\+Landau}!reject@{reject}}
+\index{reject@{reject}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{reject}]{\setlength{\rightskip}{0pt plus 5cm}void Wang\+Landau\+::reject (
+\begin{DoxyParamCaption}
+\item[{long}]{oldlength, }
+\item[{int}]{wlm\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a66c79a6c8c0daa072426fa49476eca2f}
+
+
+wlreject 
+
+
+\begin{DoxyParams}{Parameters}
+{\em oldlength} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=294pt]{class_wang_landau_a66c79a6c8c0daa072426fa49476eca2f_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a66c79a6c8c0daa072426fa49476eca2f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a7d5506109f6c750565616c08b726d9f9}{\index{Wang\+Landau@{Wang\+Landau}!set\+Topo\+Conf@{set\+Topo\+Conf}}
+\index{set\+Topo\+Conf@{set\+Topo\+Conf}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{set\+Topo\+Conf}]{\setlength{\rightskip}{0pt plus 5cm}void Wang\+Landau\+::set\+Topo\+Conf (
+\begin{DoxyParamCaption}
+\item[{{\bf Topo} $\ast$}]{topo, }
+\item[{{\bf Conf} $\ast$}]{conf}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_wang_landau_a7d5506109f6c750565616c08b726d9f9}
+\hypertarget{class_wang_landau_a14b34abee0916008aa263444926148e5}{\index{Wang\+Landau@{Wang\+Landau}!two\+Part\+Dist@{two\+Part\+Dist}}
+\index{two\+Part\+Dist@{two\+Part\+Dist}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{two\+Part\+Dist}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::two\+Part\+Dist (
+\begin{DoxyParamCaption}
+\item[{int}]{wli}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a14b34abee0916008aa263444926148e5}
+
+
+twopartdist 
+
+
+\begin{DoxyParams}{Parameters}
+{\em wli} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+2 particles distance 
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a14b34abee0916008aa263444926148e5_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a94ec92068a3d35b48a3dcb49e69cfbab}{\index{Wang\+Landau@{Wang\+Landau}!wlfgets@{wlfgets}}
+\index{wlfgets@{wlfgets}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{wlfgets}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ Wang\+Landau\+::wlfgets (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{line, }
+\item[{int}]{n, }
+\item[{F\+I\+L\+E $\ast$}]{stream}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_wang_landau_a94ec92068a3d35b48a3dcb49e69cfbab}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a94ec92068a3d35b48a3dcb49e69cfbab_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_aa4f3858393f8cc34e0fb3f8274c4d742}{\index{Wang\+Landau@{Wang\+Landau}!write@{write}}
+\index{write@{write}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{write}]{\setlength{\rightskip}{0pt plus 5cm}int Wang\+Landau\+::write (
+\begin{DoxyParamCaption}
+\item[{char}]{filename\mbox{[}30\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_aa4f3858393f8cc34e0fb3f8274c4d742}
+
+
+wlwrite 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_aa4f3858393f8cc34e0fb3f8274c4d742_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_wang_landau_a4df29efa3a6199173058ffd12710c7e8}{\index{Wang\+Landau@{Wang\+Landau}!z\+Order@{z\+Order}}
+\index{z\+Order@{z\+Order}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{z\+Order}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::z\+Order (
+\begin{DoxyParamCaption}
+\item[{int}]{wli}
+\end{DoxyParamCaption}
+)}}\label{class_wang_landau_a4df29efa3a6199173058ffd12710c7e8}
+
+
+z\+\_\+order 
+
+
+\begin{DoxyParams}{Parameters}
+{\em wli} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_wang_landau_a4df29efa3a6199173058ffd12710c7e8_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_wang_landau_a8bb1140ae96416553fe3c286e33446fa}{\index{Wang\+Landau@{Wang\+Landau}!alpha@{alpha}}
+\index{alpha@{alpha}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{alpha}]{\setlength{\rightskip}{0pt plus 5cm}double Wang\+Landau\+::alpha}}\label{class_wang_landau_a8bb1140ae96416553fe3c286e33446fa}
+\hypertarget{class_wang_landau_acffd727c52c62ecf4bb12afbef005f91}{\index{Wang\+Landau@{Wang\+Landau}!conf@{conf}}
+\index{conf@{conf}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf}$\ast$ Wang\+Landau\+::conf}}\label{class_wang_landau_acffd727c52c62ecf4bb12afbef005f91}
+\hypertarget{class_wang_landau_a1d6cf967b7c33ff4140109e17df8c842}{\index{Wang\+Landau@{Wang\+Landau}!currorder@{currorder}}
+\index{currorder@{currorder}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{currorder}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::currorder\mbox{[}2\mbox{]}}}\label{class_wang_landau_a1d6cf967b7c33ff4140109e17df8c842}
+\hypertarget{class_wang_landau_afaa523a1ec9e61fcb7045fafd2612482}{\index{Wang\+Landau@{Wang\+Landau}!dorder@{dorder}}
+\index{dorder@{dorder}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{dorder}]{\setlength{\rightskip}{0pt plus 5cm}double Wang\+Landau\+::dorder\mbox{[}2\mbox{]}}}\label{class_wang_landau_afaa523a1ec9e61fcb7045fafd2612482}
+\hypertarget{class_wang_landau_aeec23524069d5194edccbe4a62337b49}{\index{Wang\+Landau@{Wang\+Landau}!hist@{hist}}
+\index{hist@{hist}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{hist}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Wang\+Landau\+::hist}}\label{class_wang_landau_aeec23524069d5194edccbe4a62337b49}
+\hypertarget{class_wang_landau_a252b732514b252e242214c9af3d5a462}{\index{Wang\+Landau@{Wang\+Landau}!length@{length}}
+\index{length@{length}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{length}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::length\mbox{[}2\mbox{]}}}\label{class_wang_landau_a252b732514b252e242214c9af3d5a462}
+\hypertarget{class_wang_landau_ad2954970aa554f2ea0031d943eab9bb7}{\index{Wang\+Landau@{Wang\+Landau}!max@{max}}
+\index{max@{max}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{max}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::max}}\label{class_wang_landau_ad2954970aa554f2ea0031d943eab9bb7}
+\hypertarget{class_wang_landau_a9ba65a2907470556cf8dae45ffdf9085}{\index{Wang\+Landau@{Wang\+Landau}!mesh@{mesh}}
+\index{mesh@{mesh}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{mesh}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Mesh} Wang\+Landau\+::mesh}}\label{class_wang_landau_a9ba65a2907470556cf8dae45ffdf9085}
+\hypertarget{class_wang_landau_ab863f19bb4921b6f3cd4f9dbe062cef2}{\index{Wang\+Landau@{Wang\+Landau}!min@{min}}
+\index{min@{min}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{min}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::min}}\label{class_wang_landau_ab863f19bb4921b6f3cd4f9dbe062cef2}
+\hypertarget{class_wang_landau_a8e8133ccc74e6d1c04d1cabc6ec7f75b}{\index{Wang\+Landau@{Wang\+Landau}!minorder@{minorder}}
+\index{minorder@{minorder}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{minorder}]{\setlength{\rightskip}{0pt plus 5cm}double Wang\+Landau\+::minorder\mbox{[}2\mbox{]}}}\label{class_wang_landau_a8e8133ccc74e6d1c04d1cabc6ec7f75b}
+\hypertarget{class_wang_landau_a0b32be956e40083026f9b8bb1021f30b}{\index{Wang\+Landau@{Wang\+Landau}!neworder@{neworder}}
+\index{neworder@{neworder}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{neworder}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::neworder\mbox{[}2\mbox{]}}}\label{class_wang_landau_a0b32be956e40083026f9b8bb1021f30b}
+\hypertarget{class_wang_landau_a29946e441e8100d7b45e29abc2240f5c}{\index{Wang\+Landau@{Wang\+Landau}!origmesh@{origmesh}}
+\index{origmesh@{origmesh}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{origmesh}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Mesh} Wang\+Landau\+::origmesh}}\label{class_wang_landau_a29946e441e8100d7b45e29abc2240f5c}
+\hypertarget{class_wang_landau_a42ffd226c98ae4e51394bb6cb0601da9}{\index{Wang\+Landau@{Wang\+Landau}!partincontact@{partincontact}}
+\index{partincontact@{partincontact}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{partincontact}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::partincontact}}\label{class_wang_landau_a42ffd226c98ae4e51394bb6cb0601da9}
+\hypertarget{class_wang_landau_abb27a328f511d7eb10c5d511f19d5e43}{\index{Wang\+Landau@{Wang\+Landau}!partincontactold@{partincontactold}}
+\index{partincontactold@{partincontactold}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{partincontactold}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::partincontactold}}\label{class_wang_landau_abb27a328f511d7eb10c5d511f19d5e43}
+\hypertarget{class_wang_landau_afb3517ab3785c692092a9098d592f33f}{\index{Wang\+Landau@{Wang\+Landau}!radiushole@{radiushole}}
+\index{radiushole@{radiushole}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{radiushole}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Wang\+Landau\+::radiushole}}\label{class_wang_landau_afb3517ab3785c692092a9098d592f33f}
+\hypertarget{class_wang_landau_a835edf20e91bf48a036fa67fabe50b01}{\index{Wang\+Landau@{Wang\+Landau}!radiusholemax@{radiusholemax}}
+\index{radiusholemax@{radiusholemax}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{radiusholemax}]{\setlength{\rightskip}{0pt plus 5cm}long Wang\+Landau\+::radiusholemax}}\label{class_wang_landau_a835edf20e91bf48a036fa67fabe50b01}
+\hypertarget{class_wang_landau_acbbebbb8ef7c4027f12e622e5483d629}{\index{Wang\+Landau@{Wang\+Landau}!radiusholeold@{radiusholeold}}
+\index{radiusholeold@{radiusholeold}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{radiusholeold}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Wang\+Landau\+::radiusholeold}}\label{class_wang_landau_acbbebbb8ef7c4027f12e622e5483d629}
+\hypertarget{class_wang_landau_a501fc7de450a2e78e5817331ec748517}{\index{Wang\+Landau@{Wang\+Landau}!topo@{topo}}
+\index{topo@{topo}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{topo}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Topo}$\ast$ Wang\+Landau\+::topo}}\label{class_wang_landau_a501fc7de450a2e78e5817331ec748517}
+\hypertarget{class_wang_landau_ad496dccf54ec8d44362b51e4e9df6a0a}{\index{Wang\+Landau@{Wang\+Landau}!weights@{weights}}
+\index{weights@{weights}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{weights}]{\setlength{\rightskip}{0pt plus 5cm}double$\ast$ Wang\+Landau\+::weights}}\label{class_wang_landau_ad496dccf54ec8d44362b51e4e9df6a0a}
+\hypertarget{class_wang_landau_ae8655cc00c6200de6523e4eef767d5ed}{\index{Wang\+Landau@{Wang\+Landau}!wl\+\_\+meshsize@{wl\+\_\+meshsize}}
+\index{wl\+\_\+meshsize@{wl\+\_\+meshsize}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{wl\+\_\+meshsize}]{\setlength{\rightskip}{0pt plus 5cm}double Wang\+Landau\+::wl\+\_\+meshsize}}\label{class_wang_landau_ae8655cc00c6200de6523e4eef767d5ed}
+\hypertarget{class_wang_landau_a7ad19ee80822168ea3ee712529f1b96d}{\index{Wang\+Landau@{Wang\+Landau}!wlmdim@{wlmdim}}
+\index{wlmdim@{wlmdim}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{wlmdim}]{\setlength{\rightskip}{0pt plus 5cm}int Wang\+Landau\+::wlmdim}}\label{class_wang_landau_a7ad19ee80822168ea3ee712529f1b96d}
+\hypertarget{class_wang_landau_ae307e86eafae0c11461c0beac5462868}{\index{Wang\+Landau@{Wang\+Landau}!wlmtype@{wlmtype}}
+\index{wlmtype@{wlmtype}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{wlmtype}]{\setlength{\rightskip}{0pt plus 5cm}int Wang\+Landau\+::wlmtype}}\label{class_wang_landau_ae307e86eafae0c11461c0beac5462868}
+\hypertarget{class_wang_landau_a322c81039b5e71972667d3fac00e2576}{\index{Wang\+Landau@{Wang\+Landau}!wmin@{wmin}}
+\index{wmin@{wmin}!Wang\+Landau@{Wang\+Landau}}
+\subsubsection[{wmin}]{\setlength{\rightskip}{0pt plus 5cm}double Wang\+Landau\+::wmin}}\label{class_wang_landau_a322c81039b5e71972667d3fac00e2576}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{wanglandau_8h}{wanglandau.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{wanglandau_8cpp}{wanglandau.\+cpp}\end{DoxyCompactItemize}

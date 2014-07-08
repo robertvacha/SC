@@ -1,0 +1,671 @@
+\hypertarget{class_updater}{\section{Updater Class Reference}
+\label{class_updater}\index{Updater@{Updater}}
+}
+
+
+{\ttfamily \#include $<$updater.\+h$>$}
+
+
+
+Collaboration diagram for Updater\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_updater_a53fc3a29ff7b8457744815f77590ba4d}{Updater} (long int seed, \hyperlink{struct_topo}{Topo} $\ast$\hyperlink{class_updater_a2ac7e890d9b19cd1c8074ef5e2b8fd14}{topo}, \hyperlink{struct_sim}{Sim} $\ast$\hyperlink{class_updater_a0436d5371f3fdc707e323b84ea7356fe}{sim}, \hyperlink{class_conf}{Conf} $\ast$\hyperlink{class_updater_a2f0686ac33efa6f1712431b37d0c1ba1}{conf}, \hyperlink{struct_file_names}{File\+Names} $\ast$\hyperlink{class_updater_ab29cd3f9d7d825aa83cd98aa18b53752}{files})
+\item 
+void \hyperlink{class_updater_a42cde2ba4af4b35d0265a183a42cea20}{simulate} (long \hyperlink{class_updater_aabcc5bfefc334a9514c481f31bcf9c06}{nsweeps}, long \hyperlink{class_updater_af7b8b8f187a21d9683cd4fea2dd5fbd7}{adjust}, long \hyperlink{class_updater_ab992a0a03d5ff6a550596d457e3df5b8}{paramfrq}, long \hyperlink{class_updater_a3dc9b09abafeebacf23cd7c7d17f5655}{report})
+\begin{DoxyCompactList}\small\item\em simulate \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_updater_acccf7211cd6f50fa2e6204f9a722c507}{open\+Files\+Cluster\+Statistics} (F\+I\+L\+E $\ast$cl\+\_\+stat, F\+I\+L\+E $\ast$cl, F\+I\+L\+E $\ast$cl\+\_\+list, F\+I\+L\+E $\ast$ef, F\+I\+L\+E $\ast$statf)
+\item 
+void \hyperlink{class_updater_a2560d47361a5335afc86a4bae94f96ec}{init\+Counters} ()
+\item 
+void \hyperlink{class_updater_a6739aba7e721e7a49f60a5513f6ba32c}{init\+Values} (long \&next\+\_\+adjust, long \&next\+\_\+calc, long \&next\+\_\+dump, long \&next\+\_\+frame, F\+I\+L\+E $\ast$mf)
+\item 
+void \hyperlink{class_updater_a76445be97c06ecf75daa9bdf01f4799d}{init\+Wang\+Landau} ()
+\begin{DoxyCompactList}\small\item\em Initialization of wang-\/landaou method. \end{DoxyCompactList}\item 
+void \hyperlink{class_updater_ad430c652adde7c1b42f5a928da48c64c}{end\+Wang\+Landau} ()
+\item 
+void \hyperlink{class_updater_af25a87eb3106bf56c480aadaddf01204}{optimize\+Step} (\hyperlink{struct_disp}{Disp} $\ast$x, double hi, double lo)
+\begin{DoxyCompactList}\small\item\em optimizestep Optimize the maximum displacement within the specified limits and resets the acceptance counters to zero. \end{DoxyCompactList}\item 
+void \hyperlink{class_updater_ad338fbf16ab7c900490a94321fe865f3}{optimize\+Rot} (\hyperlink{struct_disp}{Disp} $\ast$x, double hi, double lo)
+\begin{DoxyCompactList}\small\item\em optimizerot Optimize the maximum rotation within the specified limits and resets the acceptance counters to zero. Rotation is given by cos of angle larger rotation = smaller cos \end{DoxyCompactList}\item 
+double \hyperlink{class_updater_ac2c6869c4c7dd8d977e83997fb6ab345}{alignment\+Order} ()
+\begin{DoxyCompactList}\small\item\em alignment\+\_\+order alignment O\+R\+D\+E\+R P\+A\+R\+A\+M\+E\+T\+E\+R \end{DoxyCompactList}\item 
+void \hyperlink{class_updater_a90bd68d2d4c95f85a2d12513ab58e372}{gen\+Pair\+List} ()
+\begin{DoxyCompactList}\small\item\em gen\+\_\+pairlist Interface for the generation of the pairlist. Define other pairlist algorithms above. \end{DoxyCompactList}\item 
+void \hyperlink{class_updater_aafd478a2cfabeb9dbba989ad04078f0b}{gen\+Simple\+Pair\+List} ()
+\begin{DoxyCompactList}\small\item\em gen\+\_\+simple\+\_\+pairlist Generates a pairlist with a very basic alogrithm \end{DoxyCompactList}\item 
+int \hyperlink{class_updater_ad42b0e63d199cfe5b4b04057402a19db}{same\+Cluster} (long fst, long snd)
+\begin{DoxyCompactList}\small\item\em same\+\_\+cluster determines, wheter two particles are in the same cluster \end{DoxyCompactList}\item 
+int \hyperlink{class_updater_ae9ae345ec1142e8ab230b7bce00b741f}{gen\+Cluster\+List} ()
+\begin{DoxyCompactList}\small\item\em gen\+\_\+clusterlist generate the clusterlist \end{DoxyCompactList}\item 
+int \hyperlink{class_updater_a44ff7280e48fdf39518a5828af3cfd2a}{sort\+Cluster\+List} ()
+\begin{DoxyCompactList}\small\item\em sort\+\_\+clusterlist sort the clusterlist \end{DoxyCompactList}\item 
+int \hyperlink{class_updater_addde9aa367c4f364b263b8fdda9345b8}{calc\+Cluster\+Energies} ()
+\begin{DoxyCompactList}\small\item\em calc\+\_\+clusterenergies calculate energies of clusters \end{DoxyCompactList}\item 
+int \hyperlink{class_updater_ad3395745c795331dbc976d209d7a1ece}{write\+Cluster} (F\+I\+L\+E $\ast$cl\+\_\+stat, F\+I\+L\+E $\ast$cl, F\+I\+L\+E $\ast$cl\+\_\+list, bool decor, long sweep)
+\begin{DoxyCompactList}\small\item\em write\+\_\+cluster write out all the cluster stat in files, if file name is given \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{struct_topo}{Topo} $\ast$ \hyperlink{class_updater_a2ac7e890d9b19cd1c8074ef5e2b8fd14}{topo}
+\item 
+\hyperlink{struct_sim}{Sim} $\ast$ \hyperlink{class_updater_a0436d5371f3fdc707e323b84ea7356fe}{sim}
+\item 
+\hyperlink{class_conf}{Conf} $\ast$ \hyperlink{class_updater_a2f0686ac33efa6f1712431b37d0c1ba1}{conf}
+\item 
+\hyperlink{struct_file_names}{File\+Names} $\ast$ \hyperlink{class_updater_ab29cd3f9d7d825aa83cd98aa18b53752}{files}
+\item 
+\hyperlink{class_total_energy_calculator}{Total\+Energy\+Calculator} \hyperlink{class_updater_a647ada4927eb26b2fd53a6db0167ff15}{calc\+Energy}
+\item 
+\hyperlink{class_move_creator}{Move\+Creator} \hyperlink{class_updater_a36130f5e0d9b743e8df0e1a9a4f4d7ec}{move}
+\item 
+long \hyperlink{class_updater_aabcc5bfefc334a9514c481f31bcf9c06}{nsweeps}
+\item 
+long \hyperlink{class_updater_af7b8b8f187a21d9683cd4fea2dd5fbd7}{adjust}
+\item 
+long \hyperlink{class_updater_ab992a0a03d5ff6a550596d457e3df5b8}{paramfrq}
+\item 
+long \hyperlink{class_updater_a3dc9b09abafeebacf23cd7c7d17f5655}{report}
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_updater_a53fc3a29ff7b8457744815f77590ba4d}{\index{Updater@{Updater}!Updater@{Updater}}
+\index{Updater@{Updater}!Updater@{Updater}}
+\subsubsection[{Updater}]{\setlength{\rightskip}{0pt plus 5cm}Updater\+::\+Updater (
+\begin{DoxyParamCaption}
+\item[{long int}]{seed, }
+\item[{{\bf Topo} $\ast$}]{topo, }
+\item[{{\bf Sim} $\ast$}]{sim, }
+\item[{{\bf Conf} $\ast$}]{conf, }
+\item[{{\bf File\+Names} $\ast$}]{files}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_updater_a53fc3a29ff7b8457744815f77590ba4d}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_updater_ac2c6869c4c7dd8d977e83997fb6ab345}{\index{Updater@{Updater}!alignment\+Order@{alignment\+Order}}
+\index{alignment\+Order@{alignment\+Order}!Updater@{Updater}}
+\subsubsection[{alignment\+Order}]{\setlength{\rightskip}{0pt plus 5cm}double Updater\+::alignment\+Order (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ac2c6869c4c7dd8d977e83997fb6ab345}
+
+
+alignment\+\_\+order alignment O\+R\+D\+E\+R P\+A\+R\+A\+M\+E\+T\+E\+R 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ac2c6869c4c7dd8d977e83997fb6ab345_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ac2c6869c4c7dd8d977e83997fb6ab345_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_addde9aa367c4f364b263b8fdda9345b8}{\index{Updater@{Updater}!calc\+Cluster\+Energies@{calc\+Cluster\+Energies}}
+\index{calc\+Cluster\+Energies@{calc\+Cluster\+Energies}!Updater@{Updater}}
+\subsubsection[{calc\+Cluster\+Energies}]{\setlength{\rightskip}{0pt plus 5cm}int Updater\+::calc\+Cluster\+Energies (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_addde9aa367c4f364b263b8fdda9345b8}
+
+
+calc\+\_\+clusterenergies calculate energies of clusters 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_addde9aa367c4f364b263b8fdda9345b8_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_addde9aa367c4f364b263b8fdda9345b8_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_ad430c652adde7c1b42f5a928da48c64c}{\index{Updater@{Updater}!end\+Wang\+Landau@{end\+Wang\+Landau}}
+\index{end\+Wang\+Landau@{end\+Wang\+Landau}!Updater@{Updater}}
+\subsubsection[{end\+Wang\+Landau}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::end\+Wang\+Landau (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ad430c652adde7c1b42f5a928da48c64c}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=346pt]{class_updater_ad430c652adde7c1b42f5a928da48c64c_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ad430c652adde7c1b42f5a928da48c64c_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_ae9ae345ec1142e8ab230b7bce00b741f}{\index{Updater@{Updater}!gen\+Cluster\+List@{gen\+Cluster\+List}}
+\index{gen\+Cluster\+List@{gen\+Cluster\+List}!Updater@{Updater}}
+\subsubsection[{gen\+Cluster\+List}]{\setlength{\rightskip}{0pt plus 5cm}int Updater\+::gen\+Cluster\+List (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ae9ae345ec1142e8ab230b7bce00b741f}
+
+
+gen\+\_\+clusterlist generate the clusterlist 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ae9ae345ec1142e8ab230b7bce00b741f_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ae9ae345ec1142e8ab230b7bce00b741f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a90bd68d2d4c95f85a2d12513ab58e372}{\index{Updater@{Updater}!gen\+Pair\+List@{gen\+Pair\+List}}
+\index{gen\+Pair\+List@{gen\+Pair\+List}!Updater@{Updater}}
+\subsubsection[{gen\+Pair\+List}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::gen\+Pair\+List (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a90bd68d2d4c95f85a2d12513ab58e372}
+
+
+gen\+\_\+pairlist Interface for the generation of the pairlist. Define other pairlist algorithms above. 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a90bd68d2d4c95f85a2d12513ab58e372_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a90bd68d2d4c95f85a2d12513ab58e372_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_aafd478a2cfabeb9dbba989ad04078f0b}{\index{Updater@{Updater}!gen\+Simple\+Pair\+List@{gen\+Simple\+Pair\+List}}
+\index{gen\+Simple\+Pair\+List@{gen\+Simple\+Pair\+List}!Updater@{Updater}}
+\subsubsection[{gen\+Simple\+Pair\+List}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::gen\+Simple\+Pair\+List (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_aafd478a2cfabeb9dbba989ad04078f0b}
+
+
+gen\+\_\+simple\+\_\+pairlist Generates a pairlist with a very basic alogrithm 
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_aafd478a2cfabeb9dbba989ad04078f0b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a2560d47361a5335afc86a4bae94f96ec}{\index{Updater@{Updater}!init\+Counters@{init\+Counters}}
+\index{init\+Counters@{init\+Counters}!Updater@{Updater}}
+\subsubsection[{init\+Counters}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::init\+Counters (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a2560d47361a5335afc86a4bae94f96ec}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a2560d47361a5335afc86a4bae94f96ec_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a6739aba7e721e7a49f60a5513f6ba32c}{\index{Updater@{Updater}!init\+Values@{init\+Values}}
+\index{init\+Values@{init\+Values}!Updater@{Updater}}
+\subsubsection[{init\+Values}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::init\+Values (
+\begin{DoxyParamCaption}
+\item[{long \&}]{next\+\_\+adjust, }
+\item[{long \&}]{next\+\_\+calc, }
+\item[{long \&}]{next\+\_\+dump, }
+\item[{long \&}]{next\+\_\+frame, }
+\item[{F\+I\+L\+E $\ast$}]{mf}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a6739aba7e721e7a49f60a5513f6ba32c}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a6739aba7e721e7a49f60a5513f6ba32c_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a6739aba7e721e7a49f60a5513f6ba32c_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a76445be97c06ecf75daa9bdf01f4799d}{\index{Updater@{Updater}!init\+Wang\+Landau@{init\+Wang\+Landau}}
+\index{init\+Wang\+Landau@{init\+Wang\+Landau}!Updater@{Updater}}
+\subsubsection[{init\+Wang\+Landau}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::init\+Wang\+Landau (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a76445be97c06ecf75daa9bdf01f4799d}
+
+
+Initialization of wang-\/landaou method. 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a76445be97c06ecf75daa9bdf01f4799d_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a76445be97c06ecf75daa9bdf01f4799d_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_acccf7211cd6f50fa2e6204f9a722c507}{\index{Updater@{Updater}!open\+Files\+Cluster\+Statistics@{open\+Files\+Cluster\+Statistics}}
+\index{open\+Files\+Cluster\+Statistics@{open\+Files\+Cluster\+Statistics}!Updater@{Updater}}
+\subsubsection[{open\+Files\+Cluster\+Statistics}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::open\+Files\+Cluster\+Statistics (
+\begin{DoxyParamCaption}
+\item[{F\+I\+L\+E $\ast$}]{cl\+\_\+stat, }
+\item[{F\+I\+L\+E $\ast$}]{cl, }
+\item[{F\+I\+L\+E $\ast$}]{cl\+\_\+list, }
+\item[{F\+I\+L\+E $\ast$}]{ef, }
+\item[{F\+I\+L\+E $\ast$}]{statf}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_acccf7211cd6f50fa2e6204f9a722c507}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_acccf7211cd6f50fa2e6204f9a722c507_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_ad338fbf16ab7c900490a94321fe865f3}{\index{Updater@{Updater}!optimize\+Rot@{optimize\+Rot}}
+\index{optimize\+Rot@{optimize\+Rot}!Updater@{Updater}}
+\subsubsection[{optimize\+Rot}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::optimize\+Rot (
+\begin{DoxyParamCaption}
+\item[{{\bf Disp} $\ast$}]{x, }
+\item[{double}]{hi, }
+\item[{double}]{lo}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ad338fbf16ab7c900490a94321fe865f3}
+
+
+optimizerot Optimize the maximum rotation within the specified limits and resets the acceptance counters to zero. Rotation is given by cos of angle larger rotation = smaller cos 
+
+
+\begin{DoxyParams}{Parameters}
+{\em x} & \\
+\hline
+{\em hi} & \\
+\hline
+{\em lo} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ad338fbf16ab7c900490a94321fe865f3_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_af25a87eb3106bf56c480aadaddf01204}{\index{Updater@{Updater}!optimize\+Step@{optimize\+Step}}
+\index{optimize\+Step@{optimize\+Step}!Updater@{Updater}}
+\subsubsection[{optimize\+Step}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::optimize\+Step (
+\begin{DoxyParamCaption}
+\item[{{\bf Disp} $\ast$}]{x, }
+\item[{double}]{hi, }
+\item[{double}]{lo}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_af25a87eb3106bf56c480aadaddf01204}
+
+
+optimizestep Optimize the maximum displacement within the specified limits and resets the acceptance counters to zero. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em x} & \\
+\hline
+{\em hi} & \\
+\hline
+{\em lo} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_af25a87eb3106bf56c480aadaddf01204_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_ad42b0e63d199cfe5b4b04057402a19db}{\index{Updater@{Updater}!same\+Cluster@{same\+Cluster}}
+\index{same\+Cluster@{same\+Cluster}!Updater@{Updater}}
+\subsubsection[{same\+Cluster}]{\setlength{\rightskip}{0pt plus 5cm}int Updater\+::same\+Cluster (
+\begin{DoxyParamCaption}
+\item[{long}]{fst, }
+\item[{long}]{snd}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ad42b0e63d199cfe5b4b04057402a19db}
+
+
+same\+\_\+cluster determines, wheter two particles are in the same cluster 
+
+
+\begin{DoxyParams}{Parameters}
+{\em fst} & \\
+\hline
+{\em snd} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=336pt]{class_updater_ad42b0e63d199cfe5b4b04057402a19db_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ad42b0e63d199cfe5b4b04057402a19db_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a42cde2ba4af4b35d0265a183a42cea20}{\index{Updater@{Updater}!simulate@{simulate}}
+\index{simulate@{simulate}!Updater@{Updater}}
+\subsubsection[{simulate}]{\setlength{\rightskip}{0pt plus 5cm}void Updater\+::simulate (
+\begin{DoxyParamCaption}
+\item[{long}]{nsweeps, }
+\item[{long}]{adjust, }
+\item[{long}]{paramfrq, }
+\item[{long}]{report}
+\end{DoxyParamCaption}
+)}}\label{class_updater_a42cde2ba4af4b35d0265a183a42cea20}
+
+
+simulate 
+
+
+\begin{DoxyParams}{Parameters}
+{\em nsweeps} & \\
+\hline
+{\em adjust} & \\
+\hline
+{\em paramfrq} & \\
+\hline
+{\em report} & \\
+\hline
+\end{DoxyParams}
+Sampling of statistics
+
+Writing of statistics 
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a42cde2ba4af4b35d0265a183a42cea20_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a42cde2ba4af4b35d0265a183a42cea20_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_a44ff7280e48fdf39518a5828af3cfd2a}{\index{Updater@{Updater}!sort\+Cluster\+List@{sort\+Cluster\+List}}
+\index{sort\+Cluster\+List@{sort\+Cluster\+List}!Updater@{Updater}}
+\subsubsection[{sort\+Cluster\+List}]{\setlength{\rightskip}{0pt plus 5cm}int Updater\+::sort\+Cluster\+List (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a44ff7280e48fdf39518a5828af3cfd2a}
+
+
+sort\+\_\+clusterlist sort the clusterlist 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_a44ff7280e48fdf39518a5828af3cfd2a_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_updater_ad3395745c795331dbc976d209d7a1ece}{\index{Updater@{Updater}!write\+Cluster@{write\+Cluster}}
+\index{write\+Cluster@{write\+Cluster}!Updater@{Updater}}
+\subsubsection[{write\+Cluster}]{\setlength{\rightskip}{0pt plus 5cm}int Updater\+::write\+Cluster (
+\begin{DoxyParamCaption}
+\item[{F\+I\+L\+E $\ast$}]{cl\+\_\+stat, }
+\item[{F\+I\+L\+E $\ast$}]{cl, }
+\item[{F\+I\+L\+E $\ast$}]{cl\+\_\+list, }
+\item[{bool}]{decor, }
+\item[{long}]{sweep}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ad3395745c795331dbc976d209d7a1ece}
+
+
+write\+\_\+cluster write out all the cluster stat in files, if file name is given 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cl\+\_\+stat} & \\
+\hline
+{\em cl} & \\
+\hline
+{\em cl\+\_\+list} & \\
+\hline
+{\em decor} & \\
+\hline
+{\em sweep} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ad3395745c795331dbc976d209d7a1ece_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_updater_ad3395745c795331dbc976d209d7a1ece_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_updater_af7b8b8f187a21d9683cd4fea2dd5fbd7}{\index{Updater@{Updater}!adjust@{adjust}}
+\index{adjust@{adjust}!Updater@{Updater}}
+\subsubsection[{adjust}]{\setlength{\rightskip}{0pt plus 5cm}long Updater\+::adjust\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_af7b8b8f187a21d9683cd4fea2dd5fbd7}
+\hypertarget{class_updater_a647ada4927eb26b2fd53a6db0167ff15}{\index{Updater@{Updater}!calc\+Energy@{calc\+Energy}}
+\index{calc\+Energy@{calc\+Energy}!Updater@{Updater}}
+\subsubsection[{calc\+Energy}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Total\+Energy\+Calculator} Updater\+::calc\+Energy\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a647ada4927eb26b2fd53a6db0167ff15}
+\hypertarget{class_updater_a2f0686ac33efa6f1712431b37d0c1ba1}{\index{Updater@{Updater}!conf@{conf}}
+\index{conf@{conf}!Updater@{Updater}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf}$\ast$ Updater\+::conf\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a2f0686ac33efa6f1712431b37d0c1ba1}
+\hypertarget{class_updater_ab29cd3f9d7d825aa83cd98aa18b53752}{\index{Updater@{Updater}!files@{files}}
+\index{files@{files}!Updater@{Updater}}
+\subsubsection[{files}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\+Names}$\ast$ Updater\+::files\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ab29cd3f9d7d825aa83cd98aa18b53752}
+\hypertarget{class_updater_a36130f5e0d9b743e8df0e1a9a4f4d7ec}{\index{Updater@{Updater}!move@{move}}
+\index{move@{move}!Updater@{Updater}}
+\subsubsection[{move}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Move\+Creator} Updater\+::move\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a36130f5e0d9b743e8df0e1a9a4f4d7ec}
+\hypertarget{class_updater_aabcc5bfefc334a9514c481f31bcf9c06}{\index{Updater@{Updater}!nsweeps@{nsweeps}}
+\index{nsweeps@{nsweeps}!Updater@{Updater}}
+\subsubsection[{nsweeps}]{\setlength{\rightskip}{0pt plus 5cm}long Updater\+::nsweeps\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_aabcc5bfefc334a9514c481f31bcf9c06}
+\hypertarget{class_updater_ab992a0a03d5ff6a550596d457e3df5b8}{\index{Updater@{Updater}!paramfrq@{paramfrq}}
+\index{paramfrq@{paramfrq}!Updater@{Updater}}
+\subsubsection[{paramfrq}]{\setlength{\rightskip}{0pt plus 5cm}long Updater\+::paramfrq\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_ab992a0a03d5ff6a550596d457e3df5b8}
+\hypertarget{class_updater_a3dc9b09abafeebacf23cd7c7d17f5655}{\index{Updater@{Updater}!report@{report}}
+\index{report@{report}!Updater@{Updater}}
+\subsubsection[{report}]{\setlength{\rightskip}{0pt plus 5cm}long Updater\+::report\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a3dc9b09abafeebacf23cd7c7d17f5655}
+\hypertarget{class_updater_a0436d5371f3fdc707e323b84ea7356fe}{\index{Updater@{Updater}!sim@{sim}}
+\index{sim@{sim}!Updater@{Updater}}
+\subsubsection[{sim}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sim}$\ast$ Updater\+::sim\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a0436d5371f3fdc707e323b84ea7356fe}
+\hypertarget{class_updater_a2ac7e890d9b19cd1c8074ef5e2b8fd14}{\index{Updater@{Updater}!topo@{topo}}
+\index{topo@{topo}!Updater@{Updater}}
+\subsubsection[{topo}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Topo}$\ast$ Updater\+::topo\hspace{0.3cm}{\ttfamily [private]}}}\label{class_updater_a2ac7e890d9b19cd1c8074ef5e2b8fd14}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{updater_8h}{updater.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{updater_8cpp}{updater.\+cpp}\end{DoxyCompactItemize}

@@ -1,0 +1,19 @@
+<map id="Updater" name="Updater">
+<area shape="rect" id="node2" href="$class_conf.html" title="Configuration of the system. " alt="" coords="865,133,913,160"/>
+<area shape="rect" id="node7" href="$class_wang_landau.html" title="WangLandau" alt="" coords="860,411,958,437"/>
+<area shape="rect" id="node12" href="$class_mesh.html" title="Mesh for hole order parameter. " alt="" coords="816,277,870,304"/>
+<area shape="rect" id="node13" href="$class_total_energy_calculator.html" title="TotalEnergyCalculator" alt="" coords="401,664,550,691"/>
+<area shape="rect" id="node16" href="$class_move_creator.html" title="MoveCreator" alt="" coords="764,755,858,781"/>
+<area shape="rect" id="node3" href="$class_vector.html" title="Vector" alt="" coords="470,5,529,32"/>
+<area shape="rect" id="node14" href="$class_pair_energy_calculator.html" title="PairEnergyCalculator" alt="" coords="404,411,548,437"/>
+<area shape="rect" id="node15" href="$class_particle.html" title="Define a particle. " alt="" coords="426,277,493,304"/>
+<area shape="rect" id="node4" href="$struct_sim.html" title="Sim" alt="" coords="762,573,808,600"/>
+<area shape="rect" id="node5" href="$struct_disp.html" title="Disp" alt="" coords="700,411,748,437"/>
+<area shape="rect" id="node6" href="$struct_cluster.html" title="contains all the particles of one cluster " alt="" coords="772,411,834,437"/>
+<area shape="rect" id="node8" href="$struct_topo.html" title="Topo" alt="" coords="169,277,220,304"/>
+<area shape="rect" id="node9" href="$struct_exters.html" title="Exters" alt="" coords="95,133,154,160"/>
+<area shape="rect" id="node10" href="$struct_ia__param.html" title="Ia_param" alt="" coords="88,5,162,32"/>
+<area shape="rect" id="node11" href="$struct_chainparams.html" title="Chainparams" alt="" coords="180,133,278,160"/>
+<area shape="rect" id="node17" href="$class_ran2.html" title="Ran2" alt="" coords="824,664,876,691"/>
+<area shape="rect" id="node18" href="$struct_file_names.html" title="FileNames" alt="" coords="1084,755,1168,781"/>
+</map>

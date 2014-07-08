@@ -1,0 +1,5 @@
+<map id="PairEnergyCalculator::findIntersectPlane" name="PairEnergyCalculator::findIntersectPlane">
+<area shape="rect" id="node2" href="$math__calc_8h.html#a3bcbfa81977a017fa59e14bf15dabef1" title="vec cross_product " alt="" coords="200,5,320,32"/>
+<area shape="rect" id="node3" href="$class_vector.html#a761012be2c08d1cbaa8a44e0410fb974" title="normalise Normalise a vector to have unit length. For speed during heavy use, it is not checked that ..." alt="" coords="198,56,322,83"/>
+<area shape="rect" id="node4" href="$class_vector.html#a64d1af82e5f8d82c7a6ca5e309c3bf8f" title="Return a norm of Vector. " alt="" coords="371,56,469,83"/>
+</map>
