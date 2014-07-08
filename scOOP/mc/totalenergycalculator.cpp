@@ -18,11 +18,6 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
 #endif
             for (i = 0; i < target->neighborCount; i++){
                energy += (pairE)(target->neighborID[i], conf->particleStore[target->neighborID[i]]);
-               if(energy == INFINITY) {
-                   printf("target: %ld, neighbor: %ld\n", target, target->neighborID[i]);
-                   if(target == conf->particleStore[target->neighborID[i]])
-                       printf("they are same\n");
-               }
             }
         } else {
 

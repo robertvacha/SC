@@ -45,12 +45,13 @@ typedef struct {        // for reading in the options
 
 typedef struct{
     // input files
-    char configurationinfile[30];
-    char topologyfile[30];
+    char configurationInFile[30];
+    char topologyInFile[30];
     char optionsfile[30];
     char wlinfile[30];
     // output files
     char configurationoutfile[30];
+    char topologyOutFile[30];
     char moviefile[30];
     char wloutfile[30];
     char statfile[30];

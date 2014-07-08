@@ -95,32 +95,34 @@ void MCSimSystem::productionRun() {
 
 
     if(isMuVT) {
-        outfile = fopen(files.topologyfile, "r+");
+        FILE* inFile = fopen(files.topologyInFile, "r");
+        outfile = fopen(files.topologyOutFile, "w");
 
         char line[128];
-        char lineCpy[128];
+        char lineCpy[128] = {0};
 
         while(strcmp(line, "[System]\n") != 0) {
-            if(fgets(line,127, outfile) == NULL ) {
+            if(fgets(line,127, inFile) == NULL ) {
                 printf("Error writing Topology [System] not found\n");
                 break;
             }
+            fputs(line, outfile);
         }
 
         while(strcmp(line, topo.chainparam[muVTindex].name) != 0) {
-            if(fgets(line,127, outfile) == NULL ) {
+            if(lineCpy[0] != 0) fputs(lineCpy, outfile);
+            if(fgets(line,127, inFile) == NULL ) {
                 printf("Error writing Topology %s not found\n", topo.chainparam[muVTindex].name);
                 break;
             }
             strcpy(lineCpy, line);
             strtok(line, " ");
         }
-        fseek(outfile, -(strlen(lineCpy)), SEEK_CUR);
 
-        // empty spaces to erase previous numbers
-        fprintf(outfile, "%s %ld     ", topo.chainparam[muVTindex].name, conf.muVTpartCount);
+        fprintf(outfile, "%s %ld", topo.chainparam[muVTindex].name, conf.muVTpartCount);
 
         fclose (outfile);
+        fclose (inFile);
     }
 
     /// For testing the pairlist

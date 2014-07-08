@@ -514,7 +514,7 @@ void Inicializer::initConfig() {
     }
 
 
-    infile = fopen(files->configurationinfile, "r");
+    infile = fopen(files->configurationInFile, "r");
     if (infile == NULL) {
         fprintf (stderr, "\nERROR: Could not open config.init file.\n\n");
         exit (1);
@@ -678,10 +678,11 @@ void Inicializer::initWriteFiles() {
     cout << "\nPatchy Spherocylinders version 3.6\n";
     cout << "-------------------------------------\n";
 
-    sprintf(files->configurationinfile, "config.init");
+    sprintf(files->configurationInFile, "config.init");
     sprintf(files->configurationoutfile, "config.last");
     sprintf(files->optionsfile, "options");
-    sprintf(files->topologyfile, "top.init");
+    sprintf(files->topologyInFile, "top.init");
+    sprintf(files->topologyOutFile, "top.last");
     sprintf(files->moviefile, "movie");
     sprintf(files->wlinfile, "wl.dat");
     sprintf(files->wloutfile, "wl-new.dat");
@@ -759,7 +760,7 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
     FILE *infile;
     char *pline=NULL;
 
-    if ((infile = fopen(files->topologyfile, "r")) == NULL) {
+    if ((infile = fopen(files->topologyInFile, "r")) == NULL) {
         fprintf (stderr, "\nTOPOLOGY ERROR: Could not open top.init file.\n\n");
         exit (1);
     }
@@ -885,7 +886,7 @@ void Inicializer::initChainParams() {
             topo->chainparam[i].angle2eq = -1;
             topo->chainparam[i].angle2c = -1;
             topo->chainparam[i].mu = -1;
-            topo->chainparam[i].muVTmove = -1;
+            topo->chainparam[i].muVTmove = false;
             topo->chainparam[i].lnThermalWavelengh = -1;
             for(int j=0; j<MAXCHL; j++)
                 topo->chainparam[i].particleTypes[j] = -1;

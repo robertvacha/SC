@@ -15,7 +15,7 @@ nsweeps  =    100    #  Number of production sweeps
 paramfrq =   10000000    #  Number of sweeps between order parameter samples
 report   =   10000000    #  Number of sweeps between statistics reports
 nrepchange = 10000000    #  Number of sweeps between replica exchanges
-nGrandCanon = 1         #  Number of sweeps between particle insert/delete move
+nGrandCanon = 0         #  Number of sweeps between particle insert/delete move, (0 == no muVT moves)
 movie    =     0    #  Number of sweeps between movie frames (0 = no movie)
 chainprob = 0.0         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
 transmx = 0.1           #  Initial maximum displacement
