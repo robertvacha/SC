@@ -1,0 +1,14 @@
+[Types]
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   PATCH_LENGTH   CHIRAL_ANGLE
+beta    1         PSC     1.0        1.0       1.2246205        0.6               80.0       5.0            3             
+[Molecules]
+# Molecules letter
+#  bond1 - harmonic bond between nearest neighbours
+#  bond2 - harmonic bond between second nearest neighbours
+#  particles - types as they go in chain in molecule
+A: {
+#what:       TYPE     SWITCHTYPE  DELTA_MU
+particles:   1        
+}
+[System]
+A 1016
