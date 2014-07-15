@@ -1,8 +1,0 @@
-<map id="Vector::ortogonalise" name="Vector::ortogonalise">
-<area shape="rect" id="node2" href="$class_particle.html#a5770ca81df8dff0087a05261cea3fba0" title="int_partvec initiate vectors of a single particle " alt="" coords="192,31,283,57"/>
-<area shape="rect" id="node3" href="$class_move_creator.html#a2043489b2a8e9f19e3f00373df9dfece" title="muVTMove " alt="" coords="331,31,498,57"/>
-<area shape="rect" id="node4" href="$class_updater.html#a42cde2ba4af4b35d0265a183a42cea20" title="simulate " alt="" coords="547,31,671,57"/>
-<area shape="rect" id="node5" href="$class_m_c_sim_system.html#a4f11a2356f82dba787e1a4d69e0e0d4f" title="equilibrate " alt="" coords="733,5,910,32"/>
-<area shape="rect" id="node7" href="$class_m_c_sim_system.html#a188410921d582e9a2659627f4ca2073b" title="productionRun " alt="" coords="721,56,922,83"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="971,31,1021,57"/>
-</map>

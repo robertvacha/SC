@@ -1,5 +1,0 @@
-<map id="MoveCreator::contParticlesMoveChain" name="MoveCreator::contParticlesMoveChain">
-<area shape="rect" id="node2" href="$class_move_creator.html#aae176167187714ee8c7d99cc800be011" title="particleinncontact returns if particle is in contact " alt="" coords="241,5,402,46"/>
-<area shape="rect" id="node4" href="$class_move_creator.html#aacd74e8d3bd9b69a4acdaab74cf12bac" title="contParticle_order return order for Particle in contact " alt="" coords="232,70,411,111"/>
-<area shape="rect" id="node3" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="459,12,509,39"/>
-</map>

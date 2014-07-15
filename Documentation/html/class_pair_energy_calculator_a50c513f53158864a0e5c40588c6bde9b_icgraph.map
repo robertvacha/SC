@@ -1,6 +1,0 @@
-<map id="PairEnergyCalculator::eattractiveCpscCpsc" name="PairEnergyCalculator::eattractiveCpscCpsc">
-<area shape="rect" id="node2" href="$class_pair_energy_calculator.html#a0638198e420892c829d4d236f4d50867" title="e_cpsc_cpsc Determines total energy of two spherocylinders of type 3 &#45;cylindrical psc &#45;CPSC ..." alt="" coords="203,5,347,46"/>
-<area shape="rect" id="node5" href="$class_pair_energy_calculator.html#a1bcc82f931ef1b8a0ecc761a80bd9b16" title="e_cpsc_spa Determines total energy of spherocylinder type 3 and sphere type 11 " alt="" coords="203,70,347,111"/>
-<area shape="rect" id="node3" href="$class_pair_energy_calculator.html#ad6cd85c8a59e2747e491e2478ad274e1" title="init_intfce Initializes the array with the pointers to the energy function " alt="" coords="395,38,539,79"/>
-<area shape="rect" id="node4" href="$class_total_energy_calculator.html#a0cb93271cde50b1c5141d13b8b57cf5e" title="TotalEnergyCalculator\l::TotalEnergyCalculator" alt="" coords="587,38,744,79"/>
-</map>

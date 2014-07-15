@@ -1,5 +1,0 @@
-<map id="TotalEnergyCalculator::exter2Atre" name="TotalEnergyCalculator::exter2Atre">
-<area shape="rect" id="node2" href="$class_total_energy_calculator.html#a5a8e2104a52069da69d55e8e73b912e1" title="cpsc_wall " alt="" coords="203,5,352,46"/>
-<area shape="rect" id="node4" href="$class_total_energy_calculator.html#a41e962b0b531514d13ed5197f1ec21e7" title="psc_wall Find projection of cpsc on plane (0,0,1) including cutoff and return vector2 to its begining..." alt="" coords="203,70,352,111"/>
-<area shape="rect" id="node3" href="$class_total_energy_calculator.html#ac5d1c3dde1b6986d95ff40254ed10419" title="projectinz project a point in project direction to z plane z=0 " alt="" coords="400,38,549,79"/>
-</map>

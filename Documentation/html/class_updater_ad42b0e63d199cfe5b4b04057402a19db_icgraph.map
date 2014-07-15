@@ -1,8 +1,0 @@
-<map id="Updater::sameCluster" name="Updater::sameCluster">
-<area shape="rect" id="node2" href="$class_updater.html#ae9ae345ec1142e8ab230b7bce00b741f" title="gen_clusterlist generate the clusterlist " alt="" coords="203,31,362,57"/>
-<area shape="rect" id="node3" href="$class_updater.html#ad3395745c795331dbc976d209d7a1ece" title="write_cluster write out all the cluster stat in files, if file name is given " alt="" coords="411,31,554,57"/>
-<area shape="rect" id="node4" href="$class_updater.html#a42cde2ba4af4b35d0265a183a42cea20" title="simulate " alt="" coords="603,31,727,57"/>
-<area shape="rect" id="node5" href="$class_m_c_sim_system.html#a4f11a2356f82dba787e1a4d69e0e0d4f" title="equilibrate " alt="" coords="789,5,966,32"/>
-<area shape="rect" id="node7" href="$class_m_c_sim_system.html#a188410921d582e9a2659627f4ca2073b" title="productionRun " alt="" coords="777,56,978,83"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="1027,31,1077,57"/>
-</map>

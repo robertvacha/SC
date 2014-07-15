@@ -1,6 +1,0 @@
-<map id="TotalEnergyCalculator::pscWall" name="TotalEnergyCalculator::pscWall">
-<area shape="rect" id="node2" href="$class_total_energy_calculator.html#ae6894b0058a8dc9137935d5aa4cad517" title="exter2_atre " alt="" coords="203,5,352,46"/>
-<area shape="rect" id="node5" href="$class_total_energy_calculator.html#a5b1555512d0d6891a77bf7d036df5d35" title="exter_atre Calculates interaction of target particle and external field calculate projection of patch..." alt="" coords="203,70,352,111"/>
-<area shape="rect" id="node3" href="$class_total_energy_calculator.html#a89a6dcc55f2f0528c12f8802508fbf5b" title="extere2 Calculates interaction of target particle and external field version 2 calculate projection o..." alt="" coords="400,5,549,46"/>
-<area shape="rect" id="node4" href="$class_total_energy_calculator.html#a8cf80da65e373aac898e7254f900f6fe" title="calc_energy Calculate the different energy contributions. " alt="" coords="597,5,747,46"/>
-</map>

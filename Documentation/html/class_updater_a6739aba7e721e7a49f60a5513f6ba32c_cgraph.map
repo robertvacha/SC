@@ -1,5 +1,0 @@
-<map id="Updater::initValues" name="Updater::initValues">
-<area shape="rect" id="node2" href="$class_conf.html#ad1b87bd14eb659a88c59668c78b6bf02" title="partvecinit calculate vectors on particles for speedup " alt="" coords="191,5,310,32"/>
-<area shape="rect" id="node3" href="$class_conf.html#a4f70f2b18865d894c00fa0138247e32f" title="massCenter " alt="" coords="187,56,314,83"/>
-<area shape="rect" id="node4" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="363,56,413,83"/>
-</map>

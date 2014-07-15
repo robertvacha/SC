@@ -1,5 +1,0 @@
-<map id="MoveCreator::radiusholeAll" name="MoveCreator::radiusholeAll">
-<area shape="rect" id="node2" href="$class_move_creator.html#a7e7a64b06671d93d2f3dcf4cac2907b9" title="radiushole_position return order of given radius " alt="" coords="229,5,437,32"/>
-<area shape="rect" id="node3" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="308,56,359,83"/>
-<area shape="rect" id="node4" href="$class_move_creator.html#acaaaac79b83b3898633b2aa279d5591c" title="radiushole_order return current bin of free radius " alt="" coords="237,107,430,133"/>
-</map>
