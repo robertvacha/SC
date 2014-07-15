@@ -1,0 +1,3 @@
+<map id="image" name="image">
+<area shape="rect" id="node2" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="112,5,163,32"/>
+</map>

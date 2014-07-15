@@ -1,0 +1,872 @@
+\hypertarget{class_inicializer}{\section{Inicializer Class Reference}
+\label{class_inicializer}\index{Inicializer@{Inicializer}}
+}
+
+
+{\ttfamily \#include $<$inicializer.\+h$>$}
+
+
+
+Collaboration diagram for Inicializer\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_inicializer_aebd47082aeb8e42a1f44edd8a9844fa1}{Inicializer} (\hyperlink{class_topo}{Topo} $\ast$\hyperlink{class_inicializer_a9ce346ffecd5ecf76bd4c1c68a3060f7}{topo}, \hyperlink{class_sim}{Sim} $\ast$\hyperlink{class_inicializer_a8d55514c1121c5d3edbbd4fdfb32db65}{sim}, \hyperlink{class_conf}{Conf} $\ast$\hyperlink{class_inicializer_a6a3bb727f3ad6db5c667f615596cd5e4}{conf}, \hyperlink{struct_file_names}{File\+Names} $\ast$\hyperlink{class_inicializer_aecd4b4dcea44e06dd58000db4144e93e}{files})
+\item 
+long int \hyperlink{class_inicializer_a8cc93243d56aa21def8f073739f63ad4}{get\+Seed} ()
+\item 
+void \hyperlink{class_inicializer_a41ac3793bca326b7b0d47c342bebf7b4}{read\+Options} ()
+\begin{DoxyCompactList}\small\item\em Reads the run parameters from the external file \char`\"{}options\char`\"{}. See the end of the code for a template. All comments starting with '\#' are stripped out. The options are summarised on standard output and checked for validity of range. \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_a7e1409d66a770fb50bcd90d96446a917}{init\+Top} ()
+\begin{DoxyCompactList}\small\item\em Inicialization of topology. \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_a03369c6bc8655d42befd4c79f4f02301}{init\+Config} ()
+\begin{DoxyCompactList}\small\item\em Config initialization. \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_a228deba06743d06562179c7f85b958ad}{test\+Chains} ()
+\begin{DoxyCompactList}\small\item\em test if simulation contains Chains, sets probability of chain move to 0 if no chains \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_aa83bb88c8dae21837f025912b2fff68b}{init\+Write\+Files} ()
+\begin{DoxyCompactList}\small\item\em Sets names of \char`\"{}write files\char`\"{}. \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_adbd22bfd9d376b88ab4e1252e752f64b}{init\+Pairlist} ()
+\begin{DoxyCompactList}\small\item\em Initializes the pairlist and allocates memory. \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_afb8f1f23bd87796ae7e66a3917cd1980}{init\+M\+P\+I} ()
+\begin{DoxyCompactList}\small\item\em Paralel tempering(\+Replica exchange move) initialization. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_inicializer_acd2d40a23bdd29b973176c62ab5aef8d}{read\+Topo\+File} (\hyperlink{class_molecule}{Molecule} $\ast$molecules, long $\ast$sysmoln, char $\ast$sysnames\mbox{[}$\,$\mbox{]}, bool exclusions\mbox{[}$\,$\mbox{]}\mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]})
+\item 
+void \hyperlink{class_inicializer_ae0b9e84765b73f78e05aa6c5e99dcc68}{open\+Topo\+File} (F\+I\+L\+E $\ast$infile)
+\item 
+void \hyperlink{class_inicializer_a1d3e25551f9a48a112d20e9680205d76}{alloc\+Sysmoln} (long $\ast$sysmoln)
+\item 
+void $\ast$ \hyperlink{class_inicializer_a271a0eef3110b4f1557c7b43d2e0320c}{x\+Malloc} (size\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em xmalloc nice malloc, which does the error checking for us \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_ada4af3101e860931ce8f1c52d0bd7555}{top\+Dealoc} (char $\ast$sysnames\mbox{[}\hyperlink{macros_8h_ad1f79d9d99776d7353c6659c307c83c6}{M\+A\+X\+N}\mbox{]}, long $\ast$$\ast$sysmoln)
+\begin{DoxyCompactList}\small\item\em dealocating memory for init\+Top \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_a637c5bb05ee307ee3a37a933a28043d0}{fill\+Exclusions} (char $\ast$$\ast$pline, bool exlusions\mbox{[}$\,$\mbox{]}\mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]})
+\begin{DoxyCompactList}\small\item\em filling pair for which we exlude attraction interaction. Returns 1 on succes. \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_a7307f2946c9106e2705aeb3b53fb1c16}{fill\+System} (char $\ast$pline, char $\ast$sysnames\mbox{[}\hyperlink{macros_8h_ad1f79d9d99776d7353c6659c307c83c6}{M\+A\+X\+N}\mbox{]}, long $\ast$$\ast$sysmoln)
+\begin{DoxyCompactList}\small\item\em filling the system parameters \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_ac144054462e36e5ea70ba03785ba0f98}{fill\+Types} (char $\ast$$\ast$pline)
+\begin{DoxyCompactList}\small\item\em filing the parameters for types from given strings. Returns 1 on succes. \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_a5fdd81d2acf5ead8bcc87fab2a2b8809}{convert\+Geotype} (char $\ast$geotype)
+\begin{DoxyCompactList}\small\item\em Converts the geometrical type string into a number. \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_a2e61220db2412742fb203b6c7bcf6b93}{fill\+Exter} (char $\ast$$\ast$pline)
+\begin{DoxyCompactList}\small\item\em filling the parameters of external potentail -\/ wall. Returns 1 on succes. \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_a6dad809b18ec2149abc33d71736b1e7b}{fill\+Mol} (char $\ast$molname, char $\ast$pline, \hyperlink{class_molecule}{Molecule} $\ast$molecules)
+\begin{DoxyCompactList}\small\item\em filling the parameters for molecules \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_af2a4f4721e9105cda901ae4d5530fd43}{gen\+Param\+Pairs} (bool($\ast$exclusions)\mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]}\mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]})
+\begin{DoxyCompactList}\small\item\em generate interations pairs \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_ac5d3d17ceb46d4096e173fa373bd12f6}{use\+P\+B\+C} (\hyperlink{class_vector}{Vector} $\ast$pos, \hyperlink{class_vector}{Vector} pbc)
+\begin{DoxyCompactList}\small\item\em use of periodic boundary conditions \end{DoxyCompactList}\item 
+void \hyperlink{class_inicializer_a59b1de21fff55d47d71f1e3f56a6b23f}{readii2} (char $\ast$num, int value\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em convert string num into two integers \end{DoxyCompactList}\item 
+double \hyperlink{class_inicializer_a93fa1c3e89f1a519611e9861d9f30989}{readd2} (char $\ast$num)
+\begin{DoxyCompactList}\small\item\em convert string num into double \end{DoxyCompactList}\item 
+long \hyperlink{class_inicializer_added4b028cc3d6118d1b8c92c3eedd82}{readl2} (char $\ast$num)
+\begin{DoxyCompactList}\small\item\em convert string num into long \end{DoxyCompactList}\item 
+int \hyperlink{class_inicializer_ab20cbac5cc1211b24da005557a67ea10}{readi2} (char $\ast$num)
+\begin{DoxyCompactList}\small\item\em convert string num into integer \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+long \hyperlink{class_inicializer_a98c446c361d34327e838a17737126212}{seed}
+\item 
+\hyperlink{class_topo}{Topo} $\ast$ \hyperlink{class_inicializer_a9ce346ffecd5ecf76bd4c1c68a3060f7}{topo}
+\item 
+\hyperlink{class_sim}{Sim} $\ast$ \hyperlink{class_inicializer_a8d55514c1121c5d3edbbd4fdfb32db65}{sim}
+\item 
+\hyperlink{class_conf}{Conf} $\ast$ \hyperlink{class_inicializer_a6a3bb727f3ad6db5c667f615596cd5e4}{conf}
+\item 
+\hyperlink{struct_file_names}{File\+Names} $\ast$ \hyperlink{class_inicializer_aecd4b4dcea44e06dd58000db4144e93e}{files}
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_inicializer_aebd47082aeb8e42a1f44edd8a9844fa1}{\index{Inicializer@{Inicializer}!Inicializer@{Inicializer}}
+\index{Inicializer@{Inicializer}!Inicializer@{Inicializer}}
+\subsubsection[{Inicializer}]{\setlength{\rightskip}{0pt plus 5cm}Inicializer\+::\+Inicializer (
+\begin{DoxyParamCaption}
+\item[{{\bf Topo} $\ast$}]{topo, }
+\item[{{\bf Sim} $\ast$}]{sim, }
+\item[{{\bf Conf} $\ast$}]{conf, }
+\item[{{\bf File\+Names} $\ast$}]{files}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_inicializer_aebd47082aeb8e42a1f44edd8a9844fa1}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_inicializer_a1d3e25551f9a48a112d20e9680205d76}{\index{Inicializer@{Inicializer}!alloc\+Sysmoln@{alloc\+Sysmoln}}
+\index{alloc\+Sysmoln@{alloc\+Sysmoln}!Inicializer@{Inicializer}}
+\subsubsection[{alloc\+Sysmoln}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::alloc\+Sysmoln (
+\begin{DoxyParamCaption}
+\item[{long $\ast$}]{sysmoln}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a1d3e25551f9a48a112d20e9680205d76}
+\hypertarget{class_inicializer_a5fdd81d2acf5ead8bcc87fab2a2b8809}{\index{Inicializer@{Inicializer}!convert\+Geotype@{convert\+Geotype}}
+\index{convert\+Geotype@{convert\+Geotype}!Inicializer@{Inicializer}}
+\subsubsection[{convert\+Geotype}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::convert\+Geotype (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{geotype}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a5fdd81d2acf5ead8bcc87fab2a2b8809}
+
+
+Converts the geometrical type string into a number. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em geotype} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a5fdd81d2acf5ead8bcc87fab2a2b8809_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a637c5bb05ee307ee3a37a933a28043d0}{\index{Inicializer@{Inicializer}!fill\+Exclusions@{fill\+Exclusions}}
+\index{fill\+Exclusions@{fill\+Exclusions}!Inicializer@{Inicializer}}
+\subsubsection[{fill\+Exclusions}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::fill\+Exclusions (
+\begin{DoxyParamCaption}
+\item[{char $\ast$$\ast$}]{pline, }
+\item[{bool}]{exlusions\mbox{[}$\,$\mbox{]}\mbox{[}\+M\+A\+X\+T\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a637c5bb05ee307ee3a37a933a28043d0}
+
+
+filling pair for which we exlude attraction interaction. Returns 1 on succes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pline} & \\
+\hline
+{\em ($\ast$exlusions)\mbox{[}$\,$\mbox{]}\mbox{[}$\,$\mbox{]}} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=342pt]{class_inicializer_a637c5bb05ee307ee3a37a933a28043d0_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a637c5bb05ee307ee3a37a933a28043d0_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a2e61220db2412742fb203b6c7bcf6b93}{\index{Inicializer@{Inicializer}!fill\+Exter@{fill\+Exter}}
+\index{fill\+Exter@{fill\+Exter}!Inicializer@{Inicializer}}
+\subsubsection[{fill\+Exter}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::fill\+Exter (
+\begin{DoxyParamCaption}
+\item[{char $\ast$$\ast$}]{pline}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a2e61220db2412742fb203b6c7bcf6b93}
+
+
+filling the parameters of external potentail -\/ wall. Returns 1 on succes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pline} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a2e61220db2412742fb203b6c7bcf6b93_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a2e61220db2412742fb203b6c7bcf6b93_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a6dad809b18ec2149abc33d71736b1e7b}{\index{Inicializer@{Inicializer}!fill\+Mol@{fill\+Mol}}
+\index{fill\+Mol@{fill\+Mol}!Inicializer@{Inicializer}}
+\subsubsection[{fill\+Mol}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::fill\+Mol (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{molname, }
+\item[{char $\ast$}]{pline, }
+\item[{{\bf Molecule} $\ast$}]{molecules}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a6dad809b18ec2149abc33d71736b1e7b}
+
+
+filling the parameters for molecules 
+
+
+\begin{DoxyParams}{Parameters}
+{\em molname} & \\
+\hline
+{\em pline} & \\
+\hline
+{\em molecules} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+I\+N\+I\+T of mu\+V\+T ensemble 
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a6dad809b18ec2149abc33d71736b1e7b_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a6dad809b18ec2149abc33d71736b1e7b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a7307f2946c9106e2705aeb3b53fb1c16}{\index{Inicializer@{Inicializer}!fill\+System@{fill\+System}}
+\index{fill\+System@{fill\+System}!Inicializer@{Inicializer}}
+\subsubsection[{fill\+System}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::fill\+System (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{pline, }
+\item[{char $\ast$}]{sysnames\mbox{[}\+M\+A\+X\+N\mbox{]}, }
+\item[{long $\ast$$\ast$}]{sysmoln}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a7307f2946c9106e2705aeb3b53fb1c16}
+
+
+filling the system parameters 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pline} & \\
+\hline
+{\em sysnames} & \\
+\hline
+{\em sysmoln} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=328pt]{class_inicializer_a7307f2946c9106e2705aeb3b53fb1c16_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a7307f2946c9106e2705aeb3b53fb1c16_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_ac144054462e36e5ea70ba03785ba0f98}{\index{Inicializer@{Inicializer}!fill\+Types@{fill\+Types}}
+\index{fill\+Types@{fill\+Types}!Inicializer@{Inicializer}}
+\subsubsection[{fill\+Types}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::fill\+Types (
+\begin{DoxyParamCaption}
+\item[{char $\ast$$\ast$}]{pline}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_ac144054462e36e5ea70ba03785ba0f98}
+
+
+filing the parameters for types from given strings. Returns 1 on succes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pline} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_ac144054462e36e5ea70ba03785ba0f98_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_ac144054462e36e5ea70ba03785ba0f98_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_af2a4f4721e9105cda901ae4d5530fd43}{\index{Inicializer@{Inicializer}!gen\+Param\+Pairs@{gen\+Param\+Pairs}}
+\index{gen\+Param\+Pairs@{gen\+Param\+Pairs}!Inicializer@{Inicializer}}
+\subsubsection[{gen\+Param\+Pairs}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::gen\+Param\+Pairs (
+\begin{DoxyParamCaption}
+\item[{bool($\ast$)}]{exclusions\mbox{[}\+M\+A\+X\+T\mbox{]}\mbox{[}\+M\+A\+X\+T\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_af2a4f4721e9105cda901ae4d5530fd43}
+
+
+generate interations pairs 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ($\ast$exlusions)\mbox{[}$\,$\mbox{]}\mbox{[}$\,$\mbox{]}} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_af2a4f4721e9105cda901ae4d5530fd43_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a8cc93243d56aa21def8f073739f63ad4}{\index{Inicializer@{Inicializer}!get\+Seed@{get\+Seed}}
+\index{get\+Seed@{get\+Seed}!Inicializer@{Inicializer}}
+\subsubsection[{get\+Seed}]{\setlength{\rightskip}{0pt plus 5cm}long int Inicializer\+::get\+Seed (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_inicializer_a8cc93243d56aa21def8f073739f63ad4}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a8cc93243d56aa21def8f073739f63ad4_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a03369c6bc8655d42befd4c79f4f02301}{\index{Inicializer@{Inicializer}!init\+Config@{init\+Config}}
+\index{init\+Config@{init\+Config}!Inicializer@{Inicializer}}
+\subsubsection[{init\+Config}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::init\+Config (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_a03369c6bc8655d42befd4c79f4f02301}
+
+
+Config initialization. 
+
+Reads in the initial configuration from the file \char`\"{}config.\+init\char`\"{}. Each line contains the three components of the position vector and three components of the direction vector and three components of patch direction for a spherocylinder. The direction vector is normalised after being read in. The configuration is checked for particle overlaps. 
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a03369c6bc8655d42befd4c79f4f02301_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a03369c6bc8655d42befd4c79f4f02301_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_afb8f1f23bd87796ae7e66a3917cd1980}{\index{Inicializer@{Inicializer}!init\+M\+P\+I@{init\+M\+P\+I}}
+\index{init\+M\+P\+I@{init\+M\+P\+I}!Inicializer@{Inicializer}}
+\subsubsection[{init\+M\+P\+I}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::init\+M\+P\+I (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_afb8f1f23bd87796ae7e66a3917cd1980}
+
+
+Paralel tempering(\+Replica exchange move) initialization. 
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_afb8f1f23bd87796ae7e66a3917cd1980_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_adbd22bfd9d376b88ab4e1252e752f64b}{\index{Inicializer@{Inicializer}!init\+Pairlist@{init\+Pairlist}}
+\index{init\+Pairlist@{init\+Pairlist}!Inicializer@{Inicializer}}
+\subsubsection[{init\+Pairlist}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::init\+Pairlist (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_adbd22bfd9d376b88ab4e1252e752f64b}
+
+
+Initializes the pairlist and allocates memory. 
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_adbd22bfd9d376b88ab4e1252e752f64b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a7e1409d66a770fb50bcd90d96446a917}{\index{Inicializer@{Inicializer}!init\+Top@{init\+Top}}
+\index{init\+Top@{init\+Top}!Inicializer@{Inicializer}}
+\subsubsection[{init\+Top}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::init\+Top (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_a7e1409d66a770fb50bcd90d96446a917}
+
+
+Inicialization of topology. 
+
+Create lists for chain operations\+: Connectivity list where it is written for each sc with which sc it is connected. The order is important because spherocylinders have direction First is interacting tail then head. Chain list where particles are assigned to chains to which they belong 
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a7e1409d66a770fb50bcd90d96446a917_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a7e1409d66a770fb50bcd90d96446a917_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_aa83bb88c8dae21837f025912b2fff68b}{\index{Inicializer@{Inicializer}!init\+Write\+Files@{init\+Write\+Files}}
+\index{init\+Write\+Files@{init\+Write\+Files}!Inicializer@{Inicializer}}
+\subsubsection[{init\+Write\+Files}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::init\+Write\+Files (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_aa83bb88c8dae21837f025912b2fff68b}
+
+
+Sets names of \char`\"{}write files\char`\"{}. 
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_aa83bb88c8dae21837f025912b2fff68b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_ae0b9e84765b73f78e05aa6c5e99dcc68}{\index{Inicializer@{Inicializer}!open\+Topo\+File@{open\+Topo\+File}}
+\index{open\+Topo\+File@{open\+Topo\+File}!Inicializer@{Inicializer}}
+\subsubsection[{open\+Topo\+File}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::open\+Topo\+File (
+\begin{DoxyParamCaption}
+\item[{F\+I\+L\+E $\ast$}]{infile}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_ae0b9e84765b73f78e05aa6c5e99dcc68}
+\hypertarget{class_inicializer_a93fa1c3e89f1a519611e9861d9f30989}{\index{Inicializer@{Inicializer}!readd2@{readd2}}
+\index{readd2@{readd2}!Inicializer@{Inicializer}}
+\subsubsection[{readd2}]{\setlength{\rightskip}{0pt plus 5cm}double Inicializer\+::readd2 (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a93fa1c3e89f1a519611e9861d9f30989}
+
+
+convert string num into double 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a93fa1c3e89f1a519611e9861d9f30989_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_ab20cbac5cc1211b24da005557a67ea10}{\index{Inicializer@{Inicializer}!readi2@{readi2}}
+\index{readi2@{readi2}!Inicializer@{Inicializer}}
+\subsubsection[{readi2}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::readi2 (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_ab20cbac5cc1211b24da005557a67ea10}
+
+
+convert string num into integer 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_ab20cbac5cc1211b24da005557a67ea10_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a59b1de21fff55d47d71f1e3f56a6b23f}{\index{Inicializer@{Inicializer}!readii2@{readii2}}
+\index{readii2@{readii2}!Inicializer@{Inicializer}}
+\subsubsection[{readii2}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::readii2 (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{num, }
+\item[{int}]{value\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a59b1de21fff55d47d71f1e3f56a6b23f}
+
+
+convert string num into two integers 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & \\
+\hline
+{\em value} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=314pt]{class_inicializer_a59b1de21fff55d47d71f1e3f56a6b23f_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a59b1de21fff55d47d71f1e3f56a6b23f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_added4b028cc3d6118d1b8c92c3eedd82}{\index{Inicializer@{Inicializer}!readl2@{readl2}}
+\index{readl2@{readl2}!Inicializer@{Inicializer}}
+\subsubsection[{readl2}]{\setlength{\rightskip}{0pt plus 5cm}long Inicializer\+::readl2 (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_added4b028cc3d6118d1b8c92c3eedd82}
+
+
+convert string num into long 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_added4b028cc3d6118d1b8c92c3eedd82_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a41ac3793bca326b7b0d47c342bebf7b4}{\index{Inicializer@{Inicializer}!read\+Options@{read\+Options}}
+\index{read\+Options@{read\+Options}!Inicializer@{Inicializer}}
+\subsubsection[{read\+Options}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::read\+Options (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_a41ac3793bca326b7b0d47c342bebf7b4}
+
+
+Reads the run parameters from the external file \char`\"{}options\char`\"{}. See the end of the code for a template. All comments starting with '\#' are stripped out. The options are summarised on standard output and checked for validity of range. 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a41ac3793bca326b7b0d47c342bebf7b4_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a41ac3793bca326b7b0d47c342bebf7b4_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_acd2d40a23bdd29b973176c62ab5aef8d}{\index{Inicializer@{Inicializer}!read\+Topo\+File@{read\+Topo\+File}}
+\index{read\+Topo\+File@{read\+Topo\+File}!Inicializer@{Inicializer}}
+\subsubsection[{read\+Topo\+File}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::read\+Topo\+File (
+\begin{DoxyParamCaption}
+\item[{{\bf Molecule} $\ast$}]{molecules, }
+\item[{long $\ast$}]{sysmoln, }
+\item[{char $\ast$}]{sysnames\mbox{[}$\,$\mbox{]}, }
+\item[{bool}]{exclusions\mbox{[}$\,$\mbox{]}\mbox{[}\+M\+A\+X\+T\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_acd2d40a23bdd29b973176c62ab5aef8d}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_acd2d40a23bdd29b973176c62ab5aef8d_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_acd2d40a23bdd29b973176c62ab5aef8d_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a228deba06743d06562179c7f85b958ad}{\index{Inicializer@{Inicializer}!test\+Chains@{test\+Chains}}
+\index{test\+Chains@{test\+Chains}!Inicializer@{Inicializer}}
+\subsubsection[{test\+Chains}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::test\+Chains (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_inicializer_a228deba06743d06562179c7f85b958ad}
+
+
+test if simulation contains Chains, sets probability of chain move to 0 if no chains 
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_a228deba06743d06562179c7f85b958ad_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_ada4af3101e860931ce8f1c52d0bd7555}{\index{Inicializer@{Inicializer}!top\+Dealoc@{top\+Dealoc}}
+\index{top\+Dealoc@{top\+Dealoc}!Inicializer@{Inicializer}}
+\subsubsection[{top\+Dealoc}]{\setlength{\rightskip}{0pt plus 5cm}int Inicializer\+::top\+Dealoc (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{sysnames\mbox{[}\+M\+A\+X\+N\mbox{]}, }
+\item[{long $\ast$$\ast$}]{sysmoln}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_ada4af3101e860931ce8f1c52d0bd7555}
+
+
+dealocating memory for init\+Top 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pline} & \\
+\hline
+{\em sysnames} & \\
+\hline
+{\em sysmoln} & \\
+\hline
+{\em molecules} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_ada4af3101e860931ce8f1c52d0bd7555_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_ac5d3d17ceb46d4096e173fa373bd12f6}{\index{Inicializer@{Inicializer}!use\+P\+B\+C@{use\+P\+B\+C}}
+\index{use\+P\+B\+C@{use\+P\+B\+C}!Inicializer@{Inicializer}}
+\subsubsection[{use\+P\+B\+C}]{\setlength{\rightskip}{0pt plus 5cm}void Inicializer\+::use\+P\+B\+C (
+\begin{DoxyParamCaption}
+\item[{{\bf Vector} $\ast$}]{pos, }
+\item[{{\bf Vector}}]{pbc}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_ac5d3d17ceb46d4096e173fa373bd12f6}
+
+
+use of periodic boundary conditions 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pos} & \\
+\hline
+{\em pbc} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_inicializer_ac5d3d17ceb46d4096e173fa373bd12f6_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_inicializer_a271a0eef3110b4f1557c7b43d2e0320c}{\index{Inicializer@{Inicializer}!x\+Malloc@{x\+Malloc}}
+\index{x\+Malloc@{x\+Malloc}!Inicializer@{Inicializer}}
+\subsubsection[{x\+Malloc}]{\setlength{\rightskip}{0pt plus 5cm}void $\ast$ Inicializer\+::x\+Malloc (
+\begin{DoxyParamCaption}
+\item[{size\+\_\+t}]{num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a271a0eef3110b4f1557c7b43d2e0320c}
+
+
+xmalloc nice malloc, which does the error checking for us 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_inicializer_a6a3bb727f3ad6db5c667f615596cd5e4}{\index{Inicializer@{Inicializer}!conf@{conf}}
+\index{conf@{conf}!Inicializer@{Inicializer}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf}$\ast$ Inicializer\+::conf\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a6a3bb727f3ad6db5c667f615596cd5e4}
+\hypertarget{class_inicializer_aecd4b4dcea44e06dd58000db4144e93e}{\index{Inicializer@{Inicializer}!files@{files}}
+\index{files@{files}!Inicializer@{Inicializer}}
+\subsubsection[{files}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\+Names}$\ast$ Inicializer\+::files\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_aecd4b4dcea44e06dd58000db4144e93e}
+\hypertarget{class_inicializer_a98c446c361d34327e838a17737126212}{\index{Inicializer@{Inicializer}!seed@{seed}}
+\index{seed@{seed}!Inicializer@{Inicializer}}
+\subsubsection[{seed}]{\setlength{\rightskip}{0pt plus 5cm}long Inicializer\+::seed\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a98c446c361d34327e838a17737126212}
+\hypertarget{class_inicializer_a8d55514c1121c5d3edbbd4fdfb32db65}{\index{Inicializer@{Inicializer}!sim@{sim}}
+\index{sim@{sim}!Inicializer@{Inicializer}}
+\subsubsection[{sim}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sim}$\ast$ Inicializer\+::sim\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a8d55514c1121c5d3edbbd4fdfb32db65}
+\hypertarget{class_inicializer_a9ce346ffecd5ecf76bd4c1c68a3060f7}{\index{Inicializer@{Inicializer}!topo@{topo}}
+\index{topo@{topo}!Inicializer@{Inicializer}}
+\subsubsection[{topo}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Topo}$\ast$ Inicializer\+::topo\hspace{0.3cm}{\ttfamily [private]}}}\label{class_inicializer_a9ce346ffecd5ecf76bd4c1c68a3060f7}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{inicializer_8h}{inicializer.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{inicializer_8cpp}{inicializer.\+cpp}\end{DoxyCompactItemize}

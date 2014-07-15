@@ -1,0 +1,210 @@
+\hypertarget{class_particle}{\section{Particle Class Reference}
+\label{class_particle}\index{Particle@{Particle}}
+}
+
+
+Define a particle.  
+
+
+
+
+{\ttfamily \#include $<$particle.\+h$>$}
+
+
+
+Collaboration diagram for Particle\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=153pt]{class_particle__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_particle_a5770ca81df8dff0087a05261cea3fba0}{init} (\hyperlink{class_ia__param}{Ia\+\_\+param} $\ast$ia\+\_\+parami)
+\begin{DoxyCompactList}\small\item\em int\+\_\+partvec initiate vectors of a single particle \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_particle_a257abdde975b38a8c6f5be812f18443f}{pos}
+\begin{DoxyCompactList}\small\item\em Position vector. \end{DoxyCompactList}\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_particle_a6c8d0f728a634e7ec018fa25e8d59fc6}{dir}
+\begin{DoxyCompactList}\small\item\em Unit direction vector of axis. \end{DoxyCompactList}\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_particle_a079cbdc927c2390bfbf1aeed90bb94e6}{patchdir} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \hyperlink{class_vector}{Vector} defining orientation of patch. \end{DoxyCompactList}\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_particle_a2c60d94c5664a2af5232373f08d74065}{patchsides} \mbox{[}4\mbox{]}
+\begin{DoxyCompactList}\small\item\em \hyperlink{class_vector}{Vector} defining sides of patch. \end{DoxyCompactList}\item 
+\hyperlink{class_vector}{Vector} \hyperlink{class_particle_adb1225ad15e081be7534279d63bcdf94}{chdir} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em Direction for chirality -\/ keep in memory to increase speed. \end{DoxyCompactList}\item 
+long \hyperlink{class_particle_a6a469f985209c064c1e180b019f741be}{mol\+Type}
+\begin{DoxyCompactList}\small\item\em \hyperlink{class_molecule}{Molecule} type 0-\/100, given sequentialy from 0. \end{DoxyCompactList}\item 
+long \hyperlink{class_particle_a9b75fd3fa9351d7d3fd7aa5a5170a809}{chain\+Index}
+\begin{DoxyCompactList}\small\item\em Chain number, only for Molecules of two or more particles. \end{DoxyCompactList}\item 
+int \hyperlink{class_particle_a2b73dd42bcd56ba2e7ffeb0a5515a866}{type}
+\begin{DoxyCompactList}\small\item\em Type of the particle 0 -\/ 40. \end{DoxyCompactList}\item 
+int \hyperlink{class_particle_af14e7acdc74120025282ea901e11ef69}{switched}
+\begin{DoxyCompactList}\small\item\em 0\+: in initial stat; 1\+: in the switched stat \end{DoxyCompactList}\item 
+int \hyperlink{class_particle_ae44cd3609cd01ff2e66edc58c64de10e}{switchtype}
+\begin{DoxyCompactList}\small\item\em With which kind of particle do you want to switch? \end{DoxyCompactList}\item 
+double \hyperlink{class_particle_a14464961ee5c7acbcfebddb72156e1bd}{delta\+\_\+mu}
+\begin{DoxyCompactList}\small\item\em Chemical potential for the switch. \end{DoxyCompactList}\item 
+long \hyperlink{class_particle_a66f7e76a4292ea79499e062667a46409}{neighbor\+Count}
+\begin{DoxyCompactList}\small\item\em The number of neighbors (pairs eq. num\+\_\+pairs) \end{DoxyCompactList}\item 
+long $\ast$ \hyperlink{class_particle_a0d119c0ca1644995840d35b701afb566}{neighbor\+I\+D}
+\begin{DoxyCompactList}\small\item\em The particle numbers of the neighbors. \end{DoxyCompactList}\item 
+long \hyperlink{class_particle_aea82d73fc279e2b1d9d837e6a0873b30}{conlist} \mbox{[}4\mbox{]}
+\begin{DoxyCompactList}\small\item\em Connectivity list, we have connection to tail and head and secon neighbours so far. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Define a particle. 
+
+\subsection{Member Function Documentation}
+\hypertarget{class_particle_a5770ca81df8dff0087a05261cea3fba0}{\index{Particle@{Particle}!init@{init}}
+\index{init@{init}!Particle@{Particle}}
+\subsubsection[{init}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\+::init (
+\begin{DoxyParamCaption}
+\item[{{\bf Ia\+\_\+param} $\ast$}]{ia\+\_\+parami}
+\end{DoxyParamCaption}
+)}}\label{class_particle_a5770ca81df8dff0087a05261cea3fba0}
+
+
+int\+\_\+partvec initiate vectors of a single particle 
+
+
+\begin{DoxyParams}{Parameters}
+{\em target} & \\
+\hline
+{\em ia\+\_\+parami} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_particle_a5770ca81df8dff0087a05261cea3fba0_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_particle_a5770ca81df8dff0087a05261cea3fba0_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_particle_a9b75fd3fa9351d7d3fd7aa5a5170a809}{\index{Particle@{Particle}!chain\+Index@{chain\+Index}}
+\index{chain\+Index@{chain\+Index}!Particle@{Particle}}
+\subsubsection[{chain\+Index}]{\setlength{\rightskip}{0pt plus 5cm}long Particle\+::chain\+Index}}\label{class_particle_a9b75fd3fa9351d7d3fd7aa5a5170a809}
+
+
+Chain number, only for Molecules of two or more particles. 
+
+\hypertarget{class_particle_adb1225ad15e081be7534279d63bcdf94}{\index{Particle@{Particle}!chdir@{chdir}}
+\index{chdir@{chdir}!Particle@{Particle}}
+\subsubsection[{chdir}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Particle\+::chdir\mbox{[}2\mbox{]}}}\label{class_particle_adb1225ad15e081be7534279d63bcdf94}
+
+
+Direction for chirality -\/ keep in memory to increase speed. 
+
+\hypertarget{class_particle_aea82d73fc279e2b1d9d837e6a0873b30}{\index{Particle@{Particle}!conlist@{conlist}}
+\index{conlist@{conlist}!Particle@{Particle}}
+\subsubsection[{conlist}]{\setlength{\rightskip}{0pt plus 5cm}long Particle\+::conlist\mbox{[}4\mbox{]}}}\label{class_particle_aea82d73fc279e2b1d9d837e6a0873b30}
+
+
+Connectivity list, we have connection to tail and head and secon neighbours so far. 
+
+\hypertarget{class_particle_a14464961ee5c7acbcfebddb72156e1bd}{\index{Particle@{Particle}!delta\+\_\+mu@{delta\+\_\+mu}}
+\index{delta\+\_\+mu@{delta\+\_\+mu}!Particle@{Particle}}
+\subsubsection[{delta\+\_\+mu}]{\setlength{\rightskip}{0pt plus 5cm}double Particle\+::delta\+\_\+mu}}\label{class_particle_a14464961ee5c7acbcfebddb72156e1bd}
+
+
+Chemical potential for the switch. 
+
+\hypertarget{class_particle_a6c8d0f728a634e7ec018fa25e8d59fc6}{\index{Particle@{Particle}!dir@{dir}}
+\index{dir@{dir}!Particle@{Particle}}
+\subsubsection[{dir}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Particle\+::dir}}\label{class_particle_a6c8d0f728a634e7ec018fa25e8d59fc6}
+
+
+Unit direction vector of axis. 
+
+\hypertarget{class_particle_a6a469f985209c064c1e180b019f741be}{\index{Particle@{Particle}!mol\+Type@{mol\+Type}}
+\index{mol\+Type@{mol\+Type}!Particle@{Particle}}
+\subsubsection[{mol\+Type}]{\setlength{\rightskip}{0pt plus 5cm}long Particle\+::mol\+Type}}\label{class_particle_a6a469f985209c064c1e180b019f741be}
+
+
+\hyperlink{class_molecule}{Molecule} type 0-\/100, given sequentialy from 0. 
+
+\hypertarget{class_particle_a66f7e76a4292ea79499e062667a46409}{\index{Particle@{Particle}!neighbor\+Count@{neighbor\+Count}}
+\index{neighbor\+Count@{neighbor\+Count}!Particle@{Particle}}
+\subsubsection[{neighbor\+Count}]{\setlength{\rightskip}{0pt plus 5cm}long Particle\+::neighbor\+Count}}\label{class_particle_a66f7e76a4292ea79499e062667a46409}
+
+
+The number of neighbors (pairs eq. num\+\_\+pairs) 
+
+\hypertarget{class_particle_a0d119c0ca1644995840d35b701afb566}{\index{Particle@{Particle}!neighbor\+I\+D@{neighbor\+I\+D}}
+\index{neighbor\+I\+D@{neighbor\+I\+D}!Particle@{Particle}}
+\subsubsection[{neighbor\+I\+D}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Particle\+::neighbor\+I\+D}}\label{class_particle_a0d119c0ca1644995840d35b701afb566}
+
+
+The particle numbers of the neighbors. 
+
+\hypertarget{class_particle_a079cbdc927c2390bfbf1aeed90bb94e6}{\index{Particle@{Particle}!patchdir@{patchdir}}
+\index{patchdir@{patchdir}!Particle@{Particle}}
+\subsubsection[{patchdir}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Particle\+::patchdir\mbox{[}2\mbox{]}}}\label{class_particle_a079cbdc927c2390bfbf1aeed90bb94e6}
+
+
+\hyperlink{class_vector}{Vector} defining orientation of patch. 
+
+\hypertarget{class_particle_a2c60d94c5664a2af5232373f08d74065}{\index{Particle@{Particle}!patchsides@{patchsides}}
+\index{patchsides@{patchsides}!Particle@{Particle}}
+\subsubsection[{patchsides}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Particle\+::patchsides\mbox{[}4\mbox{]}}}\label{class_particle_a2c60d94c5664a2af5232373f08d74065}
+
+
+\hyperlink{class_vector}{Vector} defining sides of patch. 
+
+\hypertarget{class_particle_a257abdde975b38a8c6f5be812f18443f}{\index{Particle@{Particle}!pos@{pos}}
+\index{pos@{pos}!Particle@{Particle}}
+\subsubsection[{pos}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vector} Particle\+::pos}}\label{class_particle_a257abdde975b38a8c6f5be812f18443f}
+
+
+Position vector. 
+
+\hypertarget{class_particle_af14e7acdc74120025282ea901e11ef69}{\index{Particle@{Particle}!switched@{switched}}
+\index{switched@{switched}!Particle@{Particle}}
+\subsubsection[{switched}]{\setlength{\rightskip}{0pt plus 5cm}int Particle\+::switched}}\label{class_particle_af14e7acdc74120025282ea901e11ef69}
+
+
+0\+: in initial stat; 1\+: in the switched stat 
+
+\hypertarget{class_particle_ae44cd3609cd01ff2e66edc58c64de10e}{\index{Particle@{Particle}!switchtype@{switchtype}}
+\index{switchtype@{switchtype}!Particle@{Particle}}
+\subsubsection[{switchtype}]{\setlength{\rightskip}{0pt plus 5cm}int Particle\+::switchtype}}\label{class_particle_ae44cd3609cd01ff2e66edc58c64de10e}
+
+
+With which kind of particle do you want to switch? 
+
+\hypertarget{class_particle_a2b73dd42bcd56ba2e7ffeb0a5515a866}{\index{Particle@{Particle}!type@{type}}
+\index{type@{type}!Particle@{Particle}}
+\subsubsection[{type}]{\setlength{\rightskip}{0pt plus 5cm}int Particle\+::type}}\label{class_particle_a2b73dd42bcd56ba2e7ffeb0a5515a866}
+
+
+Type of the particle 0 -\/ 40. 
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/structures/\hyperlink{particle_8h}{particle.\+h}\item 
+sc\+O\+O\+P/structures/\hyperlink{particle_8cpp}{particle.\+cpp}\end{DoxyCompactItemize}

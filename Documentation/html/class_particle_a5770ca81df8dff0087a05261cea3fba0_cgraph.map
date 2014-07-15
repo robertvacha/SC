@@ -1,0 +1,7 @@
+<map id="Particle::init" name="Particle::init">
+<area shape="rect" id="node2" href="$class_vector.html#a761012be2c08d1cbaa8a44e0410fb974" title="normalise Normalise a vector to have unit length. For speed during heavy use, it is not checked that ..." alt="" coords="151,5,275,32"/>
+<area shape="rect" id="node4" href="$class_vector.html#a9f12df3a8c520453f6c56b88d5994404" title="Vector::ortogonalise" alt="" coords="144,56,283,83"/>
+<area shape="rect" id="node6" href="$class_vector.html#ab37eae98dde960fd22125c325c22b39a" title="Vector::rotate" alt="" coords="163,107,264,133"/>
+<area shape="rect" id="node3" href="$class_vector.html#a64d1af82e5f8d82c7a6ca5e309c3bf8f" title="Return a norm of Vector. " alt="" coords="331,5,429,32"/>
+<area shape="rect" id="node5" href="$class_vector.html#aa2ff981d4257395089b9cd4d495ab515" title="dotProduct == Scallar product " alt="" coords="337,56,423,83"/>
+</map>

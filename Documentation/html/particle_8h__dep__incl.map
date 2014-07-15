@@ -1,0 +1,26 @@
+<map id="scOOP/structures/particle.h" name="scOOP/structures/particle.h">
+<area shape="rect" id="node2" href="$_conf_8h.html" title="scOOP/structures/Conf.h" alt="" coords="561,80,729,107"/>
+<area shape="rect" id="node23" href="$pairenergycalculator_8h.html" title="scOOP/mc/pairenergycalculator.h" alt="" coords="755,80,973,107"/>
+<area shape="rect" id="node25" href="$particle_8cpp.html" title="scOOP/structures/particle.cpp" alt="" coords="998,80,1196,107"/>
+<area shape="rect" id="node3" href="$mesh_8h.html" title="scOOP/mc/mesh.h" alt="" coords="322,155,456,181"/>
+<area shape="rect" id="node12" href="$updater_8h.html" title="scOOP/mc/updater.h" alt="" coords="414,528,559,555"/>
+<area shape="rect" id="node16" href="$movecreator_8h.html" title="scOOP/mc/movecreator.h" alt="" coords="810,453,981,480"/>
+<area shape="rect" id="node22" href="$_conf_8cpp.html" title="scOOP/structures/Conf.cpp" alt="" coords="554,155,736,181"/>
+<area shape="rect" id="node4" href="$wanglandau_8h.html" title="scOOP/mc/wanglandau.h" alt="" coords="304,229,475,256"/>
+<area shape="rect" id="node21" href="$mesh_8cpp.html" title="scOOP/mc/mesh.cpp" alt="" coords="131,229,279,256"/>
+<area shape="rect" id="node5" href="$sim_8h.html" title="scOOP/structures/sim.h" alt="" coords="311,304,473,331"/>
+<area shape="rect" id="node20" href="$wanglandau_8cpp.html" title="scOOP/mc/wanglandau.cpp" alt="" coords="103,304,287,331"/>
+<area shape="rect" id="node6" href="$inicializer_8h.html" title="scOOP/mc/inicializer.h" alt="" coords="71,379,227,405"/>
+<area shape="rect" id="node11" href="$print_stat_8h.html" title="scOOP/mc/printStat.h" alt="" coords="317,379,467,405"/>
+<area shape="rect" id="node15" href="$totalenergycalculator_8h.html" title="scOOP/mc/totalenergycalculator.h" alt="" coords="553,379,775,405"/>
+<area shape="rect" id="node7" href="$mcsimsystem_8h.html" title="scOOP/mc/mcsimsystem.h" alt="" coords="67,603,251,629"/>
+<area shape="rect" id="node10" href="$inicializer_8cpp.html" title="scOOP/mc/inicializer.cpp" alt="" coords="64,453,235,480"/>
+<area shape="rect" id="node8" href="$main_8cpp.html" title="scOOP/main.cpp" alt="" coords="5,677,128,704"/>
+<area shape="rect" id="node9" href="$mcsimsystem_8cpp.html" title="scOOP/mc/mcsimsystem.cpp" alt="" coords="153,677,351,704"/>
+<area shape="rect" id="node14" href="$print_stat_8cpp.html" title="scOOP/mc/printStat.cpp" alt="" coords="259,453,424,480"/>
+<area shape="rect" id="node13" href="$updater_8cpp.html" title="scOOP/mc/updater.cpp" alt="" coords="407,603,565,629"/>
+<area shape="rect" id="node19" href="$totalenergycalculator_8cpp.html" title="scOOP/mc/totalenergycalculator.cpp" alt="" coords="550,453,785,480"/>
+<area shape="rect" id="node17" href="$movecreator_8cpp.html" title="scOOP/mc/movecreator.cpp" alt="" coords="941,528,1128,555"/>
+<area shape="rect" id="node18" href="$_move_creator_mesh_8cpp.html" title="scOOP/mc/MoveCreatorMesh.cpp" alt="" coords="697,528,916,555"/>
+<area shape="rect" id="node24" href="$pairenergycalculator_8cpp.html" title="scOOP/mc/pairenergycalculator.cpp" alt="" coords="901,155,1133,181"/>
+</map>

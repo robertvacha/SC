@@ -1,0 +1,9 @@
+<map id="WangLandau" name="WangLandau">
+<area shape="rect" id="node2" href="$class_conf.html" title="Configuration of the system. " alt="" coords="11,109,59,136"/>
+<area shape="rect" id="node8" href="$class_mesh.html" title="Mesh for hole order parameter. " alt="" coords="89,200,143,227"/>
+<area shape="rect" id="node3" href="$class_vector.html" title="Vector" alt="" coords="5,5,64,32"/>
+<area shape="rect" id="node4" href="$class_topo.html" title="Topo" alt="" coords="213,200,264,227"/>
+<area shape="rect" id="node5" href="$class_molecule_params.html" title="Parameters for inner interaction in chains. " alt="" coords="83,109,201,136"/>
+<area shape="rect" id="node6" href="$class_exters.html" title="Exters" alt="" coords="341,109,400,136"/>
+<area shape="rect" id="node7" href="$class_ia__param.html" title="Contatins properties and parameters of particle types. " alt="" coords="235,5,309,32"/>
+</map>

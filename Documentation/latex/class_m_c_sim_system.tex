@@ -1,0 +1,341 @@
+\hypertarget{class_m_c_sim_system}{\section{M\+C\+Sim\+System Class Reference}
+\label{class_m_c_sim_system}\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+}
+
+
+{\ttfamily \#include $<$mcsimsystem.\+h$>$}
+
+
+
+Collaboration diagram for M\+C\+Sim\+System\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_m_c_sim_system_ace11df1bb6f80f7654aa088870aa7271}{M\+C\+Sim\+System} ()
+\item 
+\hyperlink{class_m_c_sim_system_a6dd3f00bcb990de568515dcd65d26624}{$\sim$\+M\+C\+Sim\+System} ()
+\item 
+void \hyperlink{class_m_c_sim_system_adfacc1a896841b090ebab26fd369f43a}{init} ()
+\begin{DoxyCompactList}\small\item\em init \end{DoxyCompactList}\item 
+void \hyperlink{class_m_c_sim_system_a4f11a2356f82dba787e1a4d69e0e0d4f}{equilibrate} ()
+\begin{DoxyCompactList}\small\item\em equilibrate \end{DoxyCompactList}\item 
+void \hyperlink{class_m_c_sim_system_a188410921d582e9a2659627f4ca2073b}{production\+Run} ()
+\begin{DoxyCompactList}\small\item\em production\+Run \end{DoxyCompactList}\item 
+void \hyperlink{class_m_c_sim_system_a5886c6bfb00df9e66bf659673cd03854}{dealloc} ()
+\begin{DoxyCompactList}\small\item\em dealloc \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_m_c_sim_system_a6bf0bdd480a14c93b53177e32d502295}{clear\+Outfiles} ()
+\begin{DoxyCompactList}\small\item\em clear\+Outfiles Clears outfiles for movie and Wang-\/\+Landau method \end{DoxyCompactList}\item 
+int \hyperlink{class_m_c_sim_system_a780a1180f5bbe06b66ec672802f0a7b9}{memory\+Dealloc} ()
+\begin{DoxyCompactList}\small\item\em memorydealloc \end{DoxyCompactList}\item 
+int \hyperlink{class_m_c_sim_system_a5a4cc59839d79f6712f25bea5c5696d2}{dealloc\+Pairlist} ()
+\begin{DoxyCompactList}\small\item\em dealloc\+\_\+pairlist Cleans up\+: deallocates the memory for the pairlist \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+F\+I\+L\+E $\ast$ \hyperlink{class_m_c_sim_system_afcf7ff09960e6fe9ebcd0af9d6ef5c77}{outfile}
+\item 
+F\+I\+L\+E $\ast$ \hyperlink{class_m_c_sim_system_af99ffcf84213091b20ff0e2e9c5fc0a4}{mov}
+\item 
+\hyperlink{class_topo}{Topo} \hyperlink{class_m_c_sim_system_a27d68360d188e564c5b0e8991e63671c}{topo}
+\item 
+\hyperlink{class_sim}{Sim} \hyperlink{class_m_c_sim_system_a157d4d5a003e91c72b954873e0a4593e}{sim}
+\item 
+\hyperlink{class_conf}{Conf} \hyperlink{class_m_c_sim_system_a4d6bf102d6233f299097ca228e1d5a1b}{conf}
+\item 
+\hyperlink{struct_file_names}{File\+Names} \hyperlink{class_m_c_sim_system_a251780d565abe7fe418ecd9ce0ba7aaa}{files}
+\item 
+\hyperlink{class_updater}{Updater} $\ast$ \hyperlink{class_m_c_sim_system_af7c8b2a6f211b0c6f8adc3f773f775f7}{updater}
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_m_c_sim_system_ace11df1bb6f80f7654aa088870aa7271}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{M\+C\+Sim\+System}]{\setlength{\rightskip}{0pt plus 5cm}M\+C\+Sim\+System\+::\+M\+C\+Sim\+System (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_m_c_sim_system_ace11df1bb6f80f7654aa088870aa7271}
+\hypertarget{class_m_c_sim_system_a6dd3f00bcb990de568515dcd65d26624}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!````~M\+C\+Sim\+System@{$\sim$\+M\+C\+Sim\+System}}
+\index{````~M\+C\+Sim\+System@{$\sim$\+M\+C\+Sim\+System}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{$\sim$\+M\+C\+Sim\+System}]{\setlength{\rightskip}{0pt plus 5cm}M\+C\+Sim\+System\+::$\sim$\+M\+C\+Sim\+System (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_m_c_sim_system_a6dd3f00bcb990de568515dcd65d26624}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_m_c_sim_system_a6bf0bdd480a14c93b53177e32d502295}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!clear\+Outfiles@{clear\+Outfiles}}
+\index{clear\+Outfiles@{clear\+Outfiles}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{clear\+Outfiles}]{\setlength{\rightskip}{0pt plus 5cm}void M\+C\+Sim\+System\+::clear\+Outfiles (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a6bf0bdd480a14c93b53177e32d502295}
+
+
+clear\+Outfiles Clears outfiles for movie and Wang-\/\+Landau method 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a6bf0bdd480a14c93b53177e32d502295_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a6bf0bdd480a14c93b53177e32d502295_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_a5886c6bfb00df9e66bf659673cd03854}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!dealloc@{dealloc}}
+\index{dealloc@{dealloc}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{dealloc}]{\setlength{\rightskip}{0pt plus 5cm}void M\+C\+Sim\+System\+::dealloc (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_m_c_sim_system_a5886c6bfb00df9e66bf659673cd03854}
+
+
+dealloc 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a5886c6bfb00df9e66bf659673cd03854_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=274pt]{class_m_c_sim_system_a5886c6bfb00df9e66bf659673cd03854_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_a5a4cc59839d79f6712f25bea5c5696d2}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!dealloc\+Pairlist@{dealloc\+Pairlist}}
+\index{dealloc\+Pairlist@{dealloc\+Pairlist}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{dealloc\+Pairlist}]{\setlength{\rightskip}{0pt plus 5cm}int M\+C\+Sim\+System\+::dealloc\+Pairlist (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a5a4cc59839d79f6712f25bea5c5696d2}
+
+
+dealloc\+\_\+pairlist Cleans up\+: deallocates the memory for the pairlist 
+
+
+\begin{DoxyParams}{Parameters}
+{\em topo} & \\
+\hline
+{\em sim} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a5a4cc59839d79f6712f25bea5c5696d2_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_a4f11a2356f82dba787e1a4d69e0e0d4f}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!equilibrate@{equilibrate}}
+\index{equilibrate@{equilibrate}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{equilibrate}]{\setlength{\rightskip}{0pt plus 5cm}void M\+C\+Sim\+System\+::equilibrate (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_m_c_sim_system_a4f11a2356f82dba787e1a4d69e0e0d4f}
+
+
+equilibrate 
+
+
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a4f11a2356f82dba787e1a4d69e0e0d4f_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=288pt]{class_m_c_sim_system_a4f11a2356f82dba787e1a4d69e0e0d4f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_adfacc1a896841b090ebab26fd369f43a}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!init@{init}}
+\index{init@{init}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{init}]{\setlength{\rightskip}{0pt plus 5cm}void M\+C\+Sim\+System\+::init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_m_c_sim_system_adfacc1a896841b090ebab26fd369f43a}
+
+
+init 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_adfacc1a896841b090ebab26fd369f43a_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=256pt]{class_m_c_sim_system_adfacc1a896841b090ebab26fd369f43a_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_a780a1180f5bbe06b66ec672802f0a7b9}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!memory\+Dealloc@{memory\+Dealloc}}
+\index{memory\+Dealloc@{memory\+Dealloc}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{memory\+Dealloc}]{\setlength{\rightskip}{0pt plus 5cm}int M\+C\+Sim\+System\+::memory\+Dealloc (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a780a1180f5bbe06b66ec672802f0a7b9}
+
+
+memorydealloc 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a780a1180f5bbe06b66ec672802f0a7b9_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a780a1180f5bbe06b66ec672802f0a7b9_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_m_c_sim_system_a188410921d582e9a2659627f4ca2073b}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!production\+Run@{production\+Run}}
+\index{production\+Run@{production\+Run}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{production\+Run}]{\setlength{\rightskip}{0pt plus 5cm}void M\+C\+Sim\+System\+::production\+Run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_m_c_sim_system_a188410921d582e9a2659627f4ca2073b}
+
+
+production\+Run 
+
+For testing the pairlist
+
+For testing the cluster algorithm 
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_m_c_sim_system_a188410921d582e9a2659627f4ca2073b_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=306pt]{class_m_c_sim_system_a188410921d582e9a2659627f4ca2073b_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_m_c_sim_system_a4d6bf102d6233f299097ca228e1d5a1b}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!conf@{conf}}
+\index{conf@{conf}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf} M\+C\+Sim\+System\+::conf\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a4d6bf102d6233f299097ca228e1d5a1b}
+\hypertarget{class_m_c_sim_system_a251780d565abe7fe418ecd9ce0ba7aaa}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!files@{files}}
+\index{files@{files}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{files}]{\setlength{\rightskip}{0pt plus 5cm}{\bf File\+Names} M\+C\+Sim\+System\+::files\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a251780d565abe7fe418ecd9ce0ba7aaa}
+\hypertarget{class_m_c_sim_system_af99ffcf84213091b20ff0e2e9c5fc0a4}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!mov@{mov}}
+\index{mov@{mov}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{mov}]{\setlength{\rightskip}{0pt plus 5cm}F\+I\+L\+E $\ast$ M\+C\+Sim\+System\+::mov\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_af99ffcf84213091b20ff0e2e9c5fc0a4}
+\hypertarget{class_m_c_sim_system_afcf7ff09960e6fe9ebcd0af9d6ef5c77}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!outfile@{outfile}}
+\index{outfile@{outfile}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{outfile}]{\setlength{\rightskip}{0pt plus 5cm}F\+I\+L\+E$\ast$ M\+C\+Sim\+System\+::outfile\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_afcf7ff09960e6fe9ebcd0af9d6ef5c77}
+\hypertarget{class_m_c_sim_system_a157d4d5a003e91c72b954873e0a4593e}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!sim@{sim}}
+\index{sim@{sim}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{sim}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sim} M\+C\+Sim\+System\+::sim\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a157d4d5a003e91c72b954873e0a4593e}
+\hypertarget{class_m_c_sim_system_a27d68360d188e564c5b0e8991e63671c}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!topo@{topo}}
+\index{topo@{topo}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{topo}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Topo} M\+C\+Sim\+System\+::topo\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_a27d68360d188e564c5b0e8991e63671c}
+\hypertarget{class_m_c_sim_system_af7c8b2a6f211b0c6f8adc3f773f775f7}{\index{M\+C\+Sim\+System@{M\+C\+Sim\+System}!updater@{updater}}
+\index{updater@{updater}!M\+C\+Sim\+System@{M\+C\+Sim\+System}}
+\subsubsection[{updater}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Updater}$\ast$ M\+C\+Sim\+System\+::updater\hspace{0.3cm}{\ttfamily [private]}}}\label{class_m_c_sim_system_af7c8b2a6f211b0c6f8adc3f773f775f7}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{mcsimsystem_8h}{mcsimsystem.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{mcsimsystem_8cpp}{mcsimsystem.\+cpp}\end{DoxyCompactItemize}

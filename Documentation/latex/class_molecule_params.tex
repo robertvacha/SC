@@ -1,0 +1,223 @@
+\hypertarget{class_molecule_params}{\section{Molecule\+Params Class Reference}
+\label{class_molecule_params}\index{Molecule\+Params@{Molecule\+Params}}
+}
+
+
+Parameters for inner interaction in chains.  
+
+
+
+
+{\ttfamily \#include $<$moleculeparams.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_molecule_params_a33689bb37655eed3447e989be5149cf3}{Molecule\+Params} ()
+\item 
+bool \hyperlink{class_molecule_params_a4144cbf276e3e7e25c7a6f3557e4f80b}{is\+Atomic} ()
+\item 
+int \hyperlink{class_molecule_params_a025ace7f9070a6b19b7b536e1d7f565f}{mol\+Size} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+char $\ast$ \hyperlink{class_molecule_params_a9b478628f7e50569a41fdfb6dacfabfa}{name}
+\begin{DoxyCompactList}\small\item\em name of the molecule \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_af3ba3ec166a3d31ce27c707679dd7335}{bond1eq}
+\begin{DoxyCompactList}\small\item\em Equilibrium distance of harmonic bond between nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a48d2ea6681c8eb398d74610cffab8594}{bond1c}
+\begin{DoxyCompactList}\small\item\em Spring constant for harmonic bond between nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a7ba670c7097cbef3dbbaaf995f726f7e}{bond2eq}
+\begin{DoxyCompactList}\small\item\em Equilibrium distance of harmonic bond between second nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a69fcc0cfc455c73f910b379860900a16}{bond2c}
+\begin{DoxyCompactList}\small\item\em Spring constant for harmonic bond between second nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a55f6fb3edc8ca69966b06a6370f5c5c0}{bonddeq}
+\begin{DoxyCompactList}\small\item\em Equilibrium distance of directional harmonic bond between the nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_ae2c76f8dd300d5f70dbd905fea428e59}{bonddc}
+\begin{DoxyCompactList}\small\item\em Spring constant for directional harmonic bond between the nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_aa3a3e60ad09927ad74fce4eb8dbd2a91}{angle1eq}
+\begin{DoxyCompactList}\small\item\em Equilibrium angle between two spherocylinders -\/neerest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a01cf1bc0ed829aeca3c1756af5c11841}{angle1c}
+\begin{DoxyCompactList}\small\item\em Spring constant angle between two spherocylinders -\/nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_aba6d4b6e5b9ee2d21f42046d2035b707}{angle2eq}
+\begin{DoxyCompactList}\small\item\em Equilibrium angle between two spherocylinder patches -\/nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_ac5666492fbac2859faf78bd7c5a1afc7}{angle2c}
+\begin{DoxyCompactList}\small\item\em Spring constant for angle between two spherocylinder patches -\/nearest neighbours. \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_a8155e1f14baf8e128df56a9a71f77de4}{mu}
+\begin{DoxyCompactList}\small\item\em chemical potential, specific to each molecule type \end{DoxyCompactList}\item 
+double \hyperlink{class_molecule_params_af02735d94bf97e0315d370a1d2dbc675}{ln\+Thermal\+Wavelengh}
+\begin{DoxyCompactList}\small\item\em ln(de Broglie thermal wavelenght), specific to each type \end{DoxyCompactList}\item 
+bool \hyperlink{class_molecule_params_affad94a2e0a3c67b0f36e08e867974da}{mu\+V\+Tmove}
+\begin{DoxyCompactList}\small\item\em true -\/ attempt mu\+V\+T move for that type \end{DoxyCompactList}\item 
+int \hyperlink{class_molecule_params_ae256d91fad543b30bb15c2c28cb8dadd}{particle\+Types} \mbox{[}\hyperlink{macros_8h_a6ba68031db49c489a6a5902f87b915c8}{M\+A\+X\+C\+H\+L}\mbox{]}
+\begin{DoxyCompactList}\small\item\em 0..40 single particle type of each particle, -\/1\+: no particle \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Parameters for inner interaction in chains. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_molecule_params_a33689bb37655eed3447e989be5149cf3}{\index{Molecule\+Params@{Molecule\+Params}!Molecule\+Params@{Molecule\+Params}}
+\index{Molecule\+Params@{Molecule\+Params}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{Molecule\+Params}]{\setlength{\rightskip}{0pt plus 5cm}Molecule\+Params\+::\+Molecule\+Params (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_molecule_params_a33689bb37655eed3447e989be5149cf3}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_molecule_params_a4144cbf276e3e7e25c7a6f3557e4f80b}{\index{Molecule\+Params@{Molecule\+Params}!is\+Atomic@{is\+Atomic}}
+\index{is\+Atomic@{is\+Atomic}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{is\+Atomic}]{\setlength{\rightskip}{0pt plus 5cm}bool Molecule\+Params\+::is\+Atomic (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_molecule_params_a4144cbf276e3e7e25c7a6f3557e4f80b}
+\begin{DoxyReturn}{Returns}
+True if \hyperlink{class_molecule}{Molecule} of only one particle 
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_molecule_params_a4144cbf276e3e7e25c7a6f3557e4f80b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_molecule_params_a025ace7f9070a6b19b7b536e1d7f565f}{\index{Molecule\+Params@{Molecule\+Params}!mol\+Size@{mol\+Size}}
+\index{mol\+Size@{mol\+Size}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{mol\+Size}]{\setlength{\rightskip}{0pt plus 5cm}int Molecule\+Params\+::mol\+Size (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_molecule_params_a025ace7f9070a6b19b7b536e1d7f565f}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_molecule_params_a025ace7f9070a6b19b7b536e1d7f565f_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_molecule_params_a01cf1bc0ed829aeca3c1756af5c11841}{\index{Molecule\+Params@{Molecule\+Params}!angle1c@{angle1c}}
+\index{angle1c@{angle1c}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{angle1c}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::angle1c}}\label{class_molecule_params_a01cf1bc0ed829aeca3c1756af5c11841}
+
+
+Spring constant angle between two spherocylinders -\/nearest neighbours. 
+
+\hypertarget{class_molecule_params_aa3a3e60ad09927ad74fce4eb8dbd2a91}{\index{Molecule\+Params@{Molecule\+Params}!angle1eq@{angle1eq}}
+\index{angle1eq@{angle1eq}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{angle1eq}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::angle1eq}}\label{class_molecule_params_aa3a3e60ad09927ad74fce4eb8dbd2a91}
+
+
+Equilibrium angle between two spherocylinders -\/neerest neighbours. 
+
+\hypertarget{class_molecule_params_ac5666492fbac2859faf78bd7c5a1afc7}{\index{Molecule\+Params@{Molecule\+Params}!angle2c@{angle2c}}
+\index{angle2c@{angle2c}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{angle2c}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::angle2c}}\label{class_molecule_params_ac5666492fbac2859faf78bd7c5a1afc7}
+
+
+Spring constant for angle between two spherocylinder patches -\/nearest neighbours. 
+
+\hypertarget{class_molecule_params_aba6d4b6e5b9ee2d21f42046d2035b707}{\index{Molecule\+Params@{Molecule\+Params}!angle2eq@{angle2eq}}
+\index{angle2eq@{angle2eq}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{angle2eq}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::angle2eq}}\label{class_molecule_params_aba6d4b6e5b9ee2d21f42046d2035b707}
+
+
+Equilibrium angle between two spherocylinder patches -\/nearest neighbours. 
+
+\hypertarget{class_molecule_params_a48d2ea6681c8eb398d74610cffab8594}{\index{Molecule\+Params@{Molecule\+Params}!bond1c@{bond1c}}
+\index{bond1c@{bond1c}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bond1c}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bond1c}}\label{class_molecule_params_a48d2ea6681c8eb398d74610cffab8594}
+
+
+Spring constant for harmonic bond between nearest neighbours. 
+
+\hypertarget{class_molecule_params_af3ba3ec166a3d31ce27c707679dd7335}{\index{Molecule\+Params@{Molecule\+Params}!bond1eq@{bond1eq}}
+\index{bond1eq@{bond1eq}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bond1eq}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bond1eq}}\label{class_molecule_params_af3ba3ec166a3d31ce27c707679dd7335}
+
+
+Equilibrium distance of harmonic bond between nearest neighbours. 
+
+\hypertarget{class_molecule_params_a69fcc0cfc455c73f910b379860900a16}{\index{Molecule\+Params@{Molecule\+Params}!bond2c@{bond2c}}
+\index{bond2c@{bond2c}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bond2c}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bond2c}}\label{class_molecule_params_a69fcc0cfc455c73f910b379860900a16}
+
+
+Spring constant for harmonic bond between second nearest neighbours. 
+
+\hypertarget{class_molecule_params_a7ba670c7097cbef3dbbaaf995f726f7e}{\index{Molecule\+Params@{Molecule\+Params}!bond2eq@{bond2eq}}
+\index{bond2eq@{bond2eq}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bond2eq}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bond2eq}}\label{class_molecule_params_a7ba670c7097cbef3dbbaaf995f726f7e}
+
+
+Equilibrium distance of harmonic bond between second nearest neighbours. 
+
+\hypertarget{class_molecule_params_ae2c76f8dd300d5f70dbd905fea428e59}{\index{Molecule\+Params@{Molecule\+Params}!bonddc@{bonddc}}
+\index{bonddc@{bonddc}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bonddc}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bonddc}}\label{class_molecule_params_ae2c76f8dd300d5f70dbd905fea428e59}
+
+
+Spring constant for directional harmonic bond between the nearest neighbours. 
+
+\hypertarget{class_molecule_params_a55f6fb3edc8ca69966b06a6370f5c5c0}{\index{Molecule\+Params@{Molecule\+Params}!bonddeq@{bonddeq}}
+\index{bonddeq@{bonddeq}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{bonddeq}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::bonddeq}}\label{class_molecule_params_a55f6fb3edc8ca69966b06a6370f5c5c0}
+
+
+Equilibrium distance of directional harmonic bond between the nearest neighbours. 
+
+\hypertarget{class_molecule_params_af02735d94bf97e0315d370a1d2dbc675}{\index{Molecule\+Params@{Molecule\+Params}!ln\+Thermal\+Wavelengh@{ln\+Thermal\+Wavelengh}}
+\index{ln\+Thermal\+Wavelengh@{ln\+Thermal\+Wavelengh}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{ln\+Thermal\+Wavelengh}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::ln\+Thermal\+Wavelengh}}\label{class_molecule_params_af02735d94bf97e0315d370a1d2dbc675}
+
+
+ln(de Broglie thermal wavelenght), specific to each type 
+
+\hypertarget{class_molecule_params_a8155e1f14baf8e128df56a9a71f77de4}{\index{Molecule\+Params@{Molecule\+Params}!mu@{mu}}
+\index{mu@{mu}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{mu}]{\setlength{\rightskip}{0pt plus 5cm}double Molecule\+Params\+::mu}}\label{class_molecule_params_a8155e1f14baf8e128df56a9a71f77de4}
+
+
+chemical potential, specific to each molecule type 
+
+\hypertarget{class_molecule_params_affad94a2e0a3c67b0f36e08e867974da}{\index{Molecule\+Params@{Molecule\+Params}!mu\+V\+Tmove@{mu\+V\+Tmove}}
+\index{mu\+V\+Tmove@{mu\+V\+Tmove}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{mu\+V\+Tmove}]{\setlength{\rightskip}{0pt plus 5cm}bool Molecule\+Params\+::mu\+V\+Tmove}}\label{class_molecule_params_affad94a2e0a3c67b0f36e08e867974da}
+
+
+true -\/ attempt mu\+V\+T move for that type 
+
+\hypertarget{class_molecule_params_a9b478628f7e50569a41fdfb6dacfabfa}{\index{Molecule\+Params@{Molecule\+Params}!name@{name}}
+\index{name@{name}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{name}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ Molecule\+Params\+::name}}\label{class_molecule_params_a9b478628f7e50569a41fdfb6dacfabfa}
+
+
+name of the molecule 
+
+\hypertarget{class_molecule_params_ae256d91fad543b30bb15c2c28cb8dadd}{\index{Molecule\+Params@{Molecule\+Params}!particle\+Types@{particle\+Types}}
+\index{particle\+Types@{particle\+Types}!Molecule\+Params@{Molecule\+Params}}
+\subsubsection[{particle\+Types}]{\setlength{\rightskip}{0pt plus 5cm}int Molecule\+Params\+::particle\+Types\mbox{[}{\bf M\+A\+X\+C\+H\+L}\mbox{]}}}\label{class_molecule_params_ae256d91fad543b30bb15c2c28cb8dadd}
+
+
+0..40 single particle type of each particle, -\/1\+: no particle 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/structures/\hyperlink{moleculeparams_8h}{moleculeparams.\+h}\end{DoxyCompactItemize}

@@ -1,0 +1,19 @@
+<map id="Updater" name="Updater">
+<area shape="rect" id="node2" href="$class_conf.html" title="Configuration of the system. " alt="" coords="641,133,689,160"/>
+<area shape="rect" id="node7" href="$class_wang_landau.html" title="WangLandau" alt="" coords="304,411,403,437"/>
+<area shape="rect" id="node12" href="$class_mesh.html" title="Mesh for hole order parameter. " alt="" coords="505,277,559,304"/>
+<area shape="rect" id="node13" href="$class_total_energy_calculator.html" title="TotalEnergyCalculator" alt="" coords="475,664,624,691"/>
+<area shape="rect" id="node16" href="$class_move_creator.html" title="MoveCreator" alt="" coords="350,755,444,781"/>
+<area shape="rect" id="node3" href="$class_vector.html" title="Vector" alt="" coords="673,5,732,32"/>
+<area shape="rect" id="node14" href="$class_pair_energy_calculator.html" title="PairEnergyCalculator" alt="" coords="477,411,621,437"/>
+<area shape="rect" id="node15" href="$class_particle.html" title="Define a particle. " alt="" coords="704,277,771,304"/>
+<area shape="rect" id="node4" href="$class_sim.html" title="Should contain mostly all the simulation options and variables. " alt="" coords="203,573,248,600"/>
+<area shape="rect" id="node5" href="$class_disp.html" title="Define step size and acceptance ratio statistics. " alt="" coords="181,411,229,437"/>
+<area shape="rect" id="node6" href="$struct_cluster.html" title="contains all the particles of one cluster " alt="" coords="94,411,156,437"/>
+<area shape="rect" id="node8" href="$class_topo.html" title="Topo" alt="" coords="159,277,209,304"/>
+<area shape="rect" id="node9" href="$class_molecule_params.html" title="Parameters for inner interaction in chains. " alt="" coords="233,133,351,160"/>
+<area shape="rect" id="node10" href="$class_exters.html" title="Exters" alt="" coords="27,133,87,160"/>
+<area shape="rect" id="node11" href="$class_ia__param.html" title="Contatins properties and parameters of particle types. " alt="" coords="105,5,180,32"/>
+<area shape="rect" id="node17" href="$class_ran2.html" title="Ran2" alt="" coords="145,664,196,691"/>
+<area shape="rect" id="node18" href="$struct_file_names.html" title="FileNames" alt="" coords="929,755,1012,781"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="PairEnergyCalculator::angleEnergy" name="PairEnergyCalculator::angleEnergy">
+<area shape="rect" id="node2" href="$math__calc_8h.html#aa01fc2176791457b36671a337adec048" title="Returns the vector pointing from the centre of mass of particle 2 to the centre of mass of the closes..." alt="" coords="241,5,298,32"/>
+<area shape="rect" id="node4" href="$class_vector.html#a761012be2c08d1cbaa8a44e0410fb974" title="normalise Normalise a vector to have unit length. For speed during heavy use, it is not checked that ..." alt="" coords="207,56,331,83"/>
+<area shape="rect" id="node6" href="$class_pair_energy_calculator.html#a6b3db641c340790ddf2d3645598dbb16" title="harmonic function for calculation of harmonic potential " alt="" coords="197,107,341,149"/>
+<area shape="rect" id="node3" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="413,5,464,32"/>
+<area shape="rect" id="node5" href="$class_vector.html#a64d1af82e5f8d82c7a6ca5e309c3bf8f" title="Return a norm of Vector. " alt="" coords="390,56,487,83"/>
+</map>

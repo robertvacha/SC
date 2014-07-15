@@ -1,0 +1,8 @@
+<map id="PairEnergyCalculator" name="PairEnergyCalculator">
+<area shape="rect" id="node2" href="$class_vector.html" title="Vector" alt="" coords="5,96,64,123"/>
+<area shape="rect" id="node3" href="$class_particle.html" title="Define a particle. " alt="" coords="91,255,157,281"/>
+<area shape="rect" id="node4" href="$class_topo.html" title="Topo" alt="" coords="205,255,256,281"/>
+<area shape="rect" id="node5" href="$class_molecule_params.html" title="Parameters for inner interaction in chains. " alt="" coords="97,96,215,123"/>
+<area shape="rect" id="node6" href="$class_exters.html" title="Exters" alt="" coords="354,96,413,123"/>
+<area shape="rect" id="node7" href="$class_ia__param.html" title="Contatins properties and parameters of particle types. " alt="" coords="267,5,341,32"/>
+</map>

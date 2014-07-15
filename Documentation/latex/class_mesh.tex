@@ -1,0 +1,491 @@
+\hypertarget{class_mesh}{\section{Mesh Class Reference}
+\label{class_mesh}\index{Mesh@{Mesh}}
+}
+
+
+\hyperlink{class_mesh}{Mesh} for hole order parameter.  
+
+
+
+
+{\ttfamily \#include $<$mesh.\+h$>$}
+
+
+
+Collaboration diagram for Mesh\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=135pt]{class_mesh__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_mesh_a2af137f1571af89172b9c102302c416b}{Mesh} ()
+\item 
+void \hyperlink{class_mesh_add86daba06ee8291c7908f4a1d5070b6}{set\+Conf} (\hyperlink{class_conf}{Conf} $\ast$\hyperlink{class_mesh_aea779b6c0ade9b15e724306f0a4652de}{conf})
+\item 
+int \hyperlink{class_mesh_a086d2a79604a0636b39d4d07c516867e}{mesh\+Init} (double meshsize, long npart, int wlmtype)
+\begin{DoxyCompactList}\small\item\em mesh\+Init \end{DoxyCompactList}\item 
+void \hyperlink{class_mesh_a287954614a974377a6adba50692158b8}{mesh\+Fill} (long npart, int wlmtype)
+\begin{DoxyCompactList}\small\item\em filling the mesh \end{DoxyCompactList}\item 
+int \hyperlink{class_mesh_ae1c06bc8b428ea8d854513b4ccf120cd}{find\+Holes} ()
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+findholes returns the number of holes and a list of mesh points belonging to each of them \end{DoxyCompactList}\item 
+int \hyperlink{class_mesh_af373f0167a41061f4aa0f2741cb02da0}{find\+Holes\+Distrib} ()
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+findholesdistrib prints out distribution of holes and returns the number of holes and a list of mesh points belonging to each of them \end{DoxyCompactList}\item 
+void \hyperlink{class_mesh_af5a35e846fe102b2b2c0232baf83f6cf}{print} ()
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+print \end{DoxyCompactList}\item 
+void \hyperlink{class_mesh_a0c233a05716e43a7014f6346cc79d118}{operator=} (\hyperlink{class_mesh}{Mesh} \&source)
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+cpy \end{DoxyCompactList}\item 
+int \hyperlink{class_mesh_a43ba112d0301e5e8dd9ccc31c2e2db86}{end} ()
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+end \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static int \hyperlink{class_mesh_a3779de5e24f96ab307153f3ab3cb67b0}{add\+Part} (double posx, double posy, int $\ast$$\ast$mesh, int \hyperlink{class_mesh_a634550923b75db84904c094677bd415e}{dim}\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot \end{DoxyCompactList}\item 
+static int \hyperlink{class_mesh_afff05228d5e595d978f39ace32a8aea6}{remove\+Part} (double posx, double posy, int $\ast$$\ast$mesh, int \hyperlink{class_mesh_a634550923b75db84904c094677bd415e}{dim}\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+removepart remove particle on coordinates posx posy from mesh and return 0 if there is a empty spot now \end{DoxyCompactList}\item 
+static void \hyperlink{class_mesh_a824270e8af4d5eb1b93a55cc5541fb38}{mesh\+Square} (int x, int y, int \hyperlink{class_mesh_a634550923b75db84904c094677bd415e}{dim}\mbox{[}2\mbox{]}, int($\ast$square)\mbox{[}9\mbox{]})
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+square \end{DoxyCompactList}\item 
+static void \hyperlink{class_mesh_aec76a31895c9092b5f0528a73f100d1c}{mesh\+Neighbors} (int pos, int \hyperlink{class_mesh_a634550923b75db84904c094677bd415e}{dim}\mbox{[}2\mbox{]}, int neighbors\mbox{[}4\mbox{]})
+\begin{DoxyCompactList}\small\item\em mesh\+\_\+neighbors \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{class_mesh_a634550923b75db84904c094677bd415e}{dim} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \hyperlink{class_mesh}{Mesh} dimensions. \end{DoxyCompactList}\item 
+int $\ast$ \hyperlink{class_mesh_a00e5cec14c115343cc6e4b6769c5a3b3}{data}
+\begin{DoxyCompactList}\small\item\em \hyperlink{class_mesh}{Mesh} data. \end{DoxyCompactList}\item 
+int $\ast$ \hyperlink{class_mesh_a2f5a473ab6b6f76d3dd1f2886d0da89d}{tmp}
+\begin{DoxyCompactList}\small\item\em tempporary list for hole search \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_conf}{Conf} $\ast$ \hyperlink{class_mesh_aea779b6c0ade9b15e724306f0a4652de}{conf}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{class_mesh}{Mesh} for hole order parameter. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_mesh_a2af137f1571af89172b9c102302c416b}{\index{Mesh@{Mesh}!Mesh@{Mesh}}
+\index{Mesh@{Mesh}!Mesh@{Mesh}}
+\subsubsection[{Mesh}]{\setlength{\rightskip}{0pt plus 5cm}Mesh\+::\+Mesh (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_mesh_a2af137f1571af89172b9c102302c416b}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_mesh_a3779de5e24f96ab307153f3ab3cb67b0}{\index{Mesh@{Mesh}!add\+Part@{add\+Part}}
+\index{add\+Part@{add\+Part}!Mesh@{Mesh}}
+\subsubsection[{add\+Part}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::add\+Part (
+\begin{DoxyParamCaption}
+\item[{double}]{posx, }
+\item[{double}]{posy, }
+\item[{int $\ast$$\ast$}]{mesh, }
+\item[{int}]{dim\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{class_mesh_a3779de5e24f96ab307153f3ab3cb67b0}
+
+
+mesh\+\_\+addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot 
+
+
+\begin{DoxyParams}{Parameters}
+{\em posx} & \\
+\hline
+{\em posy} & \\
+\hline
+{\em mesh} & \\
+\hline
+{\em dim} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=298pt]{class_mesh_a3779de5e24f96ab307153f3ab3cb67b0_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a3779de5e24f96ab307153f3ab3cb67b0_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_a43ba112d0301e5e8dd9ccc31c2e2db86}{\index{Mesh@{Mesh}!end@{end}}
+\index{end@{end}!Mesh@{Mesh}}
+\subsubsection[{end}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::end (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_a43ba112d0301e5e8dd9ccc31c2e2db86}
+
+
+mesh\+\_\+end 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a43ba112d0301e5e8dd9ccc31c2e2db86_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_ae1c06bc8b428ea8d854513b4ccf120cd}{\index{Mesh@{Mesh}!find\+Holes@{find\+Holes}}
+\index{find\+Holes@{find\+Holes}!Mesh@{Mesh}}
+\subsubsection[{find\+Holes}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::find\+Holes (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_ae1c06bc8b428ea8d854513b4ccf120cd}
+
+
+mesh\+\_\+findholes returns the number of holes and a list of mesh points belonging to each of them 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=316pt]{class_mesh_ae1c06bc8b428ea8d854513b4ccf120cd_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_ae1c06bc8b428ea8d854513b4ccf120cd_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_af373f0167a41061f4aa0f2741cb02da0}{\index{Mesh@{Mesh}!find\+Holes\+Distrib@{find\+Holes\+Distrib}}
+\index{find\+Holes\+Distrib@{find\+Holes\+Distrib}!Mesh@{Mesh}}
+\subsubsection[{find\+Holes\+Distrib}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::find\+Holes\+Distrib (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_af373f0167a41061f4aa0f2741cb02da0}
+
+
+mesh\+\_\+findholesdistrib prints out distribution of holes and returns the number of holes and a list of mesh points belonging to each of them 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{class_mesh_a287954614a974377a6adba50692158b8}{\index{Mesh@{Mesh}!mesh\+Fill@{mesh\+Fill}}
+\index{mesh\+Fill@{mesh\+Fill}!Mesh@{Mesh}}
+\subsubsection[{mesh\+Fill}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::mesh\+Fill (
+\begin{DoxyParamCaption}
+\item[{long}]{npart, }
+\item[{int}]{wlmtype}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_a287954614a974377a6adba50692158b8}
+
+
+filling the mesh 
+
+
+\begin{DoxyParams}{Parameters}
+{\em npart} & \\
+\hline
+{\em wlmtype} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a287954614a974377a6adba50692158b8_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a287954614a974377a6adba50692158b8_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_a086d2a79604a0636b39d4d07c516867e}{\index{Mesh@{Mesh}!mesh\+Init@{mesh\+Init}}
+\index{mesh\+Init@{mesh\+Init}!Mesh@{Mesh}}
+\subsubsection[{mesh\+Init}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::mesh\+Init (
+\begin{DoxyParamCaption}
+\item[{double}]{meshsize, }
+\item[{long}]{npart, }
+\item[{int}]{wlmtype}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_a086d2a79604a0636b39d4d07c516867e}
+
+
+mesh\+Init 
+
+
+\begin{DoxyParams}{Parameters}
+{\em meshsize} & \\
+\hline
+{\em npart} & \\
+\hline
+{\em wlmtype} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a086d2a79604a0636b39d4d07c516867e_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a086d2a79604a0636b39d4d07c516867e_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_aec76a31895c9092b5f0528a73f100d1c}{\index{Mesh@{Mesh}!mesh\+Neighbors@{mesh\+Neighbors}}
+\index{mesh\+Neighbors@{mesh\+Neighbors}!Mesh@{Mesh}}
+\subsubsection[{mesh\+Neighbors}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::mesh\+Neighbors (
+\begin{DoxyParamCaption}
+\item[{int}]{pos, }
+\item[{int}]{dim\mbox{[}2\mbox{]}, }
+\item[{int}]{neighbors\mbox{[}4\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{class_mesh_aec76a31895c9092b5f0528a73f100d1c}
+
+
+mesh\+\_\+neighbors 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pos} & \\
+\hline
+{\em dim} & \\
+\hline
+{\em neighbors} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_aec76a31895c9092b5f0528a73f100d1c_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_a824270e8af4d5eb1b93a55cc5541fb38}{\index{Mesh@{Mesh}!mesh\+Square@{mesh\+Square}}
+\index{mesh\+Square@{mesh\+Square}!Mesh@{Mesh}}
+\subsubsection[{mesh\+Square}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::mesh\+Square (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{dim\mbox{[}2\mbox{]}, }
+\item[{int($\ast$)}]{square\mbox{[}9\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{class_mesh_a824270e8af4d5eb1b93a55cc5541fb38}
+
+
+mesh\+\_\+square 
+
+
+\begin{DoxyParams}{Parameters}
+{\em x} & \\
+\hline
+{\em y} & \\
+\hline
+{\em dim} & \\
+\hline
+\end{DoxyParams}
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_a824270e8af4d5eb1b93a55cc5541fb38_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_a0c233a05716e43a7014f6346cc79d118}{\index{Mesh@{Mesh}!operator=@{operator=}}
+\index{operator=@{operator=}!Mesh@{Mesh}}
+\subsubsection[{operator=}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::operator= (
+\begin{DoxyParamCaption}
+\item[{{\bf Mesh} \&}]{source}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_a0c233a05716e43a7014f6346cc79d118}
+
+
+mesh\+\_\+cpy 
+
+
+\begin{DoxyParams}{Parameters}
+{\em source} & \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_mesh_af5a35e846fe102b2b2c0232baf83f6cf}{\index{Mesh@{Mesh}!print@{print}}
+\index{print@{print}!Mesh@{Mesh}}
+\subsubsection[{print}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::print (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_mesh_af5a35e846fe102b2b2c0232baf83f6cf}
+
+
+mesh\+\_\+print 
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_af5a35e846fe102b2b2c0232baf83f6cf_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_afff05228d5e595d978f39ace32a8aea6}{\index{Mesh@{Mesh}!remove\+Part@{remove\+Part}}
+\index{remove\+Part@{remove\+Part}!Mesh@{Mesh}}
+\subsubsection[{remove\+Part}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::remove\+Part (
+\begin{DoxyParamCaption}
+\item[{double}]{posx, }
+\item[{double}]{posy, }
+\item[{int $\ast$$\ast$}]{mesh, }
+\item[{int}]{dim\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{class_mesh_afff05228d5e595d978f39ace32a8aea6}
+
+
+mesh\+\_\+removepart remove particle on coordinates posx posy from mesh and return 0 if there is a empty spot now 
+
+
+\begin{DoxyParams}{Parameters}
+{\em posx} & \\
+\hline
+{\em posy} & \\
+\hline
+{\em mesh} & \\
+\hline
+{\em dim} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=314pt]{class_mesh_afff05228d5e595d978f39ace32a8aea6_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_mesh_afff05228d5e595d978f39ace32a8aea6_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{class_mesh_add86daba06ee8291c7908f4a1d5070b6}{\index{Mesh@{Mesh}!set\+Conf@{set\+Conf}}
+\index{set\+Conf@{set\+Conf}!Mesh@{Mesh}}
+\subsubsection[{set\+Conf}]{\setlength{\rightskip}{0pt plus 5cm}void Mesh\+::set\+Conf (
+\begin{DoxyParamCaption}
+\item[{{\bf Conf} $\ast$}]{conf}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_mesh_add86daba06ee8291c7908f4a1d5070b6}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_mesh_aea779b6c0ade9b15e724306f0a4652de}{\index{Mesh@{Mesh}!conf@{conf}}
+\index{conf@{conf}!Mesh@{Mesh}}
+\subsubsection[{conf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Conf}$\ast$ Mesh\+::conf\hspace{0.3cm}{\ttfamily [private]}}}\label{class_mesh_aea779b6c0ade9b15e724306f0a4652de}
+\hypertarget{class_mesh_a00e5cec14c115343cc6e4b6769c5a3b3}{\index{Mesh@{Mesh}!data@{data}}
+\index{data@{data}!Mesh@{Mesh}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}int$\ast$ Mesh\+::data}}\label{class_mesh_a00e5cec14c115343cc6e4b6769c5a3b3}
+
+
+\hyperlink{class_mesh}{Mesh} data. 
+
+\hypertarget{class_mesh_a634550923b75db84904c094677bd415e}{\index{Mesh@{Mesh}!dim@{dim}}
+\index{dim@{dim}!Mesh@{Mesh}}
+\subsubsection[{dim}]{\setlength{\rightskip}{0pt plus 5cm}int Mesh\+::dim\mbox{[}2\mbox{]}}}\label{class_mesh_a634550923b75db84904c094677bd415e}
+
+
+\hyperlink{class_mesh}{Mesh} dimensions. 
+
+\hypertarget{class_mesh_a2f5a473ab6b6f76d3dd1f2886d0da89d}{\index{Mesh@{Mesh}!tmp@{tmp}}
+\index{tmp@{tmp}!Mesh@{Mesh}}
+\subsubsection[{tmp}]{\setlength{\rightskip}{0pt plus 5cm}int$\ast$ Mesh\+::tmp}}\label{class_mesh_a2f5a473ab6b6f76d3dd1f2886d0da89d}
+
+
+tempporary list for hole search 
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/mc/\hyperlink{mesh_8h}{mesh.\+h}\item 
+sc\+O\+O\+P/mc/\hyperlink{mesh_8cpp}{mesh.\+cpp}\end{DoxyCompactItemize}

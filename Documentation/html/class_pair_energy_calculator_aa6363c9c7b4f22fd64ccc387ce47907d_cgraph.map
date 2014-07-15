@@ -1,0 +1,8 @@
+<map id="PairEnergyCalculator::pscIntersect" name="PairEnergyCalculator::pscIntersect">
+<area shape="rect" id="node2" href="$class_pair_energy_calculator.html#a983559afda940ae37287610c93696303" title="find_intersect_plane Find intersections of SC and plane defined by vector w_vec.and returns number of..." alt="" coords="197,50,341,91"/>
+<area shape="rect" id="node3" href="$math__calc_8h.html#a3bcbfa81977a017fa59e14bf15dabef1" title="vec cross_product " alt="" coords="401,5,521,32"/>
+<area shape="rect" id="node6" href="$class_pair_energy_calculator.html#a4b8db09d4bfb3a9b66ae3ddf9b766fa0" title="test_intrpatch Find if vector vec has angular intersection with patch of sc1 " alt="" coords="197,115,341,157"/>
+<area shape="rect" id="node4" href="$class_vector.html#a761012be2c08d1cbaa8a44e0410fb974" title="normalise Normalise a vector to have unit length. For speed during heavy use, it is not checked that ..." alt="" coords="399,61,523,88"/>
+<area shape="rect" id="node5" href="$class_vector.html#a64d1af82e5f8d82c7a6ca5e309c3bf8f" title="Return a norm of Vector. " alt="" coords="582,61,679,88"/>
+<area shape="rect" id="node7" href="$class_pair_energy_calculator.html#abf018dcd60f682fbc69e7f3d59aec1b5" title="vec_perpproject vector projection of vector A perpendicular to direction of B " alt="" coords="389,115,533,157"/>
+</map>

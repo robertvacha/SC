@@ -1,0 +1,13 @@
+<map id="strip_comment" name="strip_comment">
+<area shape="rect" id="node2" href="$class_inicializer.html#a41ac3793bca326b7b0d47c342bebf7b4" title="Reads the run parameters from the external file &quot;options&quot;. See the end of the code for a template..." alt="" coords="377,5,532,32"/>
+<area shape="rect" id="node5" href="$class_inicializer.html#a03369c6bc8655d42befd4c79f4f02301" title="Config initialization. " alt="" coords="174,56,311,83"/>
+<area shape="rect" id="node6" href="$class_inicializer.html#acd2d40a23bdd29b973176c62ab5aef8d" title="Inicializer::readTopoFile" alt="" coords="163,107,322,133"/>
+<area shape="rect" id="node8" href="$class_wang_landau.html#a4f96f435c69135fb5597cb708cb67ed5" title="wlinit Initiate Wang&#45;Landau calculation. " alt="" coords="168,157,317,184"/>
+<area shape="rect" id="node3" href="$class_m_c_sim_system.html#adfacc1a896841b090ebab26fd369f43a" title="init " alt="" coords="587,56,722,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="1021,107,1072,133"/>
+<area shape="rect" id="node7" href="$class_inicializer.html#a7e1409d66a770fb50bcd90d96446a917" title="Inicialization of topology. " alt="" coords="393,107,516,133"/>
+<area shape="rect" id="node9" href="$class_updater.html#a76445be97c06ecf75daa9bdf01f4799d" title="Initialization of wang&#45;landaou method. " alt="" coords="371,157,539,184"/>
+<area shape="rect" id="node10" href="$class_updater.html#a42cde2ba4af4b35d0265a183a42cea20" title="simulate " alt="" coords="593,157,717,184"/>
+<area shape="rect" id="node11" href="$class_m_c_sim_system.html#a4f11a2356f82dba787e1a4d69e0e0d4f" title="equilibrate " alt="" coords="783,107,961,133"/>
+<area shape="rect" id="node12" href="$class_m_c_sim_system.html#a188410921d582e9a2659627f4ca2073b" title="productionRun " alt="" coords="771,157,973,184"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="Sim" name="Sim">
+<area shape="rect" id="node2" href="$struct_disp.html" title="Disp" alt="" coords="5,304,53,331"/>
+<area shape="rect" id="node3" href="$struct_cluster.html" title="contains all the particles of one cluster " alt="" coords="78,304,140,331"/>
+<area shape="rect" id="node4" href="$class_wang_landau.html" title="WangLandau" alt="" coords="165,304,264,331"/>
+<area shape="rect" id="node5" href="$class_conf.html" title="Configuration of the system. " alt="" coords="121,109,169,136"/>
+<area shape="rect" id="node11" href="$class_mesh.html" title="Mesh for hole order parameter. " alt="" coords="187,200,241,227"/>
+<area shape="rect" id="node6" href="$class_vector.html" title="Vector" alt="" coords="115,5,175,32"/>
+<area shape="rect" id="node7" href="$struct_topo.html" title="Topo" alt="" coords="309,200,360,227"/>
+<area shape="rect" id="node8" href="$struct_exters.html" title="Exters" alt="" coords="317,109,376,136"/>
+<area shape="rect" id="node9" href="$struct_ia__param.html" title="Ia_param" alt="" coords="235,5,309,32"/>
+<area shape="rect" id="node10" href="$struct_chainparams.html" title="Chainparams" alt="" coords="401,109,500,136"/>
+</map>

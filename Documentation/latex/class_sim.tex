@@ -1,0 +1,383 @@
+\hypertarget{class_sim}{\section{Sim Class Reference}
+\label{class_sim}\index{Sim@{Sim}}
+}
+
+
+Should contain mostly all the simulation options and variables.  
+
+
+
+
+{\ttfamily \#include $<$sim.\+h$>$}
+
+
+
+Collaboration diagram for Sim\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_sim__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_sim_ab8d2fcb600a965c06faff76f7aaf093a}{Sim} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{class_sim_a2d0641585ed0c114d119b0e0a4fbafef}{press}
+\begin{DoxyCompactList}\small\item\em Pressure. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a2206aa7350fdbc1cbf14190fe01882a7}{paralpress}
+\begin{DoxyCompactList}\small\item\em Parallel pressure for replica exachnge. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a3932d35b63dc24ad4f11c902e2245c16}{dpress}
+\begin{DoxyCompactList}\small\item\em Pressure change for replica exchange. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a9357f4ec28e50a0fab9df1536c7f4d7e}{shave}
+\begin{DoxyCompactList}\small\item\em Average number of volume changes to attempt per sweep. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a65b96c98b4444057b20d47594298ccde}{shprob}
+\begin{DoxyCompactList}\small\item\em Probability of attempting a volume change. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a711ff4e92fd436425a29d061973d188c}{chainprob}
+\begin{DoxyCompactList}\small\item\em Average number of chain move attempt per sweep. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a71dacb1d9da362be221fa89a27dc47bc}{switchprob}
+\begin{DoxyCompactList}\small\item\em Average number of type switch attempt per sweep. \end{DoxyCompactList}\item 
+int \hyperlink{class_sim_aea1de81852a1210e4b32bb887bbc52e1}{pairlist\+\_\+update}
+\begin{DoxyCompactList}\small\item\em Number of sweep per updating the pairlist. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_aa181060fddbb0694234034de7642f56a}{temper}
+\begin{DoxyCompactList}\small\item\em Temperature. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a216b84935ba38ff57f3bd3f13b2c2b20}{paraltemper}
+\begin{DoxyCompactList}\small\item\em Temperature for parallel tempering. \end{DoxyCompactList}\item 
+double \hyperlink{class_sim_a7eeac7dc978008dbcb58db25672d3e4d}{dtemp}
+\begin{DoxyCompactList}\small\item\em Temprature step. \end{DoxyCompactList}\item 
+int \hyperlink{class_sim_a85e257bc2ae8a9e328798ddeb776fc3f}{ptype}
+\begin{DoxyCompactList}\small\item\em Type of pressure coupling. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a26476b5125d2eba8af2931d32f8cff12}{adjust}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between step size adjustments. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a8ab1f7bc34f48d81074283f529ee291c}{movie}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between movie frames. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a2bb37396aab56f270fc38442dee52fb1}{nequil}
+\begin{DoxyCompactList}\small\item\em Number of equilibration sweeps. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a75f988cb78b30aeae402e4f63f28bfcc}{nsweeps}
+\begin{DoxyCompactList}\small\item\em Number of production sweeps. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_acc700b6bf4b51dae5604a8480a8054c9}{paramfrq}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between order parameter samples. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a7ff9e858e99db9ed0d65107f892d7447}{report}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between statistics reports. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a380b916e43b3eadc916f7695c9d60555}{nrepchange}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between replica exchanges. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a5590bfd944244ebfe9b72fa43563162e}{n\+Grand\+Canon}
+\begin{DoxyCompactList}\small\item\em Number of sweeps between particle insert/delete. \end{DoxyCompactList}\item 
+int \hyperlink{class_sim_a43570c2d1a73631e8c00f5512a8486b6}{wlm} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em Wang landau method (wl) \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_a1880ddedceb3460fd343d0f847032fdf}{edge}
+\begin{DoxyCompactList}\small\item\em Maximum box length change and statistics. \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_a434d5b10fc6a3bf6fec51eaaf9ff83cb}{rot} \mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Maximum rotation and statistics. \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_a72db680d42b459fad8362d37914ae9a8}{trans} \mbox{[}\hyperlink{macros_8h_a3f79fdecc884eb98c97d1bdc77455295}{M\+A\+X\+T}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Maximum translation and statistics. \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_a7daf59f4e267bb80f1db9c607a0858ff}{chainm} \mbox{[}\hyperlink{macros_8h_ad002a98462c90c52983b122ab9e2059a}{M\+A\+X\+M\+T}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Maximum translation for chain and statistics. \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_adec41082dfe3aa3210a1fbc5f0ade382}{chainr} \mbox{[}\hyperlink{macros_8h_ad002a98462c90c52983b122ab9e2059a}{M\+A\+X\+M\+T}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Maximum rotation for chain and statistics. \end{DoxyCompactList}\item 
+\hyperlink{class_disp}{Disp} \hyperlink{class_sim_a791a3f584b47c7a687be95b636a3528c}{mpiexch}
+\begin{DoxyCompactList}\small\item\em M\+P\+I statistics. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_ae3f308ef99bae8099bb581b89618ba09}{write\+\_\+cluster}
+\begin{DoxyCompactList}\small\item\em Number of sweeps per writing out cluster info. \end{DoxyCompactList}\item 
+long $\ast$ \hyperlink{class_sim_a1feddf9821ae3b1082ca29fd60adecca}{clusterlist}
+\begin{DoxyCompactList}\small\item\em clusterlist\mbox{[}i\mbox{]} = cluster index of particle i \end{DoxyCompactList}\item 
+\hyperlink{struct_cluster}{Cluster} $\ast$ \hyperlink{class_sim_acb85dbc7776928fe57c9d46972946f70}{clusters}
+\begin{DoxyCompactList}\small\item\em informations about the single clusters \end{DoxyCompactList}\item 
+double $\ast$ \hyperlink{class_sim_a3603ca84a589c3539406b38d7aff2065}{clustersenergy}
+\begin{DoxyCompactList}\small\item\em list of energies of clusters \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_abd86b808fdd2c02341e4dc8f7e877c12}{num\+\_\+cluster}
+\begin{DoxyCompactList}\small\item\em number of single clusters \end{DoxyCompactList}\item 
+long $\ast$ \hyperlink{class_sim_a6362e502149a7cd3ed9fb0b0e9a3593e}{clusterstat}
+\begin{DoxyCompactList}\small\item\em Statistics about the seize of cluster. \end{DoxyCompactList}\item 
+long \hyperlink{class_sim_a61199ec6703bab63f3936d888b53ad26}{max\+\_\+clust}
+\begin{DoxyCompactList}\small\item\em maximal clustersize \end{DoxyCompactList}\item 
+\hyperlink{class_wang_landau}{Wang\+Landau} \hyperlink{class_sim_ade98939300538c5d79e144d8c583b258}{wl}
+\begin{DoxyCompactList}\small\item\em Wang landau data. \end{DoxyCompactList}\item 
+int \hyperlink{class_sim_ae308bc0b02dea185f040f25b16bbeed1}{mpirank}
+\begin{DoxyCompactList}\small\item\em M\+P\+I number for given process. \end{DoxyCompactList}\item 
+int \hyperlink{class_sim_a94c5eb8fae92f8803d17930fa29e40f2}{mpinprocs}
+\begin{DoxyCompactList}\small\item\em M\+P\+I number of processes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Should contain mostly all the simulation options and variables. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_sim_ab8d2fcb600a965c06faff76f7aaf093a}{\index{Sim@{Sim}!Sim@{Sim}}
+\index{Sim@{Sim}!Sim@{Sim}}
+\subsubsection[{Sim}]{\setlength{\rightskip}{0pt plus 5cm}Sim\+::\+Sim (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_sim_ab8d2fcb600a965c06faff76f7aaf093a}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_sim_a26476b5125d2eba8af2931d32f8cff12}{\index{Sim@{Sim}!adjust@{adjust}}
+\index{adjust@{adjust}!Sim@{Sim}}
+\subsubsection[{adjust}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::adjust}}\label{class_sim_a26476b5125d2eba8af2931d32f8cff12}
+
+
+Number of sweeps between step size adjustments. 
+
+\hypertarget{class_sim_a7daf59f4e267bb80f1db9c607a0858ff}{\index{Sim@{Sim}!chainm@{chainm}}
+\index{chainm@{chainm}!Sim@{Sim}}
+\subsubsection[{chainm}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::chainm\mbox{[}{\bf M\+A\+X\+M\+T}\mbox{]}}}\label{class_sim_a7daf59f4e267bb80f1db9c607a0858ff}
+
+
+Maximum translation for chain and statistics. 
+
+\hypertarget{class_sim_a711ff4e92fd436425a29d061973d188c}{\index{Sim@{Sim}!chainprob@{chainprob}}
+\index{chainprob@{chainprob}!Sim@{Sim}}
+\subsubsection[{chainprob}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::chainprob}}\label{class_sim_a711ff4e92fd436425a29d061973d188c}
+
+
+Average number of chain move attempt per sweep. 
+
+\hypertarget{class_sim_adec41082dfe3aa3210a1fbc5f0ade382}{\index{Sim@{Sim}!chainr@{chainr}}
+\index{chainr@{chainr}!Sim@{Sim}}
+\subsubsection[{chainr}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::chainr\mbox{[}{\bf M\+A\+X\+M\+T}\mbox{]}}}\label{class_sim_adec41082dfe3aa3210a1fbc5f0ade382}
+
+
+Maximum rotation for chain and statistics. 
+
+\hypertarget{class_sim_a1feddf9821ae3b1082ca29fd60adecca}{\index{Sim@{Sim}!clusterlist@{clusterlist}}
+\index{clusterlist@{clusterlist}!Sim@{Sim}}
+\subsubsection[{clusterlist}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Sim\+::clusterlist}}\label{class_sim_a1feddf9821ae3b1082ca29fd60adecca}
+
+
+clusterlist\mbox{[}i\mbox{]} = cluster index of particle i 
+
+\hypertarget{class_sim_acb85dbc7776928fe57c9d46972946f70}{\index{Sim@{Sim}!clusters@{clusters}}
+\index{clusters@{clusters}!Sim@{Sim}}
+\subsubsection[{clusters}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Cluster}$\ast$ Sim\+::clusters}}\label{class_sim_acb85dbc7776928fe57c9d46972946f70}
+
+
+informations about the single clusters 
+
+\hypertarget{class_sim_a3603ca84a589c3539406b38d7aff2065}{\index{Sim@{Sim}!clustersenergy@{clustersenergy}}
+\index{clustersenergy@{clustersenergy}!Sim@{Sim}}
+\subsubsection[{clustersenergy}]{\setlength{\rightskip}{0pt plus 5cm}double$\ast$ Sim\+::clustersenergy}}\label{class_sim_a3603ca84a589c3539406b38d7aff2065}
+
+
+list of energies of clusters 
+
+\hypertarget{class_sim_a6362e502149a7cd3ed9fb0b0e9a3593e}{\index{Sim@{Sim}!clusterstat@{clusterstat}}
+\index{clusterstat@{clusterstat}!Sim@{Sim}}
+\subsubsection[{clusterstat}]{\setlength{\rightskip}{0pt plus 5cm}long$\ast$ Sim\+::clusterstat}}\label{class_sim_a6362e502149a7cd3ed9fb0b0e9a3593e}
+
+
+Statistics about the seize of cluster. 
+
+\hypertarget{class_sim_a3932d35b63dc24ad4f11c902e2245c16}{\index{Sim@{Sim}!dpress@{dpress}}
+\index{dpress@{dpress}!Sim@{Sim}}
+\subsubsection[{dpress}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::dpress}}\label{class_sim_a3932d35b63dc24ad4f11c902e2245c16}
+
+
+Pressure change for replica exchange. 
+
+\hypertarget{class_sim_a7eeac7dc978008dbcb58db25672d3e4d}{\index{Sim@{Sim}!dtemp@{dtemp}}
+\index{dtemp@{dtemp}!Sim@{Sim}}
+\subsubsection[{dtemp}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::dtemp}}\label{class_sim_a7eeac7dc978008dbcb58db25672d3e4d}
+
+
+Temprature step. 
+
+\hypertarget{class_sim_a1880ddedceb3460fd343d0f847032fdf}{\index{Sim@{Sim}!edge@{edge}}
+\index{edge@{edge}!Sim@{Sim}}
+\subsubsection[{edge}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::edge}}\label{class_sim_a1880ddedceb3460fd343d0f847032fdf}
+
+
+Maximum box length change and statistics. 
+
+\hypertarget{class_sim_a61199ec6703bab63f3936d888b53ad26}{\index{Sim@{Sim}!max\+\_\+clust@{max\+\_\+clust}}
+\index{max\+\_\+clust@{max\+\_\+clust}!Sim@{Sim}}
+\subsubsection[{max\+\_\+clust}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::max\+\_\+clust}}\label{class_sim_a61199ec6703bab63f3936d888b53ad26}
+
+
+maximal clustersize 
+
+\hypertarget{class_sim_a8ab1f7bc34f48d81074283f529ee291c}{\index{Sim@{Sim}!movie@{movie}}
+\index{movie@{movie}!Sim@{Sim}}
+\subsubsection[{movie}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::movie}}\label{class_sim_a8ab1f7bc34f48d81074283f529ee291c}
+
+
+Number of sweeps between movie frames. 
+
+\hypertarget{class_sim_a791a3f584b47c7a687be95b636a3528c}{\index{Sim@{Sim}!mpiexch@{mpiexch}}
+\index{mpiexch@{mpiexch}!Sim@{Sim}}
+\subsubsection[{mpiexch}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::mpiexch}}\label{class_sim_a791a3f584b47c7a687be95b636a3528c}
+
+
+M\+P\+I statistics. 
+
+\hypertarget{class_sim_a94c5eb8fae92f8803d17930fa29e40f2}{\index{Sim@{Sim}!mpinprocs@{mpinprocs}}
+\index{mpinprocs@{mpinprocs}!Sim@{Sim}}
+\subsubsection[{mpinprocs}]{\setlength{\rightskip}{0pt plus 5cm}int Sim\+::mpinprocs}}\label{class_sim_a94c5eb8fae92f8803d17930fa29e40f2}
+
+
+M\+P\+I number of processes. 
+
+\hypertarget{class_sim_ae308bc0b02dea185f040f25b16bbeed1}{\index{Sim@{Sim}!mpirank@{mpirank}}
+\index{mpirank@{mpirank}!Sim@{Sim}}
+\subsubsection[{mpirank}]{\setlength{\rightskip}{0pt plus 5cm}int Sim\+::mpirank}}\label{class_sim_ae308bc0b02dea185f040f25b16bbeed1}
+
+
+M\+P\+I number for given process. 
+
+\hypertarget{class_sim_a2bb37396aab56f270fc38442dee52fb1}{\index{Sim@{Sim}!nequil@{nequil}}
+\index{nequil@{nequil}!Sim@{Sim}}
+\subsubsection[{nequil}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::nequil}}\label{class_sim_a2bb37396aab56f270fc38442dee52fb1}
+
+
+Number of equilibration sweeps. 
+
+\hypertarget{class_sim_a5590bfd944244ebfe9b72fa43563162e}{\index{Sim@{Sim}!n\+Grand\+Canon@{n\+Grand\+Canon}}
+\index{n\+Grand\+Canon@{n\+Grand\+Canon}!Sim@{Sim}}
+\subsubsection[{n\+Grand\+Canon}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::n\+Grand\+Canon}}\label{class_sim_a5590bfd944244ebfe9b72fa43563162e}
+
+
+Number of sweeps between particle insert/delete. 
+
+\hypertarget{class_sim_a380b916e43b3eadc916f7695c9d60555}{\index{Sim@{Sim}!nrepchange@{nrepchange}}
+\index{nrepchange@{nrepchange}!Sim@{Sim}}
+\subsubsection[{nrepchange}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::nrepchange}}\label{class_sim_a380b916e43b3eadc916f7695c9d60555}
+
+
+Number of sweeps between replica exchanges. 
+
+\hypertarget{class_sim_a75f988cb78b30aeae402e4f63f28bfcc}{\index{Sim@{Sim}!nsweeps@{nsweeps}}
+\index{nsweeps@{nsweeps}!Sim@{Sim}}
+\subsubsection[{nsweeps}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::nsweeps}}\label{class_sim_a75f988cb78b30aeae402e4f63f28bfcc}
+
+
+Number of production sweeps. 
+
+\hypertarget{class_sim_abd86b808fdd2c02341e4dc8f7e877c12}{\index{Sim@{Sim}!num\+\_\+cluster@{num\+\_\+cluster}}
+\index{num\+\_\+cluster@{num\+\_\+cluster}!Sim@{Sim}}
+\subsubsection[{num\+\_\+cluster}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::num\+\_\+cluster}}\label{class_sim_abd86b808fdd2c02341e4dc8f7e877c12}
+
+
+number of single clusters 
+
+\hypertarget{class_sim_aea1de81852a1210e4b32bb887bbc52e1}{\index{Sim@{Sim}!pairlist\+\_\+update@{pairlist\+\_\+update}}
+\index{pairlist\+\_\+update@{pairlist\+\_\+update}!Sim@{Sim}}
+\subsubsection[{pairlist\+\_\+update}]{\setlength{\rightskip}{0pt plus 5cm}int Sim\+::pairlist\+\_\+update}}\label{class_sim_aea1de81852a1210e4b32bb887bbc52e1}
+
+
+Number of sweep per updating the pairlist. 
+
+\hypertarget{class_sim_a2206aa7350fdbc1cbf14190fe01882a7}{\index{Sim@{Sim}!paralpress@{paralpress}}
+\index{paralpress@{paralpress}!Sim@{Sim}}
+\subsubsection[{paralpress}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::paralpress}}\label{class_sim_a2206aa7350fdbc1cbf14190fe01882a7}
+
+
+Parallel pressure for replica exachnge. 
+
+\hypertarget{class_sim_a216b84935ba38ff57f3bd3f13b2c2b20}{\index{Sim@{Sim}!paraltemper@{paraltemper}}
+\index{paraltemper@{paraltemper}!Sim@{Sim}}
+\subsubsection[{paraltemper}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::paraltemper}}\label{class_sim_a216b84935ba38ff57f3bd3f13b2c2b20}
+
+
+Temperature for parallel tempering. 
+
+\hypertarget{class_sim_acc700b6bf4b51dae5604a8480a8054c9}{\index{Sim@{Sim}!paramfrq@{paramfrq}}
+\index{paramfrq@{paramfrq}!Sim@{Sim}}
+\subsubsection[{paramfrq}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::paramfrq}}\label{class_sim_acc700b6bf4b51dae5604a8480a8054c9}
+
+
+Number of sweeps between order parameter samples. 
+
+\hypertarget{class_sim_a2d0641585ed0c114d119b0e0a4fbafef}{\index{Sim@{Sim}!press@{press}}
+\index{press@{press}!Sim@{Sim}}
+\subsubsection[{press}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::press}}\label{class_sim_a2d0641585ed0c114d119b0e0a4fbafef}
+
+
+Pressure. 
+
+\hypertarget{class_sim_a85e257bc2ae8a9e328798ddeb776fc3f}{\index{Sim@{Sim}!ptype@{ptype}}
+\index{ptype@{ptype}!Sim@{Sim}}
+\subsubsection[{ptype}]{\setlength{\rightskip}{0pt plus 5cm}int Sim\+::ptype}}\label{class_sim_a85e257bc2ae8a9e328798ddeb776fc3f}
+
+
+Type of pressure coupling. 
+
+\hypertarget{class_sim_a7ff9e858e99db9ed0d65107f892d7447}{\index{Sim@{Sim}!report@{report}}
+\index{report@{report}!Sim@{Sim}}
+\subsubsection[{report}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::report}}\label{class_sim_a7ff9e858e99db9ed0d65107f892d7447}
+
+
+Number of sweeps between statistics reports. 
+
+\hypertarget{class_sim_a434d5b10fc6a3bf6fec51eaaf9ff83cb}{\index{Sim@{Sim}!rot@{rot}}
+\index{rot@{rot}!Sim@{Sim}}
+\subsubsection[{rot}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::rot\mbox{[}{\bf M\+A\+X\+T}\mbox{]}}}\label{class_sim_a434d5b10fc6a3bf6fec51eaaf9ff83cb}
+
+
+Maximum rotation and statistics. 
+
+\hypertarget{class_sim_a9357f4ec28e50a0fab9df1536c7f4d7e}{\index{Sim@{Sim}!shave@{shave}}
+\index{shave@{shave}!Sim@{Sim}}
+\subsubsection[{shave}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::shave}}\label{class_sim_a9357f4ec28e50a0fab9df1536c7f4d7e}
+
+
+Average number of volume changes to attempt per sweep. 
+
+\hypertarget{class_sim_a65b96c98b4444057b20d47594298ccde}{\index{Sim@{Sim}!shprob@{shprob}}
+\index{shprob@{shprob}!Sim@{Sim}}
+\subsubsection[{shprob}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::shprob}}\label{class_sim_a65b96c98b4444057b20d47594298ccde}
+
+
+Probability of attempting a volume change. 
+
+\hypertarget{class_sim_a71dacb1d9da362be221fa89a27dc47bc}{\index{Sim@{Sim}!switchprob@{switchprob}}
+\index{switchprob@{switchprob}!Sim@{Sim}}
+\subsubsection[{switchprob}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::switchprob}}\label{class_sim_a71dacb1d9da362be221fa89a27dc47bc}
+
+
+Average number of type switch attempt per sweep. 
+
+\hypertarget{class_sim_aa181060fddbb0694234034de7642f56a}{\index{Sim@{Sim}!temper@{temper}}
+\index{temper@{temper}!Sim@{Sim}}
+\subsubsection[{temper}]{\setlength{\rightskip}{0pt plus 5cm}double Sim\+::temper}}\label{class_sim_aa181060fddbb0694234034de7642f56a}
+
+
+Temperature. 
+
+\hypertarget{class_sim_a72db680d42b459fad8362d37914ae9a8}{\index{Sim@{Sim}!trans@{trans}}
+\index{trans@{trans}!Sim@{Sim}}
+\subsubsection[{trans}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Disp} Sim\+::trans\mbox{[}{\bf M\+A\+X\+T}\mbox{]}}}\label{class_sim_a72db680d42b459fad8362d37914ae9a8}
+
+
+Maximum translation and statistics. 
+
+\hypertarget{class_sim_ade98939300538c5d79e144d8c583b258}{\index{Sim@{Sim}!wl@{wl}}
+\index{wl@{wl}!Sim@{Sim}}
+\subsubsection[{wl}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Wang\+Landau} Sim\+::wl}}\label{class_sim_ade98939300538c5d79e144d8c583b258}
+
+
+Wang landau data. 
+
+\hypertarget{class_sim_a43570c2d1a73631e8c00f5512a8486b6}{\index{Sim@{Sim}!wlm@{wlm}}
+\index{wlm@{wlm}!Sim@{Sim}}
+\subsubsection[{wlm}]{\setlength{\rightskip}{0pt plus 5cm}int Sim\+::wlm\mbox{[}2\mbox{]}}}\label{class_sim_a43570c2d1a73631e8c00f5512a8486b6}
+
+
+Wang landau method (wl) 
+
+\hypertarget{class_sim_ae3f308ef99bae8099bb581b89618ba09}{\index{Sim@{Sim}!write\+\_\+cluster@{write\+\_\+cluster}}
+\index{write\+\_\+cluster@{write\+\_\+cluster}!Sim@{Sim}}
+\subsubsection[{write\+\_\+cluster}]{\setlength{\rightskip}{0pt plus 5cm}long Sim\+::write\+\_\+cluster}}\label{class_sim_ae3f308ef99bae8099bb581b89618ba09}
+
+
+Number of sweeps per writing out cluster info. 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sc\+O\+O\+P/structures/\hyperlink{sim_8h}{sim.\+h}\end{DoxyCompactItemize}
