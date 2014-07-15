@@ -1380,10 +1380,9 @@ double MoveCreator::muVTMove() {
             energy = (*calcEnergy)(&newPart,1,0);
 
             /// accept with probability -> V/N+1 * e^(3*ln(wavelenght) + (mu - U(new))/kT)
-            //if( (conf->sysvolume / (conf->particleStore.size()+1)) *
-             //       exp( (topo->chainparam[molType].mu - energy)/sim->temper - 3*topo->chainparam[molType].lnThermalWavelengh) > ran2()) {
+            if( (conf->sysvolume / (conf->particleStore.size()+1)) *
+                    exp( (topo->chainparam[molType].mu - energy)/sim->temper - 3*topo->chainparam[molType].lnThermalWavelengh) > ran2()) {
 
-            if(true) {
 #ifdef SHOWCALLS
                 printf("Call addMolecule\n");
 #endif
@@ -1416,10 +1415,9 @@ double MoveCreator::muVTMove() {
             energy = (*calcEnergy)(&conf->particleStore[conf->toStoreIndex(molType, target)],1,0);
 
             /// accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-            //if( ((double)conf->particleStore.size() / conf->sysvolume) *
-            //        exp( 3*topo->chainparam[molType].lnThermalWavelengh + (energy - topo->chainparam[molType].mu)/sim->temper) > ran2()) {
+            if( ((double)conf->particleStore.size() / conf->sysvolume) *
+                   exp( 3*topo->chainparam[molType].lnThermalWavelengh + (energy - topo->chainparam[molType].mu)/sim->temper) > ran2()) {
 
-            if(true) {
                 // change conlist - single particle, all -1
                 // change chainlist - no chains, all -1
                 // neighborList - recalculated after this fce
