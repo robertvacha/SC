@@ -1,7 +1,5 @@
 /** @file main.cpp*/
 
-#define NDEBUG
-#include <assert.h>
 #include <time.h>
 #include "mc/mcsimsystem.h"
 

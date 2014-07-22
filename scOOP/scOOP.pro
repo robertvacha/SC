@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     mc/ran2.cpp \
     structures/Conf.cpp \
     structures/particle.cpp \
-    mc/printStat.cpp
+    mc/printStat.cpp \
+    structures/topo.cpp
 
 HEADERS += \
     mc/wanglandau.h \
@@ -47,5 +48,6 @@ HEADERS += \
     structures/particle.h \
     structures/Conf.h \
     mc/printStat.h \
-    structures/moleculeparams.h
+    structures/moleculeparams.h \
+    structures/topo.h
 

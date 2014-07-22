@@ -3,7 +3,6 @@
 
 #include "macros.h"
 
-
 /**
  * @brief Parameters for inner interaction in chains
  */
@@ -25,7 +24,7 @@ public:
     // For muVT enseble
     double mu;                  ///< \brief chemical potential, specific to each molecule type
     double lnThermalWavelengh;  ///< \brief ln(de Broglie thermal wavelenght), specific to each type
-    bool muVTmove;              ///< \brief true - attempt muVT move for that type
+    int muVTmove;              ///< \brief 0: no muVT, 1: attempt muVT move, 2: reservoir type
     int particleTypes[MAXCHL];  ///< \brief 0..40 single particle type of each particle, -1: no particle
 
 public:

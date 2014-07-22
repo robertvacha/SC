@@ -1,6 +1,7 @@
 #ifndef CONF_H
 #define CONF_H
 
+#include "topo.h"
 #include "structures.h"
 #include "moleculeparams.h"
 #include "particle.h"
@@ -12,6 +13,8 @@
 class Conf {
 public:  
     std::vector<Particle > particleStore;  ///< \brief Main store of all particles, grouped by Molecular types
+    std::vector<Particle > muVTchainStore; ///< \brief Store for chains for muVT insert of chain
+
     Vector box;                             ///< \brief Box size */
     double sysvolume;                       ///< \brief Something like total mass -> for each += massOfParticle
     Vector syscm;                           ///< \brief System center of mass
@@ -25,6 +28,10 @@ public:
     long chainlist[MAXN][MAXCHL];       ///< \brief List of particles in chain
     long chainCount;                    ///< \brief Number of chains
 
+    // muVT chainList
+    long muVTchainList[MAXN][MAXCHL];
+    long muVTchainCount;
+
     /**
      * @brief Conf Constructor, initializing variables
      */
@@ -35,9 +42,11 @@ public:
         for (int i=0;i<MAXN;i++) {
             for (int j = 0; j < MAXCHL; j++){
                 chainlist[i][j] = -1;
+                muVTchainList[i][j] = -1;
             }
         }
         chainCount=0;
+        muVTchainCount = 0;
     }
 
 public:

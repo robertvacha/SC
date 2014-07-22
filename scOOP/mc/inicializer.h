@@ -91,6 +91,8 @@ public:
 
 private:
 
+    void setParticlesParams(long  *sysmoln, char **sysnames, Molecule *molecules);
+
     void readTopoFile(Molecule *molecules, long *sysmoln, char *sysnames[], bool exclusions[][MAXT]);
 
     void openTopoFile(FILE* infile);
@@ -160,12 +162,6 @@ private:
      * @return
      */
     int fillMol(char *molname, char *pline, Molecule * molecules);
-
-    /**
-     * @brief generate interations pairs
-     * @param (*exlusions)[][]
-     */
-    void genParamPairs(bool (*exclusions)[MAXT][MAXT]);
 
     /**
      * @brief use of periodic boundary conditions

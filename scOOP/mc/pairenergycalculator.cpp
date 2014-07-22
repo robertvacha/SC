@@ -463,7 +463,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     /*3- scaling function1: dependence on the length of intersetions*/
     v1=0.5*fabs(S1-S2);
     v2=0.5*fabs(T1-T2);
-    f0=v1+v2;
+    f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
       -this is for angular orientation*/
@@ -569,6 +569,7 @@ double PairEnergyCalculator::eCpscCpsc() {
                 closestDist();
             }
             atrenergy += eattractiveCpscCpsc(0,1);
+
             }
         }
 
@@ -576,6 +577,26 @@ double PairEnergyCalculator::eCpscCpsc() {
             part1->dir = olddir1;
         if (secondCH)
             part2->dir = olddir2;
+
+#ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
+        double extraAttr = 0;
+        double extraEpsilon = -4.0; //  -> isotropic hydrophobic interaction Epsilon
+
+        double extraInteractionSwitch = 0.2; //  -> isotropic hydrophobic interaction Switch
+
+        if (dist < topo->ia_params[part1->type][part2->type].pdis)
+            extraAttr = extraEpsilon;
+        //atrenergy = -1.0;
+        else {
+            extraAttr = cos(PIH*(dist-topo->ia_params[part1->type][part2->type].pdis)/extraInteractionSwitch);
+            extraAttr *= extraAttr * extraEpsilon ;
+        }
+        // cos between two SC
+        extraAttr *= (part1->dir.dot(part2->dir));
+
+        atrenergy += extraAttr;
+#endif
+
     }
     return repenergy+atrenergy;
 }
@@ -613,7 +634,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     /*3- scaling function1: dependence on the length of intersetions*/
     v1=0.5*fabs(S1-S2);
     v2=0.5*fabs(T1-T2);
-    f0=v1+v2;
+    f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
       -this is for angular orientation*/
@@ -794,7 +815,7 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     /*3- scaling function1: dependence on the length of intersetions*/
     v1=0.5*fabs(S1-S2);
     v2=0.5*fabs(T1-T2);
-    f0=v1+v2;
+    f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
       -this is for angular orientation*/

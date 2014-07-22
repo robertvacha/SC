@@ -400,10 +400,11 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     edriftend = calcEnergy(0, 0, 0);
     pvdriftend =  sim->press * volume - (double)conf->particleStore.size() * log(volume) / sim->temper;
     printf("Energy drift: %.15f \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
+    printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
     for(i=0; i < conf->molTypeCount; i++)
-        printf("%s %ld\n", topo->chainparam[i].name, conf->molCountOfType(i));
+        printf("%s %d\n", topo->chainparam[i].name, conf->molCountOfType(i));
     fflush(stdout);
 
     endWangLandau();

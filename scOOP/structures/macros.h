@@ -7,6 +7,11 @@
 # define _GNU_SOURCE
 #endif
 
+/*
+ *  ONE TIME SIMULATION CHANGES
+ */
+#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
+
 /* Macros for DEBUG messages */
 //
 //  for assert() -> if NDEBUG defined assert not compiled
@@ -15,7 +20,7 @@
 #define NDEBUG
 
 //
-//  when defined calls of function written on stdout
+//  when defined calls of some function written on stdout
 //
 //#define SHOWCALLS
 

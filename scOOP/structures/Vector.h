@@ -19,7 +19,7 @@ public:
      * @param u
      * @return
      */
-    inline double norm() {
+    inline double size() {
         return sqrt( pow(this->x,2) + pow(this->y,2) + pow(this->z,2));
     }
 
@@ -29,7 +29,7 @@ public:
      * @param u
      */
     inline void normalise() {
-        double tot = norm();
+        double tot = size();
         if (tot !=0.0) {
             tot = 1.0 / tot;
             x *= tot;

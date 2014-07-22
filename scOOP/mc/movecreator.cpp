@@ -1288,7 +1288,6 @@ double MoveCreator::muVTMove() {
     double entrophy = log(conf->box.x * conf->box.y * conf->box.z)/sim->temper;
     double energy = 0.0;
 
-
     //
     //  incorporating Energydriftchanges -> interaction energy (with inner for chain)
     //
@@ -1325,7 +1324,8 @@ double MoveCreator::muVTMove() {
             newPart.init(topo->ia_params[newPart.type]);
 
             // check overlap
-            if(conf->overlapAll(&newPart, topo->ia_params)) return 0; // overlap detected, move rejected
+            if(conf->overlapAll(&newPart, topo->ia_params))
+                return 0; // overlap detected, move rejected
 
             newPart.chainIndex = -1;
             newPart.molType = molType;
@@ -1380,7 +1380,7 @@ double MoveCreator::muVTMove() {
             energy = (*calcEnergy)(&newPart,1,0);
 
             /// accept with probability -> V/N+1 * e^(3*ln(wavelenght) + (mu - U(new))/kT)
-            if( (conf->sysvolume / (conf->particleStore.size()+1)) *
+            if( (conf->sysvolume / (conf->molCountOfType(molType) + 1)) *
                     exp( (topo->chainparam[molType].mu - energy)/sim->temper - 3*topo->chainparam[molType].lnThermalWavelengh) > ran2()) {
 
 #ifdef SHOWCALLS
@@ -1415,7 +1415,7 @@ double MoveCreator::muVTMove() {
             energy = (*calcEnergy)(&conf->particleStore[conf->toStoreIndex(molType, target)],1,0);
 
             /// accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-            if( ((double)conf->particleStore.size() / conf->sysvolume) *
+            if( ((double)conf->molCountOfType(molType) / conf->sysvolume) *
                    exp( 3*topo->chainparam[molType].lnThermalWavelengh + (energy - topo->chainparam[molType].mu)/sim->temper) > ran2()) {
 
                 // change conlist - single particle, all -1
@@ -1435,7 +1435,7 @@ double MoveCreator::muVTMove() {
             /// must include inner energy in energy drift
             /// trial move without inner energy
             //energy = (*calcEnergy)(conf->particleStore[target],2,conf->particleStore[target].chainIndex);
-            printf("Not yet implemented\n");
+            printf("Chain delete Not yet implemented\n");
             exit(1);
         }
     }

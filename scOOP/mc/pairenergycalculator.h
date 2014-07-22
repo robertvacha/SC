@@ -9,7 +9,7 @@
  */
 
 #include <stdlib.h>
-#include "../structures/structures.h"
+#include "../structures/topo.h"
 #include <stdio.h>
 #include "math_calc.h"
 #include "../structures/particle.h"

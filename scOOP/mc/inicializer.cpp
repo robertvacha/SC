@@ -245,15 +245,12 @@ void Inicializer::readOptions() {
 
 void Inicializer::initTop() {
 
-    long i,j,k,mol,maxch,maxpart;
+    long i,j,k;
     char *sysnames[MAXN] = {NULL};
     long  *sysmoln /*[MAXN]*/;
     bool exclusions[MAXT][MAXT] = {false};
 
     Molecule molecules[MAXMT];
-
-    Particle *tmp_particles;
-    tmp_particles = (Particle*) malloc(sizeof(Particle) * MAXN);
 
     sysmoln = (long int*) malloc( sizeof(long)*MAXN);
     if(sysmoln == NULL){
@@ -262,110 +259,17 @@ void Inicializer::initTop() {
     }
 
     readTopoFile(molecules, sysmoln, sysnames, exclusions);
-
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
-    //fill ia_params combinations
-    genParamPairs(&exclusions);
+    //fill ia_params combinations and topology parameters
+    topo->genParamPairs(&exclusions);
+    topo->genTopoParams();
 
-    double maxlength = 0;
-    for(i = 0; i < MAXT; i++){
-        if(maxlength < topo->ia_params[i][i].len[0])
-            maxlength = topo->ia_params[i][i].len[0];
-    }
-
-    topo->sqmaxcut += maxlength+2;
-    topo->sqmaxcut *= 1.1;
-    topo->maxcut = topo->sqmaxcut;
-    topo->sqmaxcut = topo->sqmaxcut*topo->sqmaxcut;
-    topo->exter.sqmaxcut +=  maxlength;
-    topo->exter.sqmaxcut *= topo->exter.sqmaxcut*1.1;
 
     //TODO fill chain list and maxch, park particle type
     fprintf (stdout, "Generating chainlist...\n");
-    maxch=0;
-    maxpart=0;
-    i=0;
-    while (sysnames[i]!=NULL) {
-        mol=0;
-        while (strcmp(molecules[mol].name,sysnames[i])) {
-            mol++;
-            if (molecules[mol].name == NULL) {
-                fprintf (stderr, "TOPOLOGY ERROR: molecules %s is not defined.\n\n",sysnames[i]);
-                topDealoc(sysnames,&sysmoln);
-                exit(1);
-            }
-        }
 
-        for (j=0;j<sysmoln[i];j++) {
-            //DEBUG	    fprintf (stdout, "molnames %s sysname %s sysnum %ld \n",molnames[mol],sysnames[i],sysmoln[i]);
-            k=0;
-            while (molecules[mol].type[k] != -1) {
-
-                tmp_particles[maxpart].type = molecules[mol].type[k];
-                tmp_particles[0].type = 1;
-                tmp_particles[maxpart].switchtype = molecules[mol].switchtype[k];
-                tmp_particles[maxpart].delta_mu = molecules[mol].delta_mu[k];
-                tmp_particles[maxpart].molType = mol;
-                tmp_particles[maxpart].chainIndex = maxch;
-
-                if (k > MAXCHL) {
-                    fprintf (stderr, "TOPOLOGY ERROR: more particles in chan (%ld) than allowed(%d).\n",k,MAXCHL);
-                    fprintf (stderr, "Change MAXCHL in source and recompile the program. \n\n");
-                    topDealoc(sysnames,&sysmoln);
-                    exit(1);
-                }
-                if (molecules[mol].type[1] != -1) {
-                    conf->chainlist[maxch][k] = maxpart;
-                }
-                k++;
-                maxpart++;
-                if (maxpart > MAXN) {
-                    fprintf (stderr, "TOPOLOGY ERROR: more particles(%ld) than allowed(%d).\n",maxpart,MAXN);
-                    fprintf (stderr, "Change MAXN in source and recompile the program. \n\n");
-                    topDealoc(sysnames,&sysmoln);
-                    exit(1);
-                }
-            }
-            if (molecules[mol].type[1] != -1) {
-                maxch++;
-            }
-        }
-        i++;
-    }
-
-    if (conf->chainCount != maxch) {
-        fprintf (stderr, "TOPOLOGY ERROR: Maximum number of chains(%ld) does not agree with number of chains (%ld)\n\n",maxch,conf->chainCount);
-        topDealoc(sysnames,&sysmoln);
-        exit (1);
-    }
-
-    //maxpart -> number of particles
-    // write the particles from the temporary to the "permanent" conf
-    try{
-        conf->particleStore.reserve(maxpart);
-    } catch(std::bad_alloc& bad) {
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for conf->particle");
-        exit(1);
-    }
-
-    int newType = -1;
-    for(i = 0; i < maxpart; i++) {
-        conf->particleStore.push_back(Particle());
-        conf->particleStore[i].type        = tmp_particles[i].type;
-        conf->particleStore[i].switchtype  = tmp_particles[i].switchtype;
-        conf->particleStore[i].delta_mu    = tmp_particles[i].delta_mu;
-        conf->particleStore[i].molType     = tmp_particles[i].molType;
-        conf->particleStore[i].chainIndex  = tmp_particles[i].chainIndex;
-
-        // set simple grouplist
-        if(newType != conf->particleStore[i].molType) {
-            newType = conf->particleStore[i].molType;
-            conf->first[newType] = i;
-            conf->molSize[newType] = topo->chainparam[newType].molSize();
-        }
-    }
-    conf->molTypeCount = newType+1;
+    setParticlesParams(sysmoln, sysnames, molecules);
 
     // Initialize the clusterlist
     sim->clusterlist = (long int*) malloc(sizeof(long) * conf->particleStore.size());
@@ -405,11 +309,6 @@ void Inicializer::initTop() {
         }
     }
 
-    j = 0;
-    while (conf->chainlist[j][0] >= 0) {
-        j++;
-    }
-    conf->chainCount = j;
 
 
     k=0;
@@ -464,8 +363,6 @@ void Inicializer::initTop() {
         // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
         printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * maxpart * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
     #endif
-
-    free(tmp_particles);
 
     return;
 }
@@ -652,6 +549,7 @@ void Inicializer::initWriteFiles() {
     cout << "\nPatchy Spherocylinders version 3.6\n";
     cout << "-------------------------------------\n";
 
+    sprintf(files->configurationInFileMuVTChains, "configMuVT");
     sprintf(files->configurationInFile, "config.init");
     sprintf(files->configurationoutfile, "config.last");
     sprintf(files->optionsfile, "options");
@@ -719,10 +617,96 @@ void Inicializer::initMPI() {
 
 
 
+
+
 /************************************************************************************************
  *                                      PRIVATE METHODS                                         *
  ************************************************************************************************/
 
+
+
+void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *molecules) {
+    long i=0, j=0, mol, k, maxpart=0, maxch=0;
+
+    try{
+        conf->particleStore.reserve(MAXN);
+    } catch(std::bad_alloc& bad) {
+        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for conf->particleStore");
+        exit(1);
+    }
+
+    while (sysnames[i]!=NULL) {
+        mol=0;
+        while (strcmp(molecules[mol].name,sysnames[i])) {
+            mol++;
+            if (molecules[mol].name == NULL) {
+                fprintf (stderr, "TOPOLOGY ERROR: molecules %s is not defined.\n\n",sysnames[i]);
+                topDealoc(sysnames,&sysmoln);
+                exit(1);
+            }
+        }
+
+        for (j=0;j<sysmoln[i];j++) {
+            //DEBUG	    fprintf (stdout, "molnames %s sysname %s sysnum %ld \n",molnames[mol],sysnames[i],sysmoln[i]);
+            k=0;
+            while (molecules[mol].type[k] != -1) {
+
+                conf->particleStore.push_back(Particle());
+                conf->particleStore[maxpart].type        = molecules[mol].type[k];
+                conf->particleStore[maxpart].switchtype  = molecules[mol].switchtype[k];
+                conf->particleStore[maxpart].delta_mu    = molecules[mol].delta_mu[k];
+                conf->particleStore[maxpart].molType     = mol;
+                conf->particleStore[maxpart].chainIndex  = maxch;
+
+                if (k > MAXCHL) {
+                    fprintf (stderr, "TOPOLOGY ERROR: more particles in chan (%ld) than allowed(%d).\n",k,MAXCHL);
+                    fprintf (stderr, "Change MAXCHL in source and recompile the program. \n\n");
+                    topDealoc(sysnames,&sysmoln);
+                    exit(1);
+                }
+                if (molecules[mol].type[1] != -1) {
+                    conf->chainlist[maxch][k] = maxpart;
+                }
+                k++;
+                maxpart++;
+                if (maxpart > MAXN) {
+                    fprintf (stderr, "TOPOLOGY ERROR: more particles(%ld) than allowed(%d).\n",maxpart,MAXN);
+                    fprintf (stderr, "Change MAXN in source and recompile the program. \n\n");
+                    topDealoc(sysnames,&sysmoln);
+                    exit(1);
+                }
+            }
+            if (molecules[mol].type[1] != -1) {
+                maxch++;
+            }
+        }
+        i++;
+        printf("i: %ld\n", i);
+    }
+
+    int newType = -1;
+    for(i = 0; i < maxpart; i++) {
+        // set simple grouplist
+        if(newType != conf->particleStore[i].molType) {
+            newType = conf->particleStore[i].molType;
+            conf->first[newType] = i;
+            conf->molSize[newType] = topo->chainparam[newType].molSize();
+        }
+    }
+    conf->molTypeCount = newType+1;
+
+    j = 0;
+    while (conf->chainlist[j][0] >= 0) {
+        j++;
+    }
+    conf->chainCount = j;
+
+    if (conf->chainCount != maxch) {
+        fprintf (stderr, "TOPOLOGY ERROR: Maximum number of chains(%ld) does not agree with number of chains (%ld)\n\n",maxch,conf->chainCount);
+        topDealoc(sysnames,&sysmoln);
+        exit (1);
+    }
+}
 
 
 
@@ -776,7 +760,7 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
                         exit (1);
                     }
                     DEBUG_INIT("back in init_top");
-                } else{
+                } else {
                     if (!strcmp(keystr,"MOLECULES")){
                         DEBUG_INIT("Let's go to the molecules");
                         if (molname[0] == ' ') {
@@ -806,37 +790,47 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
                                 exit (1);
                             }
                         } else {
-                            if (!strcmp(keystr,"EXTER")) {
-                                fflush(stdout);
-                                if (!fillExter(&pline)) {
-                                    DEBUG_INIT("Something went wrong with external potential");
-                                    fprintf (stderr, "\nTOPOLOGY ERROR: in reading external potential\n\n");
-                                    topDealoc(sysnames,&sysmoln);
-                                    free(pline); pline = NULL;
-                                    exit (1);
-                                }
-                            } else {
-                                if (!strcmp(keystr,"EXCLUDE")) {
-                                    fflush(stdout);
-                                    if (!fillExclusions(&pline,exclusions)) {
-                                        DEBUG_INIT("Something went wrong with exclusions potential");
-                                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
-                                        topDealoc(sysnames,&sysmoln);
-                                        free(pline); pline = NULL;
-                                        exit (1);
-                                    }
-                                } else {
-                                    fprintf (stderr, "\nTOPOLOGY ERROR: invalid keyword:%s.\n\n", keystr);
+                            if (!strcmp(keystr, "RESERVOIR")) {
+                                if (!fillSystem(pline,sysnames,&sysmoln)) {
+                                    fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                                     topDealoc(sysnames,&sysmoln);
                                     free(pline); pline = NULL;
                                     exit (1);
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
+                             else {
+                                if (!strcmp(keystr,"EXTER")) {
+                                    fflush(stdout);
+                                    if (!fillExter(&pline)) {
+                                        DEBUG_INIT("Something went wrong with external potential");
+                                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading external potential\n\n");
+                                        topDealoc(sysnames,&sysmoln);
+                                        free(pline); pline = NULL;
+                                        exit (1);
+                                    }
+                                } else {
+                                    if (!strcmp(keystr,"EXCLUDE")) {
+                                        fflush(stdout);
+                                        if (!fillExclusions(&pline,exclusions)) {
+                                            DEBUG_INIT("Something went wrong with exclusions potential");
+                                            fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
+                                            topDealoc(sysnames,&sysmoln);
+                                            free(pline); pline = NULL;
+                                            exit (1);
+                                        }
+                                    } else {
+                                        fprintf (stderr, "\nTOPOLOGY ERROR: invalid keyword:%s.\n\n", keystr);
+                                        topDealoc(sysnames,&sysmoln);
+                                        free(pline); pline = NULL;
+                                        exit (1);
+                                    } // else exclude
+                                } // else exter
+                            } // else system
+                        } // else reservoir
+                    } // else molecules
+                } // else types
+            } // else get commnad
+        } // if //getcommand
     }
     //we have sucessfully read topology
     if (pline !=NULL) free(pline);
@@ -933,130 +927,6 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln) {
 }
 
 
-void Inicializer::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
-    int a[2];
-    int len;
-    double length = 0; // The length of a PSC, currently only one is allow, ie implemented
-
-    for (int i=0;i<MAXT;i++) {
-        for (int j=0;j<MAXT;j++) {
-            if (i!=j) {
-                if((topo->ia_params[j][j].geotype[0] != 0) && (topo->ia_params[i][i].geotype[0] != 0)) {
-                    a[0] = i;
-                    a[1] = j;
-
-                    for(int k = 0; k < 2; k++){
-                        topo->ia_params[i][j].geotype[k] = topo->ia_params[a[k]][a[k]].geotype[0];
-                        topo->ia_params[i][j].len[k]     = topo->ia_params[a[k]][a[k]].len[0];
-                        if (topo->ia_params[a[k]][a[k]].len[0] > 0){
-
-                            if (length == 0){
-                                length = topo->ia_params[a[k]][a[k]].len[0];
-                            } else {
-                                if (length > 0) {
-                                    if (length != topo->ia_params[a[k]][a[k]].len[0]) {
-                                        fprintf(stderr, "Error: ");
-                                        fprintf(stderr, "Different lengths for spherocylinders have not been implemented yet!\n");
-                                        fprintf(stderr, "\tCheck the length of type %d!\n", a[k]);
-                                        exit(1);
-                                    }
-                                }
-                            }
-                        }
-                        topo->ia_params[i][j].half_len[k] = topo->ia_params[a[k]][a[k]].half_len[0];
-                        /* Handle angles only, when geotype is a patchs sphero cylinder */
-                        if(topo->ia_params[i][j].geotype[k] >= PSC && topo->ia_params[i][j].geotype[k] < SP) {
-
-                            topo->ia_params[i][j].pangl[k]      = topo->ia_params[a[k]][a[k]].pangl[0];
-                            topo->ia_params[i][j].panglsw[k]    = topo->ia_params[a[k]][a[k]].panglsw[0];
-                            topo->ia_params[i][j].pcangl[k]     = cos(topo->ia_params[i][j].pangl[k]/2.0/180*PI);
-                            topo->ia_params[i][j].pcanglsw[k]   = cos((topo->ia_params[i][j].pangl[k]/2.0+topo->ia_params[i][j].panglsw[k])/180*PI);
-                            topo->ia_params[i][j].pcoshalfi[k]  = cos((topo->ia_params[i][j].pangl[k]/2.0+topo->ia_params[i][j].panglsw[k])/2.0/180*PI);
-                            topo->ia_params[i][j].psinhalfi[k]  = sqrt(1.0 - topo->ia_params[i][j].pcoshalfi[k] * topo->ia_params[i][j].pcoshalfi[k]);
-
-                        }
-
-                        /* Only when the PSC is chiral */
-                        if( (topo->ia_params[i][j].geotype[k] == CHCPSC) || (topo->ia_params[i][j].geotype[k] == CHPSC) \
-                           || (topo->ia_params[i][j].geotype[k] == TCHCPSC) || (topo->ia_params[i][j].geotype[k] == TCHPSC) ) {
-                            topo->ia_params[i][j].chiral_cos[k] = topo->ia_params[a[k]][a[k]].chiral_cos[0];
-                            topo->ia_params[i][j].chiral_sin[k] = topo->ia_params[a[k]][a[k]].chiral_sin[0];
-                        }
-                        /* Information of two patches */
-                        if( (topo->ia_params[i][j].geotype[k] == TCPSC) ||
-                            (topo->ia_params[i][j].geotype[k] == TPSC) ||
-                            (topo->ia_params[i][j].geotype[k] == TCHCPSC) ||
-                            (topo->ia_params[i][j].geotype[k] == TCHPSC) ){
-
-                            topo->ia_params[i][j].csecpatchrot[k] = topo->ia_params[a[k]][a[k]].csecpatchrot[0];
-                            topo->ia_params[i][j].ssecpatchrot[k] = topo->ia_params[a[k]][a[k]].ssecpatchrot[0];
-
-                            topo->ia_params[i][j].pangl[k+2]     = topo->ia_params[a[k]][a[k]].pangl[2];
-                            topo->ia_params[i][j].panglsw[k+2]   = topo->ia_params[a[k]][a[k]].panglsw[2];
-                            topo->ia_params[i][j].pcangl[k+2]    = cos(topo->ia_params[i][j].pangl[k+2]/2.0/180*PI);
-                            topo->ia_params[i][j].pcanglsw[k+2]  = cos((topo->ia_params[i][j].pangl[k+2]/2.0+topo->ia_params[i][j].panglsw[k+2])/180*PI);
-                            topo->ia_params[i][j].pcoshalfi[k+2] = cos((topo->ia_params[i][j].pangl[k+2]/2.0+topo->ia_params[i][j].panglsw[k+2])/2.0/180*PI);
-                            topo->ia_params[i][j].psinhalfi[k+2] = sqrt(1.0 - topo->ia_params[i][j].pcoshalfi[k+2] * topo->ia_params[i][j].pcoshalfi[k+2]);
-                        }
-                    }
-                    len = strlen(topo->ia_params[i][i].name);
-                    strncpy(topo->ia_params[i][j].name, topo->ia_params[i][i].name, len + 1);
-                    len = strlen(topo->ia_params[i][i].other_name);
-                    strncpy(topo->ia_params[i][j].other_name, topo->ia_params[i][i].other_name, len + 1);
-
-                    topo->ia_params[i][j].sigma   = AVER(topo->ia_params[i][i].sigma,topo->ia_params[j][j].sigma);
-                    topo->ia_params[i][j].epsilon = sqrt(topo->ia_params[i][i].epsilon *  topo->ia_params[j][j].epsilon);
-                    topo->ia_params[i][j].pswitch = AVER(topo->ia_params[i][i].pswitch,topo->ia_params[j][j].pswitch);
-                    topo->ia_params[i][j].rcutwca = (topo->ia_params[i][j].sigma)*pow(2.0,1.0/6.0);
-
-                    // Averaging of the flat part of attraction
-                    topo->ia_params[i][j].pdis = AVER(topo->ia_params[i][i].pdis - topo->ia_params[i][i].rcutwca,
-                                                      topo->ia_params[j][j].pdis - topo->ia_params[j][j].rcutwca) + topo->ia_params[i][j].rcutwca;
-                    topo->ia_params[i][j].rcut = topo->ia_params[i][j].pswitch+topo->ia_params[i][j].pdis;
-
-                    // if not non-attractive == if attractive
-                    if (!((topo->ia_params[i][j].geotype[0] % 10 == 0) || (topo->ia_params[i][j].geotype[1] % 10 == 0))) {
-
-                        if (topo->ia_params[i][j].rcutwca >  topo->ia_params[i][j].rcut) {
-                            fprintf(stderr, "Error: Repulsive cutoff is larger than the attractive cutoff!\n");
-                            fprintf(stderr, "       between %d and %d: %f > %f\n", i, j, topo->ia_params[i][j].rcutwca, topo->ia_params[i][j].rcut);
-                        }
-                    }
-
-                    if ( topo->ia_params[i][j].rcutwca > topo->sqmaxcut )
-                        topo->sqmaxcut = topo->ia_params[i][j].rcutwca;
-                    if ( topo->ia_params[i][j].rcut > topo->sqmaxcut )
-                        topo->sqmaxcut = topo->ia_params[i][j].rcut;
-                } // (topo->ia_params[j][j].geotype[0] != 0) && (topo->ia_params[i][i].geotype[0] != 0)
-            }
-
-            if ( (*exclusions)[i][j] )
-                topo->ia_params[i][j].epsilon = 0.0;
-
-        } // end of for cycle j
-
-        /*filling interaction with external potential*/
-        if( (topo->exter.exist) && (topo->ia_params[i][i].geotype[0] != 0)){
-            /*use everything like for given particles except distance and attraction, which is generated as for other interactions*/
-            topo->exter.interactions[i] = topo->ia_params[i][i];
-            topo->exter.interactions[i].sigma = AVER(topo->ia_params[i][i].sigma, topo->exter.thickness);
-            topo->exter.interactions[i].rcutwca = (topo->exter.interactions[i].sigma)*pow(2.0,1.0/6.0);
-            topo->exter.interactions[i].epsilon = sqrt(topo->ia_params[i][i].epsilon *  topo->exter.epsilon);
-            topo->exter.interactions[i].pswitch = AVER(topo->ia_params[i][i].pswitch, topo->exter.attraction);
-            topo->exter.interactions[i].pdis = AVER(topo->ia_params[i][i].pdis - topo->ia_params[i][i].rcutwca, 0.0) + topo->exter.interactions[i].rcutwca;
-            topo->exter.interactions[i].rcut = topo->exter.interactions[i].pswitch + topo->exter.interactions[i].pdis;
-            if (topo->exter.interactions[i].rcut > topo->exter.sqmaxcut ) topo->exter.sqmaxcut = topo->exter.interactions[i].rcut;
-        }
-    }
-    for (int i=0;i<MAXT;i++) {
-        for (int j=0;j<MAXT;j++) {
-            if ( (*exclusions)[i][j] )
-                topo->ia_params[i][j].epsilon = 0.0;
-        }
-    }
-}
-
-
 void Inicializer::usePBC(Vector *pos, Vector pbc){
     do {
         (*pos).x += pbc.x;
@@ -1133,7 +1003,7 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 8)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 8.\n\n", geotype);
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 8, is %d.\n\n", geotype, fields);
         return 0;
     }
     if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 9)) {
@@ -1441,7 +1311,7 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     }
     if (!strcmp(molcommand,"MUVTMOVE")) {
         fields = sscanf(molparams, "%d ", &muVTmove);
-        topo->chainparam[i].muVTmove = (bool)muVTmove;
+        topo->chainparam[i].muVTmove = muVTmove;
         cout << std::boolalpha << "muVTmove: " << topo->chainparam[i].muVTmove << endl;
         return 1;
     }

@@ -12,6 +12,11 @@ void MCSimSystem::init() {
 
     init.initMPI();
     init.readOptions();
+
+#ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
+    printf("\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added\n\n");
+#endif
+
     init.initTop();
     init.testChains(); // if no chains -> move probability of chains 0
     init.initConfig();
