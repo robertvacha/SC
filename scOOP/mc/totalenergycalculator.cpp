@@ -1,7 +1,6 @@
 #include "totalenergycalculator.h"
 
-
-double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainnum) { // NOTE: change everything to work as a pointer
+double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainnum) {
     long i=0,j=0;
 
     //DEBUG_SIM("Calculate the energy with mode %d", mode)
@@ -25,9 +24,14 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
             for (i = 0; i < (long)conf->particleStore.size(); i++) {
-                if(target != &conf->particleStore[i])
+                if(target != &conf->particleStore[i]) {
                     energy += (pairE)(i, &conf->particleStore[i]);
+                }
             }
+            /*pairE.setPrimaryParticle(&conf->particleStore[7]);
+            cout << "     mode x:" << 7 << ":" << 5 << ":" << (pairE)(5, &conf->particleStore[5]) << endl;
+            pairE.setPrimaryParticle(&conf->particleStore[5]);
+            cout << "     mode x:" << 5 << ":" << 7 << ":" << (pairE)(7, &conf->particleStore[7]) << endl;*/
         }
         //add interaction with external potential
         if (topo->exter.exist)
@@ -74,7 +78,6 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
         for (i = 0; i < (long)conf->particleStore.size() - 1; i++) {
 
             pairE.setPrimaryParticle(&conf->particleStore[i]);
-
             for (j = i + 1; j < (long)conf->particleStore.size(); j++) {
                 energy += (pairE)(j, &conf->particleStore[j]);
             }

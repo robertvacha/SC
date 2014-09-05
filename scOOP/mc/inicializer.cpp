@@ -53,6 +53,7 @@ void Inicializer::readOptions() {
     }
 
     while(myGetLine(&line, &line_size, infile) != -1){
+
         // strip comments
         strip_comment(line);
         trim(line);
@@ -681,7 +682,6 @@ void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *m
             }
         }
         i++;
-        printf("i: %ld\n", i);
     }
 
     int newType = -1;
@@ -1175,6 +1175,7 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     beforecommand(str2, pline, CLOSEMOL);
     aftercommand(str, str2, OPENMOL);
     trim(str);
+
     if (strlen(str) == 0) return 1;
     beforecommand(molcommand,str,SEPARATOR);
     aftercommand(molparams,str,SEPARATOR);
@@ -1189,6 +1190,7 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     j=0;
     while (molecules[i].type[j] != -1) // number of particles of this molType loaded
         j++;
+
     if (!strcmp(molcommand,"PARTICLES")) {
         fprintf (stdout, "particle %d: \t", j + 1);
         fields =  sscanf(molparams,"%d %ld %lf",molecules[i].type + j,
@@ -1301,6 +1303,8 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
         fprintf (stdout, "angle2: %f %f \n",topo->chainparam[i].angle2c,topo->chainparam[i].angle2eq);
         return 1;
     }
+
+        cout << "3" << endl;
 
     /// INIT of muVT ensemble
     if (!strcmp(molcommand,"MU")) {

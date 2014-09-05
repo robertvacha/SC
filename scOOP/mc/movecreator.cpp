@@ -36,6 +36,7 @@ double MoveCreator::partDisplace(long target) {
     origsyscm.y = 0;
     origsyscm.z = 0;
     energy = (*calcEnergy)(&conf->particleStore[target], 1, 0);
+
     orig = conf->particleStore[target].pos;
     dr = ranvec();
     //ran = sqrt(ran2(&seed));
@@ -118,7 +119,9 @@ double MoveCreator::partDisplace(long target) {
     } else { /* move was accepted */
         sim->trans[conf->particleStore[target].type].acc++;
         sim->wl.accept(sim->wlm[0]);
+
         edriftchanges = enermove - energy + wlener;
+
         //printf("%f\t%f\n", conf->particleStore[0].pos.z * conf->box.z , enermove);
         //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
     }
@@ -136,6 +139,7 @@ double MoveCreator::partRotate(long target) {
     energy = (*calcEnergy)(&conf->particleStore[target], 1, 0);
 
     origpart = conf->particleStore[target];
+
     pscRotate(&conf->particleStore[target],sim->rot[conf->particleStore[target].type].angle, topo->ia_params[conf->particleStore[target].type][conf->particleStore[target].type].geotype[0]);
     /*should be normalised and ortogonal but we do for safety*/
     conf->particleStore[target].dir.normalise();
@@ -193,7 +197,9 @@ void MoveCreator::pscRotate(Particle *psc, double max_angle, int geotype) {
     newaxis = ranvec(); /*random axes for rotation*/
     //    maxcos = cos(maxorient/2/180*PI);
     // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
+
     vc = cos(max_angle * ran2() );
+
     if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
     else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
 

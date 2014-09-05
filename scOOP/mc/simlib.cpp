@@ -13,7 +13,7 @@ void ltrim (char *str) {
     if (!str) return;
     tr = strdup (str);
     c  = 0;
-    while ((tr[c] == ' ') || (tr[c] == '\n') || (tr[c] == '\t')) c++;
+    while ((tr[c] == ' ') || (tr[c] == '\n') || (tr[c] == '\t') || (tr[c] == '\r')) c++;
     strcpy (str,tr+c);
     free (tr);
 }
@@ -26,7 +26,7 @@ void rtrim (char *str) {
 
     if (!str) return;
     nul = strlen(str)-1;
-    while ((nul > 0) && ((str[nul] == ' ') || (str[nul] == '\t') || (str[nul] == '\n')) ) {
+    while ((nul > 0) && ((str[nul] == ' ') || (str[nul] == '\t') || (str[nul] == '\n')  || (str[nul] == '\r') )) {
         str[nul] = '\0';
         nul--;
     }

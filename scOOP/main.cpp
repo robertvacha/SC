@@ -5,12 +5,8 @@
 
 using namespace std;
 
-
-
 int main()
 {
-    clock_t time = clock();
-
     MCSimSystem mc;
 
     mc.init();
@@ -18,13 +14,8 @@ int main()
     mc.productionRun();
     mc.dealloc();
 
-    time = clock() - time;
-
-    cout << time << endl;
-
     return 0;
 }
-
 
 
 

@@ -5,8 +5,12 @@
 
 #include <stdlib.h> // exit()
 
+#include <iostream>
+
 #include "pairenergycalculator.h"
 #include "../structures/sim.h"
+
+using namespace std;
 
 class TotalEnergyCalculator
 {

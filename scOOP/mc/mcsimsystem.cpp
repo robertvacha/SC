@@ -3,8 +3,6 @@
 #include "mcsimsystem.h"
 
 
-
-
 void MCSimSystem::init() {
     Inicializer init(&topo, &sim, &conf, &files);
 

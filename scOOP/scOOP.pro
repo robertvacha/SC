@@ -3,10 +3,6 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-QMAKE_CXXFLAGS_RELEASE -= -O
-QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O2
-
 QMAKE_CXXFLAGS_RELEASE += -O3 -march=native -msse2 -mfpmath=sse
 
 SOURCES += main.cpp \

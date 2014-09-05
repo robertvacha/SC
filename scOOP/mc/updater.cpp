@@ -215,6 +215,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     edriftchanges = 0.0;
 
     for (sweep=1; sweep <= nsweeps; sweep++) {
+
         // Try replica exchange
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
             edriftchanges += move.replicaExchangeMove(sweep);
@@ -257,6 +258,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 } else {
                     // single particle moves
                     edriftchanges += move.particleMove();
+
                 } // end of else next to chain moves
             } // end of else next to volume moves        
         } // End of step loop for this sweep
@@ -324,7 +326,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             }
         }
 
-        if (!(sweep % 10000)) {
+        if (!(sweep % 100000)) {
             //reinitialize patch vectors to avoid cummulation of errors
             conf->partVecInit(topo);
         }
@@ -399,7 +401,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     volume = conf->box.x * conf->box.y * conf->box.z;
     edriftend = calcEnergy(0, 0, 0);
     pvdriftend =  sim->press * volume - (double)conf->particleStore.size() * log(volume) / sim->temper;
-    printf("Energy drift: %.15f \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
+    printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");

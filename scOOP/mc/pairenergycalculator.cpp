@@ -1,6 +1,7 @@
 #include "pairenergycalculator.h"
 
-
+#include <iostream>
+using namespace std;
 
 double PairEnergyCalculator::operator ()(int num2, Particle *part2) {
 
@@ -28,6 +29,7 @@ double PairEnergyCalculator::operator ()(int num2, Particle *part2) {
         r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
 
     dotrcm = DOT(r_cm,r_cm);
+
     if (dotrcm > topo->sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     contt = 0;
@@ -584,16 +586,20 @@ double PairEnergyCalculator::eCpscCpsc() {
 
         double extraInteractionSwitch = 0.2; //  -> isotropic hydrophobic interaction Switch
 
-        if (dist < topo->ia_params[part1->type][part2->type].pdis)
-            extraAttr = extraEpsilon;
-        //atrenergy = -1.0;
-        else {
-            extraAttr = cos(PIH*(dist-topo->ia_params[part1->type][part2->type].pdis)/extraInteractionSwitch);
-            extraAttr *= extraAttr * extraEpsilon ;
-        }
-        // cos between two SC
-        extraAttr *= (part1->dir.dot(part2->dir));
+        double distRcm = sqrt(dotrcm);
 
+        if (distRcm > topo->ia_params[part1->type][part2->type].pdis+extraInteractionSwitch) {
+            extraAttr = 0.0;
+        } else {
+            if (distRcm < topo->ia_params[part1->type][part2->type].pdis)
+                extraAttr = extraEpsilon;
+            else {
+                extraAttr = cos(PIH*(distRcm - topo->ia_params[part1->type][part2->type].pdis)/extraInteractionSwitch);
+                extraAttr *= extraAttr * extraEpsilon ;
+            }
+            // cos between two SC
+            extraAttr *= (part1->dir.dot(part2->dir));
+        }
         atrenergy += extraAttr;
 #endif
 
@@ -647,10 +653,12 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     //	    fprintf (stderr, "segments_CM: %.8f %.8f %.8f \n",vec_intrs.x,vec_intrs.y,vec_intrs.z);
 
     /*4b - calculate closest distance attractive energy from it*/
+
     vec_mindist = minDistSegments(v1,v2,vec_intrs);
-    //	    fprintf (stderr, "segments closest dist: %.8f %.8f %.8f \n",vec_mindist.x,vec_mindist.y,vec_mindist.z);
     ndist=sqrt(DOT(vec_mindist,vec_mindist));
+
     //dist=DOT(vec_intrs,vec_intrs);
+
     if (ndist <topo->ia_params[part1->type][part2->type].pdis)
         atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
     else {
@@ -676,6 +684,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
 
     /*7- put it all together*/
     atrenergy *=f0*f1*f2;
+
     //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
     //	    fprintf (stderr, "attraction  %.8f \n",atrenergy);
     //	    exit(1);
@@ -1245,15 +1254,22 @@ double PairEnergyCalculator::eRepulsive() {
 // SoftSurfer makes no warranty for this code, and cannot be held
 // liable for any real or imagined damage resulting from its use.
 // Users of this code must verify correctness for their application.
+//
+// FIXED parallel case by calculation both P1 on S0 and P0 on S1 and comparing
+//
 Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vector r_cm) {
     Vector u,v,w,vec;
     double a,b,c,d,e,D,sc,sN,sD,tc,tN,tD;
+    bool paralel = false;
 
+    // direction of lines
     u = (2.0*halfl1) * part1->dir; //S1.P1 - S1.P0;
     v = (2.0*halfl2) * part2->dir; //S2.P1 - S2.P0;
+
     w.x = part2->dir.x*halfl2 - part1->dir.x*halfl1 - r_cm.x;
     w.y = part2->dir.y*halfl2 - part1->dir.y*halfl1 - r_cm.y;
     w.z = part2->dir.z*halfl2 - part1->dir.z*halfl1 - r_cm.z; //S1.P0 - S2.P0;
+
     a = DOT(u,u);        // always >= 0
     b = DOT(u,v);
     c = DOT(v,v);        // always >= 0
@@ -1269,12 +1285,12 @@ Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vecto
 
     // compute the linetopo->ia_paramseters of the two closest points
     if (D < 0.00000001) { // the lines are almost parallel
+        paralel = true;
         sN = 0.0;        // force using point P0 on segment S1
         sD = 1.0;        // to prevent possible division by 0.0 later
         tN = e;
         tD = c;
-    }
-    else {                // get the closest points on the infinite lines
+    } else {                // get the closest points on the infinite lines
         sN = (b*e - c*d);
         tN = (a*e - b*d);
         if (sN < 0.0) {       // sc < 0 => the s=0 edge is visible
@@ -1325,8 +1341,78 @@ Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vecto
     vec.y = u.y*sc + w.y - v.y*tc;
     vec.z = u.z*sc + w.z - v.z*tc;
 
+    if(paralel) { // force using point P1 on line S0 and compare the distance to point P0 on segment S1
+        Vector vec2;
+        // direction of lines
+        // note u is v and v is u
+
+        w.x = part1->dir.x*halfl1 - part2->dir.x*halfl2 + r_cm.x;
+        w.y = part1->dir.y*halfl1 - part2->dir.y*halfl2 + r_cm.y;
+        w.z = part1->dir.z*halfl1 - part2->dir.z*halfl2 + r_cm.z; //S1.P0 - S2.P0;
+
+        // a is c
+        // b is same
+        // c is a
+        d = DOT(v,w); // recalc
+        e = DOT(u,w); // recalc
+        D = a*c - b*b;
+        sc = D;
+        sN = D;
+        sD = D;      // sc = sN / sD, default sD = D >= 0
+        tc = D;
+        tN = D;
+        tD = D;      // tc = tN / tD, default tD = D >= 0
+
+        // compute the linetopo->ia_paramseters of the two closest points
+        if (D < 0.00000001) { // the lines are almost parallel
+            sN = 0.0;        // force using point P0 on segment S1
+            sD = 1.0;        // to prevent possible division by 0.0 later
+            tN = e;
+            tD = a;
+        }
+
+        if (tN < 0.0) {           // tc < 0 => the t=0 edge is visible
+            tN = 0.0;
+            // recompute sc for this edge
+            if (-d < 0.0)
+                sN = 0.0;
+            else if (-d > c)
+                sN = sD;
+            else {
+                sN = -d;
+                sD = c;
+            }
+        } else if (tN > tD) {      // tc > 1 => the t=1 edge is visible
+            tN = tD;
+            // recompute sc for this edge
+            if ((-d + b) < 0.0)
+                sN = 0;
+            else if ((-d + b) > c)
+                sN = sD;
+            else {
+                sN = (-d + b);
+                sD = c;
+            }
+        }
+
+        // finally do the division to get sc and tc
+        if (fabs(sN) < 0.00000001) sc = 0.0 ;
+        else sc = sN / sD;
+        if (fabs(tN) < 0.00000001) tc = 0.0 ;
+        else tc = tN / tD;
+
+        // get the difference of the two closest points
+        //Vector = w + (sc * u) - (tc * v);  // = S1(sc) - S2(tc)
+        vec2.x = v.x*sc + w.x - u.x*tc;
+        vec2.y = v.y*sc + w.y - u.y*tc;
+        vec2.z = v.z*sc + w.z - u.z*tc;
+
+        if(vec2.dot(w) < vec.dot(vec)) return vec2;
+    }
+
     return vec;
 }
+
 
 int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double halfl1, double halfl2,
                                        Vector r_cm, double intersections[], int which, int patchnum) {

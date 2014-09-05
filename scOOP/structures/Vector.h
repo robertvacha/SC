@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include "quaternion.h"
+#include <sstream>
 
 class Quat;
 
@@ -14,9 +15,14 @@ public:
     Vector(){}
     Vector(double x, double y, double z) : x(x), y(y), z(z) {}
 
+    std::string info() {
+        std::ostringstream o;
+        o << "(" <<x << ", " << y << ", " << z <<")";
+        return o.str();
+    }
+
     /**
      * @brief Return a norm of Vector
-     * @param u
      * @return
      */
     inline double size() {
@@ -26,7 +32,6 @@ public:
     /**
      * @brief normalise Normalise a vector to have unit length.  For speed during heavy use, it is
        not checked that the supplied vector has non-zero length.
-     * @param u
      */
     inline void normalise() {
         double tot = size();
