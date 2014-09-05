@@ -24,6 +24,10 @@
 //
 //#define SHOWCALLS
 
+#ifdef MPI
+# include <mpi.h>
+#endif
+
 #ifdef DEBUGGING_INIT
 #define DEBUG_INIT(...) fprintf(stderr, "DB in INIT: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr);
 #else

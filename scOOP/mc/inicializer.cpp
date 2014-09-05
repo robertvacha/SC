@@ -1,5 +1,9 @@
 #include "inicializer.h"
 
+#ifdef MPI
+extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
+#endif
+
 void Inicializer::readOptions() {
     cout << "Reading options..." << endl;
 

@@ -2,6 +2,10 @@
 
 #include "movecreator.h"
 
+#ifdef MPI
+extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
+#endif
+
 double MoveCreator::particleMove() {
     double edriftchanges =0.0;
     long target;

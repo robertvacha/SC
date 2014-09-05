@@ -196,6 +196,18 @@ public:
     }
 };
 
+typedef struct { /* extra type for mpi communication*/
+    Vector box;    /* box of configuration */
+    double energy;	      /* energy of configuration */
+    double volume;        /* volume of configuration */
+    int accepted;         /* bool if accepted */
+    Vector syscm;  /* system CM of configuration */
+    long radiusholemax;   /* size of array for WL*/
+    long wl_order[2];     /* wang-landau order parameter*/
+} MpiExchangeData;
 
+#ifdef MPI
+extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
+#endif
 
 #endif // STRUCTURES_H
