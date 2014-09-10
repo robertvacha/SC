@@ -29,10 +29,6 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
                     energy += (pairE)(i, &conf->particleStore[i]);
                 }
             }
-            /*pairE.setPrimaryParticle(&conf->particleStore[7]);
-            cout << "     mode x:" << 7 << ":" << 5 << ":" << (pairE)(5, &conf->particleStore[5]) << endl;
-            pairE.setPrimaryParticle(&conf->particleStore[5]);
-            cout << "     mode x:" << 5 << ":" << 7 << ":" << (pairE)(7, &conf->particleStore[7]) << endl;*/
         }
         //add interaction with external potential
         if (topo->exter.exist)
