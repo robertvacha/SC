@@ -30,6 +30,7 @@ double PairEnergyCalculator::operator ()(int num2, Particle *part2) {
 
     dotrcm = DOT(r_cm,r_cm);
 
+
     if (dotrcm > topo->sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     contt = 0;
@@ -1407,7 +1408,8 @@ Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vecto
         vec2.y = v.y*sc + w.y - u.y*tc;
         vec2.z = v.z*sc + w.z - u.z*tc;
 
-        if(vec2.dot(w) < vec.dot(vec)) return vec2;
+        if(vec2.dot(vec2) < vec.dot(vec))
+            return vec2;
     }
 
     return vec;

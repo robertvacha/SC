@@ -1,5 +1,6 @@
 #include "updater.h"
 
+
 void Updater::openFilesClusterStatistics(FILE* cl_stat, FILE* cl, FILE* cl_list, FILE* ef, FILE* statf) {
 
     // Opening files for cluster statistics

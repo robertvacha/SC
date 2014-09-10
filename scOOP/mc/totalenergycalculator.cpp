@@ -1,5 +1,6 @@
 #include "totalenergycalculator.h"
 
+
 double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainnum) {
     long i=0,j=0;
 

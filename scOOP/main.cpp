@@ -5,6 +5,8 @@
 
 using namespace std;
 
+extern bool print = false;
+
 int main()
 {
     MCSimSystem mc;
