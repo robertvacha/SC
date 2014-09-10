@@ -17,11 +17,11 @@ SOURCES += main.cpp \
     mc/inicializer.cpp \
     mc/mesh.cpp \
     mc/simlib.cpp \
-    mc/ran2.cpp \
     structures/Conf.cpp \
     structures/particle.cpp \
     mc/printStat.cpp \
-    structures/topo.cpp
+    structures/topo.cpp \
+    mc/randomGenerator.cpp
 
 HEADERS += \
     mc/wanglandau.h \
@@ -40,10 +40,10 @@ HEADERS += \
     mc/mygetline.h \
     mc/simlib.h \
     structures/structures.h \
-    mc/ran2.h \
     structures/particle.h \
     structures/Conf.h \
     mc/printStat.h \
     structures/moleculeparams.h \
-    structures/topo.h
+    structures/topo.h \
+    mc/randomGenerator.h
 

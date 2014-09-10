@@ -15,6 +15,13 @@ option(ENABLE_MPI      "Enable MPI code" off)
 
 set (CMAKE_CXX_FLAGS " -O3 -msse2 -mfpmath=sse ")
 
+# -------------------------------------
+#   Mersenne Twister requires
+# ----=--------------------------------
+if(ENABLE_TWISTER)
+    add_definitions(-DMERSENNETWISTER)
+endif()
+
 # -----------------------
 #   Link with MPI
 # -----------------------

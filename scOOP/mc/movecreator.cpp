@@ -1298,33 +1298,18 @@ double MoveCreator::muVTMove() {
     double entrophy = log(conf->box.x * conf->box.y * conf->box.z)/sim->temper;
     double energy = 0.0;
 
-    //
-    //  incorporating Energydriftchanges -> interaction energy (with inner for chain)
-    //
-
-    /// Determine what type we will be inserting/deleting
-    int molType = 0;
-    for(int i=0; i<conf->molTypeCount; i++) {
-        if(topo->chainparam[i].muVTmove) molType++;
-    }
-    molType = (long) (ran2() * ((double)molType - 0.000001));
-    for(int i=0; i<conf->molTypeCount; i++) {
-        if(topo->chainparam[i].muVTmove) {
-            if(molType == 0) {
-                molType = i;
-                break;
-            }
-            molType--;
-        }
-    }
-    /// moltype -> Molecular type we try to insert/delete
+    // Determine what type we will be inserting/deleting
+    int molType = getRandomMuVTType();
 
     if(ran2() > 0.5) { ///  insert move
-        // create particle
-        Particle newPart;
 
         /// is molType single particle type?
         if(topo->chainparam[molType].isAtomic()) {
+
+            // create particle
+            Particle newPart;
+
+            // randomize
             newPart.pos = ranvec();
             newPart.dir = ranvec();
 
@@ -1633,6 +1618,24 @@ long MoveCreator::contParticlesAll(int wli) {
     }
 
     return contParticlesOrder(wli);
+}
+
+int MoveCreator::getRandomMuVTType() {
+    int molType = 0;
+    for(int i=0; i<conf->molTypeCount; i++) {
+        if(topo->chainparam[i].muVTmove) molType++;
+    }
+    molType = (long) (ran2() * ((double)molType));
+    for(int i=0; i<conf->molTypeCount; i++) {
+        if(topo->chainparam[i].muVTmove) {
+            if(molType == 0) {
+                molType = i;
+                break;
+            }
+            molType--;
+        }
+    }
+    return molType;
 }
 
 long MoveCreator::contParticlesMoveOne(Vector *oldpos, long target, int wli) {

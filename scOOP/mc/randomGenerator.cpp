@@ -1,5 +1,4 @@
-#include "ran2.h"
-
+#include "randomGenerator.h"
 
 #define IM1 2147483563
 #define IM2 2147483399
@@ -62,3 +61,5 @@ double Ran2::operator ()() {
 #undef NDIV
 #undef EPS
 #undef RNMX
+
+ranGen ran2;

@@ -12,8 +12,8 @@
 class MoveCreator
 {
 public:
-    MoveCreator(Topo* topo, Sim* sim, Conf* conf, long int seed, TotalEnergyCalculator* calcEnergy)
-        : topo(topo), sim(sim), conf(conf), calcEnergy(calcEnergy), ran2(seed) {}
+    MoveCreator(Topo* topo, Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy)
+        : topo(topo), sim(sim), conf(conf), calcEnergy(calcEnergy) {}
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future
@@ -22,8 +22,6 @@ private:
 
 public:
     TotalEnergyCalculator* calcEnergy;
-
-    Ran2 ran2;
 
     /**
      * @brief particlemove
@@ -80,6 +78,8 @@ public:
 
 
 private:
+
+    int getRandomMuVTType();
 
     /**
      * @brief partdisplace

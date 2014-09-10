@@ -10,9 +10,9 @@
 class Updater
 {
 public:
-    Updater(long int seed, Topo* topo, Sim* sim, Conf* conf, FileNames* files) :
+    Updater(Topo* topo, Sim* sim, Conf* conf, FileNames* files) :
         topo(topo), sim(sim), conf(conf), files(files),
-        calcEnergy(topo, sim, conf), move(topo, sim, conf, seed, &calcEnergy) {}
+        calcEnergy(topo, sim, conf), move(topo, sim, conf, &calcEnergy) {}
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future

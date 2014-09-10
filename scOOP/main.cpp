@@ -1,11 +1,10 @@
 /** @file main.cpp*/
 
 #include <time.h>
+#include "mc/ran2.h"
 #include "mc/mcsimsystem.h"
 
 using namespace std;
-
-extern bool print = false;
 
 int main()
 {

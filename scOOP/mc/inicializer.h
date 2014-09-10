@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "simlib.h"
+#include "ran2.h"
 #include "../structures/sim.h"
 
 using namespace std;
@@ -22,15 +23,12 @@ public:
         topo(topo), sim(sim), conf(conf), files(files) {}
 
 private:
-    long seed;
     Topo* topo;                // will maybe contain all the topo stuff in future
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;
 
 public:
-
-    long int getSeed() {return seed;}
 
     /*
      *  INPUT

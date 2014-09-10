@@ -2,81 +2,86 @@
 
 
 double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainnum) {
-    long i=0,j=0;
 
     //DEBUG_SIM("Calculate the energy with mode %d", mode)
-    double energy = 0;
 
-    //
-    // Calculates energy between particle "target" and the rest.  Returns energy
-    //
-    if(mode == 1) {
-        pairE.setPrimaryParticle(target);
-        if (sim->pairlist_update) {
+    if(mode == 1)
+        return oneToAll(target);
+
+    if(mode == 2)
+        return chainToAll(target, chainnum);
+
+    if(mode == 0)
+        return allToAll();
+
+    fprintf(stderr, "ERROR: Wrong mode (%d) was given to calc_energy!", mode);
+    return 0.0;
+}
+
+double TotalEnergyCalculator::chainToAll(Particle* target, int chainnum) {
+
+    double energy=0.0;
+    long j=0;
+
+    //#ifdef OMP
+    //#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
+    //#endif
+
+    for (long i = 0; i < (long)conf->particleStore.size(); i++) {
+        if (i != conf->chainlist[chainnum][j]) {
+            if(target != &conf->particleStore[i])
+            energy += (pairE)(target, &conf->particleStore[i], i);
+        } else
+            j++;
+    }
+    j++;
+
+    //add interaction with external potential
+    if (topo->exter.exist)
+        energy+= extere2(target);
+
+    return energy;
+}
+
+double TotalEnergyCalculator::oneToAll(Particle *target) {
+    double energy=0.0;
+
+    if (sim->pairlist_update) {
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-            for (i = 0; i < target->neighborCount; i++){
-               energy += (pairE)(target->neighborID[i], &conf->particleStore[target->neighborID[i]]);
-            }
-        } else {
+        for (long i = 0; i < target->neighborCount; i++){
+           energy += (pairE)(target, &conf->particleStore[target->neighborID[i]], target->neighborID[i]);
+        }
+    } else {
 
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-            for (i = 0; i < (long)conf->particleStore.size(); i++) {
-                if(target != &conf->particleStore[i]) {
-                    energy += (pairE)(i, &conf->particleStore[i]);
-                }
+        for (long i = 0; i < (long)conf->particleStore.size(); i++) {
+            if(target != &conf->particleStore[i]) {
+                energy += (pairE)(target, &conf->particleStore[i], i);
             }
         }
-        //add interaction with external potential
-        if (topo->exter.exist)
-            energy += extere2(target);
-    } // END of MODE=1
+    }
+    //add interaction with external potential
+    if (topo->exter.exist)
+        energy += extere2(target);
 
+    return energy;
+}
 
-
-    //
-    // Calculates energy between particle "target" and the rest. skipping
-    // particles from the given chain -particles has to be sorted in chain!!
-    // so similar to energy one but with chain exception
-    //
-    else if(mode == 2){
-
-        pairE.setPrimaryParticle(target);
-
-        //#ifdef OMP
-        //#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
-        //#endif
-
-        for (i = 0; i < (long)conf->particleStore.size(); i++) {
-            if (i != conf->chainlist[chainnum][j]) {
-                if(target != &conf->particleStore[i])
-                energy += (pairE)(i, &conf->particleStore[i]);
-            }
-            else {
-                j++;
-            }
-        }
-        j++;
-
-        //add interaction with external potential
-        if (topo->exter.exist)
-            energy+= extere2(target);
-
-    // END of MODE=2
-    } else if(mode == 0) { // Calculates energy between all pairs. Returns energy
+double TotalEnergyCalculator::allToAll() {
+    double energy=0.0;
 
 #ifdef OMP
 #pragma omp parallel for private(i,j) reduction (+:energy) schedule (dynamic)
 #endif
 
-        for (i = 0; i < (long)conf->particleStore.size() - 1; i++) {
+        for (long i = 0; i < (long)conf->particleStore.size() - 1; i++) {
 
-            pairE.setPrimaryParticle(&conf->particleStore[i]);
-            for (j = i + 1; j < (long)conf->particleStore.size(); j++) {
-                energy += (pairE)(j, &conf->particleStore[j]);
+            for (long j = i + 1; j < (long)conf->particleStore.size(); j++) {
+                energy += (pairE)(&conf->particleStore[i], &conf->particleStore[j], j);
             }
 
             //for every particle add interaction with external potential
@@ -88,13 +93,7 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
         if (topo->exter.exist)
             energy+= extere2(&conf->particleStore.back());
 
-    } else {
-        fprintf(stderr, "ERROR: Wrong mode (%d) was given to calc_energy!", mode);
-        return 0.0;
-    }
-    //  DEBUG_SIM("Will return energy from calc_energy")
-    //printf("energymove %f\n",energy);
-    return energy;
+        return energy;
 }
 
 double TotalEnergyCalculator::extere2(Particle* target) {

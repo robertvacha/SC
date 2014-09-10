@@ -9,6 +9,7 @@ void Inicializer::readOptions() {
 
     int num_options = -1;
     double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
+    long int seed;
 
     char *id, *value, *tokLine, *line;
     FILE *infile;
@@ -246,6 +247,7 @@ void Inicializer::readOptions() {
     sim->mpiexch.angle = sim->dpress;
 #endif
 
+    ran2.setSeed(seed);
 }
 
 void Inicializer::initTop() {

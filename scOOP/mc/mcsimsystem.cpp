@@ -24,7 +24,7 @@ void MCSimSystem::init() {
     clearOutfiles();
     if (sim.pairlist_update) init.initPairlist();
 
-    updater = new Updater(init.getSeed(), &topo, &sim, &conf, &files);
+    updater = new Updater(&topo, &sim, &conf, &files);
 
     sim.wl.setTopoConf(&topo, &conf);
     sim.wl.mesh.setConf(&conf);

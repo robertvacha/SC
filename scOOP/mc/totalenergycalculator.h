@@ -56,7 +56,26 @@ public:
      * @param chainnum
      * @return
      */
-    double operator() (Particle* target, int mode, int chainnum);
+    double operator() (Particle* target, int mode, int chainnum); 
+
+    /**
+     * @brief Calculates energy between particle "target" and the rest skipping particles from the given chain
+              -particles has to be sorted in chain!!
+              similar to oneToAll, but with chain exception
+     */
+    double chainToAll(Particle* target, int chainnum);
+
+    /**
+     * @brief Calculates energy between particle "target" and the rest
+     */
+    double oneToAll(Particle* target);
+
+    /**
+     * @brief Calculates energy between all pairs. Returns energy
+     * @return
+     */
+    double allToAll();
+
 
 private:
     /**

@@ -22,7 +22,7 @@ public:
     // simple grouplist
     int first[MAXMT];   ///< \brief Index(of particleStore) of first particle of molecule type, array over molecular types
     int molSize[MAXMT]; ///< \brief Number of particles per molecule of moleculeType, array over molecular types
-    int molTypeCount;                   ///< \brief Count of molecular types in use
+    int molTypeCount;   ///< \brief Count of molecular types in use
 
     // chainlist - molecules of 1 particle on included
     long chainlist[MAXN][MAXCHL];       ///< \brief List of particles in chain
@@ -31,6 +31,8 @@ public:
     // muVT chainList
     long muVTchainList[MAXN][MAXCHL];
     long muVTchainCount;
+
+public:
 
     /**
      * @brief Conf Constructor, initializing variables
@@ -48,8 +50,6 @@ public:
         chainCount=0;
         muVTchainCount = 0;
     }
-
-public:
 
     /**
      * @brief Converts molID of molType to particleStore Index

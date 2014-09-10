@@ -1,6 +1,5 @@
 #include "updater.h"
 
-
 void Updater::openFilesClusterStatistics(FILE* cl_stat, FILE* cl, FILE* cl_list, FILE* ef, FILE* statf) {
 
     // Opening files for cluster statistics
@@ -243,7 +242,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         //normal moves
         for (step=1; step <= (long)(long)conf->particleStore.size(); step++) {
-            moveprobab = move.ran2();
+            moveprobab = ran2();
             if ( moveprobab < sim->shprob) {
                 // pressure moves
                 edriftchanges += move.pressureMove();
@@ -772,10 +771,10 @@ int Updater::calcClusterEnergies() {
     for(int i = 0; i < sim->num_cluster; i++) {
         sim->clustersenergy[i]=0.0;
         for(int j = 0; j < sim->clusters[i].npart; j++) {
-            calcEnergy.pairE.setPrimaryParticle(&conf->particleStore[sim->clusters[i].particles[j]]);
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
-                sim->clustersenergy[i]+= (calcEnergy.pairE)(sim->clusters[i].particles[k],
-                                               &conf->particleStore[sim->clusters[i].particles[k]]);
+                sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->particleStore[sim->clusters[i].particles[j]]
+                        , &conf->particleStore[sim->clusters[i].particles[k]]
+                        , sim->clusters[i].particles[k]);
             }
         }
     }
@@ -818,8 +817,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    calcEnergy.pairE.setPrimaryParticle(&conf->particleStore[fst]);
-    if((calcEnergy.pairE)(snd, &conf->particleStore[snd]) > -0.10 ){
+    if((calcEnergy.pairE)(&conf->particleStore[fst], &conf->particleStore[snd], snd) > -0.10 ){
         return false;
     }
     else {

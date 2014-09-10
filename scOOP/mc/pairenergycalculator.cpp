@@ -3,9 +3,10 @@
 #include <iostream>
 using namespace std;
 
-double PairEnergyCalculator::operator ()(int num2, Particle *part2) {
+double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, int num2) {
 
     double energy=0.0;  /* energy*/
+    this->part1 = part1;
     this->part2 = part2;
     this->num2 = num2;
 

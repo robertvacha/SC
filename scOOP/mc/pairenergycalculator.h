@@ -40,9 +40,7 @@ private:
 public:
     PairEnergyCalculator(Topo* topo, Vector box) : topo(topo), box(box) {}
 
-    double operator() (int num2, Particle* part2);
-
-    void setPrimaryParticle(Particle* part1) {this->part1 = part1;}
+    double operator() (Particle* part1, Particle* part2, int num2);
 
     /**
      * @brief init_intfce Initializes the array with the pointers to the energy function
