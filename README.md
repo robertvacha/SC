@@ -15,6 +15,8 @@ executable SC will be created
 
 Parallel tempering (enabling MPI) compile with:
 
+NOT WORKING !!!
+
     $ cmake . -DENABLE_MPI=ON
     $ make
     $ mpirun -np x SC
