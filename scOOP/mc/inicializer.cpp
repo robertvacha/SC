@@ -1,6 +1,7 @@
 #include "inicializer.h"
 
-#ifdef MPI
+#ifdef ENABLE_MPI
+# include <mpi.h>
 extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 #endif
 
@@ -229,7 +230,7 @@ void Inicializer::readOptions() {
     }
 
     //parallel tempering
-#ifdef MPI
+#ifdef ENABLE_MPI
     if ( (sim->temper != sim->paraltemper) && (sim->mpinprocs <2) ) {
         printf("ERROR: Paralllel tempering at single core does not work.\n\n");
         exit(1);
@@ -321,25 +322,27 @@ void Inicializer::initTop() {
     k=0;
     //clear connectivity and then fill it from chain list
     fprintf (stdout, "Generating connectivity...\n");
-    for (i=0; i < (long)conf->particleStore.size(); i++) {
-        conf->particleStore[i].conlist[0] = -1;
-        conf->particleStore[i].conlist[1] = -1;
-        conf->particleStore[i].conlist[2] = -1;
-        conf->particleStore[i].conlist[3] = -1;
+
+    conf->neighborList.resize(conf->particleStore.size());
+    for (i=0; i < (long)conf->neighborList.size(); i++) {
+        conf->neighborList[i].conlist[0] = -1;
+        conf->neighborList[i].conlist[1] = -1;
+        conf->neighborList[i].conlist[2] = -1;
+        conf->neighborList[i].conlist[3] = -1;
     }
     conf->sysvolume = 0;
-    for (i=0; i<(long)conf->particleStore.size(); i++) {
+    for (i=0; i<(long)conf->neighborList.size(); i++) {
         for (j=0; j<MAXCHL; j++) {
             if (conf->chainlist[i][j] >= 0) {
                 k = conf->chainlist[i][j];
                 if ((j+1 < MAXCHL)&&(conf->chainlist[i][j+1] >= 0))
-                    conf->particleStore[k].conlist[1] = conf->chainlist[i][j+1]; //if there is a next particle fill it to head bond
+                    conf->neighborList[k].conlist[1] = conf->chainlist[i][j+1]; //if there is a next particle fill it to head bond
                 if (j > 0)
-                    conf->particleStore[k].conlist[0] = conf->chainlist[i][j-1]; //if this is not first particle fill tail bond
+                    conf->neighborList[k].conlist[0] = conf->chainlist[i][j-1]; //if this is not first particle fill tail bond
                 if ((j+2 < MAXCHL)&& (conf->chainlist[i][j+2] >= 0))
-                    conf->particleStore[k].conlist[3] = conf->chainlist[i][j+2]; //if there is a second next particle fill it second neighbour
+                    conf->neighborList[k].conlist[3] = conf->chainlist[i][j+2]; //if there is a second next particle fill it second neighbour
                 if (j > 1)
-                    conf->particleStore[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
+                    conf->neighborList[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
             }
         }
         conf->sysvolume += topo->ia_params[conf->particleStore[i].type][conf->particleStore[i].type].volume;
@@ -366,10 +369,10 @@ void Inicializer::initTop() {
     DEBUG_INIT("Finished with reading the topology");
 
     // Parallel tempering check
-    #ifdef MPI
+#ifdef ENABLE_MPI
         // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
-        printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * maxpart * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
-    #endif
+        printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->particleStore.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
+#endif
 
     return;
 }
@@ -584,41 +587,41 @@ void Inicializer::initPairlist() {
         sim->pairlist[i].num_pairs = 0;
     }*/
 
-    for(i = 0; i < (long)conf->particleStore.size(); i++){
-        conf->particleStore[i].neighborID = (long int*) malloc(sizeof(long) * conf->particleStore.size());
-        conf->particleStore[i].neighborCount = 0;
+    for(i = 0; i < (long)conf->neighborList.size(); i++){
+        conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * conf->particleStore.size());
+        conf->neighborList[i].neighborCount = 0;
     }
 }
 
-void Inicializer::initMPI() {
-#ifdef MPI
-    FILE *infile;
-    printf(" MPI version");
-    MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &(sim.mpinprocs) );
-    MPI_Comm_rank(MPI_COMM_WORLD, &(sim.mpirank) );
+void Inicializer::initMPI(int argc, char** argv) {
+#ifdef ENABLE_MPI
+        FILE *infile;
+        printf(" MPI version");
+        MPI_Init(&argc,&argv);
+        MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
+        MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
 
-    sprintf(files.configurationoutfile, "%dconfig.last", sim.mpirank);
-    sprintf(files.moviefile, "%dmovie", sim.mpirank);
-    sprintf(files.wloutfile, "%dwl-new.dat", sim.mpirank);
-    sprintf(files.clusterfile, "%dcluster.dat", sim.mpirank);
-    sprintf(files.clusterstatfile, "%dcluster_stat.dat", sim.mpirank);
-    sprintf(files.energyfile, "%denergy.dat", sim.mpirank);
-    sprintf(files.statfile, "%dstat.dat", sim.mpirank);
+        sprintf(files->configurationoutfile, "%dconfig.last", sim->mpirank);
+        sprintf(files->moviefile, "%dmovie", sim->mpirank);
+        sprintf(files->wloutfile, "%dwl-new.dat", sim->mpirank);
+        sprintf(files->clusterfile, "%dcluster.dat", sim->mpirank);
+        sprintf(files->clusterstatfile, "%dcluster_stat.dat", sim->mpirank);
+        sprintf(files->energyfile, "%denergy.dat", sim->mpirank);
+        sprintf(files->statfile, "%dstat.dat", sim->mpirank);
 
-    /*test if there is a specific input configuration for mpi run*/
-    sprintf(files.configurationinfile, "%dconfig.init", sim.mpirank);
-    infile = fopen(files.configurationinfile, "r");
-    if (infile != NULL)
-        fclose (infile);
-    else  sprintf(files.configurationinfile, "config.init");
+        //test if there is a specific input configuration for mpi run
+        sprintf(files->configurationInFile, "%dconfig.init", sim->mpirank);
+        infile = fopen(files->configurationInFile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(files->configurationInFile, "config.init");
 
-    /*test if there is a specific input wang-landau for mpi run*/
-    sprintf(files.wlinfile, "%dwl.dat", sim.mpirank);
-    infile = fopen(files.wlinfile, "r");
-    if (infile != NULL)
-        fclose (infile);
-    else  sprintf(files.wlinfile, "wl.dat");
+        //test if there is a specific input wang-landau for mpi run
+        sprintf(files->wlinfile, "%dwl.dat", sim->mpirank);
+        infile = fopen(files->wlinfile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(files->wlinfile, "wl.dat");
 #endif
 }
 

@@ -7,7 +7,7 @@
 #include "totalenergycalculator.h"
 #include "../structures/Conf.h"
 
-#include "ran2.h"
+#include "randomGenerator.h"
 
 class MoveCreator
 {

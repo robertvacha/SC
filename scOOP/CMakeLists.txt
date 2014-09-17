@@ -27,6 +27,9 @@ endif()
 # -----------------------
 if(ENABLE_MPI)
   find_package(MPI)
+  include(CMakeForceCompiler)
+  CMAKE_FORCE_C_COMPILER(mpicc ${CMAKE_C_COMPILER_ID})
+  CMAKE_FORCE_CXX_COMPILER(mpicxx ${CMAKE_CXX_COMPILER_ID})
   if(MPI_CXX_FOUND)
     set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS})
     if (APPLE)
@@ -67,7 +70,9 @@ mc/mcsimsystem.h mc/mcsimsystem.cpp                          # BASE - MCSIMSYSTE
 mc/inicializer.h mc/inicializer.cpp                          # INICIALIZER
 mc/mesh.h mc/mesh.cpp                                        # MESH
 mc/simlib.h mc/simlib.cpp                                    # SIMLIB
-mc/ran2.h mc/ran2.cpp                                        # RANDOM GENERATOR
+mc/randomGenerator.h mc/randomGenerator.cpp                  # RANDOM GENERATOR
 mc/printStat.h mc/printStat.cpp)                             # PRINTSTAT
+
+#target_link_libraries(SC ${MPI_C_LIBRARIES}) 
 
 

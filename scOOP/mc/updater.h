@@ -39,7 +39,7 @@ public:
     void simulate(long nsweeps, long adjust, long paramfrq, long report);
 
 private:
-    void openFilesClusterStatistics(FILE* cl_stat, FILE* cl, FILE* cl_list, FILE* ef, FILE* statf);
+    void openFilesClusterStatistics(FILE **cl_stat, FILE **cl, FILE **cl_list, FILE **ef, FILE **statf);
     void initValues(long &next_adjust, long &next_calc, long &next_dump, long &next_frame);
 
     /**

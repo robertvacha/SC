@@ -3,19 +3,19 @@
 #include "mcsimsystem.h"
 
 
-void MCSimSystem::init() {
+void MCSimSystem::init(int argc, char** argv) {
     Inicializer init(&topo, &sim, &conf, &files);
 
     init.initWriteFiles();
 
-    init.initMPI();
+    init.initMPI(argc,argv);
     init.readOptions();
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
     printf("\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added\n\n");
 #endif
 
-    init.initTop();
+    init.initTop(); // here particleStore filled in setParticleParams
     init.testChains(); // if no chains -> move probability of chains 0
     init.initConfig();
 
@@ -77,8 +77,8 @@ void MCSimSystem::productionRun() {
 
     updater->simulate(sim.nsweeps, 0, sim.paramfrq, sim.report);
 
-#ifdef MPI
-    printf ("   MPI replica changeT / changeP / acceptance ratio: \t %.6f   /   %.6f  /  %.6f\n\n", sim.mpiexch.mx,sim.mpiexch.angle,RATIO(sim.mpiexch));
+#ifdef ENABLE_MPI
+        printf ("   MPI replica changeT / changeP / acceptance ratio: \t %.6f   /   %.6f  /  %.6f\n\n", sim.mpiexch.mx,sim.mpiexch.angle,RATIO(sim.mpiexch));
 #endif
     outfile = fopen(files.configurationoutfile, "w");
     fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.box.x, conf.box.y, conf.box.z);
@@ -130,7 +130,7 @@ void MCSimSystem::dealloc(){
 
     if (memoryDealloc())
         exit(1);
-#ifdef MPI
+#ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
     printf ("\nDone\n\n");
@@ -168,9 +168,9 @@ void MCSimSystem::clearOutfiles() {
 int MCSimSystem::memoryDealloc() {
     printf ("Deallocating memory...\n");
 
-    for(unsigned int i=0; i < conf.particleStore.size(); i++){
-        delete conf.particleStore[i].neighborID;
-        conf.particleStore[i].neighborID = NULL;
+    for(unsigned int i=0; i < conf.neighborList.size(); i++){
+        delete conf.neighborList[i].neighborID;
+        conf.neighborList[i].neighborID = NULL;
     }
 
 

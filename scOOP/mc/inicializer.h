@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "simlib.h"
-#include "ran2.h"
+#include "randomGenerator.h"
 #include "../structures/sim.h"
 
 using namespace std;
@@ -85,7 +85,7 @@ public:
     /**
      * @brief Paralel tempering(Replica exchange move) initialization
      */
-    void initMPI();
+    void initMPI(int argc, char **argv);
 
 private:
 

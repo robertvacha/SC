@@ -54,7 +54,7 @@ void Conf::removeMolecule(int molType, int molID) {
     assert(firstID > -1 && firstID < (long)particleStore.size());
 
     // delete all neighborID for molecule
-    for(int i=0; i<molSize[molType]; i++) delete particleStore[firstID+i].neighborID;
+    for(int i=0; i<molSize[molType]; i++) delete neighborList[firstID+i].neighborID;
 
     // rearrange particleStore
     for(; firstID < (long)particleStore.size() - molSize[molType]; firstID++) {

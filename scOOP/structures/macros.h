@@ -24,7 +24,7 @@
 //
 //#define SHOWCALLS
 
-#ifdef MPI
+#ifdef ENABLE_MPI
 # include <mpi.h>
 #endif
 

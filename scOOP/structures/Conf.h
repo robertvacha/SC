@@ -13,6 +13,7 @@
 class Conf {
 public:  
     std::vector<Particle > particleStore;  ///< \brief Main store of all particles, grouped by Molecular types
+    std::vector<Neighbors> neighborList;
     std::vector<Particle > muVTchainStore; ///< \brief Store for chains for muVT insert of chain
 
     Vector box;                             ///< \brief Box size */

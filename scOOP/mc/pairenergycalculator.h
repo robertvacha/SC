@@ -19,6 +19,7 @@ class PairEnergyCalculator
 private:
     Particle* part1;
     Particle* part2;
+    int num1;
     int num2;
 
     /*
@@ -33,14 +34,16 @@ private:
 
     Topo* topo;
     Vector box; // box size
+    std::vector<Neighbors>* neighborList;
 
     double (PairEnergyCalculator::*intFCE[MAXT][MAXT])();
 
 
 public:
-    PairEnergyCalculator(Topo* topo, Vector box) : topo(topo), box(box) {}
+    PairEnergyCalculator(Topo* topo, Vector box, std::vector<Neighbors>* neighborList)
+        : topo(topo), box(box), neighborList(neighborList) {}
 
-    double operator() (Particle* part1, Particle* part2, int num2);
+    double operator() (Particle* part1, int num1, Particle* part2, int num2);
 
     /**
      * @brief init_intfce Initializes the array with the pointers to the energy function

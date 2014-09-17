@@ -1,7 +1,7 @@
 #include "totalenergycalculator.h"
 
 
-double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainnum) {
+double TotalEnergyCalculator::operator ()(int target, int mode, int chainnum) {
 
     //DEBUG_SIM("Calculate the energy with mode %d", mode)
 
@@ -18,23 +18,32 @@ double TotalEnergyCalculator::operator ()(Particle* target, int mode, int chainn
     return 0.0;
 }
 
-double TotalEnergyCalculator::chainToAll(Particle* target, int chainnum) {
+double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 
     double energy=0.0;
-    long j=0;
+    long i,j=0;
 
-    //#ifdef OMP
-    //#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
-    //#endif
-
-    for (long i = 0; i < (long)conf->particleStore.size(); i++) {
+//#ifdef OMP
+//#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
+//#endif
+    for (i = 0; i < target; i++) {
         if (i != conf->chainlist[chainnum][j]) {
-            if(target != &conf->particleStore[i])
-            energy += (pairE)(target, &conf->particleStore[i], i);
-        } else
+            energy+= pairE(&conf->particleStore[target], target, &conf->particleStore[i], i);
+        } else {
             j++;
+        }
     }
     j++;
+//#ifdef OMP
+//#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
+//#endif
+    for (i = target + 1; i < (long)conf->particleStore.size(); i++) {
+        if (i != conf->chainlist[chainnum][j]) {
+            energy+= pairE(&conf->particleStore[target], target, &conf->particleStore[i], i);
+        } else {
+            j++;
+        }
+    }
 
     //add interaction with external potential
     if (topo->exter.exist)
@@ -43,15 +52,19 @@ double TotalEnergyCalculator::chainToAll(Particle* target, int chainnum) {
     return energy;
 }
 
-double TotalEnergyCalculator::oneToAll(Particle *target) {
+double TotalEnergyCalculator::oneToAll(int target) {
     double energy=0.0;
 
     if (sim->pairlist_update) {
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-        for (long i = 0; i < target->neighborCount; i++){
-           energy += (pairE)(target, &conf->particleStore[target->neighborID[i]], target->neighborID[i]);
+
+        for (long i = 0; i < conf->neighborList[target].neighborCount; i++){
+           energy += (pairE)(&conf->particleStore[target],
+                             target,
+                             &conf->particleStore[conf->neighborList[target].neighborID[i]],
+                             conf->neighborList[target].neighborID[i]);
         }
     } else {
 
@@ -59,8 +72,8 @@ double TotalEnergyCalculator::oneToAll(Particle *target) {
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
         for (long i = 0; i < (long)conf->particleStore.size(); i++) {
-            if(target != &conf->particleStore[i]) {
-                energy += (pairE)(target, &conf->particleStore[i], i);
+            if(target != i) {
+                energy += (pairE)(&conf->particleStore[target], target, &conf->particleStore[i], i);
             }
         }
     }
@@ -81,22 +94,22 @@ double TotalEnergyCalculator::allToAll() {
         for (long i = 0; i < (long)conf->particleStore.size() - 1; i++) {
 
             for (long j = i + 1; j < (long)conf->particleStore.size(); j++) {
-                energy += (pairE)(&conf->particleStore[i], &conf->particleStore[j], j);
+                energy += (pairE)(&conf->particleStore[i], i, &conf->particleStore[j], j);
             }
 
             //for every particle add interaction with external potential
             if (topo->exter.exist)
-                energy += extere2(&conf->particleStore[i]);
+                energy += extere2(i);
         }
 
         //add interaction of last particle with external potential
         if (topo->exter.exist)
-            energy+= extere2(&conf->particleStore.back());
+            energy+= extere2(conf->particleStore.size() - 1);
 
         return energy;
 }
 
-double TotalEnergyCalculator::extere2(Particle* target) {
+double TotalEnergyCalculator::extere2(int target) {
 
     double repenergy=0.0,atrenergy=0.0;  /* energy*/
 
@@ -106,10 +119,10 @@ double TotalEnergyCalculator::extere2(Particle* target) {
     Vector olddir;
 
     /* calcualte distance to center of mass*/
-    if (  target->pos.z < 0  ) {
-        rcmz = conf->box.z * (target->pos.z - (double)( (long)(target->pos.z - 0.5) ) );
+    if (  conf->particleStore[target].pos.z < 0  ) {
+        rcmz = conf->box.z * (conf->particleStore[target].pos.z - (double)( (long)(conf->particleStore[target].pos.z - 0.5) ) );
     } else {
-        rcmz = conf->box.z * (target->pos.z - (double)( (long)(target->pos.z + 0.5) ) );
+        rcmz = conf->box.z * (conf->particleStore[target].pos.z - (double)( (long)(conf->particleStore[target].pos.z + 0.5) ) );
     }
 
     project.x=0;
@@ -132,9 +145,9 @@ double TotalEnergyCalculator::extere2(Particle* target) {
     distvec.z = r_cm.z;
     distcm = dist;
     box = conf->box;
-    part1 = target;
-    param = &topo->exter.interactions[target->type];
-    halfl = 0.5* topo->exter.interactions[target->type].len[0];
+    part1 = &conf->particleStore[target];
+    param = &topo->exter.interactions[conf->particleStore[target].type];
+    halfl = 0.5* topo->exter.interactions[conf->particleStore[target].type].len[0];
     ndist = dist;
     orientin = true;
     orient = 0.0;

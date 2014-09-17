@@ -40,7 +40,7 @@ private:
     Vector project;         /*vector2 for projection down to plane */
 
 public:
-    TotalEnergyCalculator(Topo * topo, Sim * sim, Conf * conf): pairE(topo, conf->box),
+    TotalEnergyCalculator(Topo * topo, Sim * sim, Conf * conf): pairE(topo, conf->box, &conf->neighborList),
         topo(topo), sim(sim), conf(conf) {pairE.initIntFCE();}
 
     /**
@@ -56,19 +56,24 @@ public:
      * @param chainnum
      * @return
      */
-    double operator() (Particle* target, int mode, int chainnum); 
+    double operator() (int target, int mode, int chainnum);
 
     /**
      * @brief Calculates energy between particle "target" and the rest skipping particles from the given chain
               -particles has to be sorted in chain!!
               similar to oneToAll, but with chain exception
      */
-    double chainToAll(Particle* target, int chainnum);
+    double chainToAll(int target, int chainnum);
 
     /**
      * @brief Calculates energy between particle "target" and the rest
      */
-    double oneToAll(Particle* target);
+    double oneToAll(int target);
+
+    /**
+     * @brief Calculates energy between particle "target" and the rest
+     */
+    double oneToAll(Particle* target, int neighborListID);
 
     /**
      * @brief Calculates energy between all pairs. Returns energy
@@ -85,7 +90,7 @@ private:
      * @param target
      * @return
      */
-    double extere2(Particle* target);
+    double extere2(int target);
 
     /**
      * @brief exter2ClosestDist

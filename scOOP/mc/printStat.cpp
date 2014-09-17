@@ -98,10 +98,10 @@ void printStat::printPairList(FILE *stream, Conf *conf) {
         fprintf(stream, "\n");
     }*/
 
-    for (i = 0; i < (long)conf->particleStore.size(); i++){
-        fprintf(stream, "%ld (%ld):", i, conf->particleStore[i].neighborCount);
-        for(j = 0; j < conf->particleStore[i].neighborCount; j++){
-            fprintf(stream, " %ld", conf->particleStore[i].neighborID[j]);
+    for (i = 0; i < (long)conf->neighborList.size(); i++){
+        fprintf(stream, "%ld (%ld):", i, conf->neighborList[i].neighborCount);
+        for(j = 0; j < conf->neighborList[i].neighborCount; j++){
+            fprintf(stream, " %ld", conf->neighborList[i].neighborID[j]);
         }
         fprintf(stream, "\n");
     }

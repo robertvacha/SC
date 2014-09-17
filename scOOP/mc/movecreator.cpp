@@ -2,7 +2,8 @@
 
 #include "movecreator.h"
 
-#ifdef MPI
+#ifdef ENABLE_MPI
+# include <mpi.h>
 extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 #endif
 
@@ -39,7 +40,7 @@ double MoveCreator::partDisplace(long target) {
     origsyscm.x = 0;
     origsyscm.y = 0;
     origsyscm.z = 0;
-    energy = (*calcEnergy)(&conf->particleStore[target], 1, 0);
+    energy = (*calcEnergy)(target, 1, 0);
 
     orig = conf->particleStore[target].pos;
     dr = ranvec();
@@ -112,7 +113,7 @@ double MoveCreator::partDisplace(long target) {
     }
 
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
-        enermove =  (*calcEnergy)(&conf->particleStore[target], 1, 0);
+        enermove =  (*calcEnergy)(target, 1, 0);
     }
     if ( reject || moveTry(energy, enermove, sim->temper) ) {  /* probability acceptance */
         conf->particleStore[target].pos = orig;
@@ -140,7 +141,7 @@ double MoveCreator::partRotate(long target) {
 
     /*=== Rotation step ===*/
     //printf ("rotation %ld npart %ld\n\n",target,npart);
-    energy = (*calcEnergy)(&conf->particleStore[target], 1, 0);
+    energy = (*calcEnergy)(target, 1, 0);
 
     origpart = conf->particleStore[target];
 
@@ -173,7 +174,7 @@ double MoveCreator::partRotate(long target) {
     }
 
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
-        enermove =  (*calcEnergy)(&conf->particleStore[target], 1, 0);
+        enermove =  (*calcEnergy)(target, 1, 0);
     }
     if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
         conf->particleStore[target] = origpart;
@@ -296,7 +297,7 @@ double MoveCreator::switchTypeMove() {
     target = topo->switchlist[target];
     DEBUG_SIM("Switching the particle type");
     DEBUG_SIM("PARTICLE: %ld", target);
-    energy = (*calcEnergy)(&conf->particleStore[target], 1, 0);
+    energy = (*calcEnergy)(target, 1, 0);
     // Start switching the type
     int switched = conf->particleStore[target].switched;
     int pmone = PMONE(switched);
@@ -357,7 +358,7 @@ double MoveCreator::switchTypeMove() {
         // DEBUG
         //double dmu = enermove;
         //particleStore[target].switched += pmone;
-        enermove += (*calcEnergy)( &conf->particleStore[target], 1, 0);
+        enermove += (*calcEnergy)( target, 1, 0);
         //printf("energy: %f \t %f\t%f\n",particleStore[target].delta_mu, dmu, enermove);
     }
 
@@ -418,7 +419,7 @@ double MoveCreator::chainDisplace(long target) {
     origsyscm.z = 0;
     while (current >=0 ) {   /* store old configuration calculate energy*/
         chorig[i].pos = conf->particleStore[current].pos;
-        energy += (*calcEnergy)(&conf->particleStore[current], 2, target);
+        energy += (*calcEnergy)(current, 2, target);
         i++;
         current = conf->chainlist[target][i];
     }
@@ -502,7 +503,7 @@ double MoveCreator::chainDisplace(long target) {
         i=0;
         current = conf->chainlist[target][0];
         while (current >=0 ) {
-            enermove += (*calcEnergy)(&conf->particleStore[current], 2, target);
+            enermove += (*calcEnergy)(current, 2, target);
             i++;
             current = conf->chainlist[target][i];
         }
@@ -548,7 +549,7 @@ double MoveCreator::chainRotate(long target) {
     cluscm.z = conf->particleStore[current].pos.z*topo->ia_params[conf->particleStore[current].type][conf->particleStore[current].type].volume;
     chorig[0] = conf->particleStore[current];
     chainvolume = topo->ia_params[conf->particleStore[current].type][conf->particleStore[current].type].volume;
-    energy += (*calcEnergy)(&conf->particleStore[current], 2, target);
+    energy += (*calcEnergy)(current, 2, target);
     i=1;
     current = conf->chainlist[target][i];
     while (current >=0 ) {   /* store old configuration calculate energy*/
@@ -574,7 +575,7 @@ double MoveCreator::chainRotate(long target) {
         cluscm.y += conf->particleStore[current].pos.y*topo->ia_params[conf->particleStore[current].type][conf->particleStore[current].type].volume;
         cluscm.z += conf->particleStore[current].pos.z*topo->ia_params[conf->particleStore[current].type][conf->particleStore[current].type].volume;
         chainvolume += topo->ia_params[conf->particleStore[current].type][conf->particleStore[current].type].volume;
-        energy += (*calcEnergy)(&conf->particleStore[current], 2, target);
+        energy += (*calcEnergy)(current, 2, target);
         i++;
         current = conf->chainlist[target][i];
     }
@@ -641,7 +642,7 @@ double MoveCreator::chainRotate(long target) {
         i=0;
         current = conf->chainlist[target][0];
         while (current >=0 ) {
-            enermove +=  (*calcEnergy)(&conf->particleStore[current], 2, target);
+            enermove +=  (*calcEnergy)(current, 2, target);
             i++;
             current = conf->chainlist[target][i];
         }
@@ -1001,300 +1002,302 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
 
 double MoveCreator::replicaExchangeMove(long sweep) {
     double edriftchanges=0.0;
-#ifdef MPI
-    double change, *recwlweights;
-    MPI_Status status;
-    int oddoreven,count,wli,sizewl = 0;
-    struct mpiexchangedata localmpi,receivedmpi;
-    bool reject;
-    long localwl,receivedwl;
+#ifdef ENABLE_MPI
+        cout << "replica move" << endl;
+        double change, *recwlweights;
+        MPI_Status status;
+        int oddoreven,count,wli,sizewl = 0;
+        MpiExchangeData localmpi,receivedmpi;
+        bool reject;
+        long localwl,receivedwl;
 
-    //int mpi_newdatatypes();
+        //int mpi_newdatatypes();
 
-    //mpi_newdatatypes();
-    int i;
-    Vector vec;
-    struct particles part;
-    struct mpiexchangedata exch;
-    MPI_Aint     dispstart;
+        //mpi_newdatatypes();
+        int i;
+        Vector vec;
+        Particle part;
+        MpiExchangeData exch;
+        MPI_Aint     dispstart;
 
-    MPI_Datatype MPI_vector2;
-    MPI_Datatype type[3] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
-    int          blocklen[3] = {1, 1, 1};
-    MPI_Aint     disp[3];
-    MPI_Address( &vec, &dispstart);
-    MPI_Address( &(vec.x), &disp[0]);
-    MPI_Address( &(vec.y), &disp[1]);
-    MPI_Address( &(vec.z), &disp[2]);
-    for (i=0; i <3; i++) disp[i] -= dispstart;
-    MPI_Type_struct( 3, blocklen, disp, type, &MPI_vector2);
-    MPI_Type_commit( &MPI_vector2);
+        MPI_Datatype MPI_vector2;
+        MPI_Datatype type[3] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
+        int          blocklen[3] = {1, 1, 1};
+        MPI_Aint     disp[3];
+        MPI_Address( &vec, &dispstart);
+        MPI_Address( &(vec.x), &disp[0]);
+        MPI_Address( &(vec.y), &disp[1]);
+        MPI_Address( &(vec.z), &disp[2]);
+        for (i=0; i <3; i++) disp[i] -= dispstart;
+        MPI_Type_struct( 3, blocklen, disp, type, &MPI_vector2);
+        MPI_Type_commit( &MPI_vector2);
 
-    MPI_Datatype MPI_Particle;
-    MPI_Datatype type2[11] = {MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2, MPI_LONG, MPI_LONG, MPI_INT,MPI_INT,MPI_DOUBLE, MPI_INT};
-    int          blocklen2[11] = {1, 1, 2,4,2,1,1,1,1,1,1,};
-    MPI_Aint     disp2[11];
-    MPI_Address( &part, &dispstart);
-    MPI_Address( &(part.pos), &disp2[0]);
-    MPI_Address( &(part.dir), &disp2[1]);
-    MPI_Address( &(part.patchdir), &disp2[2]);
-    MPI_Address( &(part.patchsides), &disp2[3]);
-    MPI_Address( &(part.chdir), &disp2[4]);
-    MPI_Address( &(part.molType), &disp2[5]);
-    MPI_Address( &(part.chainn), &disp2[6]);
-    MPI_Address( &(part.type), &disp2[7]);
-    MPI_Address( &(part.switchtype), &disp2[8]);
-    MPI_Address( &(part.delta_mu), &disp2[9]);
-    MPI_Address( &(part.switched), &disp2[10]);
-    for (i=0; i <11; i++) disp2[i] -= dispstart;
-    MPI_Type_struct( 11, blocklen2, disp2, type2, &MPI_Particle);
-    MPI_Type_commit( &MPI_Particle);
+        MPI_Datatype MPI_Particle;
+        MPI_Datatype type2[11] = {MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2, MPI_LONG, MPI_LONG, MPI_INT,MPI_INT,MPI_DOUBLE, MPI_INT};
+        int          blocklen2[11] = {1, 1, 2,4,2,1,1,1,1,1,1,};
+        MPI_Aint     disp2[11];
+        MPI_Address( &part, &dispstart);
+        MPI_Address( &(part.pos), &disp2[0]);
+        MPI_Address( &(part.dir), &disp2[1]);
+        MPI_Address( &(part.patchdir), &disp2[2]);
+        MPI_Address( &(part.patchsides), &disp2[3]);
+        MPI_Address( &(part.chdir), &disp2[4]);
+        MPI_Address( &(part.molType), &disp2[5]);
+        MPI_Address( &(part.chainIndex), &disp2[6]);
+        MPI_Address( &(part.type), &disp2[7]);
+        MPI_Address( &(part.switchtype), &disp2[8]);
+        MPI_Address( &(part.delta_mu), &disp2[9]);
+        MPI_Address( &(part.switched), &disp2[10]);
+        for (i=0; i <11; i++) disp2[i] -= dispstart;
+        MPI_Type_struct( 11, blocklen2, disp2, type2, &MPI_Particle);
+        MPI_Type_commit( &MPI_Particle);
 
-    if (sim->wl.length[1] > 0) {
-        sizewl = sim->wl.length[1] * sim->wl.length[0];
-    } else {
-        sizewl = sim->wl.length[0];
-    }
-    MPI_Datatype MPI_exchange;
-    MPI_Datatype type3[7] = {MPI_vector2, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_vector2, MPI_LONG, MPI_LONG};
-    int          blocklen3[7] = {1, 1, 1, 1, 1, 1, 2};
-    MPI_Aint     disp3[7];
-    MPI_Address( &exch, &dispstart);
-    MPI_Address( &(exch.box), &disp3[0]);
-    MPI_Address( &(exch.energy), &disp3[1]);
-    MPI_Address( &(exch.volume), &disp3[2]);
-    MPI_Address( &(exch.accepted), &disp3[3]);
-    MPI_Address( &(exch.syscm), &disp3[4]);
-    MPI_Address( &(exch.radiusholemax), &disp3[5]);
-    MPI_Address( &(exch.wl_order), &disp3[6]);
-    for (i=0; i <7; i++) disp3[i] -= dispstart;
-    MPI_Type_struct(7, blocklen3, disp3, type3, &MPI_exchange);
-    MPI_Type_commit( &MPI_exchange);
-    /*=== This is an attempt to switch replicas ===*/
-
-    localmpi.box = conf->box;
-    localmpi.energy = calc_energy(0, intfce, 0, topo, conf, sim,0);
-    localmpi.volume = conf->box.x * conf->box.y * conf->box.z;
-    localmpi.accepted = 0;
-    localmpi.syscm = conf->syscm;
-    localmpi.radiusholemax = sim->wl.radiusholemax;
-    recwlweights =  malloc( sizeof(double) * sizewl  );
-    for (wli=0;wli<2;wli++) {
-        localmpi.wl_order[wli] = 0;
-        receivedmpi.wl_order[wli] = 0;
-    }
-    for (wli=0;wli<sim->wl.wlmdim;wli++) {
-        localmpi.wl_order[wli] = sim->wl.currorder[wli];
-        //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], sim->wl.currorder[wli] );
-    }
-
-    if ( (sweep % (2*sim->nrepchange)) == 0)
-        /* exchange odd ones with even ones*/
-        oddoreven=1;
-    else
-        /* exchange even ones with odd ones*/
-        oddoreven=0;
-    if (sim->mpinprocs == 2)
-        oddoreven=1;
-    count = 1;
-
-    if (sim->mpirank % 2 == oddoreven) {
-        if (sim->mpirank > 0) {
-            MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank-1, count, MPI_COMM_WORLD);
-            MPI_Send(sim->wl.weights, sizewl, MPI_DOUBLE, sim->mpirank-1, count, MPI_COMM_WORLD);
-            //printf("send data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,localmpi.energy,localmpi.volume,localmpi.pressure);
-
-            MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            /*decision of accepting or rejecting the exchange was done on other process
-            here we took received configuration (if move was accepted))*/
-            //printf("received data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume,receivedmpi.pressure);
-
-            if (receivedmpi.accepted == 1) {
-                sim->mpiexch.acc++;
-                struct particles *temppart;
-                temppart = malloc(topo->npart*sizeof(struct particles));
-                MPI_Recv(temppart, topo->npart, MPI_Particle, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
-/*				printf("received data: rank: %d\n", sim->mpirank);
-                printf("part0  x %f y %f z %f\n",temppart[0].pos.x, temppart[0].pos.y, temppart[0].pos.z);
-                printf("part1  x %f y %f z %f\n",temppart[1].pos.x, temppart[1].pos.y, temppart[1].pos.z);
-                printf("part0  molType %ld chainn %ld type %d\n",temppart[0].molType,temppart[0].chainn,temppart[0].type);
-*/
-                MPI_Send(conf->particle, topo->npart, MPI_Particle, sim->mpirank-1, count, MPI_COMM_WORLD);
-/*				printf("send data: rank: %d\n",sim->mpirank);
-                printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
-                printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
-*/
-                localmpi.accepted = receivedmpi.accepted;
-                conf->box = receivedmpi.box;
-                conf->syscm = receivedmpi.syscm;
-                memcpy(conf->particle,temppart,topo->npart*sizeof(struct particles));
-                edriftchanges = receivedmpi.energy - localmpi.energy;
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)topo->npart * log(receivedmpi.volume / localmpi.volume) / sim->temper;
-                if ( sim->wlm[0] >0 ) {
-                    for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                        sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
-                    }
-                    wl->accept(sim->wlm[0],&sim->wl);
-                    //exchange wl data mesh size and radius hole s
-                    for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                        switch (sim->wlm[wli]) {
-                            case 2:
-                                /*it is complicated to send because of different sizes
-                                 we would have to send sizes first and realocate corrrect mesh size and then send data
-                                 it is better to recalculate (a bit slower though)*/
-                                mesh_init(&sim->wl.mesh,sim->wl.wl_meshsize, topo->npart, conf, sim);
-                                break;
-                            case 5:
-                                //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
-                                sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                break;
-                            case 6:
-                                //radiushole_all(topo,conf,sim,wli,&(conf->particleStore[0].pos));
-                                sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                break;
-                            case 7:
-                                //contparticles_all(topo,conf,sim,wli);
-                                MPI_Recv(&(sim->wl.partincontactold),1, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                sim->wl.partincontact=sim->wl.partincontactold;
-                                break;
-                        }
-                    }
-                }
-
-                free(temppart);
-            } else {
-                sim->mpiexch.rej++;
-                if ( sim->wlm[0] > 0 ) {
-                    sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
-                    sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
-                }
-            }
-
+        if (sim->wl.length[1] > 0) {
+            sizewl = sim->wl.length[1] * sim->wl.length[0];
+        } else {
+            sizewl = sim->wl.length[0];
         }
-    } else {
-        if (sim->mpirank+1 < sim->mpinprocs) {
-            /*there is above process*/
-            MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            MPI_Recv(recwlweights, sizewl, MPI_DOUBLE, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            /*we got new configuration*/
-            //printf("received data: rank: %d energy: %f volume: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume);
+        MPI_Datatype MPI_exchange;
+        MPI_Datatype type3[7] = {MPI_vector2, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_vector2, MPI_LONG, MPI_LONG};
+        int          blocklen3[7] = {1, 1, 1, 1, 1, 1, 2};
+        MPI_Aint     disp3[7];
+        MPI_Address( &exch, &dispstart);
+        MPI_Address( &(exch.box), &disp3[0]);
+        MPI_Address( &(exch.energy), &disp3[1]);
+        MPI_Address( &(exch.volume), &disp3[2]);
+        MPI_Address( &(exch.accepted), &disp3[3]);
+        MPI_Address( &(exch.syscm), &disp3[4]);
+        MPI_Address( &(exch.radiusholemax), &disp3[5]);
+        MPI_Address( &(exch.wl_order), &disp3[6]);
+        for (i=0; i <7; i++) disp3[i] -= dispstart;
+        MPI_Type_struct(7, blocklen3, disp3, type3, &MPI_exchange);
+        MPI_Type_commit( &MPI_exchange);
+        //=== This is an attempt to switch replicas ===
 
-            /*evaluate if accepte or reject the configuration*/
-            /*acc = exp( (1/sim->temper - 1/(sim->temper + sim.dtemp)) * (E_here - E_received) +
-            (sim->press /sim->temper - pressure_received /(sim.temper + sim->dtemp)) * (V_here - V_received)
-            if pressure the same it it simplier*/
-            reject = false;
-            change = (1/sim->temper - 1/(sim->temper + sim->dtemp)) * (localmpi.energy - receivedmpi.energy);
-            //printf("acceptance decision: change: %f localE: %f receivedE: %f tempf: %f \n",change,localmpi.energy,receivedmpi.energy,(1/sim->temper - 1/(sim->temper + sim->dtemp)));
-            change += (sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)) * (localmpi.volume - receivedmpi.volume);
-            //printf("pressf: %f  \n",(sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)));
-            if (sim->wlm[0] > 0) {
-                localwl = sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0];
-                receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*sim->wl.length[0];
-                //fprintf(stdout,"decide wl   %ld %ld %ld energychange: %f \n", receivedmpi.wl_order[0],  receivedmpi.wl_order[1], receivedwl, change );
-                //fprintf(stdout,"local weights %ld %f %ld %f \n",localwl,sim->wl.weights[localwl],receivedwl,sim->wl.weights[receivedwl]);
-                change += (-sim->wl.weights[localwl] + sim->wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
-                //fprintf(stdout,"wlchange %f \n\n",change);
-            }
-            if (  (!(reject)) && ( (change > 0) || (ran2(&seed) < exp(change))  )  ) {
-                /* Exchange ACCEPTED send local stuff*/
-                //printf("exchange accepted \n");
-                sim->mpiexch.acc++;
-                localmpi.accepted = 1;
-                conf->box = receivedmpi.box;
-                conf->syscm = receivedmpi.syscm;
-                edriftchanges = receivedmpi.energy - localmpi.energy;
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)topo->npart * log(receivedmpi.volume / localmpi.volume) / sim->temper;
-                //printf("edrift %f\n",edriftchanges);
-                if ( sim->wlm[0] > 0 ) {
-                    for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                        sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
-                    }
-                    wl->accept(sim->wlm[0],&sim->wl);
-                }
-                MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
+        localmpi.box = conf->box;
+        localmpi.energy = (*calcEnergy)(0, 0, 0);
+        localmpi.volume = conf->box.x * conf->box.y * conf->box.z;
+        localmpi.accepted = 0;
+        localmpi.syscm = conf->syscm;
+        localmpi.radiusholemax = sim->wl.radiusholemax;
+        recwlweights = (double*) malloc( sizeof(double) * sizewl  );
+        for (wli=0;wli<2;wli++) {
+            localmpi.wl_order[wli] = 0;
+            receivedmpi.wl_order[wli] = 0;
+        }
+        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+            localmpi.wl_order[wli] = sim->wl.currorder[wli];
+            //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], sim->wl.currorder[wli] );
+        }
+
+        if ( (sweep % (2*sim->nrepchange)) == 0)
+            // exchange odd ones with even ones
+            oddoreven=1;
+        else
+            // exchange even ones with odd ones
+            oddoreven=0;
+        if (sim->mpinprocs == 2)
+            oddoreven=1;
+        count = 1;
+
+        if (sim->mpirank % 2 == oddoreven) {
+            if (sim->mpirank > 0) {
+                MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank-1, count, MPI_COMM_WORLD);
+                MPI_Send(sim->wl.weights, sizewl, MPI_DOUBLE, sim->mpirank-1, count, MPI_COMM_WORLD);
                 //printf("send data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,localmpi.energy,localmpi.volume,localmpi.pressure);
-                /*send and receive configuration*/
-                MPI_Send(conf->particle, topo->npart, MPI_Particle, sim->mpirank+1, count, MPI_COMM_WORLD);
-/*				printf("send data: rank: %d\n",sim->mpirank);
-                printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
-                printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
-*/
-                MPI_Recv(conf->particle, topo->npart, MPI_Particle, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
-/*				printf("recieved data: rank: %d\n",sim->mpirank);
-                printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
-                printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
-*/
-                if ( sim->wlm[0] > 0 ) {
-                    //exchange wl data mesh size and radius hole s
-                    for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                        switch (sim->wlm[wli]) {
-                            case 2:
-                                /*it is complicated to send because of different sizes
-                                  we would have to send sizes first and realocate corrrect mesh size and then send data
-                                  it is better to recalculate (a bit slower though)*/
-                                mesh_init(&sim->wl.mesh,sim->wl.wl_meshsize, topo->npart, conf, sim);
-                                break;
-                            case 5:
-                                //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
-                                sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                break;
-                            case 6:
-                                //radiushole_all(topo,conf,sim,wli,&(conf->particleStore[0].pos));
-                                sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                break;
-                            case 7:
-                                //contparticles_all(topo,conf,sim,wli);
-                                MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                MPI_Recv(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                break;
+
+                MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                //decision of accepting or rejecting the exchange was done on other process
+                //here we took received configuration (if move was accepted))
+                //printf("received data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume,receivedmpi.pressure);
+
+                if (receivedmpi.accepted == 1) {
+                    sim->mpiexch.acc++;
+                    Particle *temppart;
+                    temppart = (Particle*) malloc(conf->particleStore.size()*sizeof(Particle));
+                    MPI_Recv(temppart, conf->particleStore.size(), MPI_Particle, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
+                    //printf("received data: rank: %d\n", sim->mpirank);
+                    //printf("part0  x %f y %f z %f\n",temppart[0].pos.x, temppart[0].pos.y, temppart[0].pos.z);
+                    //printf("part1  x %f y %f z %f\n",temppart[1].pos.x, temppart[1].pos.y, temppart[1].pos.z);
+                    //printf("part0  molType %ld chainn %ld type %d\n",temppart[0].molType,temppart[0].chainn,temppart[0].type);
+
+                    MPI_Send(&conf->particleStore[0], conf->particleStore.size(), MPI_Particle, sim->mpirank-1, count, MPI_COMM_WORLD);
+                    //printf("send data: rank: %d\n",sim->mpirank);
+                    //printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
+                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
+                    //printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
+
+                    localmpi.accepted = receivedmpi.accepted;
+                    conf->box = receivedmpi.box;
+                    conf->syscm = receivedmpi.syscm;
+                    memcpy(&conf->particleStore[0],temppart,conf->particleStore.size()*sizeof(Particle));
+                    edriftchanges = receivedmpi.energy - localmpi.energy;
+                    edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->particleStore.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                    if ( sim->wlm[0] >0 ) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+                            sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
+                        }
+                        sim->wl.accept(sim->wlm[0]);
+                        //exchange wl data mesh size and radius hole s
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+                            switch (sim->wlm[wli]) {
+                                case 2:
+                                    //it is complicated to send because of different sizes
+                                     //we would have to send sizes first and realocate corrrect mesh size and then send data
+                                    // it is better to recalculate (a bit slower though)
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->particleStore.size(),sim->wl.wlmtype);
+                                    break;
+                                case 5:
+                                    //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
+                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
+                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
+                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
+                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
+                                    break;
+                                case 6:
+                                    //radiushole_all(topo,conf,sim,wli,&(conf->particleStore[0].pos));
+                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
+                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
+                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
+                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
+                                    break;
+                                case 7:
+                                    //contparticles_all(topo,conf,sim,wli);
+                                    MPI_Recv(&(sim->wl.partincontactold),1, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
+                                    sim->wl.partincontact=sim->wl.partincontactold;
+                                    break;
+                            }
                         }
                     }
+
+                    free(temppart);
+                } else {
+                    sim->mpiexch.rej++;
+                    if ( sim->wlm[0] > 0 ) {
+                        sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
+                        sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
+                    }
                 }
-            } else {
-                /*if exchange rejected send back info */
-                //printf("exchange rejected\n");
-                sim->mpiexch.rej++;
-                MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
-                if ( sim->wlm[0] > 0 ) {
-                    sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
-                    sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
+
+            }
+        } else {
+            if (sim->mpirank+1 < sim->mpinprocs) {
+                //there is above process
+                MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                MPI_Recv(recwlweights, sizewl, MPI_DOUBLE, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                //we got new configuration
+                //printf("received data: rank: %d energy: %f volume: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume);
+
+                //valuate if accepte or reject the configuration
+                //acc = exp( (1/sim->temper - 1/(sim->temper + sim.dtemp)) * (E_here - E_received) +
+                //(sim->press /sim->temper - pressure_received /(sim.temper + sim->dtemp)) * (V_here - V_received)
+                //if pressure the same it it simplier
+                reject = false;
+                change = (1/sim->temper - 1/(sim->temper + sim->dtemp)) * (localmpi.energy - receivedmpi.energy);
+                //printf("acceptance decision: change: %f localE: %f receivedE: %f tempf: %f \n",change,localmpi.energy,receivedmpi.energy,(1/sim->temper - 1/(sim->temper + sim->dtemp)));
+                change += (sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)) * (localmpi.volume - receivedmpi.volume);
+                //printf("pressf: %f  \n",(sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)));
+                if (sim->wlm[0] > 0) {
+                    localwl = sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0];
+                    receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*sim->wl.length[0];
+                    //fprintf(stdout,"decide wl   %ld %ld %ld energychange: %f \n", receivedmpi.wl_order[0],  receivedmpi.wl_order[1], receivedwl, change );
+                    //fprintf(stdout,"local weights %ld %f %ld %f \n",localwl,sim->wl.weights[localwl],receivedwl,sim->wl.weights[receivedwl]);
+                    change += (-sim->wl.weights[localwl] + sim->wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
+                    //fprintf(stdout,"wlchange %f \n\n",change);
+                }
+                if (  (!(reject)) && ( (change > 0) || (ran2() < exp(change))  )  ) {
+                    // Exchange ACCEPTED send local stuff
+                    //printf("exchange accepted \n");
+                    sim->mpiexch.acc++;
+                    localmpi.accepted = 1;
+                    conf->box = receivedmpi.box;
+                    conf->syscm = receivedmpi.syscm;
+                    edriftchanges = receivedmpi.energy - localmpi.energy;
+                    edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->particleStore.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                    //printf("edrift %f\n",edriftchanges);
+                    if ( sim->wlm[0] > 0 ) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+                            sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
+                        }
+                        sim->wl.accept(sim->wlm[0]);
+                    }
+                    MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
+                    //printf("send data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,localmpi.energy,localmpi.volume,localmpi.pressure);
+                    //send and receive configuration
+                    MPI_Send(&conf->particleStore[0], conf->particleStore.size(), MPI_Particle, sim->mpirank+1, count, MPI_COMM_WORLD);
+                    //printf("send data: rank: %d\n",sim->mpirank);
+                    //printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
+                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
+                    //printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
+
+                    MPI_Recv(&conf->particleStore[0], conf->particleStore.size(), MPI_Particle, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
+                    //printf("recieved data: rank: %d\n",sim->mpirank);
+                    //printf("part0  x %f y %f z %f\n",conf->particleStore[0].pos.x,conf->particleStore[0].pos.y,conf->particleStore[0].pos.z);
+                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
+                    //printf("part0  molType %ld chainn %ld type %d\n",conf->particleStore[0].molType,conf->particleStore[0].chainn,conf->particleStore[0].type);
+
+                    if ( sim->wlm[0] > 0 ) {
+                        //exchange wl data mesh size and radius hole s
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+                            switch (sim->wlm[wli]) {
+                                case 2:
+                                    //it is complicated to send because of different sizes
+                                    //  we would have to send sizes first and realocate corrrect mesh size and then send data
+                                    //  it is better to recalculate (a bit slower though)
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->particleStore.size(), sim->wl.wlmtype);
+                                    break;
+                                case 5:
+                                    //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
+                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
+                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
+                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
+                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
+                                    break;
+                                case 6:
+                                    //radiushole_all(topo,conf,sim,wli,&(conf->particleStore[0].pos));
+                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
+                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
+                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
+                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
+                                    break;
+                                case 7:
+                                    //contparticles_all(topo,conf,sim,wli);
+                                    MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
+                                    MPI_Recv(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    //if exchange rejected send back info
+                    //printf("exchange rejected\n");
+                    sim->mpiexch.rej++;
+                    MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
+                    if ( sim->wlm[0] > 0 ) {
+                        sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
+                        sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
+                    }
                 }
             }
         }
-    }
-    if ( (localmpi.accepted) && (sim->pairlist_update) )
-        gen_pairlist(topo, sim, conf);
-    MPI_Type_free(&MPI_exchange);
-    MPI_Type_free(&MPI_Particle);
-    MPI_Type_free(&MPI_vector2);
-    free(recwlweights);
+        if(localmpi.accepted) cout << "mpi accept" << endl;
+        //if ( (localmpi.accepted) && (sim->pairlist_update) ) gen pair list
+
+        MPI_Type_free(&MPI_exchange);
+        MPI_Type_free(&MPI_Particle);
+        MPI_Type_free(&MPI_vector2);
+        free(recwlweights);
 #endif
     return edriftchanges;
 }
 
 double MoveCreator::muVTMove() {
-    long target;
+    /*long target;
     double entrophy = log(conf->box.x * conf->box.y * conf->box.z)/sim->temper;
     double energy = 0.0;
 
@@ -1327,14 +1330,6 @@ double MoveCreator::muVTMove() {
             newPart.delta_mu = 0;
             newPart.switchtype = 0;
             newPart.switched = 0;
-            newPart.neighborCount = 0;
-            newPart.neighborID = (long int*) malloc(sizeof(long) * conf->particleStore.size());
-
-            // conlist -> no particles
-            newPart.conlist[0] = -1;
-            newPart.conlist[1] = -1;
-            newPart.conlist[2] = -1;
-            newPart.conlist[3] = -1;
 
             // generate neighbor list only on this particle, others unchanged
             Vector r_cm;
@@ -1364,7 +1359,7 @@ double MoveCreator::muVTMove() {
 
                 max_dist *= (1 + sim->pairlist_update) * 2;
                 max_dist += topo->maxcut;
-                max_dist *= max_dist; /* squared */
+                max_dist *= max_dist; // squared
 
                 if (r_cm2 <= max_dist){
                     newPart.neighborID[newPart.neighborCount++] = i;
@@ -1434,7 +1429,7 @@ double MoveCreator::muVTMove() {
             exit(1);
         }
     }
-    return 0;
+    return 0;*/
 }
 
 long MoveCreator::radiusholeAll(int wli, Vector *position) {

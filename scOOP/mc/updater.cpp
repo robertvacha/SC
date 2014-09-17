@@ -1,30 +1,30 @@
 #include "updater.h"
 
-void Updater::openFilesClusterStatistics(FILE* cl_stat, FILE* cl, FILE* cl_list, FILE* ef, FILE* statf) {
+void Updater::openFilesClusterStatistics(FILE** cl_stat, FILE** cl, FILE** cl_list, FILE** ef, FILE** statf) {
 
     // Opening files for cluster statistics
-    cl_stat = cl = cl_list = ef = statf = NULL;
+    *cl_stat = *cl = *cl_list = *ef = *statf = NULL;
     if(sim->write_cluster){
         // Empty file
-        cl_stat = fopen(files->clusterstatfile, "w");
-        fclose(cl_stat);
-        cl_stat = fopen(files->clusterstatfile, "a");
+        *cl_stat = fopen(files->clusterstatfile, "w");
+        fclose(*cl_stat);
+        *cl_stat = fopen(files->clusterstatfile, "a");
         // Empty file
-        cl = fopen(files->clusterfile, "w");
-        fclose(cl);
-        cl = fopen(files->clusterfile, "a");
+        *cl = fopen(files->clusterfile, "w");
+        fclose(*cl);
+        *cl = fopen(files->clusterfile, "a");
     }
     // write energy
     if (report < nsweeps){
         // Empty file
-        ef = fopen(files->energyfile, "w");
-        fclose(ef);
-        ef = fopen(files->energyfile, "a");
-        fprintf (ef, "# sweep    energy\n");
-        statf = fopen(files->statfile, "w");
-        fclose(statf);
-        statf = fopen(files->statfile, "a");
-        fprintf (statf, "# sweep    volume\n");
+        *ef = fopen(files->energyfile, "w");
+        fclose(*ef);
+        *ef = fopen(files->energyfile, "a");
+        fprintf (*ef, "# sweep    energy\n");
+        *statf = fopen(files->statfile, "w");
+        fclose(*statf);
+        *statf = fopen(files->statfile, "a");
+        fprintf (*statf, "# sweep    volume\n");
     }
 }
 
@@ -186,7 +186,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double volume;          // volume of box
     double moveprobab;      // random number selecting the move
 
-    openFilesClusterStatistics(cl_stat, cl, cl_list, ef, statf); 
+    openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
 
     //=== Initialise counters etc. ===//
     sim->shprob = sim->shave/(double)conf->particleStore.size();
@@ -219,25 +219,27 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Try replica exchange
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
             edriftchanges += move.replicaExchangeMove(sweep);
+
+            if(sim->pairlist_update)
+                genPairList();
         }
 
         // Try muVT insert delete moves
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
-#ifdef SHOWCALLS
-        printf("Call muVTMove()\n");
-#endif
             edriftchanges += move.muVTMove();
 
+            if(sim->pairlist_update)
+                genPairList();
         }
 
         // Generate the pairlist, also generate after each muVT move
-        if(((sim->pairlist_update) && (sweep % sim->pairlist_update == 0))
-                                   || (sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0)) {
-#ifdef SHOWCALLS
-        printf("Call genPairList()\n");
-#endif
+        if( (sim->pairlist_update) && // pair_list allowed
+                (
+                    (sweep % sim->pairlist_update == 0) && // on scheduled sweep
+                    !(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) && // not on grandCanon sweep
+                    !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
+                ) ) {
             genPairList();
-
         }
 
         //normal moves
@@ -370,6 +372,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               printf ("\n");
               fflush (stdout);
              */
+
             fprintf (statf, " %ld; %.10f\n", sweep, conf->box.x * conf->box.y * conf->box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
             if (sim->wlm[0] > 0) {
@@ -526,21 +529,17 @@ void Updater::genSimplePairList() {
     double max_dist;
     // Set the pairlist to zero
     //DEBUG_INIT("Gen Pairlist")
-    long i, j;
-    for(i = 0; i < (long)(long)conf->particleStore.size(); i++){
+
+    for(unsigned int i = 0; i < (long)(long)conf->neighborList.size(); i++){
         //DEBUG_INIT("%ld", i);
-        conf->particleStore[i].neighborCount = 0;
+        conf->neighborList[i].neighborCount = 0;
     }
-    long nj = (long)conf->particleStore.size();
-    long ni = nj - 1;
-    for(i = 0; i < ni; i++){
-        for(j = i + 1; j < nj; j++){
-#ifndef NDEBUG
-            if(conf->particleStore[i].neighborID == NULL)
-                printf("Neighbor list of particle %ld is NULL\n", i);
-            if(conf->particleStore[j].neighborID == NULL)
-                printf("Neighbor list of particle %ld is NULL\n", j);
-#endif
+    for(unsigned int i = 0; i < conf->particleStore.size()-1; i++){
+        for(unsigned int j = i + 1; j < conf->particleStore.size(); j++){
+            assert(conf->particleStore.size() == conf->neighborList.size());
+            assert(conf->particleStore[i] != NULL);
+            assert(conf->particleStore[j] != NULL);
+
             r_cm.x = conf->particleStore[i].pos.x - conf->particleStore[j].pos.x;
             r_cm.y = conf->particleStore[i].pos.y - conf->particleStore[j].pos.y;
             r_cm.z = conf->particleStore[i].pos.z - conf->particleStore[j].pos.z;
@@ -565,11 +564,11 @@ void Updater::genSimplePairList() {
             max_dist *= max_dist; /* squared */
 
             if (r_cm2 <= max_dist){
-                conf->particleStore[i].neighborID[conf->particleStore[i].neighborCount] = j;
-                conf->particleStore[j].neighborID[conf->particleStore[j].neighborCount] = i;
+                conf->neighborList[i].neighborID[conf->neighborList[i].neighborCount] = j;
+                conf->neighborList[j].neighborID[conf->neighborList[j].neighborCount] = i;
 
-                conf->particleStore[i].neighborCount++;
-                conf->particleStore[j].neighborCount++;
+                conf->neighborList[i].neighborCount++;
+                conf->neighborList[j].neighborCount++;
 
                 /*sim->pairlist[i].pairs[sim->pairlist[i].num_pairs++] = j; // DEL AFTER
                 sim->pairlist[j].pairs[sim->pairlist[j].num_pairs++] = i;*/
@@ -634,12 +633,13 @@ int Updater::genClusterList() {
     // Start determining the cluster
     while(change){
         change = false;
+        assert(conf->particleStore.size() == conf->neighborList.size());
         for(i = 0; i < (long)conf->particleStore.size(); i++){
             /*If nore pairlist go over all pairs*/
             maxnumber = (long)conf->particleStore.size();
             minnumber = i ;
             if (sim->pairlist_update) {
-                maxnumber = conf->particleStore[i].neighborCount;
+                maxnumber = conf->neighborList[i].neighborCount;
                 //maxnumber = sim->pairlist[i].num_pairs; // del after
                 minnumber=0;
             }
@@ -648,7 +648,7 @@ int Updater::genClusterList() {
                 fst = i;
                 snd = j;
                 if (sim->pairlist_update) {
-                    snd = conf->particleStore[i].neighborID[j];
+                    snd = conf->neighborList[i].neighborID[j];
                     //snd = sim->pairlist[i].pairs[j];
                 }
                 /*do cluster analysis only for spherocylinders*/
@@ -773,6 +773,7 @@ int Updater::calcClusterEnergies() {
         for(int j = 0; j < sim->clusters[i].npart; j++) {
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
                 sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->particleStore[sim->clusters[i].particles[j]]
+                        , sim->clusters[i].particles[j]
                         , &conf->particleStore[sim->clusters[i].particles[k]]
                         , sim->clusters[i].particles[k]);
             }
@@ -788,13 +789,13 @@ int Updater::sameCluster(long fst, long snd) {
     /*if two particles are bonded they belong to the same cluster*/
     if ( ((topo->chainparam[conf->particleStore[fst].molType]).bond1c >= 0) ||
         ((topo->chainparam[conf->particleStore[fst].molType]).bonddc >= 0) ){
-        if ( (snd == conf->particleStore[fst].conlist[1]) || (snd == conf->particleStore[fst].conlist[0]) ) {
+        if ( (snd == conf->neighborList[fst].conlist[1]) || (snd == conf->neighborList[fst].conlist[0]) ) {
           return true;
         }
     }
     if ( ((topo->chainparam[conf->particleStore[snd].molType]).bond1c >= 0) ||
         ((topo->chainparam[conf->particleStore[snd].molType]).bonddc >= 0) ){
-        if ( (fst == conf->particleStore[snd].conlist[1]) || (fst == conf->particleStore[snd].conlist[0]) ) {
+        if ( (fst == conf->neighborList[snd].conlist[1]) || (fst == conf->neighborList[snd].conlist[0]) ) {
           return false;
         }
     }
@@ -817,7 +818,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if((calcEnergy.pairE)(&conf->particleStore[fst], &conf->particleStore[snd], snd) > -0.10 ){
+    if((calcEnergy.pairE)(&conf->particleStore[fst], fst, &conf->particleStore[snd], snd) > -0.10 ){
         return false;
     }
     else {

@@ -21,7 +21,6 @@ typedef struct{
 
 
 
-
 /**
  * @brief This structure is for io only
  */
@@ -49,7 +48,6 @@ public:
         free(delta_mu);
     }
 };
-
 
 
 
@@ -175,9 +173,6 @@ public:
     }
 };
 
-
-
-
 class Exters{
 public:
     bool exist;                    ///< \brief existence of external potential
@@ -206,7 +201,13 @@ typedef struct { /* extra type for mpi communication*/
     long wl_order[2];     /* wang-landau order parameter*/
 } MpiExchangeData;
 
-#ifdef MPI
+typedef struct {
+    long neighborCount; ///< \brief The number of neighbors (pairs eq. num_pairs)
+    long * neighborID;  ///< \brief The particle indexes of the neighbors
+    long conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+} Neighbors;
+
+#ifdef ENABLE_MPI
 extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 #endif
 
