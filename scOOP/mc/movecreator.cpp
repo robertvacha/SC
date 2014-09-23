@@ -1332,15 +1332,16 @@ double MoveCreator::muVTMove() {
 
         if(topo->chainparam[molType].isAtomic()) {
 
-            // create particle
-            insert.clear();
+            // create particle           
             insert.push_back(Particle());
             insert[0].random(molType, topo->chainparam[molType].particleTypes[0]);
             insert[0].init(topo->ia_params[insert[0].type]);
 
             // check overlap
-            if(conf->overlapAll(&insert[0], topo->ia_params))
+            if(conf->overlapAll(&insert[0], topo->ia_params)) {
+                insert.clear();
                 return 0; // overlap detected, move rejected
+            }
 
             // calculate energy, no neighborList used, IMPLEMENT CONLIST
             energy = calcEnergy->oneToAll(&insert[0], -1);
@@ -1349,7 +1350,7 @@ double MoveCreator::muVTMove() {
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27)) + (mu - U(new))/kT)
             //
             if( ( (conf->sysvolume / (conf->molCountOfType(molType) + 1)) *
-                    exp( (+topo->chainparam[molType].chemPot - energy)/sim->temper) ) > ran2()) {
+                  exp( topo->chainparam[molType].chemPot + (-energy)/sim->temper) ) > ran2()) {
 
                 conf->addMolecule(&insert);
                 insert.clear();
@@ -1364,13 +1365,14 @@ double MoveCreator::muVTMove() {
             // do energy calc -> neccesity of index during calculation -> to access conectivity list and chainlist
             // chainlist? -> probably only for chain insert
             // chain insert? acceptance ratio? -> from pregenerated conf
-            printf("Chain insert not yet implemented!!!\n");
+            cout << "Chain insert not yet implemented!!!" << endl;
             exit(1);
         }
 
     } else { // delete move
 
         // choose particle -> only of certain type -> list of certain types
+        if(conf->molCountOfType(molType) == 0) return 0;
         target = ran2() * conf->molCountOfType(molType);
 
         if(topo->chainparam[molType].isAtomic()) {
@@ -1381,8 +1383,8 @@ double MoveCreator::muVTMove() {
             //
             // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
             //
-            if( ((double)conf->molCountOfType(molType) / conf->sysvolume) *
-                   exp( (energy - topo->chainparam[molType].chemPot)/sim->temper ) > ran2()) {
+            if( ( ( (double)conf->molCountOfType(molType) / conf->sysvolume) *
+                  exp( (energy - topo->chainparam[molType].chemPot)/sim->temper)) > ran2()) {
 
                 conf->removeMolecule(target, 1);
 
