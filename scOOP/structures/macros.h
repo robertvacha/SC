@@ -7,26 +7,19 @@
 # define _GNU_SOURCE
 #endif
 
-/*
- *  ONE TIME SIMULATION CHANGES
- */
 #define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
 
-/* Macros for DEBUG messages */
 //
 //  for assert() -> if NDEBUG defined assert not compiled
 //  #ifndef NDEBUG someting() #endif -> if NDEBUG defined -> not compiled
 //
 #define NDEBUG
 
-//
-//  when defined calls of some function written on stdout
-//
-//#define SHOWCALLS
 
 #ifdef ENABLE_MPI
 # include <mpi.h>
 #endif
+
 
 #ifdef DEBUGGING_INIT
 #define DEBUG_INIT(...) fprintf(stderr, "DB in INIT: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr);
@@ -47,10 +40,9 @@
 #endif
 /* End of DEBUG macros */
 
+
 /* With  pairlist ? */
 #define WITH_PAIRLIST
-
-/* End of Boolean Macros */
 
 #define MAXF 20             /* Maximum number of Fourier terms */
 #define MAXN 14000           /* Maximum number of particles */

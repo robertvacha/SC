@@ -80,7 +80,10 @@ void Updater::initWangLandau() {
                     sim->wl.mesh.tmp = NULL;
                     sim->wl.origmesh.data = NULL;
                     sim->wl.origmesh.tmp = NULL;
-                    sim->wl.currorder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize, (long)conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                    sim->wl.currorder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                           (long)conf->particleStore.size(),
+                                                                           sim->wl.wlmtype, conf->box,
+                                                                           &conf->particleStore) - sim->wl.minorder[wli]);
                     break;
                 case 3:
                     sim->wl.currorder[wli] = (long) floor( (conf->particleStore[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );

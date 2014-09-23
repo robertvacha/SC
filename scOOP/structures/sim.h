@@ -29,7 +29,7 @@ public:
     long nsweeps;               ///< \brief Number of production sweeps
     long paramfrq;              ///< \brief Number of sweeps between order parameter samples
     long report;                ///< \brief Number of sweeps between statistics reports
-    //long terms;             ///< \brief Number of Fourier terms as smectic order parameters
+    //long terms;                 ///< \brief Number of Fourier terms as smectic order parameters
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
     int wlm[2];                 ///< \brief Wang landau method (wl)

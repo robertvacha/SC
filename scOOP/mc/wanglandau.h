@@ -3,11 +3,13 @@
 #ifndef WANGLANDAU_H
 #define WANGLANDAU_H
 
-
 #include "stdio.h"
 #include "mesh.h"
 #include "simlib.h"
 
+/**
+ * @brief The WangLandau class - Wang landau method (wl)
+ */
 class WangLandau
 {
 public:
@@ -21,32 +23,29 @@ public:
     Topo* topo;
     Conf* conf;
 
-    /* Wang landau method (wl) */
-    double *weights;        /* Array of weights for wl method */
-    long   *hist;           /* Array of histogram for wl method */
-    long   length[2];       /* Length of above arrays */
-    double dorder[2];       /* Increments of order parameter */
-    double minorder[2];     /* Minimum order parameter */
-    double alpha;           /* Current modifier of weights */
-    long   currorder[2];    /* Walue of current order parameter*/
-    long   neworder[2];     /* wl order parameter in new step */
-    long   max;             /* wl maximum of histogram */
-    long   min;             /* wl minimum of histogram */
-    double wmin;            /* weights minimum */
-    int    wlmdim;          /* Dimwnsionality of wang landau */
-    int    wlmtype;         /* Atom type for the Wang landau method (wl) */
-    double wl_meshsize;         /* Size of mesh bin for hole order paremeter*/
-    Mesh mesh;          /* Mesh for hole order */
-    Mesh origmesh;      /* Mesh store for rejected moves */
-    long * radiushole;          /* Array for hole radius around origin */
-    long * radiusholeold;       /* Array for hole radius around origin-bigmove */
-    long   radiusholemax;         /* Size of array for hole radius*/
-    long   partincontact;         /* Number of particles in contact */
-    long   partincontactold;      /* Number of particles in contact - old for move*/
+    double *weights;           ///< \brief Array of weights for wl method
+    long   *hist;              ///< \brief Array of histogram for wl method
+    long   length[2];          ///< \brief Length of above arrays
+    double dorder[2];          ///< \brief Increments of order parameter
+    double minorder[2];        ///< \brief Minimum order parameter
+    double alpha;              ///< \brief Current modifier of weights
+    long   currorder[2];       ///< \brief Walue of current order parameter
+    long   neworder[2];        ///< \brief wl order parameter in new step
+    long   max;                ///< \brief wl maximum of histogram
+    long   min;                ///< \brief wl minimum of histogram
+    double wmin;               ///< \brief weights minimum
+    int    wlmdim;             ///< \brief Dimwnsionality of wang landau
+    int    wlmtype;            ///< \brief Atom type for the Wang landau method (wl)
+    double wl_meshsize;        ///< \brief Size of mesh bin for hole order paremeter
+    Mesh mesh;                 ///< \brief Mesh for hole order
+    Mesh origmesh;             ///< \brief Mesh store for rejected moves
+    long* radiushole;          ///< \brief Array for hole radius around origin
+    long* radiusholeold;       ///< \brief Array for hole radius around origin-bigmove
+    long  radiusholemax;       ///< \brief Size of array for hole radius
+    long  partincontact;       ///< \brief Number of particles in contact
+    long  partincontactold;    ///< \brief Number of particles in contact - old for move
 
 public:
-
-
 
     /**
      * @brief z_order
@@ -68,7 +67,6 @@ public:
      * @return
      */
     int write(char filename[30]);
-
 
 
     /**

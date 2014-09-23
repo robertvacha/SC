@@ -43,7 +43,7 @@ double MoveCreator::partDisplace(long target) {
     energy = (*calcEnergy)(target, 1, 0);
 
     orig = conf->particleStore[target].pos;
-    dr = ranvec();
+    dr.random();
     //ran = sqrt(ran2(&seed));
     dr.x *= sim->trans[conf->particleStore[target].type].mx/conf->box.x;
     dr.y *= sim->trans[conf->particleStore[target].type].mx/conf->box.y;
@@ -199,7 +199,7 @@ void MoveCreator::pscRotate(Particle *psc, double max_angle, int geotype) {
     Vector newaxis;
 
     /* generate quaternion for rotation*/
-    newaxis = ranvec(); /*random axes for rotation*/
+    newaxis.random(); /*random axes for rotation*/
     //    maxcos = cos(maxorient/2/180*PI);
     // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
 
@@ -322,7 +322,11 @@ double MoveCreator::switchTypeMove() {
                 /*case 1: sim->wl.neworder = z_order(&sim->wl, conf,wli);
                      break;*/
                 case 2: sim->wl.origmesh = sim->wl.mesh;
-                    sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,(long)conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                    sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                          (long)conf->particleStore.size(),
+                                                                          sim->wl.wlmtype,
+                                                                          conf->box,
+                                                                          &conf->particleStore) - sim->wl.minorder[wli]);
                     break;
                 /*case 4:
                     sim->wl.neworder = twopartdist(&sim->wl,conf,wli);
@@ -423,7 +427,7 @@ double MoveCreator::chainDisplace(long target) {
         i++;
         current = conf->chainlist[target][i];
     }
-    dr = ranvec();
+    dr.random();
     dr.x *= sim->chainm[conf->particleStore[target].molType].mx/conf->box.x;
     dr.y *= sim->chainm[conf->particleStore[target].molType].mx/conf->box.y;
     dr.z *= sim->chainm[conf->particleStore[target].molType].mx/conf->box.z;
@@ -710,7 +714,11 @@ double MoveCreator::pressureMove() {
                             break;
                         case 2:
                             sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                                  conf->particleStore.size(),
+                                                                                  sim->wl.wlmtype,
+                                                                                  conf->box,
+                                                                                  &conf->particleStore) - sim->wl.minorder[wli]);
                             break;
                         case 4:
                             sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
@@ -770,7 +778,11 @@ double MoveCreator::pressureMove() {
                         case 1: sim->wl.neworder[wli] = sim->wl.zOrder(wli);
                             break;
                         case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                                  conf->particleStore.size(),
+                                                                                  sim->wl.wlmtype,
+                                                                                  conf->box,
+                                                                                  &conf->particleStore) - sim->wl.minorder[wli]);
                             break;
                         case 4:
                             sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
@@ -830,7 +842,11 @@ double MoveCreator::pressureMove() {
                     switch (sim->wlm[wli]) {
                         /*no change in case 1, it does not change box.z*/
                         case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                                  conf->particleStore.size(),
+                                                                                  sim->wl.wlmtype,
+                                                                                  conf->box,
+                                                                                  &conf->particleStore) - sim->wl.minorder[wli]);
                             break;
                         case 4:
                             sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
@@ -890,7 +906,11 @@ double MoveCreator::pressureMove() {
                         case 1: sim->wl.neworder[wli] = sim->wl.zOrder(wli);
                             break;
                         case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->particleStore.size(), sim->wl.wlmtype) - sim->wl.minorder[wli]);
+                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
+                                                                                  conf->particleStore.size(),
+                                                                                  sim->wl.wlmtype,
+                                                                                  conf->box,
+                                                                                  &conf->particleStore) - sim->wl.minorder[wli]);
                             break;
                         case 4:
                             sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
@@ -953,7 +973,7 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
     Vector newaxis;
 
     // create rotation quaternion
-    newaxis = ranvec(); /*random axes for rotation*/
+    newaxis.random(); /*random axes for rotation*/
     //    maxcos = cos(maxorient/2/180*PI);
     //vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
     vc = cos(max_angle * ran2() );
@@ -1145,7 +1165,8 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                                     //it is complicated to send because of different sizes
                                      //we would have to send sizes first and realocate corrrect mesh size and then send data
                                     // it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->particleStore.size(),sim->wl.wlmtype);
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->particleStore.size(),sim->wl.wlmtype,
+                                                          conf->box, &conf->particleStore);
                                     break;
                                 case 5:
                                     //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
@@ -1247,7 +1268,8 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                                     //it is complicated to send because of different sizes
                                     //  we would have to send sizes first and realocate corrrect mesh size and then send data
                                     //  it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->particleStore.size(), sim->wl.wlmtype);
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->particleStore.size(), sim->wl.wlmtype,
+                                                          conf->box, &conf->particleStore);
                                     break;
                                 case 5:
                                     //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
@@ -1297,95 +1319,46 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 }
 
 double MoveCreator::muVTMove() {
-    /*long target;
+
+    long target;
     double entrophy = log(conf->box.x * conf->box.y * conf->box.z)/sim->temper;
     double energy = 0.0;
 
     // Determine what type we will be inserting/deleting
     int molType = getRandomMuVTType();
+    assert(topo->chainparam[molType].chemPot != -1 && "chempot uninitialized");
 
-    if(ran2() > 0.5) { ///  insert move
+    if(ran2() > 0.5) { //  insert move
 
-        /// is molType single particle type?
         if(topo->chainparam[molType].isAtomic()) {
 
             // create particle
-            Particle newPart;
-
-            // randomize
-            newPart.pos = ranvec();
-            newPart.dir = ranvec();
-
-            // init new Particle
-            newPart.type = topo->chainparam[molType].particleTypes[0];
-            newPart.patchdir[0] = ranvec();
-            newPart.init(topo->ia_params[newPart.type]);
+            insert.clear();
+            insert.push_back(Particle());
+            insert[0].random(molType, topo->chainparam[molType].particleTypes[0]);
+            insert[0].init(topo->ia_params[insert[0].type]);
 
             // check overlap
-            if(conf->overlapAll(&newPart, topo->ia_params))
+            if(conf->overlapAll(&insert[0], topo->ia_params))
                 return 0; // overlap detected, move rejected
 
-            newPart.chainIndex = -1;
-            newPart.molType = molType;
-            newPart.delta_mu = 0;
-            newPart.switchtype = 0;
-            newPart.switched = 0;
+            // calculate energy, no neighborList used, IMPLEMENT CONLIST
+            energy = calcEnergy->oneToAll(&insert[0], -1);
 
-            // generate neighbor list only on this particle, others unchanged
-            Vector r_cm;
-            double r_cm2;
-            double max_dist;
+            //
+            // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27)) + (mu - U(new))/kT)
+            //
+            if( ( (conf->sysvolume / (conf->molCountOfType(molType) + 1)) *
+                    exp( (+topo->chainparam[molType].chemPot - energy)/sim->temper) ) > ran2()) {
 
-            for(unsigned long i=0; i < conf->particleStore.size(); i++) {
-                r_cm.x = conf->particleStore[i].pos.x - newPart.pos.x;
-                r_cm.y = conf->particleStore[i].pos.y - newPart.pos.y;
-                r_cm.z = conf->particleStore[i].pos.z - newPart.pos.z;
-                if ( r_cm.x < 0  )
-                    r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
-                else
-                    r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
-                if ( r_cm.y < 0  )
-                    r_cm.y = conf->box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
-                else
-                    r_cm.y = conf->box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
-                if ( r_cm.z < 0  )
-                    r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
-                else
-                    r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
-
-                r_cm2 = DOT(r_cm,r_cm);
-                max_dist = AVER(sim->trans[conf->particleStore[i].type].mx, \
-                         sim->trans[newPart.type].mx);
-
-                max_dist *= (1 + sim->pairlist_update) * 2;
-                max_dist += topo->maxcut;
-                max_dist *= max_dist; // squared
-
-                if (r_cm2 <= max_dist){
-                    newPart.neighborID[newPart.neighborCount++] = i;
-                }
-            }
-
-            // calculate energy
-            energy = (*calcEnergy)(&newPart,1,0);
-
-            /// accept with probability -> V/N+1 * e^(3*ln(wavelenght) + (mu - U(new))/kT)
-            if( (conf->sysvolume / (conf->molCountOfType(molType) + 1)) *
-                    exp( (topo->chainparam[molType].mu - energy)/sim->temper - 3*topo->chainparam[molType].lnThermalWavelengh) > ran2()) {
-
-#ifdef SHOWCALLS
-                printf("Call addMolecule\n");
-#endif
-                conf->addMolecule(&newPart);
-
+                conf->addMolecule(&insert);
+                insert.clear();
                 return energy - entrophy;
                 // entire neighborList -> generated in simulate at the end of muVTmove()
-
             } else { /// rejected
-                delete newPart.neighborID;
+                insert.clear();
                 return 0;
             }
-
 
         } else { // this is chain insert
             // do energy calc -> neccesity of index during calculation -> to access conectivity list and chainlist
@@ -1395,27 +1368,23 @@ double MoveCreator::muVTMove() {
             exit(1);
         }
 
-    } else { /// delete move
-        // choose particle -> only of certain type -> list of certain types
-        target = ran2() * (double)conf->molCountOfType(molType)-0.000001;
+    } else { // delete move
 
-        /// is target single-particle Molecular type
+        // choose particle -> only of certain type -> list of certain types
+        target = ran2() * conf->molCountOfType(molType);
+
         if(topo->chainparam[molType].isAtomic()) {
             // do energy calc
-            energy = (*calcEnergy)(&conf->particleStore[conf->toStoreIndex(molType, target)],1,0);
+            target = conf->getStoreIndex(molType, target);
+            energy = calcEnergy->oneToAll(target);
 
-            /// accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
+            //
+            // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
+            //
             if( ((double)conf->molCountOfType(molType) / conf->sysvolume) *
-                   exp( 3*topo->chainparam[molType].lnThermalWavelengh + (energy - topo->chainparam[molType].mu)/sim->temper) > ran2()) {
+                   exp( (energy - topo->chainparam[molType].chemPot)/sim->temper ) > ran2()) {
 
-                // change conlist - single particle, all -1
-                // change chainlist - no chains, all -1
-                // neighborList - recalculated after this fce
-                // delete from store
-#ifdef SHOWCALLS
-                printf("Call removeMolecule()\n");
-#endif
-                conf->removeMolecule(molType, target);
+                conf->removeMolecule(target, 1);
 
                 return -energy + entrophy;
             } else {
@@ -1429,7 +1398,7 @@ double MoveCreator::muVTMove() {
             exit(1);
         }
     }
-    return 0;*/
+    return 0;
 }
 
 long MoveCreator::radiusholeAll(int wli, Vector *position) {

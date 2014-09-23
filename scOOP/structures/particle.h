@@ -29,6 +29,21 @@ public:
      * @param ia_parami
      */
     void init(Ia_param * ia_parami);
+
+    void random(int molType,int type) {
+        pos.random();
+        dir.random();
+
+        // init new Particle
+        this->type = type;
+        patchdir[0].random();
+
+        chainIndex = -1;
+        this->molType = molType;
+        delta_mu = 0;
+        switchtype = 0;
+        switched = 0;
+    }
 };
 
 #endif // PARTICLE_H

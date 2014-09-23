@@ -6,7 +6,6 @@ extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 #endif
 
 void Inicializer::readOptions() {
-    cout << "Reading options..." << endl;
 
     int num_options = -1;
     double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
@@ -63,9 +62,8 @@ void Inicializer::readOptions() {
         // strip comments
         strip_comment(line);
         trim(line);
-        if(strlen(line) == 0){
-            continue;
-        }
+        if(strlen(line) == 0) continue;
+
         // tokenize
         tokLine = line;
         id = strtok(tokLine, "=");
@@ -158,7 +156,6 @@ void Inicializer::readOptions() {
     printf (" Number of Sweeps per pairlist update:               %d\n", sim->pairlist_update);
     printf (" Random number seed:                                 %ld\n", seed);
     printf (" Number of sweeps per writing out cluster info:      %ld\n", sim->write_cluster);
-
 
     if (sim->movie > 0) {
         printf (" Sweeps between movie frames:                      %ld\n", sim->movie);
@@ -273,7 +270,6 @@ void Inicializer::initTop() {
     topo->genParamPairs(&exclusions);
     topo->genTopoParams();
 
-
     //TODO fill chain list and maxch, park particle type
     fprintf (stdout, "Generating chainlist...\n");
 
@@ -317,19 +313,21 @@ void Inicializer::initTop() {
         }
     }
 
-
-
     k=0;
     //clear connectivity and then fill it from chain list
     fprintf (stdout, "Generating connectivity...\n");
 
-    conf->neighborList.resize(conf->particleStore.size());
-    for (i=0; i < (long)conf->neighborList.size(); i++) {
-        conf->neighborList[i].conlist[0] = -1;
-        conf->neighborList[i].conlist[1] = -1;
-        conf->neighborList[i].conlist[2] = -1;
-        conf->neighborList[i].conlist[3] = -1;
-    }
+    //if(sim->pairlist_update) {
+        conf->neighborList.resize(conf->particleStore.size());
+        for (i=0; i < (long)conf->neighborList.size(); i++) {
+            conf->neighborList[i].conlist[0] = -1;
+            conf->neighborList[i].conlist[1] = -1;
+            conf->neighborList[i].conlist[2] = -1;
+            conf->neighborList[i].conlist[3] = -1;
+        }
+    //}
+
+    // generate conlist
     conf->sysvolume = 0;
     for (i=0; i<(long)conf->neighborList.size(); i++) {
         for (j=0; j<MAXCHL; j++) {
@@ -373,12 +371,9 @@ void Inicializer::initTop() {
         // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
         printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->particleStore.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
 #endif
-
-    return;
 }
 
 void Inicializer::initConfig() {
-    cout << "\nReading configuration...\n";
 
     int err,fields,tmp_type;
     long i,j,current,first;
@@ -393,7 +388,6 @@ void Inicializer::initConfig() {
         if(maxlength < topo->ia_params[i][i].len[0])
             maxlength = topo->ia_params[i][i].len[0];
     }
-
 
     infile = fopen(files->configurationInFile, "r");
     if (infile == NULL) {
@@ -556,9 +550,6 @@ void Inicializer::testChains() {
 }
 
 void Inicializer::initWriteFiles() {
-    cout << "\nPatchy Spherocylinders version 3.6\n";
-    cout << "-------------------------------------\n";
-
     sprintf(files->configurationInFileMuVTChains, "configMuVT");
     sprintf(files->configurationInFile, "config.init");
     sprintf(files->configurationoutfile, "config.last");
@@ -575,20 +566,12 @@ void Inicializer::initWriteFiles() {
 }
 
 void Inicializer::initPairlist() {
-    printf("\nAllocating memory for pairlist...\n");
-
     //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo->npart); // deprecated, solved bz allocating particle
 
     // Highest guess: Every particle interacts with the others
     // TODO: Make it more sophisticated
-    long i;
-    /*for(i = 0; i < topo->npart; i++){ // del after
-        sim->pairlist[i].pairs = (long int*) malloc(sizeof(long) * topo->npart);
-        sim->pairlist[i].num_pairs = 0;
-    }*/
-
-    for(i = 0; i < (long)conf->neighborList.size(); i++){
-        conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * conf->particleStore.size());
+    for(unsigned long i = 0; i < conf->neighborList.size(); i++){
+        conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * MAXN);
         conf->neighborList[i].neighborCount = 0;
     }
 }
@@ -601,6 +584,7 @@ void Inicializer::initMPI(int argc, char** argv) {
         MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
         MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
 
+        // MPI out files
         sprintf(files->configurationoutfile, "%dconfig.last", sim->mpirank);
         sprintf(files->moviefile, "%dmovie", sim->mpirank);
         sprintf(files->wloutfile, "%dwl-new.dat", sim->mpirank);
@@ -1178,7 +1162,8 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     DEBUG_INIT("fillmol just has been called!");
     char str[STRLEN],str2[STRLEN],molcommand[STRLEN],molparams[STRLEN];
     int i,j,fields;
-    double bondk,bonddist, mu, lnLambda;
+    double bondk,bonddist, activity;
+    const double Nav = 6.022137e23;
     int muVTmove;
 
     beforecommand(str2, pline, CLOSEMOL);
@@ -1313,25 +1298,18 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
         return 1;
     }
 
-        cout << "3" << endl;
-
-    /// INIT of muVT ensemble
-    if (!strcmp(molcommand,"MU")) {
-        fields = sscanf(molparams, "%le ", &mu);
-        topo->chainparam[i].mu = mu;
-        fprintf (stdout, "mu: %f \n",topo->chainparam[i].mu);
+    // INIT of muVT ensemble
+    if (!strcmp(molcommand,"ACTIVITY")) {
+        fields = sscanf(molparams, "%le ", &activity);
+        topo->chainparam[i].activity = activity;
+        topo->chainparam[i].chemPot = log(activity*Nav*1e-21); // faunus log(activity*Nav*1e-27) [mol/l]
+        fprintf (stdout, "activity: %f \n",topo->chainparam[i].activity);
         return 1;
     }
     if (!strcmp(molcommand,"MUVTMOVE")) {
         fields = sscanf(molparams, "%d ", &muVTmove);
         topo->chainparam[i].muVTmove = muVTmove;
         cout << std::boolalpha << "muVTmove: " << topo->chainparam[i].muVTmove << endl;
-        return 1;
-    }
-    if (!strcmp(molcommand,"LNLAMBDA")) {
-        fields = sscanf(molparams, "%le ", &lnLambda);
-        topo->chainparam[i].lnThermalWavelengh = lnLambda;
-        fprintf (stdout, "ln thermal wavelenght: %f \n",topo->chainparam[i].lnThermalWavelengh);
         return 1;
     }
 

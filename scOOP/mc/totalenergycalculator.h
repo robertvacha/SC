@@ -73,7 +73,7 @@ public:
     /**
      * @brief Calculates energy between particle "target" and the rest
      */
-    double oneToAll(Particle* target, int neighborListID);
+    double oneToAll(Particle* target, int conlistTarget);
 
     /**
      * @brief Calculates energy between all pairs. Returns energy
@@ -91,6 +91,7 @@ private:
      * @return
      */
     double extere2(int target);
+    double extere2(Particle* target, int overload);
 
     /**
      * @brief exter2ClosestDist

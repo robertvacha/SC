@@ -21,7 +21,7 @@ long MoveCreator::meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, lon
     }
     if ( !change ) {
         /* fill the mesh with particles*/
-        mesh->meshFill(npart, sim->wl.wlmtype);
+        mesh->meshFill(npart, sim->wl.wlmtype, &conf->particleStore);
         return (long) (mesh->findHoles() - sim->wl.minorder[wli]);
     }
     return sim->wl.currorder[wli];
@@ -51,7 +51,7 @@ long MoveCreator::meshOrderMoveChain(long chain[], Mesh *mesh, long npart, Parti
 
     if ( !change ) {
         /* fill the mesh with particles*/
-        mesh->meshFill(npart, sim->wl.wlmtype);
+        mesh->meshFill(npart, sim->wl.wlmtype, &conf->particleStore);
         return (long) (mesh->findHoles() - sim->wl.minorder[wli]);
     }
     return sim->wl.currorder[wli];

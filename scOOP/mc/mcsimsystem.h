@@ -3,10 +3,8 @@
 #ifndef MCSIMSYSTEM_H
 #define MCSIMSYSTEM_H
 
-
 #include "inicializer.h"
 #include "updater.h"
-
 
 
 using namespace std;

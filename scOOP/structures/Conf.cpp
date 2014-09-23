@@ -1,72 +1,58 @@
 #include "Conf.h"
 
-void Conf::addMolecule(Particle *molecule) {
-    int insID = first[molecule[0].molType+1];
-    int insSize = molSize[molecule[0].molType];
-
-    for(int i=0; i<insSize; i++)
-        assert(molecule[i].neighborID != NULL);
+void Conf::addMolecule(std::vector<Particle>* molecule) {
+    int insID = first[(*molecule)[0].molType+1];   // store index where to insert
 
     // insert at end of particleStore -> trivial
-    if(molecule[0].molType == molTypeCount-1) {
-
-        for(int i=0; i<insSize; i++) {
-            particleStore.push_back(molecule[i]);
-
-#ifndef NDEBUG
-            printf("Inserting particle at %d\n", particleStore.size()-1);
-#endif
-        }
+    if((*molecule)[0].molType == molTypeCount-1) {
+        for(unsigned int i=0; i<molecule->size(); i++)
+            particleStore.push_back((*molecule)[i]);
 
     } else { // insert in middle of particleVector
-
-        // new particles at end
-        for(int i=0; i<insSize; i++)
-            particleStore.push_back(Particle());
-
-        // copy
-        for(int i=(long)particleStore.size()-1; i>= insID + insSize; i--) {
-            particleStore[i] = particleStore[i - insSize];
-        }
-
-        // insert new
-        for(int i=0; i<insSize; i++) {
-            particleStore[insID + i] = molecule[i];
-#ifndef NDEBUG
-            printf("Inserting particle at %d\n", insID + i);
-#endif
-        }
-
-        // change groupList
-        for(int i=molecule[0].molType+1; i<molTypeCount; i++)
-            first[i] += insSize;
+        //
+        // copy all particles after insert (done automatically by std::vector::insert() )
+        //
+        // optimalization, when possible copy only minimal number of particles of succeeding molTypes
+        //
+        particleStore.insert(particleStore.begin()+insID, molecule->begin(), molecule->end());
     }
+
+    // add neighbors to neighborList
+    if(pairlist_update) {
+        for(unsigned int i = 0; i<molecule->size(); i++) {
+            neighborList.push_back(Neighbors());
+            neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
+        }
+    }
+    // change groupList
+    for(int i= (*molecule)[0].molType+1; i<molTypeCount; i++)
+        first[i] += molecule->size();
 }
 
-void Conf::removeMolecule(int molType, int molID) {
-    // ID of first particle of molecule
-    long firstID = toStoreIndex(molType, molID);
+void Conf::removeMolecule(int target, int size) {
 
-#ifndef NDEBUG
-    printf("Deleting %d succesive particles starting at %d\n", molSize[molType], firstID);
-#endif
+    //if(particleStore[(*target)[0]].molType == molTypeCount-1) {
 
-    assert(firstID > -1 && firstID < (long)particleStore.size());
 
-    // delete all neighborID for molecule
-    for(int i=0; i<molSize[molType]; i++) delete neighborList[firstID+i].neighborID;
+    //} else { // erasing in middle of other types
+        //
+        // copy all particles after delete (done automatically by std::vector::erase() )
+        //
+        // optimalization, when possible copy only minimal number of particles of succeeding molTypes
+        //
+        particleStore.erase(particleStore.begin()+target, particleStore.begin()+target+size);
 
-    // rearrange particleStore
-    for(; firstID < (long)particleStore.size() - molSize[molType]; firstID++) {
-        particleStore[firstID] = particleStore[firstID + molSize[molType]];
-    }
-
-    // remove last elements -> pop_back() doesnt call destructor
-    for(long i=0; i<molSize[molType]; i++) particleStore.pop_back();
+        if(pairlist_update) {
+            for(int i=0; i<size; i++) {;
+                delete neighborList[target+i].neighborID;
+            }
+            neighborList.erase(neighborList.begin()+target, neighborList.begin()+target+size);
+        }
+    //}
 
     // modify groupList
-    for(int i=molType+1; i<molTypeCount; i++)
-        first[i] -= molSize[molType];
+    for(int i=particleStore[target].molType+1; i<molTypeCount; i++)
+        first[i] -= size;
 }
 
 void Conf::massCenter(Topo* topo) {

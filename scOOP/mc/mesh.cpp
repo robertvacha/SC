@@ -2,12 +2,12 @@
 
 #include "mesh.h"
 
-int Mesh::meshInit(double meshsize, long npart, int wlmtype) {
+int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* particleStore) {
     //  int i;
     int maxsize,length;
 
-    dim[0] = (int)(conf->box.x/meshsize);
-    dim[1] = (int)(conf->box.y/meshsize);
+    dim[0] = (int)(box.x/meshsize);
+    dim[1] = (int)(box.y/meshsize);
     if ( data != NULL ) free(data);
     if ( tmp != NULL ) free(tmp);
     length = dim[0] * dim[1];
@@ -15,7 +15,7 @@ int Mesh::meshInit(double meshsize, long npart, int wlmtype) {
     tmp = (int*) malloc( sizeof(int)* (length+1));
 
     /* fill the mesh with particles*/
-    meshFill(npart, wlmtype);
+    meshFill(npart, wlmtype, particleStore);
     /* perfrom hole cluster algorithm */
     maxsize = findHoles();
 
@@ -28,15 +28,15 @@ int Mesh::meshInit(double meshsize, long npart, int wlmtype) {
     return maxsize;
 }
 
-void Mesh::meshFill(long npart, int wlmtype) {
+void Mesh::meshFill(long npart, int wlmtype, std::vector<Particle >* particleStore) {
     for (int i=0; i<(dim[0] * dim[1]); i++) {
         data[i] = 0;
     }
 
     for (int i=0; i<npart; i++) {
         /*calculate position of particle on mesh and add it to all where it belongs */
-        if (conf->particleStore[i].type == wlmtype)
-            Mesh::addPart(conf->particleStore[i].pos.x, conf->particleStore[i].pos.y, &data, dim);
+        if ((*particleStore)[i].type == wlmtype)
+            Mesh::addPart((*particleStore)[i].pos.x, (*particleStore)[i].pos.y, &data, dim);
     }
 }
 

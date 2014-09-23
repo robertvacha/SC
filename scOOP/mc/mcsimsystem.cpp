@@ -4,11 +4,17 @@
 
 
 void MCSimSystem::init(int argc, char** argv) {
+
+    cout << "\nPatchy Spherocylinders version 3.6\n"
+         << "-------------------------------------" << endl;
+
     Inicializer init(&topo, &sim, &conf, &files);
 
     init.initWriteFiles();
 
     init.initMPI(argc,argv);
+
+    cout << "Reading options..." << endl;
     init.readOptions();
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
@@ -17,18 +23,25 @@ void MCSimSystem::init(int argc, char** argv) {
 
     init.initTop(); // here particleStore filled in setParticleParams
     init.testChains(); // if no chains -> move probability of chains 0
+
+    cout << "\nReading configuration...\n";
     init.initConfig();
 
     cout << "Equilibration of maximum step sizes: " << sim.nequil/2 << " sweeps" << endl;
 
     clearOutfiles();
-    if (sim.pairlist_update) init.initPairlist();
+
+    if (sim.pairlist_update) {
+        cout << "\nAllocating memory for pairlist..." << endl;
+        init.initPairlist();
+    }
 
     updater = new Updater(&topo, &sim, &conf, &files);
 
     sim.wl.setTopoConf(&topo, &conf);
-    sim.wl.mesh.setConf(&conf);
-    sim.wl.origmesh.setConf(&conf);
+    if(sim.pairlist_update)
+        conf.pairlist_update = true;
+    else conf.pairlist_update = false;
 }
 
 
@@ -92,8 +105,7 @@ void MCSimSystem::productionRun() {
 
         char line[128];
 
-
-        while(strcmp(line, "[System]\n") != 0) {
+        while(strncmp(line, "[System]", 8) != 0) {
             if(fgets(line,127, inFile) == NULL ) {
                 printf("Error writing Topology [System] not found\n");
                 break;

@@ -7,10 +7,12 @@
 #include "particle.h"
 #include <assert.h>
 
+#include <iostream>
+
 /**
  * @brief Configuration of the system
  */
-class Conf {
+class Conf {   
 public:  
     std::vector<Particle > particleStore;  ///< \brief Main store of all particles, grouped by Molecular types
     std::vector<Neighbors> neighborList;
@@ -32,6 +34,8 @@ public:
     // muVT chainList
     long muVTchainList[MAXN][MAXCHL];
     long muVTchainCount;
+
+     bool pairlist_update;
 
 public:
 
@@ -57,10 +61,10 @@ public:
      * molID -> starts from 0 for each molType
      * @return Index of first particle of molecule
      */
-    int toStoreIndex(int molType, int molID) {return first[molType] + molSize[molType]*molID;}
+    int getStoreIndex(int molType, int molID) {return first[molType] + molSize[molType]*molID;}
 
     /**
-     * @param Type of molecule
+     * @param molType Type of molecule
      * @return Number of molecules a given type
      */
     int molCountOfType(int molType) {
@@ -73,14 +77,14 @@ public:
      * @param molecule
      * @param topo
      */
-    void addMolecule(Particle* molecule);
+    void addMolecule(std::vector<Particle>* molecule);
 
     /**
      * @brief removeMolecule
      * @param molType
      * @param molID
      */
-    void removeMolecule(int molType, int molID);
+    void removeMolecule(int target, int size);
 
     /**
      * @brief massCenter

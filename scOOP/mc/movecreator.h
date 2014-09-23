@@ -20,6 +20,8 @@ private:
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
 
+    std::vector<Particle > insert;  // insert vector for muVt -> malloc() error when in muVTmove()
+
 public:
     TotalEnergyCalculator* calcEnergy;
 
@@ -258,28 +260,6 @@ private:
      * @return
      */
     long meshOrderMoveChain(long chain[MAXN], Mesh* mesh, long npart, Particle chorig[MAXCHL], int wli);
-
-
-
-
-    /**
-     * @brief ranvec    Returns an evenly distributed random unit vector2 of unit length.
-                        See Allen & Tildesley p349 or Frenkel & Smit p410.
-     * @return    RANDOM vector2 ON UNIT SPHERE
-     */
-    inline Vector ranvec(void) {
-        double a, b, xi1, xi2;
-
-        do {
-            xi1 = 1.0 - 2.0*ran2();
-            xi2 = 1.0 - 2.0*ran2();
-            a = xi1*xi1 + xi2*xi2;
-        } while (a > 1.0);
-
-        b = 2.0 * sqrt(1.0 - a);
-
-        return Vector(xi1 * b, xi2 * b, 1.0 - 2.0*a);
-    }
 
 };
 

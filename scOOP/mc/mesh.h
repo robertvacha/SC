@@ -14,24 +14,13 @@
  */
 class Mesh
 {
-private:
-    Conf* conf;
-
 public:
 
-    /** @brief Mesh dimensions */
-    int    dim[2];
+    int dim[2]; ///< \@brief Mesh dimensions
+    int* data;  ///< \@brief Mesh data
+    int* tmp;   ///< \@brief tempporary list for hole search
 
-    /** @brief Mesh data */
-    int    *data;
-
-    /** @brief tempporary list for hole search */
-    int    *tmp;
-
-    Mesh(): conf(NULL) {}
-
-    void setConf(Conf* conf) { this->conf = conf;}
-
+    Mesh() {}
 
     /*..............................................................................*/
     /*........................HOLE IN MESH-MEMBRANE ORDER PARAM.....................*/
@@ -41,16 +30,19 @@ public:
      * @param meshsize
      * @param npart
      * @param wlmtype
+     * @param box
+     * @param particleStore
      * @return
      */
-    int meshInit(double meshsize, long npart, int wlmtype);
+    int meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* particleStore);
 
     /**
-     * @brief filling the mesh
+     * @brief meshFill filling the mesh
      * @param npart
      * @param wlmtype
+     * @param particleStore
      */
-    void meshFill(long npart, int wlmtype);
+    void meshFill(long npart, int wlmtype, std::vector<Particle >* particleStore);
 
     /**
      * @brief mesh_addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot

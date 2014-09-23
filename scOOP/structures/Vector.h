@@ -6,6 +6,7 @@
 #include <math.h>
 #include "quaternion.h"
 #include <sstream>
+#include "../mc/randomGenerator.h"
 
 class Quat;
 
@@ -115,6 +116,27 @@ public:
         x = newx;
         y = newy;
         z = newz;
+    }
+
+    /**
+     * @brief ranvec    Returns an evenly distributed random unit vector2 of unit length.
+                        See Allen & Tildesley p349 or Frenkel & Smit p410.
+     * @return    RANDOM vector2 ON UNIT SPHERE
+     */
+    inline void random() {
+        double a, b, xi1, xi2;
+
+        do {
+            xi1 = 1.0 - 2.0*ran2();
+            xi2 = 1.0 - 2.0*ran2();
+            a = xi1*xi1 + xi2*xi2;
+        } while (a > 1.0);
+
+        b = 2.0 * sqrt(1.0 - a);
+
+        x = xi1 * b;
+        y = xi2 * b;
+        z = 1.0 - 2.0*a;
     }
 };
 

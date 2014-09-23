@@ -66,7 +66,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
                              &conf->particleStore[conf->neighborList[target].neighborID[i]],
                              conf->neighborList[target].neighborID[i]);
         }
-    } else {
+    } else { // no neighborList
 
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
@@ -80,6 +80,26 @@ double TotalEnergyCalculator::oneToAll(int target) {
     //add interaction with external potential
     if (topo->exter.exist)
         energy += extere2(target);
+
+    return energy;
+}
+
+double TotalEnergyCalculator::oneToAll(Particle *target, int conlistTarget) {
+    double energy=0.0;
+
+   // no neighborList, used only for conlist
+#ifdef OMP
+#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
+#endif
+        for (long i = 0; i < (long)conf->particleStore.size(); i++) {
+            if(target != &conf->particleStore[i]) {
+                energy += (pairE)(target, conlistTarget, &conf->particleStore[i], i);
+            }
+        }
+
+    //add interaction with external potential
+    if (topo->exter.exist)
+        energy += extere2(target,0);
 
     return energy;
 }
@@ -110,7 +130,10 @@ double TotalEnergyCalculator::allToAll() {
 }
 
 double TotalEnergyCalculator::extere2(int target) {
+    return extere2(&conf->particleStore[target], 0);
+}
 
+double TotalEnergyCalculator::extere2(Particle *target, int overload) {
     double repenergy=0.0,atrenergy=0.0;  /* energy*/
 
     double ndist;                        /* distance for CM of interacting line segment*/
@@ -119,10 +142,10 @@ double TotalEnergyCalculator::extere2(int target) {
     Vector olddir;
 
     /* calcualte distance to center of mass*/
-    if (  conf->particleStore[target].pos.z < 0  ) {
-        rcmz = conf->box.z * (conf->particleStore[target].pos.z - (double)( (long)(conf->particleStore[target].pos.z - 0.5) ) );
+    if (  target->pos.z < 0  ) {
+        rcmz = conf->box.z * (target->pos.z - (double)( (long)(target->pos.z - 0.5) ) );
     } else {
-        rcmz = conf->box.z * (conf->particleStore[target].pos.z - (double)( (long)(conf->particleStore[target].pos.z + 0.5) ) );
+        rcmz = conf->box.z * (target->pos.z - (double)( (long)(target->pos.z + 0.5) ) );
     }
 
     project.x=0;
@@ -145,9 +168,9 @@ double TotalEnergyCalculator::extere2(int target) {
     distvec.z = r_cm.z;
     distcm = dist;
     box = conf->box;
-    part1 = &conf->particleStore[target];
-    param = &topo->exter.interactions[conf->particleStore[target].type];
-    halfl = 0.5* topo->exter.interactions[conf->particleStore[target].type].len[0];
+    part1 = target;
+    param = &topo->exter.interactions[target->type];
+    halfl = 0.5* topo->exter.interactions[target->type].len[0];
     ndist = dist;
     orientin = true;
     orient = 0.0;
