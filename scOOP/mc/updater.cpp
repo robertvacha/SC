@@ -230,6 +230,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Try muVT insert delete moves
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
             edriftchanges += move.muVTMove();
+            muVtAverageParticles += conf->particleStore.size();
+            muVtSteps++;
 
             if(sim->pairlist_update)
                 genPairList();
@@ -416,6 +418,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
+    if(sim->nGrandCanon != 0)
+        cout << "Average number of particles: " << (double)muVtAverageParticles/muVtSteps << endl;
+
     for(i=0; i < conf->molTypeCount; i++)
         printf("%s %d\n", topo->chainparam[i].name, conf->molCountOfType(i));
     fflush(stdout);
