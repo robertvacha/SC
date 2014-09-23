@@ -290,8 +290,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         if ( (sim->wlm[0] > 0) && (sim->wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
             // recalculate system CM to be sure there is no accumulation of errors by +- rejection moves
-            if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
-                  conf->massCenter(topo);
+            /* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
+              can be calculated from CM movements of individual particles
+              present center of mass calculation use pbc and thus particles that moved across the box
+              is in this calculation used in pripary box but in other moves in in in the particles position
+             if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
+                  masscenter(topo->npart,topo->ia_params, conf);
+            */
             sim->wl.min = sim->wl.hist[0];
             sim->wl.max = sim->wl.hist[0];
             for (i=0;i < sim->wl.length[0];i++) {

@@ -433,8 +433,6 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     double intersections[5];
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
-
-
     //interact->halfl =topo->ia_params[part1->type][part2->type].half_len[0];
     //DEBUG_SIM("halfl = %lf", interact->halfl);
     for(i=0 ;i<5; i++)
@@ -466,8 +464,9 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     S2 = intersections[1];
 
     /*3- scaling function1: dependence on the length of intersetions*/
-    v1=0.5*fabs(S1-S2);
-    v2=0.5*fabs(T1-T2);
+    // BUG FIX 23.9.2014
+    v1=fabs(S1-S2); // v1=0.5*fabs(S1-S2);
+    v2=fabs(T1-T2); // v2=0.5*fabs(T1-T2);
     f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
@@ -641,8 +640,9 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     S2=intersections[1];
 
     /*3- scaling function1: dependence on the length of intersetions*/
-    v1=0.5*fabs(S1-S2);
-    v2=0.5*fabs(T1-T2);
+    // BUG fix 23.9.2014
+    v1=fabs(S1-S2); // v1=0.5*fabs(S1-S2);
+    v2=fabs(T1-T2); // v2=0.5*fabs(T1-T2);
     f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
@@ -825,8 +825,9 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     S2=intersections[1];
 
     /*3- scaling function1: dependence on the length of intersetions*/
-    v1=0.5*fabs(S1-S2);
-    v2=0.5*fabs(T1-T2);
+    // BUG 23.9.2014
+    v1=fabs(S1-S2); // v1=0.5*fabs(S1-S2);
+    v2=fabs(T1-T2); // v2=0.5*fabs(T1-T2);
     f0=0.5*(v1+v2);
 
     /*4a- with two intersection pices calculate vector between their CM
@@ -910,7 +911,8 @@ double PairEnergyCalculator::eSpaSca() {
             f0 -= -halfl;
         else
             f0 -= contt - b;
-        atrenergy *= (f0+1.0);
+        // BUG FIX 23.9.2014
+        atrenergy *= (f0);
         //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
         //fprintf (stderr, "attraction211  %.8f x: %.8f y: %.8f z: %.8f \n",atrenergy,vec1.x,vec1.y,vec1.z);
         //exit(1);
@@ -975,12 +977,10 @@ double PairEnergyCalculator::ePscSpa() {
             }
         }
 
-
         if (firstCH)
             part1->dir = olddir1;
         if (secondCH)
             part2->dir = olddir2;
-
     }
     return repenergy+atrenergy;
 }
@@ -1022,7 +1022,8 @@ double PairEnergyCalculator::eattractivePscSpa(int patchnum1) {
         f0 -= -halfl;
     else
         f0 -= contt - b;
-    atrenergy *= fanglScale(a, which)*(f0+1.0);
+    // Bug fix 23.9.2014, was f0+1.0 to f0
+    atrenergy *= fanglScale(a, which)*(f0);
     //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
     //fprintf (stderr, "attraction211  %.8f x: %.8f y: %.8f z: %.8f \n",atrenergy,vec1.x,vec1.y,vec1.z);
     //exit(1);
@@ -1139,8 +1140,8 @@ double PairEnergyCalculator::eattractiveCpscSpa(int patchnum1) {
         f0 -= -halfl;
     else
         f0 -= contt - b;
-
-    atrenergy *= fanglScale(a, which)*(f0+1.0);
+    // BUG 23.9.2014 fix f0+1.0 to f0
+    atrenergy *= fanglScale(a, which)*(f0);
 
     //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
     //fprintf (stderr, "attraction311  %.8f a: %.8f\n",atrenergy,a);
