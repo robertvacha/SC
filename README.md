@@ -20,3 +20,5 @@ Parallel tempering (enabling MPI) compile with:
     $ mpirun -np x SC
 
 , where x is the number of threads
+
+NOTE: dont use GrandCanonical with Replica Exchange
