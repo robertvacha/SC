@@ -6,36 +6,49 @@
 #include "moleculeparams.h"
 #include "particle.h"
 #include <assert.h>
+#include <map>
 
 #include <iostream>
 
 /**
+ * @brief The GroupList class - simple grouplist
+ */
+class GroupList {
+public:
+    int first[MAXMT];   ///< \brief Index(of pvec) of first particle of molecule type, array over molecular types
+    int molSize[MAXMT]; ///< \brief Number of particles per molecule of moleculeType, array over molecular types
+    int molTypeCount;   ///< \brief Count of molecular types in use
+
+    GroupList() {
+        for(int i=0; i<MAXMT; i++) {
+            first[i] = -1; molSize[i] = -1;
+        }
+    }
+};
+
+/**
  * @brief Configuration of the system
  */
-class Conf {   
+class Conf {
+private:
+    std::map<int, int > poolTypesCount; ///< \brief molType : Count of molecules
 public:  
-    std::vector<Particle > particleStore;  ///< \brief Main store of all particles, grouped by Molecular types
+    std::vector<Particle > pvec;  ///< \brief Main store of all particles, grouped by Molecular types
     std::vector<Neighbors> neighborList;
-    std::vector<Particle > muVTchainStore; ///< \brief Store for chains for muVT insert of chain
+    std::vector<Particle > pool; ///< \brief Store for chains for muVT insert of chain
 
     Vector box;                             ///< \brief Box size */
     double sysvolume;                       ///< \brief Something like total mass -> for each += massOfParticle
     Vector syscm;                           ///< \brief System center of mass
 
-    // simple grouplist
-    int first[MAXMT];   ///< \brief Index(of particleStore) of first particle of molecule type, array over molecular types
-    int molSize[MAXMT]; ///< \brief Number of particles per molecule of moleculeType, array over molecular types
-    int molTypeCount;   ///< \brief Count of molecular types in use
+    GroupList pvecGroupList;
+    GroupList poolGroupList;
 
     // chainlist - molecules of 1 particle on included
     long chainlist[MAXN][MAXCHL];       ///< \brief List of particles in chain
     long chainCount;                    ///< \brief Number of chains
 
-    // muVT chainList
-    long muVTchainList[MAXN][MAXCHL];
-    long muVTchainCount;
-
-     bool pairlist_update;
+    bool pairlist_update;
 
 public:
 
@@ -43,37 +56,35 @@ public:
      * @brief Conf Constructor, initializing variables
      */
     Conf() {
-        for(int i=0; i<MAXMT; i++) {
-            first[i] = -1; molSize[i] = -1;
-        }
         for (int i=0;i<MAXN;i++) {
             for (int j = 0; j < MAXCHL; j++){
                 chainlist[i][j] = -1;
-                muVTchainList[i][j] = -1;
             }
         }
         chainCount=0;
-        muVTchainCount = 0;
     }
 
     /**
-     * @brief Converts molID of molType to particleStore Index
+     * @brief Converts molID of molType to pvec Index
      * molID -> starts from 0 for each molType
      * @return Index of first particle of molecule
      */
-    int getStoreIndex(int molType, int molID) {return first[molType] + molSize[molType]*molID;}
+    int getStoreIndex(int molType, int molID) {
+        return pvecGroupList.first[molType] + pvecGroupList.molSize[molType]*molID;
+    }
 
     /**
      * @param molType Type of molecule
      * @return Number of molecules a given type
      */
     int molCountOfType(int molType) {
-        if(first[molType+1] != -1) return (first[molType+1] - first[molType]) / molSize[molType];
-        return (particleStore.size() - first[molType]) / molSize[molType];
+        if(pvecGroupList.first[molType+1] != -1)
+            return ( pvecGroupList.first[molType+1] -  pvecGroupList.first[molType]) /  pvecGroupList.molSize[molType];
+        return (pvec.size() -  pvecGroupList.first[molType]) /  pvecGroupList.molSize[molType];
     }
 
     /**
-     * @brief Adds molecule to particleStore, ensures Particle order, changes chainlist, grouplist
+     * @brief Adds molecule to pvec, ensures Particle order, changes chainlist, grouplist
      * @param molecule
      * @param topo
      */

@@ -2,25 +2,25 @@
 
 
 long WangLandau::zOrder(int wli) {
-    //    printf("%f %ld\n",particleStore[0].pos.z * box.z,lround(particleStore[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]));
+    //    printf("%f %ld\n",pvec[0].pos.z * box.z,lround(pvec[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]));
     /* Because older C compilators do not know lround we can use ceil as well
-       return lround(particleStore[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]);*/
+       return lround(pvec[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]);*/
     /*
-    printf("%f ",conf->particleStore[0].pos.z );
+    printf("%f ",conf->pvec[0].pos.z );
     printf("%f ",conf->syscm.z);
     printf("%f ",conf->box.z);
     printf("%f ", wl->minorder[wli]);
     printf("%f \n", wl->dorder[wli] );*/
 
-    return (long) ceil( ((conf->particleStore[0].pos.z - conf->syscm.z) * conf->box.z- minorder[wli]) / dorder[wli]  );
+    return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->box.z- minorder[wli]) / dorder[wli]  );
 }
 
 long WangLandau::twoPartDist(int wli) {
     Vector r_cm;
 
-    r_cm.x = conf->particleStore[0].pos.x - conf->particleStore[1].pos.x;
-    r_cm.y = conf->particleStore[0].pos.y - conf->particleStore[1].pos.y;
-    r_cm.z = conf->particleStore[0].pos.z - conf->particleStore[1].pos.z;
+    r_cm.x = conf->pvec[0].pos.x - conf->pvec[1].pos.x;
+    r_cm.y = conf->pvec[0].pos.y - conf->pvec[1].pos.y;
+    r_cm.z = conf->pvec[0].pos.z - conf->pvec[1].pos.z;
     if ( r_cm.x < 0  )
         r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
     else

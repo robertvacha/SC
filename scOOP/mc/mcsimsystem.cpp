@@ -112,7 +112,7 @@ void MCSimSystem::productionRun() {
             }
             fputs(line, outfile);
         }
-        for(int i=0; i < conf.molTypeCount; i++)
+        for(int i=0; i < conf.pvecGroupList.molTypeCount; i++)
             fprintf(outfile, "%s %d\n", topo.chainparam[i].name, conf.molCountOfType(i));
 
         fclose (outfile);

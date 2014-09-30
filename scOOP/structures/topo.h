@@ -16,13 +16,14 @@ public:
 
     MoleculeParams chainparam[MAXMT];   ///< \brief parameters for chains
 
-
     Ia_param ia_params[MAXT][MAXT];     ///< \brief parametrization of particles for all interations
     Exters exter;                       ///< \brief external potential - wall
 
-    Topo() {
-        sqmaxcut = 0;
-    }
+    //
+    //  METHODS
+    //
+
+    Topo():sqmaxcut(0) {}
 
     /**
      * @brief generate interations pairs

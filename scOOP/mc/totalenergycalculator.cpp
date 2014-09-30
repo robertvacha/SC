@@ -28,7 +28,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 //#endif
     for (i = 0; i < target; i++) {
         if (i != conf->chainlist[chainnum][j]) {
-            energy+= pairE(&conf->particleStore[target], target, &conf->particleStore[i], i);
+            energy+= pairE(&conf->pvec[target], target, &conf->pvec[i], i);
         } else {
             j++;
         }
@@ -37,9 +37,9 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 //#ifdef OMP
 //#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 //#endif
-    for (i = target + 1; i < (long)conf->particleStore.size(); i++) {
+    for (i = target + 1; i < (long)conf->pvec.size(); i++) {
         if (i != conf->chainlist[chainnum][j]) {
-            energy+= pairE(&conf->particleStore[target], target, &conf->particleStore[i], i);
+            energy+= pairE(&conf->pvec[target], target, &conf->pvec[i], i);
         } else {
             j++;
         }
@@ -61,9 +61,9 @@ double TotalEnergyCalculator::oneToAll(int target) {
 #endif
 
         for (long i = 0; i < conf->neighborList[target].neighborCount; i++){
-           energy += (pairE)(&conf->particleStore[target],
+           energy += (pairE)(&conf->pvec[target],
                              target,
-                             &conf->particleStore[conf->neighborList[target].neighborID[i]],
+                             &conf->pvec[conf->neighborList[target].neighborID[i]],
                              conf->neighborList[target].neighborID[i]);
         }
     } else { // no neighborList
@@ -71,9 +71,9 @@ double TotalEnergyCalculator::oneToAll(int target) {
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-        for (long i = 0; i < (long)conf->particleStore.size(); i++) {
+        for (long i = 0; i < (long)conf->pvec.size(); i++) {
             if(target != i) {
-                energy += (pairE)(&conf->particleStore[target], target, &conf->particleStore[i], i);
+                energy += (pairE)(&conf->pvec[target], target, &conf->pvec[i], i);
             }
         }
     }
@@ -91,9 +91,9 @@ double TotalEnergyCalculator::oneToAll(Particle *target, int conlistTarget) {
 #ifdef OMP
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-        for (long i = 0; i < (long)conf->particleStore.size(); i++) {
-            if(target != &conf->particleStore[i]) {
-                energy += (pairE)(target, conlistTarget, &conf->particleStore[i], i);
+        for (long i = 0; i < (long)conf->pvec.size(); i++) {
+            if(target != &conf->pvec[i]) {
+                energy += (pairE)(target, conlistTarget, &conf->pvec[i], i);
             }
         }
 
@@ -111,10 +111,10 @@ double TotalEnergyCalculator::allToAll() {
 #pragma omp parallel for private(i,j) reduction (+:energy) schedule (dynamic)
 #endif
 
-        for (long i = 0; i < (long)conf->particleStore.size() - 1; i++) {
+        for (long i = 0; i < (long)conf->pvec.size() - 1; i++) {
 
-            for (long j = i + 1; j < (long)conf->particleStore.size(); j++) {
-                energy += (pairE)(&conf->particleStore[i], i, &conf->particleStore[j], j);
+            for (long j = i + 1; j < (long)conf->pvec.size(); j++) {
+                energy += (pairE)(&conf->pvec[i], i, &conf->pvec[j], j);
             }
 
             //for every particle add interaction with external potential
@@ -124,13 +124,13 @@ double TotalEnergyCalculator::allToAll() {
 
         //add interaction of last particle with external potential
         if (topo->exter.exist)
-            energy+= extere2(conf->particleStore.size() - 1);
+            energy+= extere2(conf->pvec.size() - 1);
 
         return energy;
 }
 
 double TotalEnergyCalculator::extere2(int target) {
-    return extere2(&conf->particleStore[target], 0);
+    return extere2(&conf->pvec[target], 0);
 }
 
 double TotalEnergyCalculator::extere2(Particle *target, int overload) {
@@ -233,7 +233,7 @@ double TotalEnergyCalculator::extere2(Particle *target, int overload) {
         part1->dir = olddir;
     }
 
-    //printf("%f   %f \n",conf->particleStore[target].pos.z*conf->box.z,repenergy+atrenergy);
+    //printf("%f   %f \n",conf->pvec[target].pos.z*conf->box.z,repenergy+atrenergy);
     return repenergy+atrenergy;
 }
 
@@ -372,7 +372,7 @@ double TotalEnergyCalculator::exter2Atre(double *ndist, int numpatch, double hal
             f1 = fabs(part1->patchdir[numpatch].z);
             atrenergy *= f0*f1;
 
-            //printf(" %f   %f    %f %f %f %f %f \n",conf->particleStore[target].pos.z*conf->box.z,atrenergy, area, length1, length2,f0,ndist);
+            //printf(" %f   %f    %f %f %f %f %f \n",conf->pvec[target].pos.z*conf->box.z,atrenergy, area, length1, length2,f0,ndist);
             //printf("%f %f %f %f\n",pbeg.x,pbeg.y,pend.x,pend.y);
         } else {
             atrenergy = 0.0;
@@ -751,7 +751,7 @@ double TotalEnergyCalculator::exterAtre(double *ndist, int numpatch, double half
             //  scaling function1: dependence on the length of intersetions plus SCALING WITH AREA
             f0=(length1 + area / param->sigma)*0.5;
             atrenergy *= f0;
-            //printf(" %f   %f    %f %f %f %f %f %d %d %d \n",conf->particleStore[target].pos.z*conf->box.z,atrenergy, area, length1, length2,f0,ndist,extra,line1,line2);
+            //printf(" %f   %f    %f %f %f %f %f %d %d %d \n",conf->pvec[target].pos.z*conf->box.z,atrenergy, area, length1, length2,f0,ndist,extra,line1,line2);
             //printf("%f %f %f %f\n",pbeg.x,pbeg.y,pend.x,pend.y);
             //printf("%f %f %f %f %f %f\n",pbeg2.x,pend2.y,pextr2.x,pextr2.y,pextr1.x,pextr1.y);
         } else {
@@ -770,7 +770,7 @@ double TotalEnergyCalculator::exterAtre(double *ndist, int numpatch, double half
     }
 
 
-    //printf("%f   %f \n",conf->particleStore[target].pos.z*conf->box.z,atrenergy);
+    //printf("%f   %f \n",conf->pvec[target].pos.z*conf->box.z,atrenergy);
     return atrenergy;
 }
 

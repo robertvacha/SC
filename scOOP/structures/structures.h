@@ -30,13 +30,14 @@ public:
     int * type;         ///< \brief The type of the particle
     long * switchtype;  ///< \brief The switchtype of the particle
     double * delta_mu;  ///< \brief The chemical potential for the switch
+    long * count;       ///< \brief count of molecules
 
     Molecule() {
         name = NULL;
-        type = (int*) malloc(sizeof(long)*MAXN);
-        switchtype = (long int*) malloc(sizeof(long)*MAXN);
-        delta_mu = (double*) malloc(sizeof(double)*MAXN);
-        for (int j=0;j<MAXN;j++) {
+        type = (int*) malloc(sizeof(long)*MAXMT);
+        switchtype = (long int*) malloc(sizeof(long)*MAXMT);
+        delta_mu = (double*) malloc(sizeof(double)*MAXMT);
+        for (int j=0;j<MAXMT;j++) {
             type[j] = -1;
         }
     }

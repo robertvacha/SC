@@ -15,15 +15,24 @@ beta    1         PSC     1.0        1.0       1.2246205        0.6             
 #  angle2 - angle between two spherocylinder patches -nearest neighbours (first constant then eq degrees 0-180.0)
 #  particles - types as they go in chain in molecule
 #
-#  muVT ensemble, only for one single particle type molecule, several molecules with muVTMove possible, when nGrandcanon in option >0 -> top.last created
-#  ACTIVITY - activity for muVT ensmble [mol/l]
-#  MUVTMOVE - 0(false - default), 1(true) -> attempt muVTmove(Grand canon ensemble)
+#  muVT ensemble, only for one single particle type, must be listed as last type
+#  MU - chemical potential for muVT ensMBLE
+#  LNLAMBDA - natural log of thermal wavelenght
+#  INSERT_TYPE - 0(default - no insert),
+#                1(Random insert) -> attempt muVTmove(Grand canon ensemble)
+#                2(Pool insert) -> attempt muVTmove(Grand canon ensemble)
+#
+#  NOTE TO Grand canonical - dont use swithtype(mu_delta is always 0) -> neccesary to include to chainParams
+#                            dont use conList(any bonds)
+#                            use only atomic species for grand canonical (still in development)
+#
 
 
 A: {
 #what:       TYPE   	SWITCHTYPE  	DELTA_MU 
 particles:   1
-ACTIVITY: 0.05
+MU: 20
+LNLAMBDA: 30
 MUVTMOVE: 1			
 }
 

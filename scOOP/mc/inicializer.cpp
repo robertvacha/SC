@@ -149,7 +149,7 @@ void Inicializer::readOptions() {
     printf (" Temperature in kT/e:                                %.8f\n", sim->temper);
     printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
     printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
-    printf (" Sweeps between muVT insert/delete move:             %ld\n", sim->nGrandCanon);
+    printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
     printf (" Wang-Landau method:                                 %d %d\n", sim->wlm[0],sim->wlm[1]);
     printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
     printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);
@@ -251,11 +251,10 @@ void Inicializer::readOptions() {
 void Inicializer::initTop() {
 
     long i,j,k;
-    char *sysnames[MAXN] = {NULL};
     long  *sysmoln /*[MAXN]*/;
     bool exclusions[MAXT][MAXT] = {false};
 
-    Molecule molecules[MAXMT];
+    pvecMolecules = new Molecule[MAXMT];
 
     sysmoln = (long int*) malloc( sizeof(long)*MAXN);
     if(sysmoln == NULL){
@@ -263,7 +262,8 @@ void Inicializer::initTop() {
         exit(1);
     }
 
-    readTopoFile(molecules, sysmoln, sysnames, exclusions);
+    readTopoFile(sysmoln, exclusions);
+
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
     //fill ia_params combinations and topology parameters
@@ -273,15 +273,15 @@ void Inicializer::initTop() {
     //TODO fill chain list and maxch, park particle type
     fprintf (stdout, "Generating chainlist...\n");
 
-    setParticlesParams(sysmoln, sysnames, molecules);
+    setParticlesParams(pvecMolecules, sysmoln, sysnames, &conf->pvec);
 
     // Initialize the clusterlist
-    sim->clusterlist = (long int*) malloc(sizeof(long) * conf->particleStore.size());
+    sim->clusterlist = (long int*) malloc(sizeof(long) * conf->pvec.size());
     if(sim->clusterlist == NULL){
         fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clusterlist!");
         exit(1);
     }
-    sim->clustersenergy = (double*) malloc(sizeof(double) * conf->particleStore.size());
+    sim->clustersenergy = (double*) malloc(sizeof(double) * conf->pvec.size());
     if(sim->clustersenergy== NULL){
         fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clustersenergy!");
         exit(1);
@@ -289,10 +289,10 @@ void Inicializer::initTop() {
     sim->clusters = NULL;
 
     // get all the particles with switch type
-    long switchlist[conf->particleStore.size()];
+    long switchlist[conf->pvec.size()];
     long n_switch_part = 0;
-    for(i = 0; i < (long)conf->particleStore.size(); i++){
-        if(conf->particleStore[i].type != conf->particleStore[i].switchtype){
+    for(i = 0; i < (long)conf->pvec.size(); i++){
+        if(conf->pvec[i].type != conf->pvec[i].switchtype){
             switchlist[n_switch_part] = i;
             n_switch_part++;
         }
@@ -318,7 +318,7 @@ void Inicializer::initTop() {
     fprintf (stdout, "Generating connectivity...\n");
 
     //if(sim->pairlist_update) {
-        conf->neighborList.resize(conf->particleStore.size());
+        conf->neighborList.resize(conf->pvec.size());
         for (i=0; i < (long)conf->neighborList.size(); i++) {
             conf->neighborList[i].conlist[0] = -1;
             conf->neighborList[i].conlist[1] = -1;
@@ -343,7 +343,7 @@ void Inicializer::initTop() {
                     conf->neighborList[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
             }
         }
-        conf->sysvolume += topo->ia_params[conf->particleStore[i].type][conf->particleStore[i].type].volume;
+        conf->sysvolume += topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
     }
 
     /*DEBUG
@@ -359,17 +359,18 @@ void Inicializer::initTop() {
      */
 
     //  Mark particles as not switched
-    for(i = 0; i < (long)conf->particleStore.size(); i++){
-        conf->particleStore[i].switched = 0;
+    for(i = 0; i < (long)conf->pvec.size(); i++){
+        conf->pvec[i].switched = 0;
     }
 
-    topDealoc(sysnames,&sysmoln);
+    topDealoc(&sysmoln);
+    delete[] pvecMolecules;
     DEBUG_INIT("Finished with reading the topology");
 
     // Parallel tempering check
 #ifdef ENABLE_MPI
         // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
-        printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->particleStore.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
+        printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
 #endif
 }
 
@@ -425,23 +426,23 @@ void Inicializer::initConfig() {
     }
 
     DEBUG_INIT("Position of the particle");
-    for (i=0; i < (long)conf->particleStore.size(); i++) {
+    for (i=0; i < (long)conf->pvec.size(); i++) {
         if(myGetLine(&line, &line_size, infile) == -1){
             break;
         }
         strip_comment(line);
         trim(line);
         fields = sscanf(line, "%le %le %le %le %le %le %le %le %le %d",
-                &conf->particleStore[i].pos.x, &conf->particleStore[i].pos.y, &conf->particleStore[i].pos.z,
-                &conf->particleStore[i].dir.x, &conf->particleStore[i].dir.y, &conf->particleStore[i].dir.z,
-                &conf->particleStore[i].patchdir[0].x, &conf->particleStore[i].patchdir[0].y, &conf->particleStore[i].patchdir[0].z,
-                &conf->particleStore[i].switched);
-        conf->particleStore[i].patchdir[1].x = conf->particleStore[i].patchdir[1].y = conf->particleStore[i].patchdir[1].z =0;
-        conf->particleStore[i].chdir[0].x = conf->particleStore[i].chdir[0].y = conf->particleStore[i].chdir[0].z =0;
-        conf->particleStore[i].chdir[1].x = conf->particleStore[i].chdir[1].y = conf->particleStore[i].chdir[1].z =0;
+                &conf->pvec[i].pos.x, &conf->pvec[i].pos.y, &conf->pvec[i].pos.z,
+                &conf->pvec[i].dir.x, &conf->pvec[i].dir.y, &conf->pvec[i].dir.z,
+                &conf->pvec[i].patchdir[0].x, &conf->pvec[i].patchdir[0].y, &conf->pvec[i].patchdir[0].z,
+                &conf->pvec[i].switched);
+        conf->pvec[i].patchdir[1].x = conf->pvec[i].patchdir[1].y = conf->pvec[i].patchdir[1].z =0;
+        conf->pvec[i].chdir[0].x = conf->pvec[i].chdir[0].y = conf->pvec[i].chdir[0].z =0;
+        conf->pvec[i].chdir[1].x = conf->pvec[i].chdir[1].y = conf->pvec[i].chdir[1].z =0;
         DEBUG_INIT("Line: %s\nNumber of Fields: %d", line, fields);
         if (fields == 9){
-            conf->particleStore[i].switched = 0;
+            conf->pvec[i].switched = 0;
             fprintf(stdout, "WARNING: Particle %ld is assumed to be not switched!\n", i+1);
             fields++;
         }
@@ -452,44 +453,44 @@ void Inicializer::initConfig() {
             exit (1);
         }
         /* Scale position vector to the unit cube */
-        usePBC(&conf->particleStore[i].pos, conf->box );
+        usePBC(&conf->pvec[i].pos, conf->box );
 
-        conf->particleStore[i].pos.x /= conf->box.x;
-        conf->particleStore[i].pos.y /= conf->box.y;
-        conf->particleStore[i].pos.z /= conf->box.z;
+        conf->pvec[i].pos.x /= conf->box.x;
+        conf->pvec[i].pos.y /= conf->box.y;
+        conf->pvec[i].pos.z /= conf->box.z;
 
-        if ((topo->ia_params[conf->particleStore[i].type][conf->particleStore[i].type].geotype[0]<SP)&&( DOT(conf->particleStore[i].dir, conf->particleStore[i].dir) < ZEROTOL )) {
-            //DEBUG_INIT("Geotype = %d < %d", conf->particleStore[i].geotype,SP);
+        if ((topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].geotype[0]<SP)&&( DOT(conf->pvec[i].dir, conf->pvec[i].dir) < ZEROTOL )) {
+            //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
             fprintf (stderr,
                     "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
             free(line);
             exit (1);
         } else {
-            conf->particleStore[i].dir.normalise();
+            conf->pvec[i].dir.normalise();
         }
 
-        if ((topo->ia_params[conf->particleStore[i].type][conf->particleStore[i].type].geotype[0]<SP)&&( DOT(conf->particleStore[i].patchdir[0], conf->particleStore[i].patchdir[0]) < ZEROTOL )) {
+        if ((topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].geotype[0]<SP)&&( DOT(conf->pvec[i].patchdir[0], conf->pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
                     "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
             free(line);
             exit (1);
         } else {
-            ortogonalise(&conf->particleStore[i].patchdir[0],&conf->particleStore[i].dir);
-            conf->particleStore[i].patchdir[0].normalise();
+            ortogonalise(&conf->pvec[i].patchdir[0],&conf->pvec[i].dir);
+            conf->pvec[i].patchdir[0].normalise();
         }
         // Switch the type
-        if(conf->particleStore[i].switched){
-            if(conf->particleStore[i].switchtype == 0){
+        if(conf->pvec[i].switched){
+            if(conf->pvec[i].switchtype == 0){
                 fprintf(stderr, "ERROR: Particle %ld switched even though it has no switchtype", i);
                 free(line);
                 exit(1);
             }
-            tmp_type = conf->particleStore[i].type;
-            conf->particleStore[i].type = conf->particleStore[i].switchtype;
-            conf->particleStore[i].switchtype = tmp_type;
+            tmp_type = conf->pvec[i].type;
+            conf->pvec[i].type = conf->pvec[i].switchtype;
+            conf->pvec[i].switchtype = tmp_type;
         }
 
-        DEBUG_INIT("%ld:\t%lf\t%lf\t%lf", i, conf->particleStore[i].pos.x, conf->particleStore[i].pos.y, conf->particleStore[i].pos.z);
+        DEBUG_INIT("%ld:\t%lf\t%lf\t%lf", i, conf->pvec[i].pos.x, conf->pvec[i].pos.y, conf->pvec[i].pos.z);
 
     }
     free(line);
@@ -498,22 +499,22 @@ void Inicializer::initConfig() {
         j=0;
         current = conf->chainlist[i][0];
         first = current;
-        chorig[0].pos = conf->particleStore[first].pos;
+        chorig[0].pos = conf->pvec[first].pos;
         while (current >=0 ) {
             /*shift the chain particle by first one*/
-            conf->particleStore[current].pos.x -= chorig[0].pos.x;
-            conf->particleStore[current].pos.y -= chorig[0].pos.y;
-            conf->particleStore[current].pos.z -= chorig[0].pos.z;
+            conf->pvec[current].pos.x -= chorig[0].pos.x;
+            conf->pvec[current].pos.y -= chorig[0].pos.y;
+            conf->pvec[current].pos.z -= chorig[0].pos.z;
             /*put it in orig box*/
-            conf->particleStore[current].pos.x -=  anInt(conf->particleStore[current].pos.x);
-            conf->particleStore[current].pos.y -=  anInt(conf->particleStore[current].pos.y);
-            conf->particleStore[current].pos.z -=  anInt(conf->particleStore[current].pos.z);
-            //printf("ant: %f %f %f\n",conf->particleStore[current].pos.x,conf->particleStore[current].pos.y,conf->particleStore[current].pos.z);
+            conf->pvec[current].pos.x -=  anInt(conf->pvec[current].pos.x);
+            conf->pvec[current].pos.y -=  anInt(conf->pvec[current].pos.y);
+            conf->pvec[current].pos.z -=  anInt(conf->pvec[current].pos.z);
+            //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             /*shot it back*/
-            conf->particleStore[current].pos.x += chorig[0].pos.x;
-            conf->particleStore[current].pos.y += chorig[0].pos.y;
-            conf->particleStore[current].pos.z += chorig[0].pos.z;
-            //printf("posstart: %f %f %f\n",conf->particleStore[current].pos.x,conf->particleStore[current].pos.y,conf->particleStore[current].pos.z);
+            conf->pvec[current].pos.x += chorig[0].pos.x;
+            conf->pvec[current].pos.y += chorig[0].pos.y;
+            conf->pvec[current].pos.z += chorig[0].pos.z;
+            //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             j++;
             current = conf->chainlist[i][j];
         }
@@ -522,7 +523,7 @@ void Inicializer::initConfig() {
     err = 0;
     //for (i=0; i < topo->npart-1; i++) {
     //    for (j=i+1; j < topo->npart; j++) {
-    //        if ( overlap(conf->particleStore[i], conf->particle[j], conf->box, topo->ia_params) ) {
+    //        if ( overlap(conf->pvec[i], conf->particle[j], conf->box, topo->ia_params) ) {
     //            fprintf (stderr,
     //                    "ERROR: Overlap in initial coniguration between particles %ld and %ld.\n",
     //                    i+1, j+1);
@@ -619,23 +620,23 @@ void Inicializer::initMPI(int argc, char** argv) {
 
 
 
-void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *molecules) {
+void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
     long i=0, j=0, mol, k, maxpart=0, maxch=0;
 
     try{
-        conf->particleStore.reserve(MAXN);
+        pvec->reserve(MAXN);
     } catch(std::bad_alloc& bad) {
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for conf->particleStore");
+        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for conf->pvec");
         exit(1);
     }
 
     while (sysnames[i]!=NULL) {
         mol=0;
-        while (strcmp(molecules[mol].name,sysnames[i])) {
+        while (strcmp(molecules[mol].name,sysnames[i]) && mol < MAXMT) {
             mol++;
             if (molecules[mol].name == NULL) {
                 fprintf (stderr, "TOPOLOGY ERROR: molecules %s is not defined.\n\n",sysnames[i]);
-                topDealoc(sysnames,&sysmoln);
+                topDealoc(&sysmoln);
                 exit(1);
             }
         }
@@ -645,17 +646,17 @@ void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *m
             k=0;
             while (molecules[mol].type[k] != -1) {
 
-                conf->particleStore.push_back(Particle());
-                conf->particleStore[maxpart].type        = molecules[mol].type[k];
-                conf->particleStore[maxpart].switchtype  = molecules[mol].switchtype[k];
-                conf->particleStore[maxpart].delta_mu    = molecules[mol].delta_mu[k];
-                conf->particleStore[maxpart].molType     = mol;
-                conf->particleStore[maxpart].chainIndex  = maxch;
+                pvec->push_back(Particle());
+                (*pvec)[maxpart].type        = molecules[mol].type[k];
+                (*pvec)[maxpart].switchtype  = molecules[mol].switchtype[k];
+                (*pvec)[maxpart].delta_mu    = molecules[mol].delta_mu[k];
+                (*pvec)[maxpart].molType     = mol;
+                (*pvec)[maxpart].chainIndex  = maxch;
 
                 if (k > MAXCHL) {
                     fprintf (stderr, "TOPOLOGY ERROR: more particles in chan (%ld) than allowed(%d).\n",k,MAXCHL);
                     fprintf (stderr, "Change MAXCHL in source and recompile the program. \n\n");
-                    topDealoc(sysnames,&sysmoln);
+                    topDealoc(&sysmoln);
                     exit(1);
                 }
                 if (molecules[mol].type[1] != -1) {
@@ -666,7 +667,7 @@ void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *m
                 if (maxpart > MAXN) {
                     fprintf (stderr, "TOPOLOGY ERROR: more particles(%ld) than allowed(%d).\n",maxpart,MAXN);
                     fprintf (stderr, "Change MAXN in source and recompile the program. \n\n");
-                    topDealoc(sysnames,&sysmoln);
+                    topDealoc(&sysmoln);
                     exit(1);
                 }
             }
@@ -680,13 +681,13 @@ void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *m
     int newType = -1;
     for(i = 0; i < maxpart; i++) {
         // set simple grouplist
-        if(newType != conf->particleStore[i].molType) {
-            newType = conf->particleStore[i].molType;
-            conf->first[newType] = i;
-            conf->molSize[newType] = topo->chainparam[newType].molSize();
+        if(newType != (*pvec)[i].molType) {
+            newType = (*pvec)[i].molType;
+            conf->pvecGroupList.first[newType] = i;
+            conf->pvecGroupList.molSize[newType] = topo->chainparam[newType].molSize();
         }
     }
-    conf->molTypeCount = newType+1;
+    conf->pvecGroupList.molTypeCount = newType+1;
 
     j = 0;
     while (conf->chainlist[j][0] >= 0) {
@@ -696,14 +697,14 @@ void Inicializer::setParticlesParams(long *sysmoln, char **sysnames, Molecule *m
 
     if (conf->chainCount != maxch) {
         fprintf (stderr, "TOPOLOGY ERROR: Maximum number of chains(%ld) does not agree with number of chains (%ld)\n\n",maxch,conf->chainCount);
-        topDealoc(sysnames,&sysmoln);
+        topDealoc(&sysmoln);
         exit (1);
     }
 }
 
 
 
-void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnames[MAXN], bool exclusions[][MAXT]) {
+void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
     char *dummy=NULL;
     char line[STRLEN], keystr[STRLEN], molname[STRLEN];
     unsigned size;
@@ -716,14 +717,16 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
         exit (1);
     }
 
-    fprintf (stdout, "Reading topology...\n");
-    fflush(stdout);
+    cout << "Reading topology...\n"
+         << "Species:" << endl;
+
     molname[0] = ' ';
 
     pline = (char*) malloc((size_t)STRLEN);
     while (fgets2(line,STRLEN-2,infile) != NULL) {
         strcpy(pline,line);
         if (!pline) fprintf (stderr, "\nTOPOLOGY ERROR: Empty line in topology.\n\n");
+
         // build one long line from several fragments
         while (continuing(line) && (fgets2(line,STRLEN-1,infile) != NULL)) {
             size=strlen(pline)+strlen(line)+1;
@@ -731,10 +734,10 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
             pline = (char*) malloc((size_t)size);
             strcat(pline,line);
         }
-        // skip trailing and leading spaces and comment text
+
         strip_comment (pline);
         trim (pline);
-        // if there is something left...
+
         if ((int)strlen(pline) > 0) {
             // get the [COMMAND] key
             if (pline[0] == OPENKEY) {
@@ -742,88 +745,89 @@ void Inicializer::readTopoFile(Molecule* molecules, long  *sysmoln, char *sysnam
                 beforecommand(keystr,pline,CLOSEKEY);
                 upstring (keystr);
             } else {
+
                 //DEBUG		fprintf (stdout, "Topology read type:%s, %s \n",keystr,pline);
                 if (!strcmp(keystr,"TYPES")) {
                     fflush(stdout);
                     if (!fillTypes(&pline)) {
                         DEBUG_INIT("Something went wrong with filltypes");
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading types\n\n");
-                        topDealoc(sysnames,&sysmoln);
+                        topDealoc(&sysmoln);
                         free(pline); pline = NULL;
                         exit (1);
                     }
                     DEBUG_INIT("back in init_top");
-                } else {
-                    if (!strcmp(keystr,"MOLECULES")){
-                        DEBUG_INIT("Let's go to the molecules");
-                        if (molname[0] == ' ') {
-                            beforecommand(molname,pline,SEPARATOR);
-                            i=0;
-                            while (molecules[i].name != NULL)
-                                i++;
-                            DEBUG_INIT("in the middle of getting to fillmol");
-                            molecules[i].name = (char*) malloc(strlen(molname)+1);
-                            strcpy(molecules[i].name, molname);
-                            fprintf (stdout, "Topology read for molecule: %s \n",molname);
-                        }
-                        if (!fillMol(molname, pline, molecules)) {
-                            fprintf (stderr, "\nTOPOLOGY ERROR: in reading molecules\n\n");
-                            topDealoc(sysnames,&sysmoln);
-                            free(pline); pline = NULL;
-                            exit (1);
-                        }
-                        if ((dummy = strchr (pline,CLOSEMOL)) != NULL)
-                            molname[0] = ' ';
-                    } else {
-                        if (!strcmp(keystr,"SYSTEM")) {
-                            if (!fillSystem(pline,sysnames,&sysmoln)) {
-                                fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
-                                topDealoc(sysnames,&sysmoln);
-                                free(pline); pline = NULL;
-                                exit (1);
-                            }
-                        } else {
-                            if (!strcmp(keystr, "RESERVOIR")) {
-                                if (!fillSystem(pline,sysnames,&sysmoln)) {
-                                    fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
-                                    topDealoc(sysnames,&sysmoln);
-                                    free(pline); pline = NULL;
-                                    exit (1);
-                                }
-                            }
-                             else {
-                                if (!strcmp(keystr,"EXTER")) {
-                                    fflush(stdout);
-                                    if (!fillExter(&pline)) {
-                                        DEBUG_INIT("Something went wrong with external potential");
-                                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading external potential\n\n");
-                                        topDealoc(sysnames,&sysmoln);
-                                        free(pline); pline = NULL;
-                                        exit (1);
-                                    }
-                                } else {
-                                    if (!strcmp(keystr,"EXCLUDE")) {
-                                        fflush(stdout);
-                                        if (!fillExclusions(&pline,exclusions)) {
-                                            DEBUG_INIT("Something went wrong with exclusions potential");
-                                            fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
-                                            topDealoc(sysnames,&sysmoln);
-                                            free(pline); pline = NULL;
-                                            exit (1);
-                                        }
-                                    } else {
-                                        fprintf (stderr, "\nTOPOLOGY ERROR: invalid keyword:%s.\n\n", keystr);
-                                        topDealoc(sysnames,&sysmoln);
-                                        free(pline); pline = NULL;
-                                        exit (1);
-                                    } // else exclude
-                                } // else exter
-                            } // else system
-                        } // else reservoir
-                    } // else molecules
-                } // else types
-            } // else get commnad
-        } // if //getcommand
+                    continue;
+                }
+                if (!strcmp(keystr,"MOLECULES")) {
+                    DEBUG_INIT("Let's go to the molecules");
+                    if (molname[0] == ' ') {
+                        beforecommand(molname,pline,SEPARATOR);
+                        i=0;
+                        while (pvecMolecules[i].name != NULL)
+                            i++;
+                        DEBUG_INIT("in the middle of getting to fillmol");
+                        pvecMolecules[i].name = (char*) malloc(strlen(molname)+1);
+                        strcpy(pvecMolecules[i].name, molname);
+                        fprintf (stdout, "\nTopology read for molecule: %s \n",molname);
+                    }
+                    if (!fillMol(molname, pline, pvecMolecules)) {
+                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading molecules\n\n");
+                        topDealoc(&sysmoln);
+                        free(pline); pline = NULL;
+                        exit (1);
+                    }
+                    if ((dummy = strchr (pline,CLOSEMOL)) != NULL)
+                        molname[0] = ' ';
+                    continue;
+                }
+                if (!strcmp(keystr,"SYSTEM")) {
+                    if (!fillSystem(pline,sysnames,&sysmoln)) {
+                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
+                        topDealoc(&sysmoln);
+                        free(pline); pline = NULL;
+                        exit (1);
+                    }
+                    continue;
+                }
+                /*if (!strcmp(keystr, "POOL")) {
+                    if (!fillSystem(pline,sysnames,&sysmoln)) {
+                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
+                        topDealoc(sysnames,&sysmoln);
+                        free(pline); pline = NULL;
+                        exit (1);
+                    }
+                    continue;
+                }*/
+                if (!strcmp(keystr,"EXTER")) {
+                    fflush(stdout);
+                    if (!fillExter(&pline)) {
+                        DEBUG_INIT("Something went wrong with external potential");
+                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading external potential\n\n");
+                        topDealoc(&sysmoln);
+                        free(pline); pline = NULL;
+                        exit (1);
+                    }
+                    continue;
+                }
+                if (!strcmp(keystr,"EXCLUDE")) {
+                    fflush(stdout);
+                    if (!fillExclusions(&pline,exclusions)) {
+                        DEBUG_INIT("Something went wrong with exclusions potential");
+                        fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
+                        topDealoc(&sysmoln);
+                        free(pline); pline = NULL;
+                        exit (1);
+                    }
+                    continue;
+                }
+
+                fprintf (stderr, "\nTOPOLOGY ERROR: invalid keyword:%s.\n\n", keystr);
+                topDealoc(&sysmoln);
+                free(pline); pline = NULL;
+                exit (1);
+            }
+        }
     }
     //we have sucessfully read topology
     if (pline !=NULL) free(pline);
@@ -846,7 +850,7 @@ void *Inicializer::xMalloc(size_t num) {
 
 
 
-int Inicializer::topDealoc(char *sysnames[], long **sysmoln) {
+int Inicializer::topDealoc(long **sysmoln) {
 
     if ((*sysmoln) != NULL) free((*sysmoln));
         (*sysmoln)=NULL;
@@ -855,8 +859,8 @@ int Inicializer::topDealoc(char *sysnames[], long **sysmoln) {
         if ((sysnames[i]) != NULL) free(sysnames[i]);
             sysnames[i]=NULL;
     }
-    return 0;
 
+    return 0;
 }
 
 
@@ -969,7 +973,8 @@ int Inicializer::fillTypes(char **pline) {
     beforecommand(typestr, *pline, SEPARATOR);
     aftercommand(paramstr, *pline, SEPARATOR);
 
-    fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le", name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4], &param[5], &param[6], &param[7], &param[8], &param[9], &param[10]);
+    fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le",
+                    name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4], &param[5], &param[6], &param[7], &param[8], &param[9], &param[10]);
     fields -= 5; // number of parameter fields => I am too lazy to adjust everywhere below the numbers
     //DEBUG    fprintf (stdout, "Topology read geotype: %ld with parameters fields %d, str:%s and %s in pline %s\n",geotype,fields,geotypestr,paramstr,pline);
 
@@ -1016,12 +1021,14 @@ int Inicializer::fillTypes(char **pline) {
     topo->ia_params[type][type].epsilon = param[0];
     topo->ia_params[type][type].sigma = param[1];
     topo->ia_params[type][type].rcutwca = (topo->ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
-    fprintf(stdout, "Topology read of %d: %s (geotype: %s, %d) with parameters %f %f", type, name, geotype, geotype_i, topo->ia_params[type][type].epsilon, topo->ia_params[type][type].sigma);
+
+    fprintf(stdout, "Topology read of %d: %8s (geotype: %s, %d) with parameters %g %g", type, name, geotype, geotype_i, topo->ia_params[type][type].epsilon, topo->ia_params[type][type].sigma);
+
     if (fields > 0) {
         topo->ia_params[type][type].pdis = param[2];
         topo->ia_params[type][type].pswitch = param[3];
         topo->ia_params[type][type].rcut = topo->ia_params[type][type].pswitch+topo->ia_params[type][type].pdis;
-        fprintf(stdout, " %f %f",topo->ia_params[type][type].pdis,topo->ia_params[type][type].pswitch);
+        fprintf(stdout, " | %g %g",topo->ia_params[type][type].pdis,topo->ia_params[type][type].pswitch);
     }
     if (fields > 2) {
         int i;
@@ -1037,14 +1044,14 @@ int Inicializer::fillTypes(char **pline) {
             topo->ia_params[type][type].pcoshalfi[i] = cos((param[4]/2.0+param[5])/2.0/180*PI);
             topo->ia_params[type][type].psinhalfi[i] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i] * topo->ia_params[type][type].pcoshalfi[i]);
         }
-        fprintf(stdout, " %f %f", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0]);
+        fprintf(stdout, " | %g %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0]);
     }
     if(fields == 6){
         int i;
         for(i = 0; i < 2; i++){
             topo->ia_params[type][type].chiral_cos[i] = cos(param[7] / 360 * PI);
             topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, " %f ", param[7]);
+            fprintf(stdout, "| %g ", param[7]);
         }
     }
     if ((fields == 8)||(fields == 9)) {
@@ -1052,7 +1059,7 @@ int Inicializer::fillTypes(char **pline) {
         for(i = 0; i < 2; i++){
             topo->ia_params[type][type].csecpatchrot[i] = cos(param[7] / 360 * PI);
             topo->ia_params[type][type].ssecpatchrot[i] = sqrt(1 - topo->ia_params[type][type].csecpatchrot[i] * topo->ia_params[type][type].csecpatchrot[i]);
-            //fprintf(stdout, " %f %f", topo->ia_params[type][type].csecpatchrot[0], topo->ia_params[type][type].ssecpatchrot[0]);
+            //fprintf(stdout, " | %g %g", topo->ia_params[type][type].csecpatchrot[0], topo->ia_params[type][type].ssecpatchrot[0]);
 
             topo->ia_params[type][type].pangl[i+2] = param[8];
             topo->ia_params[type][type].panglsw[i+2] = param[9];
@@ -1063,14 +1070,14 @@ int Inicializer::fillTypes(char **pline) {
             topo->ia_params[type][type].pcoshalfi[i+2] = cos((param[8]/2.0+param[9])/2.0/180*PI);
             topo->ia_params[type][type].psinhalfi[i+2] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i+2] * topo->ia_params[type][type].pcoshalfi[i+2]);
         }
-        fprintf(stdout, " %f  %f %f", param[7], topo->ia_params[type][type].pangl[2], topo->ia_params[type][type].panglsw[2]);
+        fprintf(stdout, " | %g  %g %g", param[7], topo->ia_params[type][type].pangl[2], topo->ia_params[type][type].panglsw[2]);
     }
     if(fields == 9){
         int i;
         for(i = 0; i < 2; i++){
             topo->ia_params[type][type].chiral_cos[i] = cos(param[10] / 360 * PI);
             topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, " %f ", param[9]);
+            fprintf(stdout, " | %g ", param[9]);
         }
     }
 
@@ -1164,7 +1171,7 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     int i,j,fields;
     double bondk,bonddist, activity;
     const double Nav = 6.022137e23;
-    int muVTmove;
+    int insertType;
 
     beforecommand(str2, pline, CLOSEMOL);
     aftercommand(str, str2, OPENMOL);
@@ -1302,14 +1309,18 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     if (!strcmp(molcommand,"ACTIVITY")) {
         fields = sscanf(molparams, "%le ", &activity);
         topo->chainparam[i].activity = activity;
-        topo->chainparam[i].chemPot = log(activity*Nav*1e-21); // faunus log(activity*Nav*1e-27) [mol/l]
+        topo->chainparam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
         fprintf (stdout, "activity: %f \n",topo->chainparam[i].activity);
         return 1;
     }
-    if (!strcmp(molcommand,"MUVTMOVE")) {
-        fields = sscanf(molparams, "%d ", &muVTmove);
-        topo->chainparam[i].muVTmove = muVTmove;
-        cout << std::boolalpha << "muVTmove: " << topo->chainparam[i].muVTmove << endl;
+    if (!strcmp(molcommand,"INSERT_TYPE")) {
+        fields = sscanf(molparams, "%d ", &insertType);
+        topo->chainparam[i].insertType = insertType;
+        switch(topo->chainparam[i].insertType){
+        case MoleculeParams::NO_INSERT: cout << "no muVTmove" << endl; break;
+        case MoleculeParams::RANDOM: cout << "muVTmove: RANDOM INSERT" << endl; break;
+        case MoleculeParams::POOL: cout << "muVTmove: POOL INSERT" << endl; break;
+        }
         return 1;
     }
 

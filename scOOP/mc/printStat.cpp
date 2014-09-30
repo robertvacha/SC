@@ -10,14 +10,14 @@ void printStat::printEqStat(Disp *dat, double scale, int length) {
 
 void printStat::draw(FILE *outfile, Conf *conf) {
     //fprintf (outfile, "%15.8e %15.8e %15.8e\n", box.x, box.y, box.z);
-    for (int i=0; i < (long)conf->particleStore.size(); i++) {
+    for (int i=0; i < (long)conf->pvec.size(); i++) {
         fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
-                conf->box.x * ((conf->particleStore[i].pos.x) - anInt(conf->particleStore[i].pos.x)),
-                conf->box.y * ((conf->particleStore[i].pos.y) - anInt(conf->particleStore[i].pos.y)),
-                conf->box.z * ((conf->particleStore[i].pos.z) - anInt(conf->particleStore[i].pos.z)),
-                conf->particleStore[i].dir.x, conf->particleStore[i].dir.y, conf->particleStore[i].dir.z,
-                conf->particleStore[i].patchdir[0].x, conf->particleStore[i].patchdir[0].y, conf->particleStore[i].patchdir[0].z,
-                conf->particleStore[i].switched);
+                conf->box.x * ((conf->pvec[i].pos.x) - anInt(conf->pvec[i].pos.x)),
+                conf->box.y * ((conf->pvec[i].pos.y) - anInt(conf->pvec[i].pos.y)),
+                conf->box.z * ((conf->pvec[i].pos.z) - anInt(conf->pvec[i].pos.z)),
+                conf->pvec[i].dir.x, conf->pvec[i].dir.y, conf->pvec[i].dir.z,
+                conf->pvec[i].patchdir[0].x, conf->pvec[i].patchdir[0].y, conf->pvec[i].patchdir[0].z,
+                conf->pvec[i].switched);
     }
 }
 
@@ -31,12 +31,12 @@ int printStat::printClusterList(FILE *stream, bool decor, Sim *sim, Conf *conf) 
                 "-----------------------------------------------------\n");
     }
 
-    for(int i=0; i < (long)conf->particleStore.size(); i++){
+    for(int i=0; i < (long)conf->pvec.size(); i++){
         fprintf(stream,"%3d %3ld %8.4lf %8.4f %8.4f", i + 1,
                 sim->clusterlist[i] + 1,
-                conf->particleStore[i].pos.x,
-                conf->particleStore[i].pos.y,
-                conf->particleStore[i].pos.z);
+                conf->pvec[i].pos.x,
+                conf->pvec[i].pos.y,
+                conf->pvec[i].pos.z);
         fprintf(stream,"\n");
     }
     if(decor){

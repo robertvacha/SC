@@ -20,13 +20,21 @@ class Inicializer
 {
 public:
     Inicializer(Topo *topo, Sim* sim, Conf *conf, FileNames* files):
-        topo(topo), sim(sim), conf(conf), files(files) {}
+        topo(topo), sim(sim), conf(conf), files(files) {
+        for(int i=0; i<MAXN; i++)
+            sysnames[i] = NULL;
+    }
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;
+
+    Molecule* pvecMolecules;    ///< @brief List of AtomType parameters read from init.top
+
+    char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
+    char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
 
 public:
 
@@ -41,9 +49,6 @@ public:
      */
     void readOptions();
 
-
-
-
     /**
      * @brief Inicialization of topology
 
@@ -51,7 +56,6 @@ public:
        with which sc it is connected. The order is important because spherocylinders have direction
        First is interacting tail then head. Chain list where particles are assigned to chains to
        which they belong
-
      */
     void initTop();
 
@@ -63,7 +67,6 @@ public:
        the direction vector and three components of patch direction for a spherocylinder.
        The direction vector is normalised
        after being read in.  The configuration is checked for particle overlaps.
-
      */
     void initConfig();
 
@@ -89,11 +92,9 @@ public:
 
 private:
 
-    void setParticlesParams(long  *sysmoln, char **sysnames, Molecule *molecules);
+    void readTopoFile(long *sysmoln, bool exclusions[][MAXT]);
 
-    void readTopoFile(Molecule *molecules, long *sysmoln, char *sysnames[], bool exclusions[][MAXT]);
-
-    void openTopoFile(FILE* infile);
+    void setParticlesParams(Molecule *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
 
     void allocSysmoln(long* sysmoln);
 
@@ -112,7 +113,7 @@ private:
      * @param molecules
      * @return
      */
-    int topDealoc(char *sysnames[MAXN], long **sysmoln);
+    int topDealoc(long **sysmoln);
 
     /**
      * @brief filling pair for which we exlude attraction interaction. Returns 1 on succes.

@@ -81,12 +81,12 @@ void Updater::initWangLandau() {
                     sim->wl.origmesh.data = NULL;
                     sim->wl.origmesh.tmp = NULL;
                     sim->wl.currorder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                           (long)conf->particleStore.size(),
+                                                                           (long)conf->pvec.size(),
                                                                            sim->wl.wlmtype, conf->box,
-                                                                           &conf->particleStore) - sim->wl.minorder[wli]);
+                                                                           &conf->pvec) - sim->wl.minorder[wli]);
                     break;
                 case 3:
-                    sim->wl.currorder[wli] = (long) floor( (conf->particleStore[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
+                    sim->wl.currorder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
                     break;
                 case 4:
                     sim->wl.currorder[wli] = sim->wl.twoPartDist(wli);
@@ -102,7 +102,7 @@ void Updater::initWangLandau() {
                     sim->wl.radiusholemax = 0;
                     sim->wl.radiushole = NULL;
                     sim->wl.radiusholeold = NULL;
-                    sim->wl.currorder[wli] = move.radiusholeAll(wli,&(conf->particleStore[0].pos));
+                    sim->wl.currorder[wli] = move.radiusholeAll(wli,&(conf->pvec[0].pos));
                     break;
                 case 7:
                     sim->wl.currorder[wli] = move.contParticlesAll(wli);
@@ -192,7 +192,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
 
     //=== Initialise counters etc. ===//
-    sim->shprob = sim->shave/(double)conf->particleStore.size();
+    sim->shprob = sim->shave/(double)conf->pvec.size();
 
     initValues(next_adjust, next_calc, next_dump, next_frame);
 
@@ -212,9 +212,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //do energy drift check - start calculation
     volume = conf->box.x * conf->box.y * conf->box.z;
     edriftstart = calcEnergy(0, 0, 0);
-    pvdriftstart = sim->press * volume - (double)conf->particleStore.size() * log(volume) / sim->temper;
+    pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
-    //printf("press: %.15f\n",sim->press * volume - (double)conf->particleStore.size() * log(volume) / sim->temper);
+    //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
     edriftchanges = 0.0;
 
     for (sweep=1; sweep <= nsweeps; sweep++) {
@@ -230,7 +230,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Try muVT insert delete moves
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
             edriftchanges += move.muVTMove();
-            muVtAverageParticles += conf->particleStore.size();
+            muVtAverageParticles += conf->pvec.size();
             muVtSteps++;
 
             if(sim->pairlist_update)
@@ -248,7 +248,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         }
 
         //normal moves
-        for (step=1; step <= (long)(long)conf->particleStore.size(); step++) {
+        for (step=1; step <= (long)(long)conf->pvec.size(); step++) {
             moveprobab = ran2();
             if ( moveprobab < sim->shprob) {
                 // pressure moves
@@ -314,7 +314,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 if ( sim->temper * log(sim->wl.max/sim->wl.min) < WL_GERR ) {
                     /*DEBUG
                       for (i=1;i<wl.length;i++) {
-                      printf (" %15.8e %15ld %15.8f\n",sim->wl.weights[i],sim->wl.hist[i],particleStore[0].pos.z);
+                      printf (" %15.8e %15ld %15.8f\n",sim->wl.weights[i],sim->wl.hist[i],pvec[0].pos.z);
                       fflush(stdout);
                       }
                      */
@@ -395,7 +395,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         // Writing of movie frame
         if (sweep == next_frame) {
-            fprintf (mf, "%ld\n", (long)conf->particleStore.size());
+            fprintf (mf, "%ld\n", (long)conf->pvec.size());
             fprintf (mf, "sweep %ld;  box %.10f %.10f %.10f\n", sweep, conf->box.x, conf->box.y, conf->box.z);
             printStat::draw(mf, conf);
             fflush (mf);
@@ -413,7 +413,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //do energy drift check - at the end calculation
     volume = conf->box.x * conf->box.y * conf->box.z;
     edriftend = calcEnergy(0, 0, 0);
-    pvdriftend =  sim->press * volume - (double)conf->particleStore.size() * log(volume) / sim->temper;
+    pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
@@ -421,7 +421,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     if(sim->nGrandCanon != 0)
         cout << "Average number of particles: " << (double)muVtAverageParticles/muVtSteps << endl;
 
-    for(i=0; i < conf->molTypeCount; i++)
+    for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
         printf("%s %d\n", topo->chainparam[i].name, conf->molCountOfType(i));
     fflush(stdout);
 
@@ -520,11 +520,11 @@ double Updater::alignmentOrder() {
     long i,j;
     Vector r_cm;
 
-    for (i = 0; i < (long)(long)conf->particleStore.size() - 1; i++) {
-        for (j = i + 1; j < (long)(long)conf->particleStore.size(); j++) {
-            r_cm = image(&conf->particleStore[i].pos, &conf->particleStore[j].pos, &conf->box);
+    for (i = 0; i < (long)(long)conf->pvec.size() - 1; i++) {
+        for (j = i + 1; j < (long)(long)conf->pvec.size(); j++) {
+            r_cm = image(&conf->pvec[i].pos, &conf->pvec[j].pos, &conf->box);
             if ( DOT(r_cm,r_cm) < 1.5*1.5 ) {
-                sumdot+= DOT(conf->particleStore[i].dir,conf->particleStore[j].dir);
+                sumdot+= DOT(conf->pvec[i].dir,conf->pvec[j].dir);
             }
         }
     }
@@ -543,19 +543,19 @@ void Updater::genSimplePairList() {
     // Set the pairlist to zero
     //DEBUG_INIT("Gen Pairlist")
 
-    for(unsigned int i = 0; i < (long)(long)conf->neighborList.size(); i++){
+    for(unsigned int i = 0; i < conf->neighborList.size(); i++){
         //DEBUG_INIT("%ld", i);
         conf->neighborList[i].neighborCount = 0;
     }
-    for(unsigned int i = 0; i < conf->particleStore.size()-1; i++){
-        for(unsigned int j = i + 1; j < conf->particleStore.size(); j++){
-            assert(conf->particleStore.size() == conf->neighborList.size());
-            assert(conf->particleStore[i] != NULL);
-            assert(conf->particleStore[j] != NULL);
+    for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
+        for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
+            assert(conf->pvec.size() == conf->neighborList.size());
+            assert(conf->pvec[i] != NULL);
+            assert(conf->pvec[j] != NULL);
 
-            r_cm.x = conf->particleStore[i].pos.x - conf->particleStore[j].pos.x;
-            r_cm.y = conf->particleStore[i].pos.y - conf->particleStore[j].pos.y;
-            r_cm.z = conf->particleStore[i].pos.z - conf->particleStore[j].pos.z;
+            r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
+            r_cm.y = conf->pvec[i].pos.y - conf->pvec[j].pos.y;
+            r_cm.z = conf->pvec[i].pos.z - conf->pvec[j].pos.z;
             if ( r_cm.x < 0  )
                 r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
             else
@@ -570,8 +570,8 @@ void Updater::genSimplePairList() {
                 r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
 
             r_cm2 = DOT(r_cm,r_cm);
-            max_dist = AVER(sim->trans[conf->particleStore[i].type].mx, \
-                    sim->trans[conf->particleStore[j].type].mx);
+            max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \
+                    sim->trans[conf->pvec[j].type].mx);
             max_dist *= (1 + sim->pairlist_update) * 2;
             max_dist += topo->maxcut;
             max_dist *= max_dist; /* squared */
@@ -589,9 +589,9 @@ void Updater::genSimplePairList() {
         }
     }
     ////Check for too many pairs
-    //for(i = 0; i < (long)conf->particleStore.size(); i++){
-    //    //if (sim->pairlist.list[i].num_pairs >= (long)conf->particleStore.size())
-    //    if (sim->pairlist[i].num_pairs >= (long)conf->particleStore.size()){
+    //for(i = 0; i < (long)conf->pvec.size(); i++){
+    //    //if (sim->pairlist.list[i].num_pairs >= (long)conf->pvec.size())
+    //    if (sim->pairlist[i].num_pairs >= (long)conf->pvec.size()){
     //        fprintf(stderr, "ERROR: Too many pairs for particle %ld!!!\n", i);
     //        exit(1);
     //    }
@@ -625,7 +625,7 @@ int Updater::writeCluster(FILE *cl_stat, FILE *cl, FILE *cl_list, bool decor, lo
     if(cl_list){
         if(decor == false){
             fprintf(cl_list, "Sweep: %ld | Number of particles: %ld\n",
-                    sweep, (long)(long)conf->particleStore.size());
+                    sweep, (long)(long)conf->pvec.size());
         }
         printStat::printClusterList(cl, decor, sim, conf);
     }
@@ -639,17 +639,17 @@ int Updater::genClusterList() {
     long i, j, fst, snd, tmp, minnumber, maxnumber;
 
     // Set clusterindex to the corresponding index
-    for( i = 0; i < (long)conf->particleStore.size(); i++){
+    for( i = 0; i < (long)conf->pvec.size(); i++){
         sim->clusterlist[i] = i;
     }
 
     // Start determining the cluster
     while(change){
         change = false;
-        assert(conf->particleStore.size() == conf->neighborList.size());
-        for(i = 0; i < (long)conf->particleStore.size(); i++){
+        assert(conf->pvec.size() == conf->neighborList.size());
+        for(i = 0; i < (long)conf->pvec.size(); i++){
             /*If nore pairlist go over all pairs*/
-            maxnumber = (long)conf->particleStore.size();
+            maxnumber = (long)conf->pvec.size();
             minnumber = i ;
             if (sim->pairlist_update) {
                 maxnumber = conf->neighborList[i].neighborCount;
@@ -665,8 +665,8 @@ int Updater::genClusterList() {
                     //snd = sim->pairlist[i].pairs[j];
                 }
                 /*do cluster analysis only for spherocylinders*/
-                if ( (topo->ia_params[conf->particleStore[fst].type][conf->particleStore[snd].type].geotype[0] < SP) && \
-                    (topo->ia_params[conf->particleStore[fst].type][conf->particleStore[snd].type].geotype[1] < SP) ) {
+                if ( (topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[0] < SP) && \
+                    (topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[1] < SP) ) {
 
                     /* if they are close to each other */
                     if(sameCluster(fst, snd)){
@@ -701,13 +701,13 @@ int Updater::genClusterList() {
 }
 
 int Updater::sortClusterList() {
-    long cluster_indices[(long)conf->particleStore.size()];   /* holds the different cluster indices.
+    long cluster_indices[(long)conf->pvec.size()];   /* holds the different cluster indices.
                         (currently too much memory) */
     long num_cluster = 0;                /* number of clusters, temporary needed */
 
     /* how many clusters are there? */
     long max_index = -1;
-    for(int i = 0; i < (long)conf->particleStore.size(); i++){
+    for(int i = 0; i < (long)conf->pvec.size(); i++){
         if(max_index < sim->clusterlist[i]){
             max_index = sim->clusterlist[i];
             cluster_indices[num_cluster++] = max_index;
@@ -734,7 +734,7 @@ int Updater::sortClusterList() {
 
     for(int i = 0; i < num_cluster; i++){
         /* allocate maximal space for all the clusters */
-        sim->clusters[i].particles = (long int*) malloc(sizeof(long) * (long)conf->particleStore.size());
+        sim->clusters[i].particles = (long int*) malloc(sizeof(long) * (long)conf->pvec.size());
 
         if (!sim->clusters[i].particles){
             fprintf(stderr, "Couldn't allocate any memory!\n");
@@ -746,7 +746,7 @@ int Updater::sortClusterList() {
 
     /* fill in the particles belonging to one cluster */
     for(int i = 0; i < num_cluster; i++){
-        for(int j = 0; j < (long)conf->particleStore.size(); j++){
+        for(int j = 0; j < (long)conf->pvec.size(); j++){
             if(sim->clusterlist[j] == cluster_indices[i]){
                 sim->clusters[i].particles[sim->clusters[i].npart++] = j;
             }
@@ -785,9 +785,9 @@ int Updater::calcClusterEnergies() {
         sim->clustersenergy[i]=0.0;
         for(int j = 0; j < sim->clusters[i].npart; j++) {
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
-                sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->particleStore[sim->clusters[i].particles[j]]
+                sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->pvec[sim->clusters[i].particles[j]]
                         , sim->clusters[i].particles[j]
-                        , &conf->particleStore[sim->clusters[i].particles[k]]
+                        , &conf->pvec[sim->clusters[i].particles[k]]
                         , sim->clusters[i].particles[k]);
             }
         }
@@ -800,14 +800,14 @@ int Updater::calcClusterEnergies() {
 int Updater::sameCluster(long fst, long snd) {
 
     /*if two particles are bonded they belong to the same cluster*/
-    if ( ((topo->chainparam[conf->particleStore[fst].molType]).bond1c >= 0) ||
-        ((topo->chainparam[conf->particleStore[fst].molType]).bonddc >= 0) ){
+    if ( ((topo->chainparam[conf->pvec[fst].molType]).bond1c >= 0) ||
+        ((topo->chainparam[conf->pvec[fst].molType]).bonddc >= 0) ){
         if ( (snd == conf->neighborList[fst].conlist[1]) || (snd == conf->neighborList[fst].conlist[0]) ) {
           return true;
         }
     }
-    if ( ((topo->chainparam[conf->particleStore[snd].molType]).bond1c >= 0) ||
-        ((topo->chainparam[conf->particleStore[snd].molType]).bonddc >= 0) ){
+    if ( ((topo->chainparam[conf->pvec[snd].molType]).bond1c >= 0) ||
+        ((topo->chainparam[conf->pvec[snd].molType]).bonddc >= 0) ){
         if ( (fst == conf->neighborList[snd].conlist[1]) || (fst == conf->neighborList[snd].conlist[0]) ) {
           return false;
         }
@@ -815,12 +815,12 @@ int Updater::sameCluster(long fst, long snd) {
 
     /*cluster is made of particles closer tna some distance*/
 /*	struct vector2 image(struct vector2 r1, struct vector2 r2, struct vector2 box);
-    struct vector2 r_cm = image(conf->particleStore[fst].pos,
-            conf->particleStore[snd].pos,
+    struct vector2 r_cm = image(conf->pvec[fst].pos,
+            conf->pvec[snd].pos,
             conf->box);
     double dist2 = DOT(r_cm, r_cm);
     * TODO: Make it much more efficient => define cluster_dist!!! *
-    if(dist2 > topo->ia_params[conf->particleStore[fst].type][conf->particleStore[snd].type].sigma * topo->ia_params[conf->particleStore[fst].type][conf->particleStore[snd].type].sigma*4.0){
+    if(dist2 > topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma * topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma*4.0){
         return false;
     }
     else {
@@ -831,7 +831,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if((calcEnergy.pairE)(&conf->particleStore[fst], fst, &conf->particleStore[snd], snd) > -0.10 ){
+    if((calcEnergy.pairE)(&conf->pvec[fst], fst, &conf->pvec[snd], snd) > -0.10 ){
         return false;
     }
     else {

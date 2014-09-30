@@ -1,12 +1,12 @@
 #include "Conf.h"
 
 void Conf::addMolecule(std::vector<Particle>* molecule) {
-    int insID = first[(*molecule)[0].molType+1];   // store index where to insert
+    int insID = pvecGroupList.first[(*molecule)[0].molType+1];   // store index where to insert
 
-    // insert at end of particleStore -> trivial
-    if((*molecule)[0].molType == molTypeCount-1) {
+    // insert at end of pvec -> trivial
+    if((*molecule)[0].molType == pvecGroupList.molTypeCount-1) {
         for(unsigned int i=0; i<molecule->size(); i++)
-            particleStore.push_back((*molecule)[i]);
+            pvec.push_back((*molecule)[i]);
 
     } else { // insert in middle of particleVector
         //
@@ -14,7 +14,7 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
         //
         // optimalization, when possible copy only minimal number of particles of succeeding molTypes
         //
-        particleStore.insert(particleStore.begin()+insID, molecule->begin(), molecule->end());
+        pvec.insert(pvec.begin()+insID, molecule->begin(), molecule->end());
     }
 
     // add neighbors to neighborList
@@ -25,13 +25,13 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
         }
     }
     // change groupList
-    for(int i= (*molecule)[0].molType+1; i<molTypeCount; i++)
-        first[i] += molecule->size();
+    for(int i= (*molecule)[0].molType+1; i<pvecGroupList.molTypeCount; i++)
+        pvecGroupList.first[i] += molecule->size();
 }
 
 void Conf::removeMolecule(int target, int size) {
 
-    //if(particleStore[(*target)[0]].molType == molTypeCount-1) {
+    //if(pvec[(*target)[0]].molType == molTypeCount-1) {
 
 
     //} else { // erasing in middle of other types
@@ -40,7 +40,7 @@ void Conf::removeMolecule(int target, int size) {
         //
         // optimalization, when possible copy only minimal number of particles of succeeding molTypes
         //
-        particleStore.erase(particleStore.begin()+target, particleStore.begin()+target+size);
+        pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
 
         if(pairlist_update) {
             for(int i=0; i<size; i++) {;
@@ -51,22 +51,22 @@ void Conf::removeMolecule(int target, int size) {
     //}
 
     // modify groupList
-    for(int i=particleStore[target].molType+1; i<molTypeCount; i++)
-        first[i] -= size;
+    for(int i=pvec[target].molType+1; i<pvecGroupList.molTypeCount; i++)
+        pvecGroupList.first[i] -= size;
 }
 
 void Conf::massCenter(Topo* topo) {
     syscm.x = 0;
     syscm.y = 0;
     syscm.z = 0;
-    for (unsigned long i=0; i < particleStore.size(); i++) {
+    for (unsigned long i=0; i < pvec.size(); i++) {
         //using periodic boundary conditions
-        syscm.x += (particleStore[i].pos.x - anInt(particleStore[i].pos.x) ) *
-            topo->ia_params[particleStore[i].type][particleStore[i].type].volume;
-        syscm.y += (particleStore[i].pos.y - anInt(particleStore[i].pos.y) ) *
-            topo->ia_params[particleStore[i].type][particleStore[i].type].volume;
-        syscm.z += (particleStore[i].pos.z - anInt(particleStore[i].pos.z) ) *
-            topo->ia_params[particleStore[i].type][particleStore[i].type].volume;
+        syscm.x += (pvec[i].pos.x - anInt(pvec[i].pos.x) ) *
+            topo->ia_params[pvec[i].type][pvec[i].type].volume;
+        syscm.y += (pvec[i].pos.y - anInt(pvec[i].pos.y) ) *
+            topo->ia_params[pvec[i].type][pvec[i].type].volume;
+        syscm.z += (pvec[i].pos.z - anInt(pvec[i].pos.z) ) *
+            topo->ia_params[pvec[i].type][pvec[i].type].volume;
     }
     syscm.x /= sysvolume;
     syscm.y /= sysvolume;
@@ -75,9 +75,9 @@ void Conf::massCenter(Topo* topo) {
 }
 
 void Conf::partVecInit(Topo* topo) {
-    for(int i = 0; i < (long)particleStore.size(); i++){
-        if ( topo->ia_params[particleStore[i].type][particleStore[i].type].geotype[0]  < SP)
-            particleStore[i].init(&(topo->ia_params[particleStore[i].type][particleStore[i].type]));
+    for(int i = 0; i < (long)pvec.size(); i++){
+        if ( topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]  < SP)
+            pvec[i].init(&(topo->ia_params[pvec[i].type][pvec[i].type]));
     }
 }
 
@@ -222,9 +222,9 @@ int Conf::overlap(Particle *part1, Particle *part2, Ia_param ia_params[][MAXT]) 
 
 
 bool Conf::overlapAll(Particle* target, Ia_param ia_params[][MAXT]) {
-    for (unsigned long i=0; i<particleStore.size(); i++) {
-        if (&particleStore[i] != target) {
-            if ( overlap(target, &particleStore[i], ia_params) ) {
+    for (unsigned long i=0; i<pvec.size(); i++) {
+        if (&pvec[i] != target) {
+            if ( overlap(target, &pvec[i], ia_params) ) {
                 return true;
             }
         }
@@ -238,9 +238,9 @@ bool Conf::overlapAll(Particle* target, Ia_param ia_params[][MAXT]) {
 int Conf::checkall(Ia_param ia_params[][MAXT]) {
     unsigned long i, j;
 
-    for (i=0; i<particleStore.size()-1; i++) {
-        for (j=i+1; j<particleStore.size(); j++) {
-            if ( overlap(&particleStore[i], &particleStore[j], ia_params) ) {
+    for (i=0; i<pvec.size()-1; i++) {
+        for (j=i+1; j<pvec.size(); j++) {
+            if ( overlap(&pvec[i], &pvec[j], ia_params) ) {
                 return 1;
             }
         }
