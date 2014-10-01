@@ -1,7 +1,7 @@
 #include "Conf.h"
 
 void Conf::addMolecule(std::vector<Particle>* molecule) {
-    int insID = pvecGroupList.first[(*molecule)[0].molType+1];   // store index where to insert
+    int insID = pvecGroupList.getInsertIndex((*molecule)[0].molType);   // store index where to insert
 
     // insert at end of pvec -> trivial
     if((*molecule)[0].molType == pvecGroupList.molTypeCount-1) {
@@ -11,7 +11,6 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
     } else { // insert in middle of particleVector
         //
         // copy all particles after insert (done automatically by std::vector::insert() )
-        //
         // optimalization, when possible copy only minimal number of particles of succeeding molTypes
         //
         pvec.insert(pvec.begin()+insID, molecule->begin(), molecule->end());
@@ -25,8 +24,7 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
         }
     }
     // change groupList
-    for(int i= (*molecule)[0].molType+1; i<pvecGroupList.molTypeCount; i++)
-        pvecGroupList.first[i] += molecule->size();
+    pvecGroupList.insertMolecule((*molecule)[0].molType);
 }
 
 void Conf::removeMolecule(int target, int size) {
@@ -51,8 +49,7 @@ void Conf::removeMolecule(int target, int size) {
     //}
 
     // modify groupList
-    for(int i=pvec[target].molType+1; i<pvecGroupList.molTypeCount; i++)
-        pvecGroupList.first[i] -= size;
+    pvecGroupList.deleteMolecule(pvec[target].molType);
 }
 
 void Conf::massCenter(Topo* topo) {

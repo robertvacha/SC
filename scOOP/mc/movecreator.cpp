@@ -1344,20 +1344,16 @@ double MoveCreator::muVTMove() {
                 return 0; // overlap detected, move rejected
             }
 
-            // calculate energy, no neighborList used, IMPLEMENT CONLIST
             energy = calcEnergy->oneToAll(&insert[0], -1);
 
-            //
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27)) + (mu - U(new))/kT)
-            //
-            if( ( (volume / (conf->molCountOfType(molType) + 1)) *
+            if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1)) *
                   exp( topo->chainparam[molType].chemPot + (-energy)/sim->temper) ) > ran2()) {
 
                 conf->addMolecule(&insert);
                 insert.clear();
                 return energy - entrophy;
-                // entire neighborList -> generated in simulate at the end of muVTmove()
-            } else { /// rejected
+            } else { // rejected
                 insert.clear();
                 return 0;
             }
@@ -1373,18 +1369,18 @@ double MoveCreator::muVTMove() {
     } else { // delete move
 
         // choose particle -> only of certain type -> list of certain types
-        if(conf->molCountOfType(molType) == 0) return 0;
-        target = ran2() * conf->molCountOfType(molType);
+        if(conf->pvecGroupList.molCountOfType(molType) == 0) return 0;
+        target = ran2() * conf->pvecGroupList.molCountOfType(molType);
 
         if(topo->chainparam[molType].isAtomic()) {
             // do energy calc
-            target = conf->getStoreIndex(molType, target);
+            target = conf->pvecGroupList.getStoreIndex(molType, target);
             energy = calcEnergy->oneToAll(target);
 
             //
             // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
             //
-            if( ( ( (double)conf->molCountOfType(molType) / volume) *
+            if( ( ( (double)conf->pvecGroupList.molCountOfType(molType) / volume) *
                   exp( (energy - topo->chainparam[molType].chemPot)/sim->temper)) > ran2()) {
 
                 conf->removeMolecule(target, 1);

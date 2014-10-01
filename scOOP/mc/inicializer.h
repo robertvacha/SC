@@ -20,10 +20,29 @@ class Inicializer
 {
 public:
     Inicializer(Topo *topo, Sim* sim, Conf *conf, FileNames* files):
-        topo(topo), sim(sim), conf(conf), files(files) {
-        for(int i=0; i<MAXN; i++)
+        poolConfig(false), topo(topo), sim(sim), conf(conf), files(files) {
+
+        for(int i=0; i<MAXN; i++) {
             sysnames[i] = NULL;
+            poolNames[i] = NULL;
+        }
+
+        molecules = new Molecule[MAXMT];
+
+        sysmoln = (long int*) malloc( sizeof(long)*MAXN);
+        if(sysmoln == NULL){
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sysmoln");
+            exit(1);
+        }
+
+        poolMolNum = (long int*) malloc( sizeof(long)*MAXN);
+        if(poolMolNum == NULL){
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for poolMolNum");
+            exit(1);
+        }
     }
+
+    bool poolConfig;
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future
@@ -31,10 +50,13 @@ private:
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;
 
-    Molecule* pvecMolecules;    ///< @brief List of AtomType parameters read from init.top
+    Molecule* molecules;    ///< @brief List of AtomType parameters read from init.top
 
     char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
     char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
+
+    long  *sysmoln /*[MAXN]*/;
+    long  *poolMolNum /*[MAXN]*/;
 
 public:
 
@@ -68,7 +90,7 @@ public:
        The direction vector is normalised
        after being read in.  The configuration is checked for particle overlaps.
      */
-    void initConfig();
+    void initConfig(char* fileName, std::vector<Particle > &pvec);
 
     /**
      * @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
@@ -90,13 +112,17 @@ public:
      */
     void initMPI(int argc, char **argv);
 
+    void initGroupLists();
+
 private:
 
-    void readTopoFile(long *sysmoln, bool exclusions[][MAXT]);
+    void readTopoFile(bool exclusions[][MAXT]);
 
     void setParticlesParams(Molecule *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
 
     void allocSysmoln(long* sysmoln);
+
+    void setChainCount();
 
     /**
      * @brief xmalloc nice malloc, which does the error checking for us
@@ -113,7 +139,7 @@ private:
      * @param molecules
      * @return
      */
-    int topDealoc(long **sysmoln);
+    int topDealoc();
 
     /**
      * @brief filling pair for which we exlude attraction interaction. Returns 1 on succes.

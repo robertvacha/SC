@@ -11,21 +11,23 @@ void MCSimSystem::init(int argc, char** argv) {
     Inicializer init(&topo, &sim, &conf, &files);
 
     init.initWriteFiles();
-
     init.initMPI(argc,argv);
 
     cout << "Reading options..." << endl;
     init.readOptions();
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
-    printf("\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added\n\n");
+    cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added\n" << endl;
 #endif
 
     init.initTop(); // here particleStore filled in setParticleParams
     init.testChains(); // if no chains -> move probability of chains 0
 
     cout << "\nReading configuration...\n";
-    init.initConfig();
+    if(init.poolConfig)
+        init.initConfig(files.configurationPool, conf.pool);
+    init.initConfig(files.configurationInFile, conf.pvec);
+    init.initGroupLists();
 
     cout << "Equilibration of maximum step sizes: " << sim.nequil/2 << " sweeps" << endl;
 
@@ -113,7 +115,7 @@ void MCSimSystem::productionRun() {
             fputs(line, outfile);
         }
         for(int i=0; i < conf.pvecGroupList.molTypeCount; i++)
-            fprintf(outfile, "%s %d\n", topo.chainparam[i].name, conf.molCountOfType(i));
+            fprintf(outfile, "%s %d\n", topo.chainparam[i].name, conf.pvecGroupList.molCountOfType(i));
 
         fclose (outfile);
         fclose (inFile);

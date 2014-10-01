@@ -422,7 +422,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         cout << "Average number of particles: " << (double)muVtAverageParticles/muVtSteps << endl;
 
     for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
-        printf("%s %d\n", topo->chainparam[i].name, conf->molCountOfType(i));
+        printf("%s %d\n", topo->chainparam[i].name, conf->pvecGroupList.molCountOfType(i));
     fflush(stdout);
 
     endWangLandau();
@@ -802,13 +802,13 @@ int Updater::sameCluster(long fst, long snd) {
     /*if two particles are bonded they belong to the same cluster*/
     if ( ((topo->chainparam[conf->pvec[fst].molType]).bond1c >= 0) ||
         ((topo->chainparam[conf->pvec[fst].molType]).bonddc >= 0) ){
-        if ( (snd == conf->neighborList[fst].conlist[1]) || (snd == conf->neighborList[fst].conlist[0]) ) {
+        if ( (snd == conf->conlist[fst].conlist[1]) || (snd == conf->conlist[fst].conlist[0]) ) {
           return true;
         }
     }
     if ( ((topo->chainparam[conf->pvec[snd].molType]).bond1c >= 0) ||
         ((topo->chainparam[conf->pvec[snd].molType]).bonddc >= 0) ){
-        if ( (fst == conf->neighborList[snd].conlist[1]) || (fst == conf->neighborList[snd].conlist[0]) ) {
+        if ( (fst == conf->conlist[snd].conlist[1]) || (fst == conf->conlist[snd].conlist[0]) ) {
           return false;
         }
     }

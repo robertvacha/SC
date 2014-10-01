@@ -15,6 +15,13 @@ int main(int argc, char** argv)
     mc.productionRun();
     mc.dealloc();
 
+    /*
+    TODO LIST:
+    GrandCanonical:
+     - movie -> each snapshot requires count of types
+     - conf::sysvolume -> changing after deletes/inserts
+     - rewrite initTopo -> usage of IO class Molecules
+     */
     return 0;
 }
 

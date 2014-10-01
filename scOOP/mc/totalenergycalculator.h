@@ -40,7 +40,7 @@ private:
     Vector project;         /*vector2 for projection down to plane */
 
 public:
-    TotalEnergyCalculator(Topo * topo, Sim * sim, Conf * conf): pairE(topo, conf->box, &conf->neighborList),
+    TotalEnergyCalculator(Topo * topo, Sim * sim, Conf * conf): pairE(topo, conf->box, conf->conlist),
         topo(topo), sim(sim), conf(conf) {pairE.initIntFCE();}
 
     /**

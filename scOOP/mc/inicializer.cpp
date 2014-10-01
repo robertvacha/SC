@@ -251,18 +251,9 @@ void Inicializer::readOptions() {
 void Inicializer::initTop() {
 
     long i,j,k;
-    long  *sysmoln /*[MAXN]*/;
     bool exclusions[MAXT][MAXT] = {false};
 
-    pvecMolecules = new Molecule[MAXMT];
-
-    sysmoln = (long int*) malloc( sizeof(long)*MAXN);
-    if(sysmoln == NULL){
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sysmoln");
-        exit(1);
-    }
-
-    readTopoFile(sysmoln, exclusions);
+    readTopoFile(exclusions);
 
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
@@ -273,7 +264,10 @@ void Inicializer::initTop() {
     //TODO fill chain list and maxch, park particle type
     fprintf (stdout, "Generating chainlist...\n");
 
-    setParticlesParams(pvecMolecules, sysmoln, sysnames, &conf->pvec);
+    setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
+    setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
+
+    setChainCount();
 
     // Initialize the clusterlist
     sim->clusterlist = (long int*) malloc(sizeof(long) * conf->pvec.size());
@@ -317,30 +311,29 @@ void Inicializer::initTop() {
     //clear connectivity and then fill it from chain list
     fprintf (stdout, "Generating connectivity...\n");
 
-    //if(sim->pairlist_update) {
-        conf->neighborList.resize(conf->pvec.size());
-        for (i=0; i < (long)conf->neighborList.size(); i++) {
-            conf->neighborList[i].conlist[0] = -1;
-            conf->neighborList[i].conlist[1] = -1;
-            conf->neighborList[i].conlist[2] = -1;
-            conf->neighborList[i].conlist[3] = -1;
-        }
-    //}
+
+    conf->conlist.resize(conf->pvec.size());
+    for (i=0; i < (long)conf->conlist.size(); i++) {
+        conf->conlist[i].conlist[0] = -1;
+        conf->conlist[i].conlist[1] = -1;
+        conf->conlist[i].conlist[2] = -1;
+        conf->conlist[i].conlist[3] = -1;
+    }
 
     // generate conlist
     conf->sysvolume = 0;
-    for (i=0; i<(long)conf->neighborList.size(); i++) {
+    for (i=0; i<(long)conf->conlist.size(); i++) {
         for (j=0; j<MAXCHL; j++) {
             if (conf->chainlist[i][j] >= 0) {
                 k = conf->chainlist[i][j];
                 if ((j+1 < MAXCHL)&&(conf->chainlist[i][j+1] >= 0))
-                    conf->neighborList[k].conlist[1] = conf->chainlist[i][j+1]; //if there is a next particle fill it to head bond
+                    conf->conlist[k].conlist[1] = conf->chainlist[i][j+1]; //if there is a next particle fill it to head bond
                 if (j > 0)
-                    conf->neighborList[k].conlist[0] = conf->chainlist[i][j-1]; //if this is not first particle fill tail bond
+                    conf->conlist[k].conlist[0] = conf->chainlist[i][j-1]; //if this is not first particle fill tail bond
                 if ((j+2 < MAXCHL)&& (conf->chainlist[i][j+2] >= 0))
-                    conf->neighborList[k].conlist[3] = conf->chainlist[i][j+2]; //if there is a second next particle fill it second neighbour
+                    conf->conlist[k].conlist[3] = conf->chainlist[i][j+2]; //if there is a second next particle fill it second neighbour
                 if (j > 1)
-                    conf->neighborList[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
+                    conf->conlist[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
             }
         }
         conf->sysvolume += topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
@@ -363,8 +356,8 @@ void Inicializer::initTop() {
         conf->pvec[i].switched = 0;
     }
 
-    topDealoc(&sysmoln);
-    delete[] pvecMolecules;
+    topDealoc();
+    delete[] molecules;
     DEBUG_INIT("Finished with reading the topology");
 
     // Parallel tempering check
@@ -374,7 +367,7 @@ void Inicializer::initTop() {
 #endif
 }
 
-void Inicializer::initConfig() {
+void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
     int err,fields,tmp_type;
     long i,j,current,first;
@@ -390,7 +383,7 @@ void Inicializer::initConfig() {
             maxlength = topo->ia_params[i][i].len[0];
     }
 
-    infile = fopen(files->configurationInFile, "r");
+    infile = fopen(fileName, "r");
     if (infile == NULL) {
         fprintf (stderr, "\nERROR: Could not open config.init file.\n\n");
         exit (1);
@@ -426,23 +419,23 @@ void Inicializer::initConfig() {
     }
 
     DEBUG_INIT("Position of the particle");
-    for (i=0; i < (long)conf->pvec.size(); i++) {
+    for (i=0; i < (long)pvec.size(); i++) {
         if(myGetLine(&line, &line_size, infile) == -1){
             break;
         }
         strip_comment(line);
         trim(line);
         fields = sscanf(line, "%le %le %le %le %le %le %le %le %le %d",
-                &conf->pvec[i].pos.x, &conf->pvec[i].pos.y, &conf->pvec[i].pos.z,
-                &conf->pvec[i].dir.x, &conf->pvec[i].dir.y, &conf->pvec[i].dir.z,
-                &conf->pvec[i].patchdir[0].x, &conf->pvec[i].patchdir[0].y, &conf->pvec[i].patchdir[0].z,
-                &conf->pvec[i].switched);
-        conf->pvec[i].patchdir[1].x = conf->pvec[i].patchdir[1].y = conf->pvec[i].patchdir[1].z =0;
-        conf->pvec[i].chdir[0].x = conf->pvec[i].chdir[0].y = conf->pvec[i].chdir[0].z =0;
-        conf->pvec[i].chdir[1].x = conf->pvec[i].chdir[1].y = conf->pvec[i].chdir[1].z =0;
+                &pvec[i].pos.x, &pvec[i].pos.y, &pvec[i].pos.z,
+                &pvec[i].dir.x, &pvec[i].dir.y, &pvec[i].dir.z,
+                &pvec[i].patchdir[0].x, &pvec[i].patchdir[0].y, &pvec[i].patchdir[0].z,
+                &pvec[i].switched);
+        pvec[i].patchdir[1].x = pvec[i].patchdir[1].y = pvec[i].patchdir[1].z =0;
+        pvec[i].chdir[0].x = pvec[i].chdir[0].y = pvec[i].chdir[0].z =0;
+        pvec[i].chdir[1].x = pvec[i].chdir[1].y = pvec[i].chdir[1].z =0;
         DEBUG_INIT("Line: %s\nNumber of Fields: %d", line, fields);
         if (fields == 9){
-            conf->pvec[i].switched = 0;
+            pvec[i].switched = 0;
             fprintf(stdout, "WARNING: Particle %ld is assumed to be not switched!\n", i+1);
             fields++;
         }
@@ -453,44 +446,44 @@ void Inicializer::initConfig() {
             exit (1);
         }
         /* Scale position vector to the unit cube */
-        usePBC(&conf->pvec[i].pos, conf->box );
+        usePBC(&pvec[i].pos, conf->box );
 
-        conf->pvec[i].pos.x /= conf->box.x;
-        conf->pvec[i].pos.y /= conf->box.y;
-        conf->pvec[i].pos.z /= conf->box.z;
+        pvec[i].pos.x /= conf->box.x;
+        pvec[i].pos.y /= conf->box.y;
+        pvec[i].pos.z /= conf->box.z;
 
-        if ((topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].geotype[0]<SP)&&( DOT(conf->pvec[i].dir, conf->pvec[i].dir) < ZEROTOL )) {
+        if ((topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
             fprintf (stderr,
                     "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
             free(line);
             exit (1);
         } else {
-            conf->pvec[i].dir.normalise();
+            pvec[i].dir.normalise();
         }
 
-        if ((topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].geotype[0]<SP)&&( DOT(conf->pvec[i].patchdir[0], conf->pvec[i].patchdir[0]) < ZEROTOL )) {
+        if ((topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
                     "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
             free(line);
             exit (1);
         } else {
-            ortogonalise(&conf->pvec[i].patchdir[0],&conf->pvec[i].dir);
-            conf->pvec[i].patchdir[0].normalise();
+            ortogonalise(&pvec[i].patchdir[0],&pvec[i].dir);
+            pvec[i].patchdir[0].normalise();
         }
         // Switch the type
-        if(conf->pvec[i].switched){
-            if(conf->pvec[i].switchtype == 0){
+        if(pvec[i].switched){
+            if(pvec[i].switchtype == 0){
                 fprintf(stderr, "ERROR: Particle %ld switched even though it has no switchtype", i);
                 free(line);
                 exit(1);
             }
-            tmp_type = conf->pvec[i].type;
-            conf->pvec[i].type = conf->pvec[i].switchtype;
-            conf->pvec[i].switchtype = tmp_type;
+            tmp_type = pvec[i].type;
+            pvec[i].type = pvec[i].switchtype;
+            pvec[i].switchtype = tmp_type;
         }
 
-        DEBUG_INIT("%ld:\t%lf\t%lf\t%lf", i, conf->pvec[i].pos.x, conf->pvec[i].pos.y, conf->pvec[i].pos.z);
+        DEBUG_INIT("%ld:\t%lf\t%lf\t%lf", i, pvec[i].pos.x, pvec[i].pos.y, pvec[i].pos.z);
 
     }
     free(line);
@@ -499,21 +492,21 @@ void Inicializer::initConfig() {
         j=0;
         current = conf->chainlist[i][0];
         first = current;
-        chorig[0].pos = conf->pvec[first].pos;
+        chorig[0].pos = pvec[first].pos;
         while (current >=0 ) {
             /*shift the chain particle by first one*/
-            conf->pvec[current].pos.x -= chorig[0].pos.x;
-            conf->pvec[current].pos.y -= chorig[0].pos.y;
-            conf->pvec[current].pos.z -= chorig[0].pos.z;
+            pvec[current].pos.x -= chorig[0].pos.x;
+            pvec[current].pos.y -= chorig[0].pos.y;
+            pvec[current].pos.z -= chorig[0].pos.z;
             /*put it in orig box*/
-            conf->pvec[current].pos.x -=  anInt(conf->pvec[current].pos.x);
-            conf->pvec[current].pos.y -=  anInt(conf->pvec[current].pos.y);
-            conf->pvec[current].pos.z -=  anInt(conf->pvec[current].pos.z);
+            pvec[current].pos.x -=  anInt(pvec[current].pos.x);
+            pvec[current].pos.y -=  anInt(pvec[current].pos.y);
+            pvec[current].pos.z -=  anInt(pvec[current].pos.z);
             //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             /*shot it back*/
-            conf->pvec[current].pos.x += chorig[0].pos.x;
-            conf->pvec[current].pos.y += chorig[0].pos.y;
-            conf->pvec[current].pos.z += chorig[0].pos.z;
+            pvec[current].pos.x += chorig[0].pos.x;
+            pvec[current].pos.y += chorig[0].pos.y;
+            pvec[current].pos.z += chorig[0].pos.z;
             //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             j++;
             current = conf->chainlist[i][j];
@@ -551,7 +544,7 @@ void Inicializer::testChains() {
 }
 
 void Inicializer::initWriteFiles() {
-    sprintf(files->configurationInFileMuVTChains, "configMuVT");
+    sprintf(files->configurationPool, "pool");
     sprintf(files->configurationInFile, "config.init");
     sprintf(files->configurationoutfile, "config.last");
     sprintf(files->optionsfile, "options");
@@ -610,6 +603,21 @@ void Inicializer::initMPI(int argc, char** argv) {
 #endif
 }
 
+void Inicializer::initGroupLists() {
+    // setGroupList;
+    int newType = -1;
+    conf->pvecGroupList.vecSize = conf->pvec.size();
+    for(unsigned int i = 0; i < conf->pvec.size(); i++) {
+        // set simple grouplist
+        if(newType != conf->pvec[i].molType) {
+            newType = conf->pvec[i].molType;
+            conf->pvecGroupList.first[newType] = i;
+            conf->pvecGroupList.molSize[newType] = topo->chainparam[newType].molSize();
+        }
+    }
+    conf->pvecGroupList.molTypeCount = newType+1;
+}
+
 
 
 
@@ -623,20 +631,13 @@ void Inicializer::initMPI(int argc, char** argv) {
 void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
     long i=0, j=0, mol, k, maxpart=0, maxch=0;
 
-    try{
-        pvec->reserve(MAXN);
-    } catch(std::bad_alloc& bad) {
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for conf->pvec");
-        exit(1);
-    }
-
     while (sysnames[i]!=NULL) {
         mol=0;
         while (strcmp(molecules[mol].name,sysnames[i]) && mol < MAXMT) {
             mol++;
             if (molecules[mol].name == NULL) {
                 fprintf (stderr, "TOPOLOGY ERROR: molecules %s is not defined.\n\n",sysnames[i]);
-                topDealoc(&sysmoln);
+                topDealoc();
                 exit(1);
             }
         }
@@ -656,7 +657,7 @@ void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **
                 if (k > MAXCHL) {
                     fprintf (stderr, "TOPOLOGY ERROR: more particles in chan (%ld) than allowed(%d).\n",k,MAXCHL);
                     fprintf (stderr, "Change MAXCHL in source and recompile the program. \n\n");
-                    topDealoc(&sysmoln);
+                    topDealoc();
                     exit(1);
                 }
                 if (molecules[mol].type[1] != -1) {
@@ -667,7 +668,7 @@ void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **
                 if (maxpart > MAXN) {
                     fprintf (stderr, "TOPOLOGY ERROR: more particles(%ld) than allowed(%d).\n",maxpart,MAXN);
                     fprintf (stderr, "Change MAXN in source and recompile the program. \n\n");
-                    topDealoc(&sysmoln);
+                    topDealoc();
                     exit(1);
                 }
             }
@@ -678,33 +679,39 @@ void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **
         i++;
     }
 
-    int newType = -1;
-    for(i = 0; i < maxpart; i++) {
-        // set simple grouplist
-        if(newType != (*pvec)[i].molType) {
-            newType = (*pvec)[i].molType;
-            conf->pvecGroupList.first[newType] = i;
-            conf->pvecGroupList.molSize[newType] = topo->chainparam[newType].molSize();
-        }
-    }
-    conf->pvecGroupList.molTypeCount = newType+1;
+    assert(maxpart == pvec->size());
+}
 
-    j = 0;
+void Inicializer::setChainCount() {
+    long i=0, j=0, mol, maxch=0;
+
     while (conf->chainlist[j][0] >= 0) {
         j++;
     }
     conf->chainCount = j;
 
+    j=0;
+
+    while (sysnames[i]!=NULL) {
+        mol=0;
+        while (strcmp(molecules[mol].name,sysnames[i]) && mol < MAXMT)
+            mol++;
+        for (j=0;j<sysmoln[i];j++)
+            if (molecules[mol].type[1] != -1)
+                maxch++;
+        i++;
+    }
+
     if (conf->chainCount != maxch) {
         fprintf (stderr, "TOPOLOGY ERROR: Maximum number of chains(%ld) does not agree with number of chains (%ld)\n\n",maxch,conf->chainCount);
-        topDealoc(&sysmoln);
+        topDealoc();
         exit (1);
     }
 }
 
 
 
-void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
+void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
     char *dummy=NULL;
     char line[STRLEN], keystr[STRLEN], molname[STRLEN];
     unsigned size;
@@ -752,7 +759,7 @@ void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
                     if (!fillTypes(&pline)) {
                         DEBUG_INIT("Something went wrong with filltypes");
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading types\n\n");
-                        topDealoc(&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
@@ -764,16 +771,16 @@ void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
                     if (molname[0] == ' ') {
                         beforecommand(molname,pline,SEPARATOR);
                         i=0;
-                        while (pvecMolecules[i].name != NULL)
+                        while (molecules[i].name != NULL)
                             i++;
                         DEBUG_INIT("in the middle of getting to fillmol");
-                        pvecMolecules[i].name = (char*) malloc(strlen(molname)+1);
-                        strcpy(pvecMolecules[i].name, molname);
+                        molecules[i].name = (char*) malloc(strlen(molname)+1);
+                        strcpy(molecules[i].name, molname);
                         fprintf (stdout, "\nTopology read for molecule: %s \n",molname);
                     }
-                    if (!fillMol(molname, pline, pvecMolecules)) {
+                    if (!fillMol(molname, pline, molecules)) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading molecules\n\n");
-                        topDealoc(&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
@@ -784,27 +791,28 @@ void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
                 if (!strcmp(keystr,"SYSTEM")) {
                     if (!fillSystem(pline,sysnames,&sysmoln)) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
-                        topDealoc(&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
                     continue;
                 }
-                /*if (!strcmp(keystr, "POOL")) {
-                    if (!fillSystem(pline,sysnames,&sysmoln)) {
+                if (!strcmp(keystr, "POOL")) {
+                    poolConfig = true;
+                    if (!fillSystem(pline,poolNames,&poolMolNum)) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
-                        topDealoc(sysnames,&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
                     continue;
-                }*/
+                }
                 if (!strcmp(keystr,"EXTER")) {
                     fflush(stdout);
                     if (!fillExter(&pline)) {
                         DEBUG_INIT("Something went wrong with external potential");
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading external potential\n\n");
-                        topDealoc(&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
@@ -815,7 +823,7 @@ void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
                     if (!fillExclusions(&pline,exclusions)) {
                         DEBUG_INIT("Something went wrong with exclusions potential");
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
-                        topDealoc(&sysmoln);
+                        topDealoc();
                         free(pline); pline = NULL;
                         exit (1);
                     }
@@ -823,7 +831,7 @@ void Inicializer::readTopoFile(long  *sysmoln, bool exclusions[][MAXT]) {
                 }
 
                 fprintf (stderr, "\nTOPOLOGY ERROR: invalid keyword:%s.\n\n", keystr);
-                topDealoc(&sysmoln);
+                topDealoc();
                 free(pline); pline = NULL;
                 exit (1);
             }
@@ -850,14 +858,22 @@ void *Inicializer::xMalloc(size_t num) {
 
 
 
-int Inicializer::topDealoc(long **sysmoln) {
+int Inicializer::topDealoc() {
 
-    if ((*sysmoln) != NULL) free((*sysmoln));
-        (*sysmoln)=NULL;
+    if (sysmoln != NULL) free(sysmoln);
+        sysmoln=NULL;
+
+    if (poolMolNum != NULL) free(poolMolNum);
+        poolMolNum=NULL;
 
     for (int i=0;i<MAXN;i++) {
         if ((sysnames[i]) != NULL) free(sysnames[i]);
             sysnames[i]=NULL;
+    }
+
+    for (int i=0;i<MAXN;i++) {
+        if ((poolNames[i]) != NULL) free(poolNames[i]);
+            poolNames[i]=NULL;
     }
 
     return 0;
@@ -907,6 +923,7 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln) {
     }
     i=0;
     while (sysnames[i]!=NULL) i++;
+
     fields = sscanf(pline, "%s %ld", zz, &(*sysmoln)[i]);
     sysnames[i] = (char*) malloc(strlen(zz)+1);
     strcpy(sysnames[i],zz);

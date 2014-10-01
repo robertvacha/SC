@@ -20,6 +20,11 @@ typedef struct{
 } Cluster;
 
 
+class ConList{
+public:
+    long conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+};
+
 
 /**
  * @brief This structure is for io only
@@ -77,7 +82,7 @@ typedef struct {        // for reading in the options
 
 typedef struct{
     // input files
-    char configurationInFileMuVTChains[30];
+    char configurationPool[30];
     char configurationInFile[30];
     char topologyInFile[30];
     char optionsfile[30];
@@ -205,7 +210,6 @@ typedef struct { /* extra type for mpi communication*/
 typedef struct {
     long neighborCount; ///< \brief The number of neighbors (pairs eq. num_pairs)
     long * neighborID;  ///< \brief The particle indexes of the neighbors
-    long conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 } Neighbors;
 
 #ifdef ENABLE_MPI

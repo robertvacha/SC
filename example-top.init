@@ -16,8 +16,7 @@ beta    1         PSC     1.0        1.0       1.2246205        0.6             
 #  particles - types as they go in chain in molecule
 #
 #  muVT ensemble, only for one single particle type, must be listed as last type
-#  MU - chemical potential for muVT ensMBLE
-#  LNLAMBDA - natural log of thermal wavelenght
+#  ACTIVITY - activity 
 #  INSERT_TYPE - 0(default - no insert),
 #                1(Random insert) -> attempt muVTmove(Grand canon ensemble)
 #                2(Pool insert) -> attempt muVTmove(Grand canon ensemble)
@@ -31,9 +30,8 @@ beta    1         PSC     1.0        1.0       1.2246205        0.6             
 A: {
 #what:       TYPE   	SWITCHTYPE  	DELTA_MU 
 particles:   1
-MU: 20
-LNLAMBDA: 30
-MUVTMOVE: 1			
+ACTIVITY: 0.01
+INSERT_TYPE: 1		
 }
 
 [System]

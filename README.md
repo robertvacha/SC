@@ -21,4 +21,9 @@ Parallel tempering (enabling MPI) compile with:
 
 , where x is the number of threads
 
-NOTE: dont use GrandCanonical with Replica Exchange
+Currently Grand-Canonical works only for single atomic type simulation with random init
+
+NOTE: dont use GrandCanonical with:
+    Replica Exchange!!!
+    
+      

@@ -34,14 +34,14 @@ private:
 
     Topo* topo;
     Vector box; // box size
-    std::vector<Neighbors>* neighborList;
+    std::vector<ConList>& conlist;
 
     double (PairEnergyCalculator::*intFCE[MAXT][MAXT])();
 
 
 public:
-    PairEnergyCalculator(Topo* topo, Vector box, std::vector<Neighbors>* neighborList)
-        : topo(topo), box(box), neighborList(neighborList) {}
+    PairEnergyCalculator(Topo* topo, Vector box, std::vector<ConList>& conlist)
+        : topo(topo), box(box), conlist(conlist) {}
 
     double operator() (Particle* part1, int num1, Particle* part2, int num2);
 
