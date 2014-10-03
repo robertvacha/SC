@@ -23,6 +23,8 @@ Parallel tempering (enabling MPI) compile with:
 
 Currently Grand-Canonical works only for single atomic type simulation with random init
 
+NOTE: to submit a job with grandCanonically active species use runGrand
+
 NOTE: dont use GrandCanonical with:
     Replica Exchange!!!
     
