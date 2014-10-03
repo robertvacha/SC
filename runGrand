@@ -1,0 +1,81 @@
+#!/usr/bin/env infinity-env
+
+# number of total runs
+TOTAL_RUNS=10
+
+# ------------------------------------------------------------------------------
+echo Started at `date`
+
+if [ -z "$_CURR_RUN" ]; then
+   # first run
+   _CURR_RUN=1
+fi
+
+function savefiles() {
+    rank=$1
+    if [ -f ./${rank}movie ]; then
+	NSIM=1
+	while [ -f ./${rank}movie-$NSIM ]; do
+    	    NSIM=$[NSIM+1]
+	done
+	cp ./${rank}config.init ./${rank}config-$NSIM.init
+        cp ./${rank}top.init ./${rank}top-$NSIM.init
+	mv ./${rank}movie ./${rank}movie-$NSIM
+	cp ./${rank}cluster_stat.dat ./${rank}cluster_stat-$NSIM.dat
+	cp ./${rank}cluster.dat ./${rank}cluster-$NSIM.dat
+    fi
+
+    if [ -f ./${rank}wl-new.dat ]; then
+	NSIM=1
+	while [ -f ./${rank}wlzal-$NSIM.dat ]; do
+    	    NSIM=$[NSIM+1]
+	done
+	cp ./${rank}wl-new.dat ./${rank}wl.dat
+	mv ./${rank}wl-new.dat ./${rank}wlzal-$NSIM.dat
+    fi
+
+    if [ -f ./${rank}config.last ]; then
+	cp ./${rank}config.last ./${rank}config.init
+    fi
+
+    if [ -f ./${rank}top.last ]; then
+        cp ./${rank}top.last ./${rank}top.init
+    fi
+}
+
+echo $INF_NCPU
+if [ $INF_NCPU -eq 1 ]; then 
+    savefiles ""
+    ##make single
+    ##./sc
+    ./SC
+else
+    for rank in `seq 0 ${INF_NCPU}`
+    do
+	savefiles $rank
+    done
+    module add openmpi
+    ##make mpi
+    ##mpirun -np $INF_NCPU ./sc
+fi
+
+echo Finished at `date`
+
+# is the end?
+_CURR_RUN=$(($_CURR_RUN + 1))
+if [ ${_CURR_RUN} -le $TOTAL_RUNS ]; then
+    # resubmit job
+    ssh -x "$INF_JOB_MACHINE" "
+    site activate $AMS_SITE; \
+    cd $INF_JOB_PATH; \
+    export _CURR_RUN=${_CURR_RUN}; \
+    export INF_EXTERNAL_VARIABLES="_CURR_RUN"; \
+    export INF_EXTERNAL_NAME_SUFFIX=\"#`printf %03d ${_CURR_RUN}`\";\
+    export INF_EXTERNAL_START_AFTER=$PBS_JOBID; \
+    pconfirmsubmit NO; \
+    pignoreruntimefiles YES; \
+    psubmit $INF_ARG_DESTINATION $INF_ARG_JOB $INF_ARG_RESOURCES; "
+
+fi
+
+exit
