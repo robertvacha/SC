@@ -21,7 +21,8 @@ Parallel tempering (enabling MPI) compile with:
 
 , where x is the number of threads
 
-Currently Grand-Canonical works only for single atomic type simulation with random init
+Currently Grand-Canonical works only for single atomic type simulation 
+with random insert initialization
 
 NOTE: to submit a job with grandCanonically active species use runGrand
 
