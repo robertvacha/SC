@@ -1352,6 +1352,7 @@ double MoveCreator::muVTMove() {
 
                 conf->addMolecule(&insert);
                 insert.clear();
+                conf->sysvolume += topo->ia_params[insert[0].type][insert[0].type].volume;
                 return energy - entrophy;
             } else { // rejected
                 insert.clear();
@@ -1383,6 +1384,7 @@ double MoveCreator::muVTMove() {
             if( ( ( (double)conf->pvecGroupList.molCountOfType(molType) / volume) *
                   exp( (energy - topo->chainparam[molType].chemPot)/sim->temper)) > ran2()) {
 
+                conf->sysvolume -= topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
                 conf->removeMolecule(target, 1);
 
                 return -energy + entrophy;

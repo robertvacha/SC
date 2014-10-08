@@ -270,7 +270,7 @@ void Inicializer::initTop() {
     setChainCount();
 
     // Initialize the clusterlist
-    sim->clusterlist = (long int*) malloc(sizeof(long) * conf->pvec.size());
+    sim->clusterlist = (long int*) malloc(sizeof(long) * MAXN);
     if(sim->clusterlist == NULL){
         fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clusterlist!");
         exit(1);

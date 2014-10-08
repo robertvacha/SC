@@ -187,7 +187,6 @@ int MCSimSystem::memoryDealloc() {
         conf.neighborList[i].neighborID = NULL;
     }
 
-
     /*if (conf.particle != NULL) // left just for peace of mind, before Particles* --> std::vector<Particles* >
         free(conf.particle);
     conf.particle = NULL;*/

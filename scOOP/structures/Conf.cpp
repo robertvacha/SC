@@ -38,16 +38,17 @@ void Conf::removeMolecule(int target, int size) {
         //
         // optimalization, when possible copy only minimal number of particles of succeeding molTypes
         //
+
         pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
 
         if(pairlist_update) {
+            std::cout << "test1" << std::endl;
             for(int i=0; i<size; i++) {;
-                delete neighborList[target+i].neighborID;
+                delete neighborList.back().neighborID;
+                neighborList.pop_back();
             }
-            neighborList.erase(neighborList.begin()+target, neighborList.begin()+target+size);
         }
     //}
-
     // modify groupList
     pvecGroupList.deleteMolecule(pvec[target].molType);
 }
