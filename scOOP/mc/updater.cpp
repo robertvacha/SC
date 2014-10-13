@@ -243,12 +243,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep
                     !(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) && // not on grandCanon sweep
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
-                ) ) {
+                )
+                ) {
             genPairList();
         }
 
         //normal moves
-        for (step=1; step <= (long)(long)conf->pvec.size(); step++) {
+        for (step=1; step <= (long)conf->pvec.size(); step++) {
             moveprobab = ran2();
             if ( moveprobab < sim->shprob) {
                 // pressure moves
@@ -418,6 +419,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
+
     for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
         printf("%s %d\n", topo->chainparam[i].name, conf->pvecGroupList.molCountOfType(i));
 
@@ -549,8 +551,8 @@ void Updater::genSimplePairList() {
     for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
         for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
             assert(conf->pvec.size() == conf->neighborList.size());
-            assert(conf->pvec[i] != NULL);
-            assert(conf->pvec[j] != NULL);
+            assert(&conf->pvec[i] != NULL);
+            assert(&conf->pvec[j] != NULL);
 
             r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
             r_cm.y = conf->pvec[i].pos.y - conf->pvec[j].pos.y;
@@ -645,7 +647,6 @@ int Updater::genClusterList() {
     // Start determining the cluster
     while(change){
         change = false;
-        assert(conf->pvec.size() == conf->neighborList.size());
         for(i = 0; i < (long)conf->pvec.size(); i++){
             /*If nore pairlist go over all pairs*/
             maxnumber = (long)conf->pvec.size();

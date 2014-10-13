@@ -1346,9 +1346,9 @@ double MoveCreator::muVTMove() {
 
             energy = calcEnergy->oneToAll(&insert[0], -1);
 
-            // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27)) + (mu - U(new))/kT)
-            if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1)) *
-                  exp( topo->chainparam[molType].chemPot + (-energy)/sim->temper) ) > ran2()) {
+            // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
+            if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1.0)) *
+                  exp( topo->chainparam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
 
                 conf->addMolecule(&insert);
                 insert.clear();
@@ -1381,8 +1381,8 @@ double MoveCreator::muVTMove() {
             //
             // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
             //
-            if( ( ( (double)conf->pvecGroupList.molCountOfType(molType) / volume) *
-                  exp( (energy - topo->chainparam[molType].chemPot)/sim->temper)) > ran2()) {
+            if( ( ( (double)(conf->pvecGroupList.molCountOfType(molType)) / volume) *
+                  exp( (energy)/sim->temper - topo->chainparam[molType].chemPot)) > ran2()) {
 
                 conf->sysvolume -= topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
                 conf->removeMolecule(target, 1);
@@ -1588,11 +1588,11 @@ long MoveCreator::contParticlesAll(int wli) {
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
     for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-        if(topo->chainparam[i].insertType != 0) molType++;
+        if(topo->chainparam[i].activity != -1) molType++;
     }
     molType = (long) (ran2() * ((double)molType));
     for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-        if(topo->chainparam[i].insertType) {
+        if(topo->chainparam[i].activity != -1) {
             if(molType == 0) {
                 molType = i;
                 break;

@@ -42,7 +42,6 @@ void Conf::removeMolecule(int target, int size) {
         pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
 
         if(pairlist_update) {
-            std::cout << "test1" << std::endl;
             for(int i=0; i<size; i++) {;
                 delete neighborList.back().neighborID;
                 neighborList.pop_back();

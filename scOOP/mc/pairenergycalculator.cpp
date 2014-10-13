@@ -1847,7 +1847,6 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
                 //    printf ("ends %d\n", intrs);
     }
 
-
     return intrs;
 }
 

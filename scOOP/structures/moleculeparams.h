@@ -24,13 +24,12 @@ public:
     // For muVT enseble
     double activity;                ///< \brief activity, specific to each molecule type
     double chemPot;                 ///< \brief mu + 3*ln(A), specific to each type
-    int insertType;                 ///< \brief 0: no muVT, 1: RANDOM, 2: POOL
     std::vector<int> particleTypes; ///< \brief 0..40 single particle type of each particle, -1: no particle
 
 public:
     MoleculeParams() : bond1eq(-1), bond1c(-1), bond2eq(-1), bond2c(-1), /*bonddeq(-1),*/ bonddc(-1),
                        angle1eq(-1), angle1c(-1), angle2eq(-1), angle2c(-1),
-                       activity(-1), chemPot(-1), insertType(0) {
+                       activity(-1), chemPot(-1) {
         particleTypes.resize(MAXCHL);
         for(int j=0; j<MAXCHL; j++)
             particleTypes[j] = -1;

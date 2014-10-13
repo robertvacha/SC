@@ -157,6 +157,11 @@ void Inicializer::readOptions() {
     printf (" Random number seed:                                 %ld\n", seed);
     printf (" Number of sweeps per writing out cluster info:      %ld\n", sim->write_cluster);
 
+    if(sim->nGrandCanon > 0 && sim->nrepchange > 0) {
+        cout << "\nGrandCanonical and Replica exchange cannot be enabled at once!!!" << endl;
+        exit(1);
+    }
+
     if (sim->movie > 0) {
         printf (" Sweeps between movie frames:                      %ld\n", sim->movie);
     } else {
@@ -564,6 +569,7 @@ void Inicializer::initPairlist() {
 
     // Highest guess: Every particle interacts with the others
     // TODO: Make it more sophisticated
+    conf->neighborList.resize(conf->pvec.size());
     for(unsigned long i = 0; i < conf->neighborList.size(); i++){
         conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * MAXN);
         conf->neighborList[i].neighborCount = 0;
@@ -1188,7 +1194,6 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
     int i,j,fields;
     double bondk,bonddist, activity;
     const double Nav = 6.022137e23;
-    int insertType;
 
     beforecommand(str2, pline, CLOSEMOL);
     aftercommand(str, str2, OPENMOL);
@@ -1328,16 +1333,6 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
         topo->chainparam[i].activity = activity;
         topo->chainparam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
         fprintf (stdout, "activity: %f \n",topo->chainparam[i].activity);
-        return 1;
-    }
-    if (!strcmp(molcommand,"INSERT_TYPE")) {
-        fields = sscanf(molparams, "%d ", &insertType);
-        topo->chainparam[i].insertType = insertType;
-        switch(topo->chainparam[i].insertType){
-        case MoleculeParams::NO_INSERT: cout << "no muVTmove" << endl; break;
-        case MoleculeParams::RANDOM: cout << "muVTmove: RANDOM INSERT" << endl; break;
-        case MoleculeParams::POOL: cout << "muVTmove: POOL INSERT" << endl; break;
-        }
         return 1;
     }
 
