@@ -230,8 +230,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Try muVT insert delete moves
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
             edriftchanges += move.muVTMove();
-            muVtAverageParticles += conf->pvec.size();
-            muVtSteps++;
 
             if(sim->pairlist_update)
                 genPairList();
@@ -250,25 +248,24 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
+
             moveprobab = ran2();
+
             if ( moveprobab < sim->shprob) {
-                // pressure moves
                 edriftchanges += move.pressureMove();
+                continue;
+            }
+            if (moveprobab < sim->shprob + sim->chainprob) {
+                edriftchanges += move.chainMove();
+                continue;
+            }
+            if (moveprobab < sim->shprob + sim->chainprob + sim->switchprob){
+                //=== This is an attempt to switch a type ===
+                edriftchanges += move.switchTypeMove();
             } else {
-                if (moveprobab < sim->shprob + sim->chainprob) {
-                    // single particle moves
-                    edriftchanges += move.chainMove();
-                }
-                else if (moveprobab < sim->shprob + sim->chainprob + sim->switchprob){
-                    //=== This is an attempt to switch a type ===
-                    edriftchanges += move.switchTypeMove();
-
-                } else {
-                    // single particle moves
-                    edriftchanges += move.particleMove();
-
-                } // end of else next to chain moves
-            } // end of else next to volume moves        
+                // single particle moves
+                edriftchanges += move.particleMove();
+            }
         } // End of step loop for this sweep
 
         //=== Start of end-of-sweep housekeeping ===
@@ -423,8 +420,34 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
         printf("%s %d\n", topo->chainparam[i].name, conf->pvecGroupList.molCountOfType(i));
 
-    if(sim->nGrandCanon != 0)
-        cout << "Average number of particles: " << (double)muVtAverageParticles/muVtSteps << endl;
+#ifndef NDEBUG
+    unsigned int sum=0;
+    for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
+        sum += conf->pvecGroupList.molCountOfType(i);
+    assert(sum == conf->pvec.size());
+#endif
+
+    if(sim->nGrandCanon != 0) {
+        cout << "Acceptance:\n";
+        cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
+        cout << std::setprecision(3) <<  std::fixed << std::left;
+        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+            if(topo->chainparam[i].activity != -1.0) {
+                cout << "  " << std::setw(6) <<topo->chainparam[i].name << " "
+                     << std::setw(6)
+                     << (double)topo->chainparam[i].insAcc/(topo->chainparam[i].insAcc+topo->chainparam[i].insRej) << " "
+                     << std::setw(6)
+                     << (double)topo->chainparam[i].insRej/(topo->chainparam[i].insAcc+topo->chainparam[i].insRej) << " "
+                     << std::setw(6)
+                     << (double)topo->chainparam[i].delAcc/(topo->chainparam[i].delAcc+topo->chainparam[i].delRej) << " "
+                     << std::setw(6)
+                     << (double)topo->chainparam[i].delRej/(topo->chainparam[i].delAcc+topo->chainparam[i].delRej) << " "
+                     << std::setw(6)
+                     << (double)topo->chainparam[i].muVtAverageParticles / topo->chainparam[i].muVtSteps << endl;
+            }
+        }
+        cout << std::setprecision(6);
+    }
     fflush(stdout);
 
     endWangLandau();

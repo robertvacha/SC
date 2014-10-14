@@ -3,6 +3,8 @@
 #ifndef MCSIMSYSTEM_H
 #define MCSIMSYSTEM_H
 
+#include <iostream>
+#include <iomanip>
 #include "inicializer.h"
 #include "updater.h"
 

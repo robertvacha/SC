@@ -26,10 +26,20 @@ public:
     double chemPot;                 ///< \brief mu + 3*ln(A), specific to each type
     std::vector<int> particleTypes; ///< \brief 0..40 single particle type of each particle, -1: no particle
 
+    int delAcc;
+    int delRej;
+    int insAcc;
+    int insRej;
+
+    unsigned long long int muVtAverageParticles;
+    unsigned int muVtSteps;
+
 public:
-    MoleculeParams() : bond1eq(-1), bond1c(-1), bond2eq(-1), bond2c(-1), /*bonddeq(-1),*/ bonddc(-1),
-                       angle1eq(-1), angle1c(-1), angle2eq(-1), angle2c(-1),
-                       activity(-1), chemPot(-1) {
+    MoleculeParams() : bond1eq(-1.0), bond1c(-1.0), bond2eq(-1.0), bond2c(-1.0), /*bonddeq(-1),*/ bonddc(-1.0),
+                       angle1eq(-1.0), angle1c(-1.0), angle2eq(-1.0), angle2c(-1.0),
+                       activity(-1.0), chemPot(-1.0),
+                       delAcc(0), delRej(0), insAcc(0), insRej(0),
+                       muVtAverageParticles(0), muVtSteps(0) {
         particleTypes.resize(MAXCHL);
         for(int j=0; j<MAXCHL; j++)
             particleTypes[j] = -1;

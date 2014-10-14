@@ -1327,6 +1327,7 @@ double MoveCreator::muVTMove() {
 
     // Determine what type we will be inserting/deleting
     int molType = getRandomMuVTType();
+    topo->chainparam[molType].muVtSteps++;
     assert(topo->chainparam[molType].chemPot != -1 && "chempot uninitialized");
 
     if(ran2() > 0.5) { //  insert move
@@ -1353,9 +1354,15 @@ double MoveCreator::muVTMove() {
                 conf->addMolecule(&insert);
                 insert.clear();
                 conf->sysvolume += topo->ia_params[insert[0].type][insert[0].type].volume;
+                topo->chainparam[molType].insAcc++;
+                topo->chainparam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+
                 return energy - entrophy;
             } else { // rejected
                 insert.clear();
+                topo->chainparam[molType].insRej++;
+                topo->chainparam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);;
+
                 return 0;
             }
 
@@ -1370,12 +1377,16 @@ double MoveCreator::muVTMove() {
     } else { // delete move
 
         // choose particle -> only of certain type -> list of certain types
-        if(conf->pvecGroupList.molCountOfType(molType) == 0) return 0;
+        if(conf->pvecGroupList.molCountOfType(molType) == 0) return 0;        
+        assert(conf->pvecGroupList.molCountOfType(molType) > 0);
+
         target = ran2() * conf->pvecGroupList.molCountOfType(molType);
+        target = conf->pvecGroupList.getStoreIndex(molType, target);
+        assert(conf->pvec[target].molType == molType);
 
         if(topo->chainparam[molType].isAtomic()) {
             // do energy calc
-            target = conf->pvecGroupList.getStoreIndex(molType, target);
+
             energy = calcEnergy->oneToAll(target);
 
             //
@@ -1386,9 +1397,13 @@ double MoveCreator::muVTMove() {
 
                 conf->sysvolume -= topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
                 conf->removeMolecule(target, 1);
+                topo->chainparam[molType].delAcc++;
+                topo->chainparam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
 
                 return -energy + entrophy;
             } else {
+                topo->chainparam[molType].delRej++;
+                topo->chainparam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
                 return 0;
             }
         } else {

@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 /**
  * @brief The GroupList class - simple grouplist
  */
@@ -24,6 +26,14 @@ public:
         for(int i=0; i<MAXMT; i++) {
             first[i] = -1; molSize[i] = -1;
         }
+    }
+
+    void info() {
+        cout << "number of types: " << molTypeCount << endl;
+        cout << "first:";
+        for(int i=0; i<molTypeCount; i++)
+             cout << " " << first[i];
+        cout << endl;
     }
 
     /**
@@ -45,9 +55,12 @@ public:
      * @param molType Type of molecule
      * @return Number of molecules a given type
      */
-    int molCountOfType(int molType) {
-        if(first[molType+1] != -1)
+    int molCountOfType(int molType) {       
+        if(first[molType+1] != -1) {
+            assert( ( first[molType+1] -  first[molType]) /  molSize[molType] >= 0);
             return ( first[molType+1] -  first[molType]) /  molSize[molType];
+        }
+        assert( (vecSize -  first[molType]) /  molSize[molType] >= 0);
         return (vecSize -  first[molType]) /  molSize[molType];
     }
 
@@ -55,13 +68,24 @@ public:
         for(int i= molType+1; i<molTypeCount; i++)
             first[i] += molSize[molType];
         vecSize += molSize[molType];
+        assert(checkConsistency());
     }
 
     void deleteMolecule(int molType) {
         for(int i=molType+1; i<molTypeCount; i++)
             first[i] -= molSize[molType];
         vecSize -= molSize[molType];
+        assert(checkConsistency());
     }
+
+#ifndef NDEBUG
+    int checkConsistency() {
+        for(int i=0; i<molTypeCount-1; i++) {
+            if(first[i+1] >= first[i])return 1;
+        }
+        return 0;
+    }
+#endif
 
 };
 

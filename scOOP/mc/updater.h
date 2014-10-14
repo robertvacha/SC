@@ -6,14 +6,14 @@
 #include "printStat.h"
 #include "movecreator.h"
 #include "../structures/Conf.h"
+#include <iomanip>
 
 class Updater
 {
 public:
     Updater(Topo* topo, Sim* sim, Conf* conf, FileNames* files) :
         topo(topo), sim(sim), conf(conf), files(files),
-        calcEnergy(topo, sim, conf), move(topo, sim, conf, &calcEnergy),
-        muVtAverageParticles(0), muVtSteps(0) {}
+        calcEnergy(topo, sim, conf), move(topo, sim, conf, &calcEnergy) {}
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future
@@ -28,9 +28,6 @@ private:
     long adjust;
     long paramfrq;
     long report;
-
-    unsigned long long int muVtAverageParticles;
-    unsigned int muVtSteps;
 
 public:
     /**

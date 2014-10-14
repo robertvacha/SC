@@ -1,7 +1,22 @@
 #include "Conf.h"
 
 void Conf::addMolecule(std::vector<Particle>* molecule) {
+#ifndef NDEBUG
+    assert(pvecGroupList.checkConsistency());
+    int size = pvec.size();
+    int molTypeSize = pvecGroupList.molCountOfType((*molecule)[0].molType);
+#endif
     int insID = pvecGroupList.getInsertIndex((*molecule)[0].molType);   // store index where to insert
+
+    // add neighbors to neighborList
+    if(pairlist_update) {
+        for(unsigned int i = 0; i<molecule->size(); i++) {
+            neighborList.push_back(Neighbors());
+            neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
+        }
+    }
+    // change groupList
+    pvecGroupList.insertMolecule((*molecule)[0].molType);
 
     // insert at end of pvec -> trivial
     if((*molecule)[0].molType == pvecGroupList.molTypeCount-1) {
@@ -16,40 +31,38 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
         pvec.insert(pvec.begin()+insID, molecule->begin(), molecule->end());
     }
 
-    // add neighbors to neighborList
-    if(pairlist_update) {
-        for(unsigned int i = 0; i<molecule->size(); i++) {
-            neighborList.push_back(Neighbors());
-            neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
-        }
-    }
-    // change groupList
-    pvecGroupList.insertMolecule((*molecule)[0].molType);
+#ifndef NDEBUG
+    assert(pvecGroupList.checkConsistency());
+    assert(pvec.size() == molecule->size() + size);
+    assert(pvecGroupList.molCountOfType((*molecule)[0].molType) == molTypeSize + molecule->size());
+#endif
 }
 
 void Conf::removeMolecule(int target, int size) {
 
-    //if(pvec[(*target)[0]].molType == molTypeCount-1) {
+#ifndef NDEBUG
+    assert(pvecGroupList.checkConsistency());
+    assert(pvec.size() == pvecGroupList.vecSize);
+    unsigned int pSize = pvec.size();
+    int molTypeSize = pvecGroupList.molCountOfType(pvec[target].molType);
+    int molType = pvec[target].molType;
+#endif
 
-
-    //} else { // erasing in middle of other types
-        //
-        // copy all particles after delete (done automatically by std::vector::erase() )
-        //
-        // optimalization, when possible copy only minimal number of particles of succeeding molTypes
-        //
-
-        pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
-
-        if(pairlist_update) {
-            for(int i=0; i<size; i++) {;
-                delete neighborList.back().neighborID;
-                neighborList.pop_back();
-            }
+    if(pairlist_update) {
+        for(int i=0; i<size; i++) {;
+            delete neighborList.back().neighborID;
+            neighborList.pop_back();
         }
-    //}
-    // modify groupList
+    }
+
     pvecGroupList.deleteMolecule(pvec[target].molType);
+    pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
+
+#ifndef NDEBUG
+    assert(pvecGroupList.checkConsistency());
+    assert(pvec.size() == pSize - size);
+    assert(pvecGroupList.molCountOfType(molType) == molTypeSize - size);
+#endif
 }
 
 void Conf::massCenter(Topo* topo) {
