@@ -3,13 +3,13 @@
 #include <iostream>
 using namespace std;
 
-double PairEnergyCalculator::operator ()(Particle *part1, int num1, Particle *part2, int num2) {
+double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Particle *part2, ConList* conlist2) {
 
-    double energy=0.0;  /* energy*/
+    double energy=0.0;
     this->part1 = part1;
     this->part2 = part2;
-    this->num1 = num1;
-    this->num2 = num2;
+    this->conlist1 = conlist1;
+    this->conlist2 = conlist2;
 
     /*Placing interactin particle in unit box and finding vector connecting CM*/
     /*r_cm = image(part1.pos, part2.pos, box); explicit statement below for performance optimization*/
@@ -18,17 +18,17 @@ double PairEnergyCalculator::operator ()(Particle *part1, int num1, Particle *pa
     r_cm.z = part1->pos.z - part2->pos.z;
 
     if ( r_cm.x < 0  )
-        r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
+        r_cm.x = box->x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
     else
-        r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
+        r_cm.x = box->x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
     if ( r_cm.y < 0  )
-        r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
+        r_cm.y = box->y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
     else
-        r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
+        r_cm.y = box->y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
     if ( r_cm.z < 0  )
-        r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
+        r_cm.z = box->z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
     else
-        r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+        r_cm.z = box->z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
 
     dotrcm = DOT(r_cm,r_cm);
 
@@ -43,7 +43,6 @@ double PairEnergyCalculator::operator ()(Particle *part1, int num1, Particle *pa
     if(intFCE[part1->type][part2->type] == NULL){
         fprintf(stderr, "interaction function for type %d and %d not defined!\n", part1->type, part2->type);
     }
-
     energy = (this->*intFCE[part1->type][part2->type])();
 
     //printf("num: %ld  %ld   e: %f dist: %f",num1,num2,energy,interact.dist);
@@ -114,8 +113,8 @@ double PairEnergyCalculator::angleEnergy() {
     int * geotype = topo->ia_params[part1->type][part2->type].geotype;
 
     /*angle interaction with nearest neighbours -harmonic*/
-    if ((topo->chainparam[part1->molType]).angle1c >= 0) {
-        if (num2 == conlist[num1].conlist[0]) {
+    if ((topo->moleculeParam[part1->molType]).angle1c >= 0) {
+        if (part2 == conlist1->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 /*spheres do not have this interaction*/
@@ -126,27 +125,27 @@ double PairEnergyCalculator::angleEnergy() {
                 else {
                     halfl = topo->ia_params[part1->type][part2->type].half_len[1];
                     //sphere angle is defined versus the end of spherocylinder
-                    vec1.x = part2->pos.x - part2->dir.x * halfl / box.x;
-                    vec1.y = part2->pos.y - part2->dir.y * halfl / box.y;
-                    vec1.z = part2->pos.z - part2->dir.z * halfl / box.z;
-                    vec1 = image(&vec1, &part1->pos, &box);
+                    vec1.x = part2->pos.x - part2->dir.x * halfl / box->x;
+                    vec1.y = part2->pos.y - part2->dir.y * halfl / box->y;
+                    vec1.z = part2->pos.z - part2->dir.z * halfl / box->z;
+                    vec1 = image(&vec1, &part1->pos, box);
                 }
                 if (geotype[1] < SP)
                     vec2 = part2->dir;
                 else {
                     halfl = topo->ia_params[part1->type][part2->type].half_len[0];
-                    vec2.x = part1->pos.x + part1->dir.x * halfl / box.x;
-                    vec2.y = part1->pos.y + part1->dir.y * halfl / box.y;
-                    vec2.z = part1->pos.z + part1->dir.z * halfl / box.z;
-                    vec2 = image(&vec2, &part2->pos, &box);
+                    vec2.x = part1->pos.x + part1->dir.x * halfl / box->x;
+                    vec2.y = part1->pos.y + part1->dir.y * halfl / box->y;
+                    vec2.z = part1->pos.z + part1->dir.z * halfl / box->z;
+                    vec2 = image(&vec2, &part2->pos, box);
                 }
                 vec1.normalise();
                 vec2.normalise();
                 currangle = acos(DOT(vec1,vec2));
-                energy += harmonicPotential(currangle,topo->chainparam[part1->molType].angle1eq,topo->chainparam[part1->molType].angle1c);
+                energy += harmonicPotential(currangle,topo->moleculeParam[part1->molType].angle1eq,topo->moleculeParam[part1->molType].angle1c);
             }
         } else {
-            if (num2 == conlist[num1].conlist[1]) {
+            if (part2 == conlist1->conlist[1]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 /*spheres do not have this interaction*/
@@ -157,45 +156,45 @@ double PairEnergyCalculator::angleEnergy() {
                     else {
                         halfl = topo->ia_params[part1->type][part2->type].half_len[1];
                         //sphere angle is defined versus the end of spherocylinder
-                        vec1.x = part2->pos.x + part2->dir.x * halfl / box.x;
-                        vec1.y = part2->pos.y + part2->dir.y * halfl / box.y;
-                        vec1.z = part2->pos.z + part2->dir.z * halfl / box.z;
-                        vec1 = image(&vec1, &part1->pos, &box);
+                        vec1.x = part2->pos.x + part2->dir.x * halfl / box->x;
+                        vec1.y = part2->pos.y + part2->dir.y * halfl / box->y;
+                        vec1.z = part2->pos.z + part2->dir.z * halfl / box->z;
+                        vec1 = image(&vec1, &part1->pos, box);
                     }
                     if (geotype[1] < SP)
                         vec2 = part2->dir;
                     else {
                         halfl = topo->ia_params[part1->type][part2->type].half_len[0];
-                        vec2.x = part1->pos.x - part1->dir.x * halfl / box.x;
-                        vec2.y = part1->pos.y - part1->dir.y * halfl / box.y;
-                        vec2.z = part1->pos.z - part1->dir.z * halfl / box.z;
-                        vec2 = image(&vec2, &part2->pos, &box);
+                        vec2.x = part1->pos.x - part1->dir.x * halfl / box->x;
+                        vec2.y = part1->pos.y - part1->dir.y * halfl / box->y;
+                        vec2.z = part1->pos.z - part1->dir.z * halfl / box->z;
+                        vec2 = image(&vec2, &part2->pos, box);
                     }
                     vec1.normalise();
                     vec2.normalise();
                     currangle = acos(DOT(vec1,vec2));
-                    energy += harmonicPotential(currangle,topo->chainparam[part2->molType].angle1eq,topo->chainparam[part2->molType].angle1c);
+                    energy += harmonicPotential(currangle,topo->moleculeParam[part2->molType].angle1eq,topo->moleculeParam[part2->molType].angle1c);
                 }
             }
         }
     }
 
     /*interaction between the orientation of  spherocylinders patches -harmonic*/
-    if (topo->chainparam[part1->molType].angle2c >= 0) {
-        if (num2 == conlist[num1].conlist[0]) {
+    if (topo->moleculeParam[part1->molType].angle2c >= 0) {
+        if (part2 == conlist1->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                 currangle = acos(DOT(part1->patchdir[0],part2->patchdir[0]) - DOT(part1->dir,part2->patchdir[0])  );
-                energy += harmonicPotential(currangle,topo->chainparam[part1->molType].angle2eq,topo->chainparam[part1->molType].angle2c);
+                energy += harmonicPotential(currangle,topo->moleculeParam[part1->molType].angle2eq,topo->moleculeParam[part1->molType].angle2c);
             } else {
                 energy += 0.0;
             }
         } else {
-            if (num2 == conlist[num1].conlist[1]) {
+            if (part2 == conlist1->conlist[1]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                     currangle = acos(DOT(part2->patchdir[0],part1->patchdir[0]) - DOT(part2->dir,part1->patchdir[0])  );
-                    energy += harmonicPotential(currangle,topo->chainparam[part2->molType].angle2eq,topo->chainparam[part2->molType].angle2c);
+                    energy += harmonicPotential(currangle,topo->moleculeParam[part2->molType].angle2eq,topo->moleculeParam[part2->molType].angle2c);
                 } else {
                     energy += 0.0;
                 }
@@ -212,136 +211,136 @@ double PairEnergyCalculator::bondEnergy() {
     int * geotype = topo->ia_params[part1->type][part2->type].geotype;
 
     /*interaction with nearest neighbours -harmonic*/
-    if ((topo->chainparam[part1->molType]).bond1c >= 0) {
+    if ((topo->moleculeParam[part1->molType]).bond1c >= 0) {
 
-        if (num2 == conlist[num1].conlist[1]) {
+        if (part2 == conlist1->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bond1eq,topo->chainparam[part1->molType].bond1c);
+                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
             else {
                 if (geotype[0] < SP)
                     halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
 
-                vec1.x = part1->pos.x - part1->dir.x * halfl / box.x;
-                vec1.y = part1->pos.y - part1->dir.y * halfl / box.y;
-                vec1.z = part1->pos.z - part1->dir.z * halfl / box.z;
+                vec1.x = part1->pos.x - part1->dir.x * halfl / box->x;
+                vec1.y = part1->pos.y - part1->dir.y * halfl / box->y;
+                vec1.z = part1->pos.z - part1->dir.z * halfl / box->z;
 
                 if (geotype[1] < SP)
                     halfl =topo->ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
 
-                vec2.x = part2->pos.x + part2->dir.x * halfl / box.x;
-                vec2.y = part2->pos.y + part2->dir.y * halfl / box.y;
-                vec2.z = part2->pos.z + part2->dir.z * halfl / box.z;
-                vecbond = image(&vec1, &vec2, &box);
+                vec2.x = part2->pos.x + part2->dir.x * halfl / box->x;
+                vec2.y = part2->pos.y + part2->dir.y * halfl / box->y;
+                vec2.z = part2->pos.z + part2->dir.z * halfl / box->z;
+                vecbond = image(&vec1, &vec2, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,topo->chainparam[part1->molType].bond1eq,topo->chainparam[part1->molType].bond1c);
+                energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
             }
         } else {
-            if (num2 == conlist[num1].conlist[0]) {
+            if (part2 == conlist1->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bond1eq,topo->chainparam[part1->molType].bond1c);
+                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
                 else {
                     if (geotype[0] < SP)
                         halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec1.x = part1->pos.x + part1->dir.x * halfl / box.x;
-                    vec1.y = part1->pos.y + part1->dir.y * halfl / box.y;
-                    vec1.z = part1->pos.z + part1->dir.z * halfl / box.z;
+                    vec1.x = part1->pos.x + part1->dir.x * halfl / box->x;
+                    vec1.y = part1->pos.y + part1->dir.y * halfl / box->y;
+                    vec1.z = part1->pos.z + part1->dir.z * halfl / box->z;
 
                     if (geotype[0] < SP)
                         halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
 
-                    vec2.x = part2->pos.x - part2->dir.x * halfl / box.x;
-                    vec2.y = part2->pos.y - part2->dir.y * halfl / box.y;
-                    vec2.z = part2->pos.z - part2->dir.z * halfl / box.z;
-                    vecbond = image(&vec1, &vec2, &box);
+                    vec2.x = part2->pos.x - part2->dir.x * halfl / box->x;
+                    vec2.y = part2->pos.y - part2->dir.y * halfl / box->y;
+                    vec2.z = part2->pos.z - part2->dir.z * halfl / box->z;
+                    vecbond = image(&vec1, &vec2, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,topo->chainparam[part1->molType].bond1eq,topo->chainparam[part1->molType].bond1c);
+                    energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
                 }
             }
         }
     }
     /*interaction with second nearest neighbours -harmonic*/
-    if (topo->chainparam[part1->molType].bond2c >= 0) {
-        if (num2 == conlist[num1].conlist[2]) {
+    if (topo->moleculeParam[part1->molType].bond2c >= 0) {
+        if (part2 == conlist1->conlist[2]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bond2eq,topo->chainparam[part1->molType].bond2c);
+                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
             else {
-                vecbond = image(&part1->pos, &part2->pos, &box);
+                vecbond = image(&part1->pos, &part2->pos, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,topo->chainparam[part1->molType].bond2eq,topo->chainparam[part1->molType].bond2c);
+                energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
             }
         } else {
-            if (num2 == conlist[num1].conlist[3]) {
+            if (part2 == conlist1->conlist[3]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bond2eq,topo->chainparam[part1->molType].bond2c);
+                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
                 else {
-                    vecbond = image(&part1->pos, &part2->pos, &box);
+                    vecbond = image(&part1->pos, &part2->pos, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,topo->chainparam[part1->molType].bond2eq,topo->chainparam[part1->molType].bond2c);
+                    energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
                 }
             }
         }
     }
     /*interaction with nearest neighbours - direct harmonic bond*/
-    if ((topo->chainparam[part1->molType]).bonddc > 0) {
+    if ((topo->moleculeParam[part1->molType]).bonddc > 0) {
 
-        if (num2 == conlist[num1].conlist[1]) {
+        if (part2 == conlist1->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bonddeq,topo->chainparam[part1->molType].bonddc);
+                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bonddeq,topo->moleculeParam[part1->molType].bonddc);
             else {
                 if (geotype[0] < SP)
                     halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
-                vec1.x = part1->pos.x - part1->dir.x * halfl / box.x;
-                vec1.y = part1->pos.y - part1->dir.y * halfl / box.y;
-                vec1.z = part1->pos.z - part1->dir.z * halfl / box.z;
+                vec1.x = part1->pos.x - part1->dir.x * halfl / box->x;
+                vec1.y = part1->pos.y - part1->dir.y * halfl / box->y;
+                vec1.z = part1->pos.z - part1->dir.z * halfl / box->z;
                 if (geotype[1] < SP)
                     halfl =topo->ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
-                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo->chainparam[part1->molType].bonddeq) / box.x ;
-                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo->chainparam[part1->molType].bonddeq) / box.y ;
-                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo->chainparam[part1->molType].bonddeq) / box.z ;
-                vecbond = image(&vec1, &vec2, &box);
+                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->x ;
+                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->y ;
+                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->z ;
+                vecbond = image(&vec1, &vec2, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,0.0,topo->chainparam[part1->molType].bonddc);
+                energy = harmonicPotential(bondlength,0.0,topo->moleculeParam[part1->molType].bonddc);
             }
         } else {
-            if (num2 == conlist[num1].conlist[0]) {
+            if (part2 == conlist1->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->chainparam[part1->molType].bond1eq,topo->chainparam[part1->molType].bond1c);
+                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
                 else {
                     if (geotype[0] < SP)
                         halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo->chainparam[part1->molType].bonddeq) / box.x ;
-                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo->chainparam[part1->molType].bonddeq) / box.y ;
-                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo->chainparam[part1->molType].bonddeq) / box.z ;
+                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->x ;
+                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->y ;
+                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->z ;
                     if (geotype[0] < SP)
                         halfl =topo->ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec2.x = part2->pos.x - part2->dir.x * halfl / box.x;
-                    vec2.y = part2->pos.y - part2->dir.y * halfl / box.y;
-                    vec2.z = part2->pos.z - part2->dir.z * halfl / box.z;
-                    vecbond = image(&vec1, &vec2, &box);
+                    vec2.x = part2->pos.x - part2->dir.x * halfl / box->x;
+                    vec2.y = part2->pos.y - part2->dir.y * halfl / box->y;
+                    vec2.z = part2->pos.z - part2->dir.z * halfl / box->z;
+                    vecbond = image(&vec1, &vec2, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,0.0,topo->chainparam[part1->molType].bonddc);
+                    energy = harmonicPotential(bondlength,0.0,topo->moleculeParam[part1->molType].bonddc);
                 }
             }
         }

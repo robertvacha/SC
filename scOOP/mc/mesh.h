@@ -34,7 +34,7 @@ public:
      * @param particleStore
      * @return
      */
-    int meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* particleStore);
+    int meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* pvec);
 
     /**
      * @brief meshFill filling the mesh
@@ -42,7 +42,7 @@ public:
      * @param wlmtype
      * @param particleStore
      */
-    void meshFill(long npart, int wlmtype, std::vector<Particle >* particleStore);
+    void meshFill(long npart, int wlmtype, std::vector<Particle >* pvec);
 
     /**
      * @brief mesh_addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot
@@ -52,7 +52,7 @@ public:
      * @param dim
      * @return
      */
-    static int addPart(double posx, double posy, int **mesh, int dim[2]);
+    int addPart(double posx, double posy);
 
     /**
      * @brief mesh_removepart remove particle on coordinates posx posy from mesh and return 0 if there is a empty spot now
@@ -62,7 +62,7 @@ public:
      * @param dim
      * @return
      */
-    static int removePart(double posx, double posy, int **mesh, int dim[2]);
+    int removePart(double posx, double posy);
 
     /**
      * @brief mesh_square
@@ -70,7 +70,7 @@ public:
      * @param y
      * @param dim
      */
-    static void meshSquare(int x, int y, int dim[2], int (*square)[9]);
+    void meshSquare(int x, int y, int square[9]);
 
     /**
      * @brief mesh_neighbors
@@ -78,7 +78,7 @@ public:
      * @param dim
      * @param neighbors
      */
-    static void meshNeighbors(int pos, int dim[2], int neighbors[4]);
+    void meshNeighbors(int pos, int neighbors[4]);
 
     /**
      * @brief mesh_findholes returns the number of holes and a list of mesh points belonging to each of them

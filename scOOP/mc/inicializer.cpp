@@ -255,7 +255,6 @@ void Inicializer::readOptions() {
 
 void Inicializer::initTop() {
 
-    long i,j,k;
     bool exclusions[MAXT][MAXT] = {false};
 
     readTopoFile(exclusions);
@@ -265,32 +264,62 @@ void Inicializer::initTop() {
     //fill ia_params combinations and topology parameters
     topo->genParamPairs(&exclusions);
     topo->genTopoParams();
+}
 
-    //TODO fill chain list and maxch, park particle type
-    fprintf (stdout, "Generating chainlist...\n");
-
-    setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
-    setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
-
-    setChainCount();
-
-    // Initialize the clusterlist
+void Inicializer::initClusterList() {
     sim->clusterlist = (long int*) malloc(sizeof(long) * MAXN);
     if(sim->clusterlist == NULL){
         fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clusterlist!");
         exit(1);
     }
-    sim->clustersenergy = (double*) malloc(sizeof(double) * conf->pvec.size());
+    sim->clustersenergy = (double*) malloc(sizeof(double) * MAXN);
     if(sim->clustersenergy== NULL){
         fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clustersenergy!");
         exit(1);
     }
     sim->clusters = NULL;
+}
 
+void Inicializer::initConList() {
+    long k=0;
+
+    conf->conlist.resize(conf->pvec.size());
+    for (unsigned int i=0; i < conf->conlist.size(); i++) {
+        conf->conlist[i].conlist[0] = NULL;
+        conf->conlist[i].conlist[1] = NULL;
+        conf->conlist[i].conlist[2] = NULL;
+        conf->conlist[i].conlist[3] = NULL;
+    }
+
+    // generate conlist
+    conf->sysvolume = 0;
+    for (unsigned int i=0; i<conf->conlist.size(); i++) {
+        for (long j=0; j<MAXCHL; j++) {
+            if (conf->pvecGroupList.getChain(i,j) >= 0) {
+                k = conf->pvecGroupList.getChain(i,j);
+                if ((j+1 < MAXCHL)&&(conf->pvecGroupList.getChain(i,j+1) >= 0))
+                    //if there is a next particle fill it to head bond
+                    conf->conlist[k].conlist[1] = &conf->pvec[ conf->pvecGroupList.getChain(i,j+1) ];
+                if (j > 0)
+                    //if this is not first particle fill tail bond
+                    conf->conlist[k].conlist[0] = &conf->pvec[ conf->pvecGroupList.getChain(i,j-1) ];
+                if ((j+2 < MAXCHL)&& (conf->pvecGroupList.getChain(i,j+2) >= 0))
+                    //if there is a second next particle fill it second neighbour
+                    conf->conlist[k].conlist[3] = &conf->pvec[ conf->pvecGroupList.getChain(i,j+2) ];
+                if (j > 1)
+                    //if this is not second or first particle fill second tail bond
+                    conf->conlist[k].conlist[2] = &conf->pvec[ conf->pvecGroupList.getChain(i,j-2) ];
+            }
+        }
+        conf->sysvolume += topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
+    }
+}
+
+void Inicializer::initSwitchList() {
     // get all the particles with switch type
     long switchlist[conf->pvec.size()];
     long n_switch_part = 0;
-    for(i = 0; i < (long)conf->pvec.size(); i++){
+    for(unsigned int i = 0; i < conf->pvec.size(); i++){
         if(conf->pvec[i].type != conf->pvec[i].switchtype){
             switchlist[n_switch_part] = i;
             n_switch_part++;
@@ -305,71 +334,17 @@ void Inicializer::initTop() {
     topo->switchlist=NULL;
     if (n_switch_part > 0){
         topo->switchlist = (long int*) malloc(sizeof(long) * n_switch_part);
-        for(i = 0; i < n_switch_part; i++){
+        for(long i = 0; i < n_switch_part; i++){
             topo->switchlist[i] = switchlist[i];
             //DEBUG
             //printf("%ld is in switchlist\n", switchlist[i]);
         }
     }
 
-    k=0;
-    //clear connectivity and then fill it from chain list
-    fprintf (stdout, "Generating connectivity...\n");
-
-
-    conf->conlist.resize(conf->pvec.size());
-    for (i=0; i < (long)conf->conlist.size(); i++) {
-        conf->conlist[i].conlist[0] = -1;
-        conf->conlist[i].conlist[1] = -1;
-        conf->conlist[i].conlist[2] = -1;
-        conf->conlist[i].conlist[3] = -1;
-    }
-
-    // generate conlist
-    conf->sysvolume = 0;
-    for (i=0; i<(long)conf->conlist.size(); i++) {
-        for (j=0; j<MAXCHL; j++) {
-            if (conf->chainlist[i][j] >= 0) {
-                k = conf->chainlist[i][j];
-                if ((j+1 < MAXCHL)&&(conf->chainlist[i][j+1] >= 0))
-                    conf->conlist[k].conlist[1] = conf->chainlist[i][j+1]; //if there is a next particle fill it to head bond
-                if (j > 0)
-                    conf->conlist[k].conlist[0] = conf->chainlist[i][j-1]; //if this is not first particle fill tail bond
-                if ((j+2 < MAXCHL)&& (conf->chainlist[i][j+2] >= 0))
-                    conf->conlist[k].conlist[3] = conf->chainlist[i][j+2]; //if there is a second next particle fill it second neighbour
-                if (j > 1)
-                    conf->conlist[k].conlist[2] = conf->chainlist[i][j-2]; //if this is not second or first particle fill second tail bond
-            }
-        }
-        conf->sysvolume += topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
-    }
-
-    /*DEBUG
-      for (i=0; i<MAXN; i++) {
-      for (j=0; j<MAXCHL; j++) {
-      fprintf (stderr, " %d",chainlist[i][j]);
-      }
-      fprintf (stderr, " \n");
-      }
-      for (i=0; i<MAXN; i++) {
-      printf (" %ld %ld %ld %ld\n",conlist[i][0],conlist[i][1],conlist[i][2],conlist[i][3]);
-      }
-     */
-
     //  Mark particles as not switched
-    for(i = 0; i < (long)conf->pvec.size(); i++){
+    for(unsigned int i = 0; i < conf->pvec.size(); i++){
         conf->pvec[i].switched = 0;
     }
-
-    topDealoc();
-    delete[] molecules;
-    DEBUG_INIT("Finished with reading the topology");
-
-    // Parallel tempering check
-#ifdef ENABLE_MPI
-        // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
-        printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
-#endif
 }
 
 void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
@@ -390,7 +365,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
     infile = fopen(fileName, "r");
     if (infile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open config.init file.\n\n");
+        fprintf (stderr, "\nERROR: Could not open %s file.\n\n", fileName);
         exit (1);
     }
 
@@ -493,9 +468,9 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (i=0;i<conf->chainCount;i++){
+    for (i=0;i<conf->pvecGroupList.getChainCount();i++){
         j=0;
-        current = conf->chainlist[i][0];
+        current = conf->pvecGroupList.getChain(i,0);
         first = current;
         chorig[0].pos = pvec[first].pos;
         while (current >=0 ) {
@@ -514,7 +489,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             pvec[current].pos.z += chorig[0].pos.z;
             //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             j++;
-            current = conf->chainlist[i][j];
+            current = conf->pvecGroupList.getChain(i,j);
         }
     }
 
@@ -541,10 +516,19 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
 
 void Inicializer::testChains() {
-    if (conf->chainCount == 0) {    // no chain -> make the probability of moving them 0
+    if (conf->pvecGroupList.getChainCount() == 0) {    // no chain -> make the probability of moving them 0
         if (sim->chainprob > 0)
             printf ("No chains... chain move probability set to 0.\n");
         sim->chainprob = 0;
+    } else {
+        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+            if(topo->moleculeParam[i].isGrandCanonical() && !topo->moleculeParam[i].isAtomic()) {
+                if(!poolConfig) {
+                    cout << "ChainInsert with no Pool system stated! State [Pool] in top.init" << endl;
+                    exit(1);
+                }
+            }
+        }
     }
 }
 
@@ -612,16 +596,30 @@ void Inicializer::initMPI(int argc, char** argv) {
 void Inicializer::initGroupLists() {
     // setGroupList;
     int newType = -1;
-    conf->pvecGroupList.vecSize = conf->pvec.size();
     for(unsigned int i = 0; i < conf->pvec.size(); i++) {
         // set simple grouplist
         if(newType != conf->pvec[i].molType) {
             newType = conf->pvec[i].molType;
             conf->pvecGroupList.first[newType] = i;
-            conf->pvecGroupList.molSize[newType] = topo->chainparam[newType].molSize();
+            conf->pvecGroupList.molSize[newType] = topo->moleculeParam[newType].molSize();
         }
     }
     conf->pvecGroupList.molTypeCount = newType+1;
+    conf->pvecGroupList.first[newType+1] = conf->pvec.size();
+
+    conf->pvecGroupList.calcChainCount();
+
+    newType = -1;
+    for(unsigned int i = 0; i < conf->pool.size(); i++) {
+        // set simple grouplist
+        if(newType != conf->pool[i].molType) {
+            newType = conf->pool[i].molType;
+            conf->poolGroupList.first[newType] = i;
+            conf->poolGroupList.molSize[newType] = topo->moleculeParam[newType].molSize();
+        }
+    }
+    conf->poolGroupList.molTypeCount = newType+1;
+    conf->poolGroupList.first[newType+1] = conf->pool.size();
 }
 
 
@@ -635,7 +633,7 @@ void Inicializer::initGroupLists() {
 
 
 void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
-    long i=0, j=0, mol, k, maxpart=0, maxch=0;
+    long i=0, j=0, mol, k, maxpart=0;
 
     while (sysnames[i]!=NULL) {
         mol=0;
@@ -658,19 +656,11 @@ void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **
                 (*pvec)[maxpart].switchtype  = molecules[mol].switchtype[k];
                 (*pvec)[maxpart].delta_mu    = molecules[mol].delta_mu[k];
                 (*pvec)[maxpart].molType     = mol;
-                (*pvec)[maxpart].chainIndex  = maxch;
+                //(*pvec)[maxpart].chainIndex  = maxch;
 
-                if (k > MAXCHL) {
-                    fprintf (stderr, "TOPOLOGY ERROR: more particles in chan (%ld) than allowed(%d).\n",k,MAXCHL);
-                    fprintf (stderr, "Change MAXCHL in source and recompile the program. \n\n");
-                    topDealoc();
-                    exit(1);
-                }
-                if (molecules[mol].type[1] != -1) {
-                    conf->chainlist[maxch][k] = maxpart;
-                }
                 k++;
                 maxpart++;
+
                 if (maxpart > MAXN) {
                     fprintf (stderr, "TOPOLOGY ERROR: more particles(%ld) than allowed(%d).\n",maxpart,MAXN);
                     fprintf (stderr, "Change MAXN in source and recompile the program. \n\n");
@@ -678,43 +668,12 @@ void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **
                     exit(1);
                 }
             }
-            if (molecules[mol].type[1] != -1) {
-                maxch++;
-            }
         }
         i++;
     }
 
-    assert(maxpart == pvec->size());
+    assert(maxpart == (long)pvec->size());
 }
-
-void Inicializer::setChainCount() {
-    long i=0, j=0, mol, maxch=0;
-
-    while (conf->chainlist[j][0] >= 0) {
-        j++;
-    }
-    conf->chainCount = j;
-
-    j=0;
-
-    while (sysnames[i]!=NULL) {
-        mol=0;
-        while (strcmp(molecules[mol].name,sysnames[i]) && mol < MAXMT)
-            mol++;
-        for (j=0;j<sysmoln[i];j++)
-            if (molecules[mol].type[1] != -1)
-                maxch++;
-        i++;
-    }
-
-    if (conf->chainCount != maxch) {
-        fprintf (stderr, "TOPOLOGY ERROR: Maximum number of chains(%ld) does not agree with number of chains (%ld)\n\n",maxch,conf->chainCount);
-        topDealoc();
-        exit (1);
-    }
-}
-
 
 
 void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
@@ -795,7 +754,7 @@ void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
                     continue;
                 }
                 if (!strcmp(keystr,"SYSTEM")) {
-                    if (!fillSystem(pline,sysnames,&sysmoln)) {
+                    if (!fillSystem(pline,sysnames,&sysmoln, "system: ")) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                         topDealoc();
                         free(pline); pline = NULL;
@@ -805,7 +764,7 @@ void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
                 }
                 if (!strcmp(keystr, "POOL")) {
                     poolConfig = true;
-                    if (!fillSystem(pline,poolNames,&poolMolNum)) {
+                    if (!fillSystem(pline,poolNames,&poolMolNum, "pool: ")) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                         topDealoc();
                         free(pline); pline = NULL;
@@ -862,30 +821,6 @@ void *Inicializer::xMalloc(size_t num) {
 }
 
 
-
-
-int Inicializer::topDealoc() {
-
-    if (sysmoln != NULL) free(sysmoln);
-        sysmoln=NULL;
-
-    if (poolMolNum != NULL) free(poolMolNum);
-        poolMolNum=NULL;
-
-    for (int i=0;i<MAXN;i++) {
-        if ((sysnames[i]) != NULL) free(sysnames[i]);
-            sysnames[i]=NULL;
-    }
-
-    for (int i=0;i<MAXN;i++) {
-        if ((poolNames[i]) != NULL) free(poolNames[i]);
-            poolNames[i]=NULL;
-    }
-
-    return 0;
-}
-
-
 int Inicializer::fillExclusions(char **pline, bool exlusions[][MAXT]) {
     long num1,num2;
     char *pline1, *pline2;
@@ -918,7 +853,7 @@ int Inicializer::fillExclusions(char **pline, bool exlusions[][MAXT]) {
 }
 
 
-int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln) {
+int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln, char* name) {
     int i,fields;
     char zz[STRLEN];
 
@@ -942,7 +877,7 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln) {
         fprintf (stderr, "TOPOLOGY ERROR: cannot have %ld number of molecules.\n\n", (*sysmoln)[i]);
         return 0;
     }
-    fprintf (stdout, "system: %s %ld\n",sysnames[i],(*sysmoln)[i]);
+    fprintf (stdout, "%s %s %ld\n",name, sysnames[i],(*sysmoln)[i]);
     return 1;
 }
 
@@ -1221,11 +1156,11 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
         fprintf (stdout, "%d ",molecules[i].type[j]);
 
         if(j==0) {
-            topo->chainparam[i].name = (char*) malloc(strlen(molname)+1);
-            strcpy(topo->chainparam[i].name, molname);
+            topo->moleculeParam[i].name = (char*) malloc(strlen(molname)+1);
+            strcpy(topo->moleculeParam[i].name, molname);
         }
 
-        topo->chainparam[i].particleTypes[j] = molecules[i].type[j];
+        topo->moleculeParam[i].particleTypes[j] = molecules[i].type[j];
 
         if (fields == 1){
                 (molecules[i].switchtype[j]) = (molecules[i].type[j]);
@@ -1260,9 +1195,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->chainparam[i].bond1c = bondk;
-        topo->chainparam[i].bond1eq = bonddist;
-        fprintf (stdout, "bond1: %f %f \n",topo->chainparam[i].bond1c,topo->chainparam[i].bond1eq);
+        topo->moleculeParam[i].bond1c = bondk;
+        topo->moleculeParam[i].bond1eq = bonddist;
+        fprintf (stdout, "bond1: %f %f \n",topo->moleculeParam[i].bond1c,topo->moleculeParam[i].bond1eq);
         return 1;
     }
     if (!strcmp(molcommand,"BOND2")) {
@@ -1275,9 +1210,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->chainparam[i].bond2c = bondk;
-        topo->chainparam[i].bond2eq = bonddist;
-        fprintf (stdout, "bond2: %f %f \n",topo->chainparam[i].bond2c,topo->chainparam[i].bond2eq);
+        topo->moleculeParam[i].bond2c = bondk;
+        topo->moleculeParam[i].bond2eq = bonddist;
+        fprintf (stdout, "bond2: %f %f \n",topo->moleculeParam[i].bond2c,topo->moleculeParam[i].bond2eq);
         return 1;
     }
     if (!strcmp(molcommand,"BONDD")) {
@@ -1290,9 +1225,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->chainparam[i].bonddc = bondk;
-        topo->chainparam[i].bonddeq = bonddist;
-        fprintf (stdout, "bondd: %f %f \n",topo->chainparam[i].bonddc,topo->chainparam[i].bonddeq);
+        topo->moleculeParam[i].bonddc = bondk;
+        topo->moleculeParam[i].bonddeq = bonddist;
+        fprintf (stdout, "bondd: %f %f \n",topo->moleculeParam[i].bonddc,topo->moleculeParam[i].bonddeq);
         return 1;
     }
 
@@ -1306,9 +1241,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: equilibrium angle cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->chainparam[i].angle1c = bondk;
-        topo->chainparam[i].angle1eq = bonddist/180.0*PI;
-        fprintf (stdout, "angle1: %f %f \n",topo->chainparam[i].angle1c,topo->chainparam[i].angle1eq);
+        topo->moleculeParam[i].angle1c = bondk;
+        topo->moleculeParam[i].angle1eq = bonddist/180.0*PI;
+        fprintf (stdout, "angle1: %f %f \n",topo->moleculeParam[i].angle1c,topo->moleculeParam[i].angle1eq);
         return 1;
     }
     if (!strcmp(molcommand,"ANGLE2")) {
@@ -1321,18 +1256,18 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: equilibrium angle cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->chainparam[i].angle2c = bondk;
-        topo->chainparam[i].angle2eq = bonddist/180.0*PI;
-        fprintf (stdout, "angle2: %f %f \n",topo->chainparam[i].angle2c,topo->chainparam[i].angle2eq);
+        topo->moleculeParam[i].angle2c = bondk;
+        topo->moleculeParam[i].angle2eq = bonddist/180.0*PI;
+        fprintf (stdout, "angle2: %f %f \n",topo->moleculeParam[i].angle2c,topo->moleculeParam[i].angle2eq);
         return 1;
     }
 
     // INIT of muVT ensemble
     if (!strcmp(molcommand,"ACTIVITY")) {
         fields = sscanf(molparams, "%le ", &activity);
-        topo->chainparam[i].activity = activity;
-        topo->chainparam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
-        fprintf (stdout, "activity: %f \n",topo->chainparam[i].activity);
+        topo->moleculeParam[i].activity = activity;
+        topo->moleculeParam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
+        fprintf (stdout, "activity: %f \n",topo->moleculeParam[i].activity);
         return 1;
     }
 

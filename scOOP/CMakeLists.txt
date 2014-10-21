@@ -63,6 +63,7 @@ mc/math_calc.h                                               # MATHS
 mc/wanglandau.h mc/wanglandau.cpp                            # WANG-LANDAU
 mc/updater.h mc/updater.cpp                                  # UPDATER
 mc/totalenergycalculator.h mc/totalenergycalculator.cpp      # TOTAL-ENERGY CALCULATOR
+mc/externalenergycalculator.h mc/externalenergycalculator.cpp # EXTERNAL-ENERGY CALCULATOR
 mc/pairenergycalculator.h mc/pairenergycalculator.cpp        # PAIR-ENERGY CALCULATOR
 mc/mygetline.h mc/mygetline2.cpp                             # MAC PORT FOR IO FUNCTION 
 mc/movecreator.h mc/movecreator.cpp mc/MoveCreatorMesh.cpp   # MOVES - MOVECREATOR

@@ -20,12 +20,6 @@ typedef struct{
 } Cluster;
 
 
-class ConList{
-public:
-    long conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
-};
-
-
 /**
  * @brief This structure is for io only
  */

@@ -50,6 +50,8 @@ public:
      */
     bool isAtomic() {return (particleTypes[1] == -1);}
 
+    bool isGrandCanonical() {return chemPot!=-1.0;}
+
     int molSize() {
         int size = 0;
         for(int i=0; i<MAXCHL; i++) if(particleTypes[i] != -1) size++;

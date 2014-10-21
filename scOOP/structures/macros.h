@@ -7,7 +7,7 @@
 # define _GNU_SOURCE
 #endif
 
-#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
+//#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled

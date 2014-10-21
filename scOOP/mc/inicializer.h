@@ -17,7 +17,24 @@
 using namespace std;
 
 class Inicializer
-{
+{  
+public:
+    bool poolConfig;
+private:
+    Topo* topo;                // will maybe contain all the topo stuff in future
+    Sim* sim;                  // Should contain the simulation options.
+    Conf* conf;                // Should contain fast changing particle and box(?) information
+    FileNames* files;
+
+    Molecule* molecules;    ///< @brief List of AtomType parameters read from init.top
+
+    char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
+    char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
+
+    long  *sysmoln /*[MAXN]*/;
+    long  *poolMolNum /*[MAXN]*/;
+
+
 public:
     Inicializer(Topo *topo, Sim* sim, Conf *conf, FileNames* files):
         poolConfig(false), topo(topo), sim(sim), conf(conf), files(files) {
@@ -42,23 +59,25 @@ public:
         }
     }
 
-    bool poolConfig;
+    void topDealoc() {
+        delete[] molecules;
 
-private:
-    Topo* topo;                // will maybe contain all the topo stuff in future
-    Sim* sim;                  // Should contain the simulation options.
-    Conf* conf;                // Should contain fast changing particle and box(?) information
-    FileNames* files;
+        if (sysmoln != NULL) free(sysmoln);
+            sysmoln=NULL;
 
-    Molecule* molecules;    ///< @brief List of AtomType parameters read from init.top
+        if (poolMolNum != NULL) free(poolMolNum);
+            poolMolNum=NULL;
 
-    char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
-    char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
+        for (int i=0;i<MAXN;i++) {
+            if ((sysnames[i]) != NULL) free(sysnames[i]);
+                sysnames[i]=NULL;
+        }
 
-    long  *sysmoln /*[MAXN]*/;
-    long  *poolMolNum /*[MAXN]*/;
-
-public:
+        for (int i=0;i<MAXN;i++) {
+            if ((poolNames[i]) != NULL) free(poolNames[i]);
+                poolNames[i]=NULL;
+        }
+    }
 
     /*
      *  INPUT
@@ -81,6 +100,17 @@ public:
      */
     void initTop();
 
+    void initClusterList();
+
+    void initConList();
+
+    void initSwitchList();
+
+    void setParticlesParams() {
+        setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
+        setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
+    }
+
     /**
      * @brief Config initialization
 
@@ -92,24 +122,16 @@ public:
      */
     void initConfig(char* fileName, std::vector<Particle > &pvec);
 
-    /**
-     * @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
-     */
+    /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();
 
-    /**
-     * @brief Sets names of "write files"
-     */
+    /// @brief Sets names of "write files"
     void initWriteFiles();
 
-    /**
-     * @brief Initializes the pairlist and allocates memory
-     */
+    /// @brief Initializes the pairlist and allocates memory
     void initPairlist();
 
-    /**
-     * @brief Paralel tempering(Replica exchange move) initialization
-     */
+    /// @brief Paralel tempering(Replica exchange move) initialization
     void initMPI(int argc, char **argv);
 
     void initGroupLists();
@@ -120,26 +142,12 @@ private:
 
     void setParticlesParams(Molecule *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
 
-    void allocSysmoln(long* sysmoln);
-
-    void setChainCount();
-
     /**
      * @brief xmalloc nice malloc, which does the error checking for us
      * @param num
      * @return
      */
     void* xMalloc (size_t num);
-
-    /**
-     * @brief dealocating memory for initTop
-     * @param pline
-     * @param sysnames
-     * @param sysmoln
-     * @param molecules
-     * @return
-     */
-    int topDealoc();
 
     /**
      * @brief filling pair for which we exlude attraction interaction. Returns 1 on succes.
@@ -156,7 +164,7 @@ private:
      * @param sysmoln
      * @return
      */
-    int fillSystem(char *pline, char *sysnames[MAXN], long **sysmoln);
+    int fillSystem(char *pline, char *sysnames[MAXN], long **sysmoln, char *name);
 
     /**
      * @brief filing the parameters for types from given strings. Returns 1 on succes.

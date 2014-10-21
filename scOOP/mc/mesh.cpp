@@ -2,7 +2,7 @@
 
 #include "mesh.h"
 
-int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* particleStore) {
+int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* pvec) {
     //  int i;
     int maxsize,length;
 
@@ -15,7 +15,7 @@ int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::ve
     tmp = (int*) malloc( sizeof(int)* (length+1));
 
     /* fill the mesh with particles*/
-    meshFill(npart, wlmtype, particleStore);
+    meshFill(npart, wlmtype, pvec);
     /* perfrom hole cluster algorithm */
     maxsize = findHoles();
 
@@ -28,84 +28,84 @@ int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::ve
     return maxsize;
 }
 
-void Mesh::meshFill(long npart, int wlmtype, std::vector<Particle >* particleStore) {
+void Mesh::meshFill(long npart, int wlmtype, std::vector<Particle >* pvec) {
     for (int i=0; i<(dim[0] * dim[1]); i++) {
         data[i] = 0;
     }
 
     for (int i=0; i<npart; i++) {
         /*calculate position of particle on mesh and add it to all where it belongs */
-        if ((*particleStore)[i].type == wlmtype)
-            Mesh::addPart((*particleStore)[i].pos.x, (*particleStore)[i].pos.y, &data, dim);
+        if ((*pvec)[i].type == wlmtype)
+            addPart((*pvec)[i].pos.x, (*pvec)[i].pos.y);
     }
 }
 
-int Mesh::addPart(double posx, double posy, int **mesh, int dim[2]) {
+int Mesh::addPart(double posx, double posy) {
     int i, squares[9], onhole;
     double resid;
 
     onhole = 1;
-    meshSquare( (int) (INBOX(posx,resid) * dim[0]), (int) (INBOX(posy,resid) * dim[1]) , dim, &squares);
+    meshSquare( (int) (INBOX(posx,resid) * dim[0]), (int) (INBOX(posy,resid) * dim[1]) , squares);
     for(i=0;i<9;i++) {
         if ( (squares[i] >= dim[0]*dim[1])||(squares[i] <0) ) {
             printf ("Error: trying to write to %d\n",squares[i]);
             printf ("%d %d and  %d\n", (int) (INBOX(posx,resid) * dim[0]), (int) (INBOX(posy,resid) * dim[1]),i );
             fflush(stdout);
         }
-        if ( ((*mesh)[ squares[i] ]) >= 0 ) onhole =  0;
-        (*mesh)[ squares[i] ]--;
+        if ( (data[ squares[i] ]) >= 0 ) onhole =  0;
+        data[ squares[i] ]--;
     }
     return onhole;
 }
 
-int Mesh::removePart(double posx, double posy, int **mesh, int dim[]) {
+int Mesh::removePart(double posx, double posy) {
     int squares[9];
     double resid;
 
-    meshSquare((int) (INBOX(posx,resid) * dim[0]), (int) (INBOX(posy,resid) * dim[1]) , dim, &squares);
+    meshSquare((int) (INBOX(posx,resid) * dim[0]), (int) (INBOX(posy,resid) * dim[1]) , squares);
     for(int i=0;i<9;i++) {
         //DEBUG	    if (square[i] >= dim[0]*dim[1]) printf ("Error: trying to write to %d\n",square[i]);
-        (*mesh)[ squares[i] ]++;
-        if ( ((*mesh)[ squares[i] ]) == 0 ) return 0;
+        data[ squares[i] ]++;
+        if ( (data[ squares[i] ]) == 0 ) return 0;
     }
 
     return 1;
 }
 
-void Mesh::meshSquare(int x, int y, int dim[2], int (*square)[9]) {
+void Mesh::meshSquare(int x, int y, int square[9]) {
     int a,b;
 
     b=y;
-    (*square)[0] = x + dim[0]*b;
+    square[0] = x + dim[0]*b;
     a = x-1;
     if ( a<0 ) a = dim[0]-1;
-    (*square)[1] = a + dim[0]*b;
+    square[1] = a + dim[0]*b;
     a = x+1;
     if ( a==dim[0] ) a = 0;
-    (*square)[2] = a + dim[0]*b;
+    square[2] = a + dim[0]*b;
 
     b = y-1;
     if ( b<0 ) b = dim[1]-1;
-    (*square)[3] = x + dim[0]*b;
+    square[3] = x + dim[0]*b;
     a = x-1;
     if ( a<0 ) a = dim[0]-1;
-    (*square)[4] = a + dim[0]*b;
+    square[4] = a + dim[0]*b;
     a = x+1;
     if ( a==dim[0] ) a = 0;
-    (*square)[5] = a + dim[0]*b;
+    square[5] = a + dim[0]*b;
 
     b = y+1;
     if ( b==dim[1] ) b = 0;
-    (*square)[6] = x + dim[0]*b;
+    square[6] = x + dim[0]*b;
     a = x-1;
     if ( a<0 ) a = dim[0]-1;
-    (*square)[7] = a + dim[0]*b;
+    square[7] = a + dim[0]*b;
     a = x+1;
     if ( a==dim[0] ) a = 0;
-    (*square)[8] = a + dim[0]*b;
+    square[8] = a + dim[0]*b;
 }
 
-void Mesh::meshNeighbors(int pos, int dim[], int neighbors[]) {
+void Mesh::meshNeighbors(int pos, int neighbors[]) {
     int x,y,a;
 
     x = pos % dim[0];
@@ -154,7 +154,7 @@ int Mesh::findHoles() {
             while ( li < size ) {
                 //go through all neighbors
                 j =  tmp[li];
-                meshNeighbors(j, dim, neighbors);
+                meshNeighbors(j, neighbors);
                 for ( k=0; k<4; k++ ) {
                     // test if status is free and append it to the cluster
                     if ( data[ neighbors[k] ] == 0 ) {
@@ -179,7 +179,7 @@ int Mesh::findHoles() {
 }
 
 int Mesh::findHolesDistrib() {
-
+    return 0;
 }
 
 void Mesh::print() {

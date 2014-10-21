@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-QMAKE_CXXFLAGS_RELEASE += -O3 -march=native -msse2 -mfpmath=sse
+QMAKE_CXXFLAGS += -O3 -march=native -msse2 -mfpmath=sse
 
 SOURCES += main.cpp \
     mc/wanglandau.cpp \

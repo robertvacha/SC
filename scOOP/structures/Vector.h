@@ -57,6 +57,22 @@ public:
         x=x*scale; y=y*scale, z=z*scale;
     }
 
+    inline Vector operator- (const Vector& o) const {
+        return Vector(x-o.x, y-o.y,z-o.z);
+    }
+
+    inline void operator-= (const Vector& o) {
+        x-=o.x;
+        y-=o.y;
+        z-=o.z;
+    }
+
+    inline void operator+= (const Vector& o) {
+        x+=o.x;
+        y+=o.y;
+        z+=o.z;
+    }
+
     inline Vector operator* (double scale) {
         return Vector(this->x*scale, this->y*scale, this->z*scale);
     }

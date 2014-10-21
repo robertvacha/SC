@@ -13,14 +13,16 @@
 #include <stdio.h>
 #include "math_calc.h"
 #include "../structures/particle.h"
+#include "../structures/Conf.h"
 
 class PairEnergyCalculator
 {
 private:
     Particle* part1;
     Particle* part2;
-    int num1;
-    int num2;
+
+    ConList* conlist1;
+    ConList* conlist2;
 
     /*
      *  Parameters pased to functions of interaction calculation
@@ -33,17 +35,16 @@ private:
     double contt;                   // closest point on spherocylinder to sphere
 
     Topo* topo;
-    Vector box; // box size
-    std::vector<ConList>& conlist;
+    Vector* box; // box size
 
     double (PairEnergyCalculator::*intFCE[MAXT][MAXT])();
 
 
 public:
-    PairEnergyCalculator(Topo* topo, Vector box, std::vector<ConList>& conlist)
-        : topo(topo), box(box), conlist(conlist) {}
+    PairEnergyCalculator(Topo* topo, Vector* box)
+        : topo(topo), box(box) {}
 
-    double operator() (Particle* part1, int num1, Particle* part2, int num2);
+    double operator() (Particle* part1, ConList* conlist1, Particle* part2, ConList* conlist2);
 
     /**
      * @brief init_intfce Initializes the array with the pointers to the energy function

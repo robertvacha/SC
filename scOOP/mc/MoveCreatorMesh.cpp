@@ -15,9 +15,9 @@ long MoveCreator::meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, lon
     oy = (int) (INBOX(oldpos.y,resid) * (*mesh).dim[1]);
     if ( (nx == ox) && (ny == oy) ) return sim->wl.currorder[wli]; /* particle stayed in the same mesh bin*/
 
-    change = Mesh::addPart(newpos.x,newpos.y,&(*mesh).data,(*mesh).dim);
+    change = mesh->addPart(newpos.x,newpos.y);
     if (change) {
-        change = Mesh::removePart(oldpos.x,oldpos.y,&(*mesh).data,(*mesh).dim);
+        change = mesh->removePart(oldpos.x,oldpos.y);
     }
     if ( !change ) {
         /* fill the mesh with particles*/
@@ -27,25 +27,22 @@ long MoveCreator::meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, lon
     return sim->wl.currorder[wli];
 }
 
-long MoveCreator::meshOrderMoveChain(long chain[], Mesh *mesh, long npart, Particle chorig[], int wli) {
-    long i,current;
+long MoveCreator::meshOrderMoveChain(vector<int> chain, Mesh *mesh, long npart, Particle chorig[], int wli) {
+    long current;
     int change;
 
     change= 1;
-    i = 0;
     current = chain[0];
-    while ( (current >=0 ) && (change) ) {
-        if ( conf->pvec[current].type == sim->wl.wlmtype )
-            change = Mesh::addPart(conf->pvec[current].pos.x, conf->pvec[current].pos.y, &(*mesh).data, (*mesh).dim);
-        i++;
+    for(unsigned int i=0; (i<chain.size()) && (change); i++ ) {
+        if ( conf->pvec[current].type == sim->wl.wlmtype ) {
+            change = mesh->addPart(conf->pvec[current].pos.x, conf->pvec[current].pos.y);
+        }
         current = chain[i];
     }
-    i = 0;
     current = chain[0];
-    while ( (current >=0 ) && (change) ) {
+    for(unsigned int i=0; (i<chain.size()) && (change); i++ ) {
         if ( conf->pvec[current].type == sim->wl.wlmtype )
-            change = Mesh::removePart(chorig[i].pos.x, chorig[i].pos.y, &(*mesh).data, (*mesh).dim);
-        i++;
+            change = mesh->removePart(chorig[i].pos.x, chorig[i].pos.y);
         current = chain[i];
     }
 

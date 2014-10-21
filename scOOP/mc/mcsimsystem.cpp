@@ -21,13 +21,32 @@ void MCSimSystem::init(int argc, char** argv) {
 #endif
 
     init.initTop(); // here particleStore filled in setParticleParams
+    init.setParticlesParams();
+    init.initClusterList();
+    init.initSwitchList();
+
+    cout << "Generating GroupLists..." << endl;
+    init.initGroupLists();
+
+    //clear connectivity and then fill it from chain list
+    cout << "Generating connectivity..." << endl;
+    init.initConList();
+
+    DEBUG_INIT("Finished with reading the topology");
+
+    // Parallel tempering check
+#ifdef ENABLE_MPI
+    // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
+    printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
+#endif
+
+    init.topDealoc();
     init.testChains(); // if no chains -> move probability of chains 0
 
     cout << "\nReading configuration...\n";
     if(init.poolConfig)
         init.initConfig(files.configurationPool, conf.pool);
     init.initConfig(files.configurationInFile, conf.pvec);
-    init.initGroupLists();
 
     cout << "Equilibration of maximum step sizes: " << sim.nequil/2 << " sweeps" << endl;
 
@@ -115,7 +134,7 @@ void MCSimSystem::productionRun() {
             fputs(line, outfile);
         }
         for(int i=0; i < conf.pvecGroupList.molTypeCount; i++)
-            fprintf(outfile, "%s %d\n", topo.chainparam[i].name, conf.pvecGroupList.molCountOfType(i));
+            fprintf(outfile, "%s %d\n", topo.moleculeParam[i].name, conf.pvecGroupList.molCountOfType(i));
 
         fclose (outfile);
         fclose (inFile);
@@ -207,7 +226,7 @@ int MCSimSystem::memoryDealloc() {
     }
 
     for(int i=0; i<MAXMT; i++) {
-        free(topo.chainparam[i].name);
+        free(topo.moleculeParam[i].name);
     }
     return 0;
 }

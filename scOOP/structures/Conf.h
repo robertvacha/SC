@@ -12,26 +12,86 @@
 
 using namespace std;
 
+class ConList {
+public:
+    ConList() {
+        conlist[0]=NULL;
+        conlist[1]=NULL;
+        conlist[2]=NULL;
+        conlist[3]=NULL;
+    }
+    Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+};
+
 /**
  * @brief The GroupList class - simple grouplist
  */
 class GroupList {
 public:
-    int first[MAXMT];   ///< \brief Index(of pvec) of first particle of molecule type, array over molecular types
+    /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
+    /// on [molTypeCount] == size of vector
+    int first[MAXMT+1]; ///<
     int molSize[MAXMT]; ///< \brief Number of particles per molecule of moleculeType, array over molecular types
+
+    /// \brief chainIndex of first chain of molType
+    /// on [molTypeCount] == number of all chains
+    int firstChain[MAXMT+1];
+
     int molTypeCount;   ///< \brief Count of molecular types in use
-    int vecSize;        ///< \brief Size of vector
 
     GroupList() {
         for(int i=0; i<MAXMT; i++) {
-            first[i] = -1; molSize[i] = -1;
+            first[i] = -1; molSize[i] = -1; firstChain[i]=0;
         }
+    }
+
+    inline int getChainCount() {return firstChain[molTypeCount];}
+
+    void calcChainCount() {
+        firstChain[molTypeCount]=0;
+        for(int molType=0; molType<=molTypeCount; molType++) {
+            if(molSize[molType] > 1) {
+                firstChain[molType] = firstChain[molTypeCount];
+                firstChain[molTypeCount] += molCountOfType(molType);
+            } else {
+                firstChain[molType] = firstChain[molTypeCount];
+            }
+        }
+    }
+
+    inline int getChain(int chainN, int pos) {
+        for(int type=0; type<=molTypeCount; type++) {
+            if(firstChain[type] > chainN) {
+                type--;
+                if(molSize[type] <= pos) return -1;
+                chainN -= firstChain[type];
+                return first[type]+chainN*molSize[type] + pos;
+            }
+        }
+        assert(false && "ChainN not found");
+        return -1;
+    }
+
+    vector<int> getChain(int chainN) {
+        vector<int> ret;
+        for(int type=0; type<=molTypeCount; type++) {
+            if(firstChain[type] > chainN) {
+                type--;
+                chainN -= firstChain[type];
+                chainN *= molSize[type];
+                for(int i=0; i<molSize[type]; i++)
+                    ret.push_back(first[type]+chainN + i);
+                return ret;
+            }
+        }
+        assert(false && "ChainN not found");
+        return ret;
     }
 
     void info() {
         cout << "number of types: " << molTypeCount << endl;
         cout << "first:";
-        for(int i=0; i<molTypeCount; i++)
+        for(int i=0; i<=molTypeCount; i++)
              cout << " " << first[i];
         cout << endl;
     }
@@ -41,14 +101,12 @@ public:
      * molID -> starts from 0 for each molType
      * @return Index of first particle of molecule
      */
-    int getStoreIndex(int molType, int molID) {
+    inline int getStoreIndex(int molType, int molID) const {
         return first[molType] + molSize[molType]*molID;
     }
 
-    int getInsertIndex(int molType) {
-        if(first[molType+1] != -1)
-            return first[molType+1];
-        return vecSize;
+    inline int getInsertIndex(int molType) const {
+        return first[molType+1];
     }
 
     /**
@@ -56,31 +114,33 @@ public:
      * @return Number of molecules a given type
      */
     int molCountOfType(int molType) {       
-        if(first[molType+1] != -1) {
-            assert( ( first[molType+1] -  first[molType]) /  molSize[molType] >= 0);
-            return ( first[molType+1] -  first[molType]) /  molSize[molType];
-        }
-        assert( (vecSize -  first[molType]) /  molSize[molType] >= 0);
-        return (vecSize -  first[molType]) /  molSize[molType];
+        assert( ( first[molType+1] -  first[molType]) /  molSize[molType] >= 0);
+        return ( first[molType+1] -  first[molType]) /  molSize[molType];
     }
 
     void insertMolecule(int molType) {
-        for(int i= molType+1; i<molTypeCount; i++)
+        for(int i= molType+1; i<=molTypeCount; i++)
             first[i] += molSize[molType];
-        vecSize += molSize[molType];
+
+        if(molSize[molType] > 1)
+            calcChainCount();
+
         assert(checkConsistency());
     }
 
     void deleteMolecule(int molType) {
-        for(int i=molType+1; i<molTypeCount; i++)
+        for(int i=molType+1; i<=molTypeCount; i++)
             first[i] -= molSize[molType];
-        vecSize -= molSize[molType];
+
+        if(molSize[molType] > 1)
+            calcChainCount();
+
         assert(checkConsistency());
     }
 
 #ifndef NDEBUG
     int checkConsistency() {
-        for(int i=0; i<molTypeCount-1; i++) {
+        for(int i=0; i<molTypeCount; i++) {
             if(first[i+1] >= first[i])return 1;
         }
         return 0;
@@ -106,10 +166,6 @@ public:
     GroupList pvecGroupList;
     GroupList poolGroupList;
 
-    // chainlist - molecules of 1 particle on included
-    long chainlist[MAXN][MAXCHL];       ///< \brief List of particles in chain
-    long chainCount;                    ///< \brief Number of chains
-
     bool pairlist_update;
 
 public:
@@ -126,19 +182,13 @@ public:
             fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for pvec, pool, conlist, neighborlist, conf inicializer");
             exit(1);
         }
-
-        for (int i=0;i<MAXN;i++) {
-            for (int j = 0; j < MAXCHL; j++){
-                chainlist[i][j] = -1;
-            }
-        }
-        chainCount=0;
     }
 
+    void recalcConList();
+
     /**
-     * @brief Adds molecule to pvec, ensures Particle order, changes chainlist, grouplist
+     * @brief Adds molecule to pvec, ensures Particle order, grouplist, conlist
      * @param molecule
-     * @param topo
      */
     void addMolecule(std::vector<Particle>* molecule);
 
@@ -148,6 +198,8 @@ public:
      * @param molID
      */
     void removeMolecule(int target, int size);
+
+    std::vector<Particle> getRandomPoolConf(int molType);
 
     /**
      * @brief massCenter

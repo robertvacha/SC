@@ -418,32 +418,25 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     printf("System:\n");
 
     for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
-        printf("%s %d\n", topo->chainparam[i].name, conf->pvecGroupList.molCountOfType(i));
-
-#ifndef NDEBUG
-    unsigned int sum=0;
-    for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
-        sum += conf->pvecGroupList.molCountOfType(i);
-    assert(sum == conf->pvec.size());
-#endif
+        printf("%s %d\n", topo->moleculeParam[i].name, conf->pvecGroupList.molCountOfType(i));
 
     if(sim->nGrandCanon != 0) {
         cout << "Acceptance:\n";
         cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
         cout << std::setprecision(3) <<  std::fixed << std::left;
         for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-            if(topo->chainparam[i].activity != -1.0) {
-                cout << "  " << std::setw(6) <<topo->chainparam[i].name << " "
+            if(topo->moleculeParam[i].activity != -1.0) {
+                cout << "  " << std::setw(6) <<topo->moleculeParam[i].name << " "
                      << std::setw(6)
-                     << (double)topo->chainparam[i].insAcc/(topo->chainparam[i].insAcc+topo->chainparam[i].insRej) << " "
+                     << (double)topo->moleculeParam[i].insAcc/(topo->moleculeParam[i].insAcc+topo->moleculeParam[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo->chainparam[i].insRej/(topo->chainparam[i].insAcc+topo->chainparam[i].insRej) << " "
+                     << (double)topo->moleculeParam[i].insRej/(topo->moleculeParam[i].insAcc+topo->moleculeParam[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo->chainparam[i].delAcc/(topo->chainparam[i].delAcc+topo->chainparam[i].delRej) << " "
+                     << (double)topo->moleculeParam[i].delAcc/(topo->moleculeParam[i].delAcc+topo->moleculeParam[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo->chainparam[i].delRej/(topo->chainparam[i].delAcc+topo->chainparam[i].delRej) << " "
+                     << (double)topo->moleculeParam[i].delRej/(topo->moleculeParam[i].delAcc+topo->moleculeParam[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo->chainparam[i].muVtAverageParticles / topo->chainparam[i].muVtSteps << endl;
+                     << (double)topo->moleculeParam[i].muVtAverageParticles / topo->moleculeParam[i].muVtSteps << endl;
             }
         }
         cout << std::setprecision(6);
@@ -456,14 +449,14 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     if (sim->movie > 0)
         fclose (mf);
     //end cluster
-    /*if(sim->write_cluster){
+    if(sim->write_cluster){
         fclose(cl_stat);
         fclose(cl);
     }
     if (report < nsweeps) {
         fclose(ef);
         fclose(statf);
-    }*/
+    }
 }
 
 
@@ -809,9 +802,9 @@ int Updater::calcClusterEnergies() {
         for(int j = 0; j < sim->clusters[i].npart; j++) {
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
                 sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->pvec[sim->clusters[i].particles[j]]
-                        , sim->clusters[i].particles[j]
+                        , &conf->conlist[sim->clusters[i].particles[j]]
                         , &conf->pvec[sim->clusters[i].particles[k]]
-                        , sim->clusters[i].particles[k]);
+                        , &conf->conlist[sim->clusters[i].particles[k]]);
             }
         }
     }
@@ -823,15 +816,15 @@ int Updater::calcClusterEnergies() {
 int Updater::sameCluster(long fst, long snd) {
 
     /*if two particles are bonded they belong to the same cluster*/
-    if ( ((topo->chainparam[conf->pvec[fst].molType]).bond1c >= 0) ||
-        ((topo->chainparam[conf->pvec[fst].molType]).bonddc >= 0) ){
-        if ( (snd == conf->conlist[fst].conlist[1]) || (snd == conf->conlist[fst].conlist[0]) ) {
+    if ( ((topo->moleculeParam[conf->pvec[fst].molType]).bond1c >= 0) ||
+        ((topo->moleculeParam[conf->pvec[fst].molType]).bonddc >= 0) ){
+        if ( (&conf->pvec[snd] == conf->conlist[fst].conlist[1]) || (&conf->pvec[snd] == conf->conlist[fst].conlist[0]) ) {
           return true;
         }
     }
-    if ( ((topo->chainparam[conf->pvec[snd].molType]).bond1c >= 0) ||
-        ((topo->chainparam[conf->pvec[snd].molType]).bonddc >= 0) ){
-        if ( (fst == conf->conlist[snd].conlist[1]) || (fst == conf->conlist[snd].conlist[0]) ) {
+    if ( ((topo->moleculeParam[conf->pvec[snd].molType]).bond1c >= 0) ||
+        ((topo->moleculeParam[conf->pvec[snd].molType]).bonddc >= 0) ){
+        if ( (&conf->pvec[fst] == conf->conlist[snd].conlist[1]) || (&conf->pvec[fst] == conf->conlist[snd].conlist[0]) ) {
           return false;
         }
     }
@@ -854,7 +847,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if((calcEnergy.pairE)(&conf->pvec[fst], fst, &conf->pvec[snd], snd) > -0.10 ){
+    if((calcEnergy.pairE)(&conf->pvec[fst], &conf->conlist[fst], &conf->pvec[snd], &conf->conlist[snd]) > -0.10 ){
         return false;
     }
     else {

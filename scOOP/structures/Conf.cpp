@@ -1,22 +1,56 @@
 #include "Conf.h"
 
+void Conf::recalcConList() {
+    long k=0;
+
+    for (unsigned int i=0; i < conlist.size(); i++) {
+        conlist[i].conlist[0] = NULL;
+        conlist[i].conlist[1] = NULL;
+        conlist[i].conlist[2] = NULL;
+        conlist[i].conlist[3] = NULL;
+    }
+
+    for (unsigned int i=0; i<conlist.size(); i++) {
+        for (long j=0; j<MAXCHL; j++) {
+            if (pvecGroupList.getChain(i,j) >= 0) {
+                k = pvecGroupList.getChain(i,j);
+                if ((j+1 < MAXCHL)&&(pvecGroupList.getChain(i,j+1) >= 0))
+                    //if there is a next particle fill it to head bond
+                    conlist[k].conlist[1] = &pvec[ pvecGroupList.getChain(i,j+1) ];
+                if (j > 0)
+                    //if this is not first particle fill tail bond
+                    conlist[k].conlist[0] = &pvec[ pvecGroupList.getChain(i,j-1) ];
+                if ((j+2 < MAXCHL)&& (pvecGroupList.getChain(i,j+2) >= 0))
+                    //if there is a second next particle fill it second neighbour
+                    conlist[k].conlist[3] = &pvec[ pvecGroupList.getChain(i,j+2) ];
+                if (j > 1)
+                    //if this is not second or first particle fill second tail bond
+                    conlist[k].conlist[2] = &pvec[ pvecGroupList.getChain(i,j-2) ];
+            }
+        }
+    }
+}
+
 void Conf::addMolecule(std::vector<Particle>* molecule) {
 #ifndef NDEBUG
     assert(pvecGroupList.checkConsistency());
     int size = pvec.size();
     int molTypeSize = pvecGroupList.molCountOfType((*molecule)[0].molType);
 #endif
+
     int insID = pvecGroupList.getInsertIndex((*molecule)[0].molType);   // store index where to insert
 
-    // add neighbors to neighborList
+    // add neighbors to neighborList, conlists to conlist
     if(pairlist_update) {
         for(unsigned int i = 0; i<molecule->size(); i++) {
-            neighborList.push_back(Neighbors());
+            neighborList.push_back(Neighbors() );
             neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
         }
     }
     // change groupList
     pvecGroupList.insertMolecule((*molecule)[0].molType);
+    for(unsigned int i = 0; i<molecule->size(); i++)
+        conlist.push_back(ConList() );
 
     // insert at end of pvec -> trivial
     if((*molecule)[0].molType == pvecGroupList.molTypeCount-1) {
@@ -31,10 +65,12 @@ void Conf::addMolecule(std::vector<Particle>* molecule) {
         pvec.insert(pvec.begin()+insID, molecule->begin(), molecule->end());
     }
 
+    recalcConList();
+
 #ifndef NDEBUG
     assert(pvecGroupList.checkConsistency());
     assert(pvec.size() == molecule->size() + size);
-    assert(pvecGroupList.molCountOfType((*molecule)[0].molType) == molTypeSize + molecule->size());
+    assert(pvecGroupList.molCountOfType((*molecule)[0].molType) == molTypeSize + (int)molecule->size());
 #endif
 }
 
@@ -42,27 +78,45 @@ void Conf::removeMolecule(int target, int size) {
 
 #ifndef NDEBUG
     assert(pvecGroupList.checkConsistency());
-    assert(pvec.size() == pvecGroupList.vecSize);
+    assert((int)pvec.size() == pvecGroupList.vecSize);
     unsigned int pSize = pvec.size();
     int molTypeSize = pvecGroupList.molCountOfType(pvec[target].molType);
     int molType = pvec[target].molType;
 #endif
 
     if(pairlist_update) {
-        for(int i=0; i<size; i++) {;
+        for(int i=0; i<size; i++) {
             delete neighborList.back().neighborID;
             neighborList.pop_back();
         }
     }
 
     pvecGroupList.deleteMolecule(pvec[target].molType);
+    for(int i=0; i<size; i++)
+        conlist.pop_back();
+
     pvec.erase(pvec.begin()+target, pvec.begin()+target+size);
+
+    recalcConList();
 
 #ifndef NDEBUG
     assert(pvecGroupList.checkConsistency());
     assert(pvec.size() == pSize - size);
     assert(pvecGroupList.molCountOfType(molType) == molTypeSize - size);
 #endif
+}
+
+std::vector<Particle> Conf::getRandomPoolConf(int molType) {
+    long target;
+    vector<Particle> vec;
+
+    target = ran2() * poolGroupList.molCountOfType(molType);
+    target = poolGroupList.getStoreIndex(molType, target);
+
+    for(int i=0; i < poolGroupList.molSize[molType]; i++) {
+        vec.push_back(pool[target+i]);
+    }
+    return vec;
 }
 
 void Conf::massCenter(Topo* topo) {

@@ -14,7 +14,7 @@ public:
     double sqmaxcut;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
     double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
 
-    MoleculeParams chainparam[MAXMT];   ///< \brief parameters for chains
+    MoleculeParams moleculeParam[MAXMT];   ///< \brief parameters for Molecules
 
     Ia_param ia_params[MAXT][MAXT];     ///< \brief parametrization of particles for all interations
     Exters exter;                       ///< \brief external potential - wall

@@ -16,7 +16,7 @@ public:
     Vector chdir[2];        ///< \brief Direction for chirality - keep in memory to increase speed
 
     long molType;           ///< \brief Molecule type 0-100, given sequentialy from 0
-    long chainIndex;        ///< \brief Chain number, only for Molecules of two or more particles
+    //long chainIndex;        ///< \brief Chain number, only for Molecules of two or more particles
     int type;               ///< \brief Type of the particle 0 - 40
     int switchtype;         ///< \brief With which kind of particle do you want to switch?
     double delta_mu;        ///< \brief Chemical potential for the switch
@@ -30,15 +30,19 @@ public:
      */
     void init(Ia_param * ia_parami);
 
-    void random(int molType,int type) {
+    void random(int molType,int type, Vector& box) {
         pos.random();
+        pos.x *= box.x;
+        pos.y *= box.y;
+        pos.z *= box.z;
+
         dir.random();
 
         // init new Particle
         this->type = type;
         patchdir[0].random();
 
-        chainIndex = -1;
+        //chainIndex = -1;
         this->molType = molType;
         delta_mu = 0;
         switchtype = 0;

@@ -13,7 +13,16 @@ class MoveCreator
 {
 public:
     MoveCreator(Topo* topo, Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy)
-        : topo(topo), sim(sim), conf(conf), calcEnergy(calcEnergy) {}
+        : topo(topo), sim(sim), conf(conf), calcEnergy(calcEnergy) {
+
+        try{
+            insert.reserve(MAXCHL);
+            conlist.reserve(MAXCHL);
+        } catch(std::bad_alloc& bad) {
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for insert or conlist, see MoveCreator::constructor\n");
+            exit(1);
+        }
+    }
 
 private:
     Topo* topo;                // will maybe contain all the topo stuff in future
@@ -21,6 +30,7 @@ private:
     Conf* conf;                // Should contain fast changing particle and box(?) information
 
     std::vector<Particle > insert;  // insert vector for muVt -> malloc() error when in muVTmove()
+    std::vector<ConList > conlist;  // insert vector for muVt -> malloc() error when in muVTmove()
 
 public:
     TotalEnergyCalculator* calcEnergy;
@@ -135,7 +145,7 @@ private:
      */
     void clusterRotate(long target, Vector gc, double max_angle);
 
-
+    void clusterRotate(vector<Particle>::iterator begin, unsigned int size);
 
 
     /**
@@ -172,7 +182,7 @@ private:
      * @param position
      * @return
      */
-    long radiusholeOrderMoveChain(long chain[MAXN], Particle chorig[MAXCHL],int wli, Vector *position);
+    long radiusholeOrderMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli, Vector *position);
 
     /**
      * @brief radiushole_print
@@ -218,7 +228,7 @@ private:
      * @param wli
      * @return
      */
-    long contParticlesMoveChain(long chain[MAXN], Particle chorig[MAXCHL],int wli);
+    long contParticlesMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli);
 
     /**
      * @brief movetry Compare energy change to temperature and based on Boltzmann probability
@@ -259,7 +269,7 @@ private:
      * @param wli
      * @return
      */
-    long meshOrderMoveChain(long chain[MAXN], Mesh* mesh, long npart, Particle chorig[MAXCHL], int wli);
+    long meshOrderMoveChain(vector<int> chain, Mesh* mesh, long npart, Particle chorig[MAXCHL], int wli);
 
 };
 
