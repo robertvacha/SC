@@ -1,4 +1,0 @@
-<map id="Mesh::meshFill" name="Mesh::meshFill">
-<area shape="rect" id="node2" href="$class_mesh.html#a3779de5e24f96ab307153f3ab3cb67b0" title="mesh_addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot ..." alt="" coords="165,5,272,32"/>
-<area shape="rect" id="node3" href="$class_mesh.html#a824270e8af4d5eb1b93a55cc5541fb38" title="mesh_square " alt="" coords="321,5,455,32"/>
-</map>

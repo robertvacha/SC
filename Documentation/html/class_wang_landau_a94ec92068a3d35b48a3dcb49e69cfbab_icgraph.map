@@ -1,8 +1,0 @@
-<map id="WangLandau::wlfgets" name="WangLandau::wlfgets">
-<area shape="rect" id="node2" href="$class_wang_landau.html#a4f96f435c69135fb5597cb708cb67ed5" title="wlinit Initiate Wang&#45;Landau calculation. " alt="" coords="200,31,349,57"/>
-<area shape="rect" id="node3" href="$class_updater.html#a76445be97c06ecf75daa9bdf01f4799d" title="Initialization of wang&#45;landaou method. " alt="" coords="397,31,565,57"/>
-<area shape="rect" id="node4" href="$class_updater.html#a42cde2ba4af4b35d0265a183a42cea20" title="simulate " alt="" coords="614,31,738,57"/>
-<area shape="rect" id="node5" href="$class_m_c_sim_system.html#a4f11a2356f82dba787e1a4d69e0e0d4f" title="equilibrate " alt="" coords="799,5,977,32"/>
-<area shape="rect" id="node7" href="$class_m_c_sim_system.html#a188410921d582e9a2659627f4ca2073b" title="productionRun " alt="" coords="787,56,989,83"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="1037,31,1088,57"/>
-</map>

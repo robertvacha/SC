@@ -1,6 +1,0 @@
-<map id="Conf::overlapAll" name="Conf::overlapAll">
-<area shape="rect" id="node2" href="$class_conf.html#a5e8333ea6a4c8d4ef64f1b675aa61c66" title="Determines whether two particles overlap. " alt="" coords="165,31,261,57"/>
-<area shape="rect" id="node3" href="$math__calc_8h.html#aa01fc2176791457b36671a337adec048" title="Returns the vector pointing from the centre of mass of particle 2 to the centre of mass of the closes..." alt="" coords="330,5,387,32"/>
-<area shape="rect" id="node5" href="$class_conf.html#a6e0faf2e313a9b5029d09b1d03523132" title="Conf::linemin" alt="" coords="310,56,407,83"/>
-<area shape="rect" id="node4" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="456,5,507,32"/>
-</map>

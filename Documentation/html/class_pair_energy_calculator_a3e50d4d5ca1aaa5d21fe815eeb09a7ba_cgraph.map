@@ -1,5 +1,0 @@
-<map id="PairEnergyCalculator::e2ScaOr2Spa" name="PairEnergyCalculator::e2ScaOr2Spa">
-<area shape="rect" id="node2" href="$class_pair_energy_calculator.html#aeb01996df33c2833b4f549f615eab8eb" title="closestdist closest distance calculation " alt="" coords="197,5,341,46"/>
-<area shape="rect" id="node4" href="$class_pair_energy_calculator.html#ab81b2889890df0b67b470b1db7601371" title="erepulsive Determines repulsive energy of two spherocylinders " alt="" coords="197,70,341,111"/>
-<area shape="rect" id="node3" href="$class_pair_energy_calculator.html#a564860504e20d5b72d7da38c30f4b5b6" title="mindist_segments Find closest distance between line segments and return its vector gets orientations ..." alt="" coords="389,5,533,46"/>
-</map>

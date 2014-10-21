@@ -1,8 +1,0 @@
-<map id="MoveCreator::meshOrderMoveChain" name="MoveCreator::meshOrderMoveChain">
-<area shape="rect" id="node2" href="$class_mesh.html#a3779de5e24f96ab307153f3ab3cb67b0" title="mesh_addpart add particle on coordinates posx posy to mesh return 0 if it was placed on empty spot ..." alt="" coords="436,22,543,49"/>
-<area shape="rect" id="node4" href="$class_mesh.html#afff05228d5e595d978f39ace32a8aea6" title="mesh_removepart remove particle on coordinates posx posy from mesh and return 0 if there is a empty s..." alt="" coords="426,73,553,99"/>
-<area shape="rect" id="node5" href="$class_mesh.html#a287954614a974377a6adba50692158b8" title="filling the mesh " alt="" coords="253,22,363,49"/>
-<area shape="rect" id="node6" href="$class_mesh.html#ae1c06bc8b428ea8d854513b4ccf120cd" title="mesh_findholes returns the number of holes and a list of mesh points belonging to each of them ..." alt="" coords="251,123,365,150"/>
-<area shape="rect" id="node3" href="$class_mesh.html#a824270e8af4d5eb1b93a55cc5541fb38" title="mesh_square " alt="" coords="614,47,749,74"/>
-<area shape="rect" id="node7" href="$class_mesh.html#aec76a31895c9092b5f0528a73f100d1c" title="mesh_neighbors " alt="" coords="413,123,565,150"/>
-</map>

@@ -1,3 +1,0 @@
-<map id="Sampler::draw" name="Sampler::draw">
-<area shape="rect" id="node2" href="$math__calc_8h.html#a853c26b4272830d5e690b7c07b1b6e8f" title="Returns the nearest integer to its argument as a double precision number. e.g. anint(&#45;0.49) = 0.0 and anint(&#45;0.51) = &#45;1.0. Equivalent to the Fortran intrinsic ANINT. " alt="" coords="160,5,211,32"/>
-</map>

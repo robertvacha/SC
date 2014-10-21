@@ -1,9 +1,0 @@
-<map id="beforecommand" name="beforecommand">
-<area shape="rect" id="node2" href="$class_inicializer.html#acd2d40a23bdd29b973176c62ab5aef8d" title="Inicializer::readTopoFile" alt="" coords="347,52,506,78"/>
-<area shape="rect" id="node6" href="$class_inicializer.html#ac144054462e36e5ea70ba03785ba0f98" title="filing the parameters for types from given strings. Returns 1 on succes. " alt="" coords="168,26,299,53"/>
-<area shape="rect" id="node7" href="$class_inicializer.html#a2e61220db2412742fb203b6c7bcf6b93" title="filling the parameters of external potentail &#45; wall. Returns 1 on succes. " alt="" coords="170,77,297,104"/>
-<area shape="rect" id="node8" href="$class_inicializer.html#a6dad809b18ec2149abc33d71736b1e7b" title="filling the parameters for molecules " alt="" coords="175,128,292,154"/>
-<area shape="rect" id="node3" href="$class_inicializer.html#a7e1409d66a770fb50bcd90d96446a917" title="Inicialization of topology. " alt="" coords="555,52,677,78"/>
-<area shape="rect" id="node4" href="$class_m_c_sim_system.html#adfacc1a896841b090ebab26fd369f43a" title="init " alt="" coords="726,52,861,78"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="909,52,960,78"/>
-</map>

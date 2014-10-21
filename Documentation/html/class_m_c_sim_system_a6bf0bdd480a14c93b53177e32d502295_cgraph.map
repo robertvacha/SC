@@ -1,4 +1,0 @@
-<map id="MCSimSystem::clearOutfiles" name="MCSimSystem::clearOutfiles">
-<area shape="rect" id="node2" href="$class_m_c_sim_system.html#a780a1180f5bbe06b66ec672802f0a7b9" title="memorydealloc " alt="" coords="245,5,453,32"/>
-<area shape="rect" id="node3" href="$class_m_c_sim_system.html#a5a4cc59839d79f6712f25bea5c5696d2" title="dealloc_pairlist Cleans up: deallocates the memory for the pairlist " alt="" coords="502,5,701,32"/>
-</map>

@@ -1,8 +1,0 @@
-<map id="Inicializer::fillMol" name="Inicializer::fillMol">
-<area shape="rect" id="node2" href="$simlib_8cpp.html#aa96c663c52ddb5c99609cecef6067066" title="return string that goes before comand character " alt="" coords="171,5,285,32"/>
-<area shape="rect" id="node3" href="$simlib_8cpp.html#a60ea663401e86ca2a60a29e76c716679" title="trim string from left and right " alt="" coords="334,56,378,83"/>
-<area shape="rect" id="node6" href="$simlib_8cpp.html#a7f630f3bda6a2a1e395762323bbfe251" title="return string that goes after command character " alt="" coords="176,107,280,133"/>
-<area shape="rect" id="node7" href="$simlib_8cpp.html#a74173c7afe5600452edf4956ae58bbe8" title="make string uppercase " alt="" coords="194,157,262,184"/>
-<area shape="rect" id="node4" href="$simlib_8cpp.html#a1d9ff13ca6fbfeed019ff8459a2d7b27" title="trim string from left " alt="" coords="427,31,474,57"/>
-<area shape="rect" id="node5" href="$simlib_8cpp.html#a36c31afc53e5a1e87177eff988d6d17e" title="trim string from right " alt="" coords="427,81,475,108"/>
-</map>

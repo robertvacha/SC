@@ -1,7 +1,0 @@
-<map id="Conf::overlapAll" name="Conf::overlapAll">
-<area shape="rect" id="node2" href="$class_move_creator.html#a2043489b2a8e9f19e3f00373df9dfece" title="muVTMove " alt="" coords="166,31,333,57"/>
-<area shape="rect" id="node3" href="$class_updater.html#a42cde2ba4af4b35d0265a183a42cea20" title="simulate " alt="" coords="382,31,506,57"/>
-<area shape="rect" id="node4" href="$class_m_c_sim_system.html#a4f11a2356f82dba787e1a4d69e0e0d4f" title="equilibrate " alt="" coords="567,5,745,32"/>
-<area shape="rect" id="node6" href="$class_m_c_sim_system.html#a188410921d582e9a2659627f4ca2073b" title="productionRun " alt="" coords="555,56,757,83"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="805,31,856,57"/>
-</map>

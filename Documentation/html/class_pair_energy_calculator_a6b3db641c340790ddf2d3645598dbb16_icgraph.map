@@ -1,5 +1,0 @@
-<map id="PairEnergyCalculator::harmonicPotential" name="PairEnergyCalculator::harmonicPotential">
-<area shape="rect" id="node2" href="$class_pair_energy_calculator.html#a41ec3ecd7b1d73204597f77aaf5ebabf" title="Determines angle energy between spherocylinders. " alt="" coords="197,5,341,46"/>
-<area shape="rect" id="node4" href="$class_pair_energy_calculator.html#abfc1a82edbae71f6136a16f7af8cf41a" title="Determines bond energy. " alt="" coords="197,70,341,111"/>
-<area shape="rect" id="node3" href="$class_pair_energy_calculator.html#ac03c8733c369cf005967fe77df01ac4d" title="PairEnergyCalculator\l::operator()" alt="" coords="389,38,533,79"/>
-</map>
