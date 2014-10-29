@@ -74,7 +74,16 @@ private:
     double harmonicPotential(double aktualvalue, double eqvalue, double springconst) {
         return springconst*(aktualvalue-eqvalue)*(aktualvalue-eqvalue)*0.5;
     }
-
+    
+    /**
+     * @brief calculates scaling for parallel and antiparallel interactions
+     * @param epsilonparallel
+     * @param dir1
+     * @param dir2
+     * @return
+     */
+    double scparallel(double epsilonparallel, Vector dir1, Vector dir2);
+    
     /**
      * @brief enoexist    Indicates not yet programmed interaction
      * @return

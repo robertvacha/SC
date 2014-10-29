@@ -76,7 +76,11 @@ void Topo::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
                     ia_params[i][j].epsilon = sqrt(ia_params[i][i].epsilon *  ia_params[j][j].epsilon);
                     ia_params[i][j].pswitch = AVER(ia_params[i][i].pswitch,ia_params[j][j].pswitch);
                     ia_params[i][j].rcutwca = (ia_params[i][j].sigma)*pow(2.0,1.0/6.0);
-
+		     if ((ia_params[i][i].parallel > 0) && (ia_params[j][j].parallel > 0)) ia_params[i][j].parallel = sqrt(ia_params[i][i].parallel *  ia_params[j][j].parallel);
+		     if ((ia_params[i][i].parallel < 0) && (ia_params[j][j].parallel < 0)) ia_params[i][j].parallel = -sqrt(ia_params[i][i].parallel *  ia_params[j][j].parallel);
+		     
+		    
+		    
                     // Averaging of the flat part of attraction
                     ia_params[i][j].pdis = AVER(ia_params[i][i].pdis - ia_params[i][i].rcutwca,
                                                       ia_params[j][j].pdis - ia_params[j][j].rcutwca) + ia_params[i][j].rcutwca;

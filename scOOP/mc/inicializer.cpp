@@ -1001,41 +1001,43 @@ int Inicializer::fillTypes(char **pline) {
             //topo->ia_params[type][type].pcanglsw[i] =	topo->ia_params[type][type].pcanglsw[i];
             topo->ia_params[type][type].pcoshalfi[i] = cos((param[4]/2.0+param[5])/2.0/180*PI);
             topo->ia_params[type][type].psinhalfi[i] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i] * topo->ia_params[type][type].pcoshalfi[i]);
-        }
+            topo->ia_params[type][type].parallel = param[7]; 
+	  
+	}
         fprintf(stdout, " | %g %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0]);
     }
-    if(fields == 6){
+    if(fields == 7){
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].chiral_cos[i] = cos(param[7] / 360 * PI);
+            topo->ia_params[type][type].chiral_cos[i] = cos(param[8] / 360 * PI);
             topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, "| %g ", param[7]);
+            fprintf(stdout, "| %g ", param[8]);
         }
     }
-    if ((fields == 8)||(fields == 9)) {
+    if ((fields == 9)||(fields == 10)) {
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].csecpatchrot[i] = cos(param[7] / 360 * PI);
+            topo->ia_params[type][type].csecpatchrot[i] = cos(param[8] / 360 * PI);
             topo->ia_params[type][type].ssecpatchrot[i] = sqrt(1 - topo->ia_params[type][type].csecpatchrot[i] * topo->ia_params[type][type].csecpatchrot[i]);
             //fprintf(stdout, " | %g %g", topo->ia_params[type][type].csecpatchrot[0], topo->ia_params[type][type].ssecpatchrot[0]);
 
-            topo->ia_params[type][type].pangl[i+2] = param[8];
-            topo->ia_params[type][type].panglsw[i+2] = param[9];
-            topo->ia_params[type][type].pcangl[i+2] = cos(param[8]/2.0/180*PI);                 // C1
-            topo->ia_params[type][type].pcanglsw[i+2] = cos((param[8]/2.0+param[9])/180*PI);    // C2
+            topo->ia_params[type][type].pangl[i+2] = param[9];
+            topo->ia_params[type][type].panglsw[i+2] = param[10];
+            topo->ia_params[type][type].pcangl[i+2] = cos(param[9]/2.0/180*PI);                 // C1
+            topo->ia_params[type][type].pcanglsw[i+2] = cos((param[9]/2.0+param[10])/180*PI);    // C2
             //topo->ia_params[type][type].pcangl[i] = topo->ia_params[type][type].pcangl[i];
             //topo->ia_params[type][type].pcanglsw[i] = topo->ia_params[type][type].pcanglsw[i];
-            topo->ia_params[type][type].pcoshalfi[i+2] = cos((param[8]/2.0+param[9])/2.0/180*PI);
+            topo->ia_params[type][type].pcoshalfi[i+2] = cos((param[9]/2.0+param[10])/2.0/180*PI);
             topo->ia_params[type][type].psinhalfi[i+2] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i+2] * topo->ia_params[type][type].pcoshalfi[i+2]);
         }
-        fprintf(stdout, " | %g  %g %g", param[7], topo->ia_params[type][type].pangl[2], topo->ia_params[type][type].panglsw[2]);
+        fprintf(stdout, " | %g  %g %g", param[8], topo->ia_params[type][type].pangl[2], topo->ia_params[type][type].panglsw[2]);
     }
-    if(fields == 9){
+    if(fields == 10){
         int i;
         for(i = 0; i < 2; i++){
             topo->ia_params[type][type].chiral_cos[i] = cos(param[10] / 360 * PI);
             topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, " | %g ", param[9]);
+            fprintf(stdout, " | %g ", param[10]);
         }
     }
 

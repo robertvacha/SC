@@ -428,10 +428,11 @@ double PairEnergyCalculator::ePscPsc() {
 double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     int i, intrs;
     double atrenergy, ndist;
-    double v1, v2, f0, f1, f2, T1, T2, S1, S2, a;
+    double v1, v2, f0, f1, f2, T1, T2, S1, S2, a, paral;
     double intersections[5];
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
+   
     //interact->halfl =topo->ia_params[part1->type][part2->type].half_len[0];
     //DEBUG_SIM("halfl = %lf", interact->halfl);
     for(i=0 ;i<5; i++)
@@ -507,8 +508,12 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     f2 = fanglScale(a, 1+2*patchnum2);
     //printf("v1: %f v2: %f f0: %f f1: %f f2: %f ener: %f\n",v1,v2,f0,f1,f2,atrenergy);
 
+    //add scaling increased if particles are parallel or antiparallel
+    paral=1.0;
+    paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
+    
     /*7- put it all together*/
-    atrenergy *=f0*f1*f2;
+    atrenergy *=f0*f1*f2*paral;
     //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
     //	    fprintf (stderr, "attraction  %.8f \n",atrenergy);
     //	    exit(1);
@@ -610,7 +615,7 @@ double PairEnergyCalculator::eCpscCpsc() {
 
 double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     int i, intrs;
-    double atrenergy, v1, v2, f0, f1, f2, T1, T2, S1, S2, a, ndist;
+    double atrenergy, v1, v2, f0, f1, f2, T1, T2, S1, S2, a, paral, ndist;
     double intersections[5];
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
@@ -684,6 +689,11 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     a = DOT(vec1, part2->patchdir[patchnum2]);
     f2 = fanglScale(a, 1+2*patchnum2);
 
+    //add scaling increased if particles are parallel or antiparallel
+    paral=1.0;
+    paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
+    
+    
     /*7- put it all together*/
     atrenergy *=f0*f1*f2;
 
@@ -1171,6 +1181,15 @@ double PairEnergyCalculator::e2ScaOr2Spa() {
 double PairEnergyCalculator::eSpnOrScn() {
     closestDist();
     return eRepulsive();
+}
+
+    //add scaling increased if particles are parallel or antiparallel
+double PairEnergyCalculator::scparallel(double epsilonparallel,Vector dir1,Vector dir2){
+    double cosa;  
+  
+    cosa=DOT(dir1,dir2);
+    if ((epsilonparallel>0 && cosa>0) || (epsilonparallel<0 && cosa<0)) return 1.0 + epsilonparallel*cosa;
+    else return 1.0;
 }
 
 void PairEnergyCalculator::closestDist() {

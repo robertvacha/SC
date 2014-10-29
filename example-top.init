@@ -1,8 +1,8 @@
 EXAMPLE 1:
 
 [Types]
-# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   PATCH_LENGTH   CHIRAL_ANGLE
-beta    1         PSC     1.0        1.0       1.2246205        0.6               80.0       5.0            3             
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH  SC_LENGTH   PARALLEL_EPS (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
+beta    1         PSC     1.0        1.0       1.2246205        0.6               80.0       5.0            3              0.0
 [Molecules]
 # Molecules letter
 #
@@ -59,11 +59,11 @@ closest distance between obejcts
 
 
 [Types]
-# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   SC_LENGTH  (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
-Prot1   1         PSC      1        1.2      1.346954458       1.0               80.0        5.0            3
-Prot2   2         PSC      1        1.2      1.346954458       1.0               170.0       5.0            3
-Prot3   3         CHCPSC   1        1.2      1.346954458       1.0               170.0       5.0            3             10
-Prot4   4         TCHCPSC  1        1.2      1.346954458       1.0               170.0       5.0            3             90.0    90.0     5.0    10
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   SC_LENGTH  PARALLEL_EPS (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
+Prot1   1         PSC      1        1.2      1.346954458       1.0               80.0        5.0            3             0.0   
+Prot2   2         PSC      1        1.2      1.346954458       1.0               170.0       5.0            3             0.0 
+Prot3   3         CHCPSC   1        1.2      1.346954458       1.0               170.0       5.0            3             0.0              10
+Prot4   4         TCHCPSC  1        1.2      1.346954458       1.0               170.0       5.0            3             0.0              90.0    90.0     5.0    10
 [Molecules]
 # Molecules letter
 #  bond1 - harmonic bond between nearest neighbours (end points for spherocylinders) (first constant then eq distance)
