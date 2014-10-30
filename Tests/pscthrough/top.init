@@ -1,8 +1,8 @@
 [Types]
-# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   PATCH_LENGTH   CHIRAL_ANGLE
-mem_head 1        SPN      1.0         0.95
-mem_tail 2        SPA      1.0         1.0       1.12246205        1.6
-prot1    3        CPSC     1.0         1.0       1.12246205        1.0             170.0        5.0         4
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA  ATTRACT_DIST ATTRACT_SWITCH  PATCH_ANGLE PATCH_SWITCH  SC_LENGTH PARALLEL_EPS  (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
+mem_head 1        SPN      1.0       0.95
+mem_tail 2        SPA      1.0       1.0   1.12246205        1.6
+prot1    3        CPSC     1.0       1.0   1.12246205        1.0           170.0        5.0           4        0.0
 [Molecules]
 # Molecules letter
 #  bond1 - harmonic bond between nearest neighbours

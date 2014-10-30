@@ -1,6 +1,6 @@
 [Types]
-# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   SC_LENGTH
-A       1         TCPSC      1.333333 1.2      1.346954458       0.3               90   5.0            3       180.0       90   5.0
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH   SC_LENGTH PARALLEL_EPS  (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
+A       1         TCPSC   1.333333   1.2  1.346954458       0.3           90          5.0            3        0.0          180.0       90   5.0
 [Molecules]
 # Molecules letter
 #  bond1 - harmonic bond between nearest neighbours
