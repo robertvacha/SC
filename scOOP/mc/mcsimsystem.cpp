@@ -37,7 +37,7 @@ void MCSimSystem::init(int argc, char** argv) {
     // Parallel tempering check
 #ifdef ENABLE_MPI
     // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
-    printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
+    printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf.pvec.size() * sim.dtemp * sim.dtemp / (1.0 + sim.dtemp)) );
 #endif
 
     init.topDealoc();
