@@ -383,6 +383,7 @@ double MoveCreator::switchTypeMove() {
 }
 
 double MoveCreator::chainMove() {
+
     double edriftchanges =0.0;
     long target;
 
@@ -462,7 +463,8 @@ double MoveCreator::chainDisplace(long target) {
                     conf->syscm.z += cluscm.z / conf->sysvolume;
                     sim->wl.neworder[wli] = sim->wl.zOrder(wli);
                     break;
-                case 2: sim->wl.origmesh = sim->wl.mesh;
+                case 2:
+                    sim->wl.origmesh = sim->wl.mesh;
                     sim->wl.neworder[wli] = meshOrderMoveChain(conf->pvecGroupList.getChain(target), &sim->wl.mesh, conf->pvec.size(), chorig,wli);
                     break;
                 case 4:
@@ -499,14 +501,15 @@ double MoveCreator::chainDisplace(long target) {
             if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
+            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]]
+                    - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
             energy += wlener;
         }
     }
     if (!reject) { /* wang-landaou ok, try move - calcualte energy */
         i=0;
         current = conf->pvecGroupList.getChain(target,0);
-        while (current >=0 ) {
+        while (current >=0 ) {            
             enermove += (*calcEnergy)(current, 2, target);
             i++;
             current = conf->pvecGroupList.getChain(target,i);
@@ -1088,6 +1091,7 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
 double MoveCreator::replicaExchangeMove(long sweep) {
     double edriftchanges=0.0;
 #ifdef ENABLE_MPI
+        cout << "replica move" << endl;
         double change, *recwlweights;
         MPI_Status status;
         int oddoreven,count,wli,sizewl = 0;
@@ -1386,6 +1390,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 }
             }
         }
+        if(localmpi.accepted) cout << "mpi accept" << endl;
         //if ( (localmpi.accepted) && (sim->pairlist_update) ) gen pair list
 
         MPI_Type_free(&MPI_exchange);
@@ -1693,14 +1698,13 @@ long MoveCreator::radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, V
 }
 
 long MoveCreator::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], int wli, Vector *position) {
-    long i,current,nr;
+    long current,nr;
     double rx,ry,z;
     bool change=false;
 
-    i = 0;
     rx=0;
-    current = chain[0];
-    while (current >=0 ) {
+    for(unsigned int i=0; i<chain.size(); i++ ) {
+        current = chain[i];
         if ( conf->pvec[current].type == sim->wl.wlmtype ) {
             z=conf->pvec[current].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
@@ -1713,12 +1717,9 @@ long MoveCreator::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[],
                 if ( sim->wl.radiushole[nr] == 1 ) change = true;
             }
         }
-        i++;
-        current = chain[i];
     }
-    i = 0;
-    current = chain[0];
-    while (current >=0 )  {
+    for(unsigned int i=0; i<chain.size(); i++ ) {
+        current = chain[i];
         if ( conf->pvec[current].type == sim->wl.wlmtype ) {
             z=chorig[i].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
@@ -1734,8 +1735,6 @@ long MoveCreator::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[],
                 if ( sim->wl.radiushole[nr] == 0 ) change = true;
             }
         }
-        i++;
-        current = chain[i];
     }
 
     if ( change ) {
@@ -1818,21 +1817,19 @@ long MoveCreator::contParticlesMoveOne(Vector *oldpos, long target, int wli) {
 long MoveCreator::contParticlesMoveChain(vector<int> chain, Particle chorig[], int wli) {
     long current;
 
-    current = chain[0];
     for(unsigned int i=0; i<chain.size(); i++ ) {
+        current = chain[i];
         if ( conf->pvec[current].type == sim->wl.wlmtype ) {
             if ( particlesInContact (&(conf->pvec[current].pos)) )
                 sim->wl.partincontact++;
         }
-        current = chain[i];
     }
-    current = chain[0];
     for(unsigned int i=0; i<chain.size(); i++ ) {
+        current = chain[i];
         if ( conf->pvec[current].type == sim->wl.wlmtype ) {
             if ( particlesInContact (&(chorig[i].pos)) )
                 sim->wl.partincontact--;
         }
-        current = chain[i];
     }
 
     return contParticlesOrder(wli);
@@ -1841,12 +1838,15 @@ long MoveCreator::contParticlesMoveChain(vector<int> chain, Particle chorig[], i
 int MoveCreator::moveTry(double energyold, double energynew, double temperature) {
     /*DEBUG   printf ("   Move trial:    %13.8f %13.8f %13.8f %13.8f\n",
       energynew, energyold, temperature, ran2(&seed));*/
-    if (energynew <= energyold )
+    if (energynew <= energyold ) {
         return 0;
-    else if (exp(-1.0*(energynew-energyold)/temperature) > ran2())
-        return 0;
-    else
-        return 1;
+    } else {
+        if (exp(-1.0*(energynew-energyold)/temperature) > ran2()) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
 }
 
 

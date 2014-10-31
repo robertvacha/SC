@@ -32,18 +32,17 @@ long MoveCreator::meshOrderMoveChain(vector<int> chain, Mesh *mesh, long npart, 
     int change;
 
     change= 1;
-    current = chain[0];
     for(unsigned int i=0; (i<chain.size()) && (change); i++ ) {
+        current = chain[i];
         if ( conf->pvec[current].type == sim->wl.wlmtype ) {
             change = mesh->addPart(conf->pvec[current].pos.x, conf->pvec[current].pos.y);
         }
-        current = chain[i];
     }
-    current = chain[0];
     for(unsigned int i=0; (i<chain.size()) && (change); i++ ) {
-        if ( conf->pvec[current].type == sim->wl.wlmtype )
-            change = mesh->removePart(chorig[i].pos.x, chorig[i].pos.y);
         current = chain[i];
+        if ( conf->pvec[current].type == sim->wl.wlmtype ) {
+            change = mesh->removePart(chorig[i].pos.x, chorig[i].pos.y);
+        }
     }
 
     if ( !change ) {
@@ -51,5 +50,6 @@ long MoveCreator::meshOrderMoveChain(vector<int> chain, Mesh *mesh, long npart, 
         mesh->meshFill(npart, sim->wl.wlmtype, &conf->pvec);
         return (long) (mesh->findHoles() - sim->wl.minorder[wli]);
     }
+
     return sim->wl.currorder[wli];
 }
