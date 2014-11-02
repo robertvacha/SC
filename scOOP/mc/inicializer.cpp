@@ -913,7 +913,7 @@ int Inicializer::fillTypes(char **pline) {
     char name[SMSTR];
     char geotype[SMSTR];
 
-    double param[11];
+    double param[12];
     /* 0: epsilon
      * 1: sigma
      * 2: attraction dist
@@ -921,9 +921,10 @@ int Inicializer::fillTypes(char **pline) {
      * 4: patch angle
      * 5: patch switch
      * 6: length
-     * 7(optional): second patche rotation
-     * 8(optional): second patch angle
-     * 9(optional): second patch angle switch
+     * 7: parallel_eps
+     * 8(optional): second patche rotation
+     * 9(optional): second patch angle
+     * 10(optional): second patch angle switch
      * +1: chirality
      */
     char typestr[STRLEN], paramstr[STRLEN];
@@ -958,12 +959,12 @@ int Inicializer::fillTypes(char **pline) {
         fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6.\n\n", geotype);
         return 0;
     }
-    if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 8)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 8, is %d.\n\n", geotype, fields);
+    if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 9)) {
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 9, is %d.\n\n", geotype, fields);
         return 0;
     }
-    if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 9)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 9.\n\n", geotype);
+    if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 10.\n\n", geotype);
         return 0;
     }
 
