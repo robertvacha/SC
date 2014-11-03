@@ -21,8 +21,9 @@ Parallel tempering (enabling MPI) compile with:
 
 , where x is the number of threads
 
-Currently Grand-Canonical works for single atomic type simulation
-You can mix several grandcanonical species with non-grandcanonical species
+GrandCanonical finished.
+
+Version tested against old *.c program. All test succesful.
 
 NOTE: to submit a job with grandCanonically active species use runGrand
 
