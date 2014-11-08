@@ -24,6 +24,16 @@ public:
     //
 
     Topo():sqmaxcut(0) {}
+    ~Topo() {
+        printf ("Deallocating Topo...\n");
+
+        if(switchlist)
+            free(switchlist);
+
+        for(int i=0; i<MAXMT; i++) {
+            free(moleculeParam[i].name);
+        }
+    }
 
     /**
      * @brief generate interations pairs

@@ -51,6 +51,61 @@ public:
     int mpinprocs;              ///< \brief MPI number of processes
 
     Sim() {}
+    ~Sim() {
+        printf ("Deallocating Sim...\n");
+
+        if (clusterlist != NULL)
+            free(clusterlist);
+
+        if (clustersenergy != NULL)
+            free(clustersenergy);
+
+        /*if (pairlist_update) {
+            if(deallocPairlist()) {
+                return 1;
+            }
+        }*/
+    }
+
+    void printEqStat() {
+
+        printf ("   Equilibrated maximum displacement / acceptance ratio:            \n");
+        printEqStat(trans,2.0,MAXT);
+
+        printf ("   Equilibrated maximum rotation / acceptance ratio:                       \n");
+        printEqStat(rot,1.0,MAXT);
+
+        printf ("   Equilibrated maximum box length change / acceptance ratio:              \n");
+        printf ("                     %.6e  /  %.6e\n", edge.mx/2.0,RATIO(edge));
+
+        printf ("   Equilibrated maximum displacement of chain / acceptance ratio:   \n");
+        printEqStat(chainm,2.0,MAXMT);
+
+        printf ("   Equilibrated maximum rotation of chain / acceptance ratio:              \n");
+        printEqStat(chainr,1.0,MAXMT);
+        printf ("\n");
+    }
+
+    void printEqStat(Disp *dat, double scale, int length) {
+        for(int i=0; i<length; i++) {
+            if (RATIO(dat[i]) > 0)
+                printf ("   TYPE %d           %.6f  /  %.6f\n", i, dat[i].mx/scale,RATIO(dat[i]));
+        }
+    }
+
+private:
+    int deallocPairlist() {  // deprecated, done in memoryDealloc()
+        /*long i;
+        if(sim.pairlist != NULL){
+            for(i = 0; i < topo.npart; i++){
+                if(sim.pairlist[i].pairs != NULL){
+                    free(sim.pairlist[i].pairs);
+                }
+            }
+            free(sim.pairlist);
+        }*/
+        return 0;
+    }
 };
 
 #endif // SIM_H

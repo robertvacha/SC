@@ -7,6 +7,8 @@ extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 
 void Inicializer::readOptions() {
 
+    cout << "Reading options..." << endl;
+
     int num_options = -1;
     double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
     long int seed;
@@ -264,6 +266,21 @@ void Inicializer::initTop() {
     //fill ia_params combinations and topology parameters
     topo->genParamPairs(&exclusions);
     topo->genTopoParams();
+
+    setParticlesParams();
+    initClusterList();
+    initSwitchList();
+    initGroupLists();
+    initConList();
+
+    DEBUG_INIT("Finished with reading the topology");
+
+#ifdef ENABLE_MPI  // Parallel tempering check
+    // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
+    printf("Probability to switch replicas is roughly: %f\n",exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) );
+#endif
+
+    topDealoc();
 }
 
 void Inicializer::initClusterList() {
@@ -281,6 +298,8 @@ void Inicializer::initClusterList() {
 }
 
 void Inicializer::initConList() {
+    //clear connectivity and then fill it from chain list
+    cout << "Generating connectivity..." << endl;
     long k=0;
 
     conf->conlist.resize(conf->pvec.size());
@@ -548,8 +567,9 @@ void Inicializer::initWriteFiles() {
     sprintf(files->energyfile, "energy.dat");
 }
 
-void Inicializer::initPairlist() {
-    //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo->npart); // deprecated, solved bz allocating particle
+void Inicializer::initNeighborList() {
+    cout << "\nAllocating memory for pairlist..." << endl;
+    //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo->npart); // deprecated, see Conf->neighborlist
 
     // Highest guess: Every particle interacts with the others
     // TODO: Make it more sophisticated
@@ -594,6 +614,9 @@ void Inicializer::initMPI(int argc, char** argv) {
 }
 
 void Inicializer::initGroupLists() {
+
+    cout << "Generating GroupLists..." << endl;
+
     // setGroupList;
     int newType = -1;
     for(unsigned int i = 0; i < conf->pvec.size(); i++) {
@@ -754,7 +777,8 @@ void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
                     continue;
                 }
                 if (!strcmp(keystr,"SYSTEM")) {
-                    if (!fillSystem(pline,sysnames,&sysmoln, "system: ")) {
+                    char name[9] = "system: ";
+                    if (!fillSystem(pline,sysnames,&sysmoln, name)) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                         topDealoc();
                         free(pline); pline = NULL;
@@ -764,7 +788,8 @@ void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
                 }
                 if (!strcmp(keystr, "POOL")) {
                     poolConfig = true;
-                    if (!fillSystem(pline,poolNames,&poolMolNum, "pool: ")) {
+                    char name[7] = "pool: ";
+                    if (!fillSystem(pline,poolNames,&poolMolNum, name)) {
                         fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                         topDealoc();
                         free(pline); pline = NULL;
@@ -1005,7 +1030,7 @@ int Inicializer::fillTypes(char **pline) {
             topo->ia_params[type][type].parallel = param[7]; 
 	  
 	}
-        fprintf(stdout, " | %g %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0]);
+        fprintf(stdout, " | %g %g | %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0], topo->ia_params[type][type].parallel);
     }
     if(fields == 7){
         int i;

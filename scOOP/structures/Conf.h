@@ -172,7 +172,7 @@ public:
     /**
      * @brief Conf Constructor, initializing variables
      */
-    Conf() {
+    Conf() : pairlist_update(false) {
         try{
             pvec.reserve(MAXN);
             conlist.reserve(MAXN);
@@ -184,7 +184,37 @@ public:
         }
     }
 
+    ~Conf() {
+        printf ("Deallocating Conf...\n");
+
+        for(unsigned int i=0; i < neighborList.size(); i++){
+            delete neighborList[i].neighborID;
+            neighborList[i].neighborID = NULL;
+        }
+
+        /*if (conf.particle != NULL) // left just for peace of mind, before Particles* --> std::vector<Particles* >
+            free(conf.particle);
+        conf.particle = NULL;*/
+    }
+
     void recalcConList();
+
+    /**
+     * @brief draw Dumps a configuration to the supplied file handle.
+     * @param outfile
+     */
+    void draw(FILE *outfile) {
+        //fprintf (outfile, "%15.8e %15.8e %15.8e\n", box.x, box.y, box.z);
+        for (unsigned int i=0; i < pvec.size(); i++) {
+            fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
+                    box.x * ((pvec[i].pos.x) - anInt(pvec[i].pos.x)),
+                    box.y * ((pvec[i].pos.y) - anInt(pvec[i].pos.y)),
+                    box.z * ((pvec[i].pos.z) - anInt(pvec[i].pos.z)),
+                    pvec[i].dir.x, pvec[i].dir.y, pvec[i].dir.z,
+                    pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
+                    pvec[i].switched);
+        }
+    }
 
     /**
      * @brief Adds molecule to pvec, ensures Particle order, grouplist, conlist

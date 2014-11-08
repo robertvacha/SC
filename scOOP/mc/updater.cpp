@@ -395,7 +395,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         if (sweep == next_frame) {
             fprintf (mf, "%ld\n", (long)conf->pvec.size());
             fprintf (mf, "sweep %ld;  box %.10f %.10f %.10f\n", sweep, conf->box.x, conf->box.y, conf->box.z);
-            printStat::draw(mf, conf);
+            conf->draw(mf);
             fflush (mf);
             next_frame += sim->movie;
         }

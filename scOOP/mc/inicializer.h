@@ -59,26 +59,6 @@ public:
         }
     }
 
-    void topDealoc() {
-        delete[] molecules;
-
-        if (sysmoln != NULL) free(sysmoln);
-            sysmoln=NULL;
-
-        if (poolMolNum != NULL) free(poolMolNum);
-            poolMolNum=NULL;
-
-        for (int i=0;i<MAXN;i++) {
-            if ((sysnames[i]) != NULL) free(sysnames[i]);
-                sysnames[i]=NULL;
-        }
-
-        for (int i=0;i<MAXN;i++) {
-            if ((poolNames[i]) != NULL) free(poolNames[i]);
-                poolNames[i]=NULL;
-        }
-    }
-
     /*
      *  INPUT
      */
@@ -100,17 +80,6 @@ public:
      */
     void initTop();
 
-    void initClusterList();
-
-    void initConList();
-
-    void initSwitchList();
-
-    void setParticlesParams() {
-        setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
-        setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
-    }
-
     /**
      * @brief Config initialization
 
@@ -129,14 +98,45 @@ public:
     void initWriteFiles();
 
     /// @brief Initializes the pairlist and allocates memory
-    void initPairlist();
+    void initNeighborList();
 
     /// @brief Paralel tempering(Replica exchange move) initialization
     void initMPI(int argc, char **argv);
 
+private:
+
+    void topDealoc() {
+        delete[] molecules;
+
+        if (sysmoln != NULL) free(sysmoln);
+            sysmoln=NULL;
+
+        if (poolMolNum != NULL) free(poolMolNum);
+            poolMolNum=NULL;
+
+        for (int i=0;i<MAXN;i++) {
+            if ((sysnames[i]) != NULL) free(sysnames[i]);
+                sysnames[i]=NULL;
+        }
+
+        for (int i=0;i<MAXN;i++) {
+            if ((poolNames[i]) != NULL) free(poolNames[i]);
+                poolNames[i]=NULL;
+        }
+    }
+
     void initGroupLists();
 
-private:
+    void initClusterList();
+
+    void initConList();
+
+    void initSwitchList();
+
+    void setParticlesParams() {
+        setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
+        setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
+    }
 
     void readTopoFile(bool exclusions[][MAXT]);
 
@@ -164,7 +164,7 @@ private:
      * @param sysmoln
      * @return
      */
-    int fillSystem(char *pline, char *sysnames[MAXN], long **sysmoln, char *name);
+    int fillSystem(char *pline, char *sysnames[MAXN], long **sysmoln, char* name);
 
     /**
      * @brief filing the parameters for types from given strings. Returns 1 on succes.

@@ -54,6 +54,7 @@ double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Par
 }
 
 void PairEnergyCalculator::initIntFCE() {
+    printf ("\nInitializing energy functions...\n");
     // NB
     // Fill in the names of the functions for calculating the
     // interaction energy
@@ -692,7 +693,6 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     //add scaling increased if particles are parallel or antiparallel
     paral=1.0;
     paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
-    
     
     /*7- put it all together*/
     atrenergy *=f0*f1*f2;

@@ -53,14 +53,6 @@ namespace printStat {
      */
     void printEqStat(Disp *dat, double scale, int length);
 
-    /**
-     * @brief draw Dumps a configuration to the supplied file handle.
-     * @param outfile
-     * @param conf
-     * @param topo
-     */
-    void draw(FILE *outfile, Conf * conf);
-
 }
 
 

@@ -1,27 +1,6 @@
 #include "printStat.h"
 
 
-void printStat::printEqStat(Disp *dat, double scale, int length) {
-    for(int i=0; i<length; i++) {
-        if (RATIO(dat[i]) > 0)
-            printf ("   TYPE %d           %.6f  /  %.6f\n", i, dat[i].mx/scale,RATIO(dat[i]));
-    }
-}
-
-void printStat::draw(FILE *outfile, Conf *conf) {
-    //fprintf (outfile, "%15.8e %15.8e %15.8e\n", box.x, box.y, box.z);
-    for (int i=0; i < (long)conf->pvec.size(); i++) {
-        fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
-                conf->box.x * ((conf->pvec[i].pos.x) - anInt(conf->pvec[i].pos.x)),
-                conf->box.y * ((conf->pvec[i].pos.y) - anInt(conf->pvec[i].pos.y)),
-                conf->box.z * ((conf->pvec[i].pos.z) - anInt(conf->pvec[i].pos.z)),
-                conf->pvec[i].dir.x, conf->pvec[i].dir.y, conf->pvec[i].dir.z,
-                conf->pvec[i].patchdir[0].x, conf->pvec[i].patchdir[0].y, conf->pvec[i].patchdir[0].z,
-                conf->pvec[i].switched);
-    }
-}
-
-
 int printStat::printClusterList(FILE *stream, bool decor, Sim *sim, Conf *conf) {
     if(decor){
         fprintf(stream, "\n"
