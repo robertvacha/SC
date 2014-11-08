@@ -3,6 +3,9 @@
 #ifndef RANDOMGENERATOR_H
 #define RANDOMGENERATOR_H
 
+extern long int test[30];
+extern bool cond;
+
 class randomBase {
 public:
     randomBase() {}

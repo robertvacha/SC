@@ -21,6 +21,10 @@ Parallel tempering (enabling MPI) compile with:
 
 , where x is the number of threads
 
+Generating documentation:
+
+    $ doxygen
+
 GrandCanonical finished.
 
 Version tested against old *.c program. All test succesful.
