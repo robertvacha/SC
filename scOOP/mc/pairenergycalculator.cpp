@@ -695,7 +695,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
     
     /*7- put it all together*/
-    atrenergy *=f0*f1*f2;
+    atrenergy *=f0*f1*f2*paral;
 
     //if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
     //	    fprintf (stderr, "attraction  %.8f \n",atrenergy);
