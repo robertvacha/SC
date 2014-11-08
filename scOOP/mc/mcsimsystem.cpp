@@ -22,7 +22,7 @@ void MCSimSystem::init(int argc, char** argv) {
 
     init.initTop(); // here particleStore filled in setParticleParams
     init.setParticlesParams();
-    init.initClusterList();
+    init.initClusterList(); // sim
     init.initSwitchList();
 
     cout << "Generating GroupLists..." << endl;

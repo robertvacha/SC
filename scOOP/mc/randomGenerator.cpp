@@ -1,5 +1,7 @@
 #include "randomGenerator.h"
 
+#include <iostream>
+
 #define IM1 2147483563
 #define IM2 2147483399
 #define AM (1.0/IM1)
@@ -45,7 +47,9 @@ double Ran2::operator ()() {
     iv[j] = seed;
     if (iy < 1) iy += IMM1;
     if ((temp=AM*iy) > RNMX) return RNMX;
-    else return temp;
+    else {
+        return temp;
+    }
 }
 #undef IM1
 #undef IM2

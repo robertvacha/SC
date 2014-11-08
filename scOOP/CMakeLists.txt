@@ -59,20 +59,20 @@ structures/particle.h structures/particle.cpp     # PARTICLE
 #
 # MC
 #
-mc/math_calc.h                                               # MATHS
-mc/wanglandau.h mc/wanglandau.cpp                            # WANG-LANDAU
-mc/updater.h mc/updater.cpp                                  # UPDATER
-mc/totalenergycalculator.h mc/totalenergycalculator.cpp      # TOTAL-ENERGY CALCULATOR
+mc/math_calc.h                                                # MATHS
+mc/wanglandau.h mc/wanglandau.cpp                             # WANG-LANDAU
+mc/updater.h mc/updater.cpp                                   # UPDATER
+mc/totalenergycalculator.h mc/totalenergycalculator.cpp       # TOTAL-ENERGY CALCULATOR
 mc/externalenergycalculator.h mc/externalenergycalculator.cpp # EXTERNAL-ENERGY CALCULATOR
-mc/pairenergycalculator.h mc/pairenergycalculator.cpp        # PAIR-ENERGY CALCULATOR
-mc/mygetline.h mc/mygetline2.cpp                             # MAC PORT FOR IO FUNCTION 
-mc/movecreator.h mc/movecreator.cpp mc/MoveCreatorMesh.cpp   # MOVES - MOVECREATOR
-mc/mcsimsystem.h mc/mcsimsystem.cpp                          # BASE - MCSIMSYSTEM
-mc/inicializer.h mc/inicializer.cpp                          # INICIALIZER
-mc/mesh.h mc/mesh.cpp                                        # MESH
-mc/simlib.h mc/simlib.cpp                                    # SIMLIB
-mc/randomGenerator.h mc/randomGenerator.cpp                  # RANDOM GENERATOR
-mc/printStat.h mc/printStat.cpp)                             # PRINTSTAT
+mc/pairenergycalculator.h mc/pairenergycalculator.cpp         # PAIR-ENERGY CALCULATOR
+mc/mygetline.h mc/mygetline2.cpp                              # MAC PORT FOR IO FUNCTION 
+mc/movecreator.h mc/movecreator.cpp mc/MoveCreatorMesh.cpp    # MOVES - MOVECREATOR
+mc/mcsimsystem.h mc/mcsimsystem.cpp                           # BASE - MCSIMSYSTEM
+mc/inicializer.h mc/inicializer.cpp                           # INICIALIZER
+mc/mesh.h mc/mesh.cpp                                         # MESH
+mc/simlib.h mc/simlib.cpp                                     # SIMLIB
+mc/randomGenerator.h mc/randomGenerator.cpp                   # RANDOM GENERATOR
+mc/printStat.h mc/printStat.cpp)                              # PRINTSTAT
 
 #target_link_libraries(SC ${MPI_C_LIBRARIES}) 
 

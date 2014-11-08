@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-QMAKE_CXXFLAGS += -O3 -march=native -msse2 -mfpmath=sse
+#QMAKE_CXXFLAGS += -O3 -march=native -msse2 -mfpmath=sse
 
 SOURCES += main.cpp \
     mc/wanglandau.cpp \
@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     structures/particle.cpp \
     mc/printStat.cpp \
     structures/topo.cpp \
-    mc/randomGenerator.cpp
+    mc/randomGenerator.cpp \
+    mc/externalenergycalculator.cpp
 
 HEADERS += \
     mc/wanglandau.h \
@@ -45,5 +46,6 @@ HEADERS += \
     mc/printStat.h \
     structures/moleculeparams.h \
     structures/topo.h \
-    mc/randomGenerator.h
+    mc/randomGenerator.h \
+    mc/externalenergycalculator.h
 

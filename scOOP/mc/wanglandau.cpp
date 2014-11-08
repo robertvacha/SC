@@ -5,12 +5,14 @@ long WangLandau::zOrder(int wli) {
     //    printf("%f %ld\n",pvec[0].pos.z * box.z,lround(pvec[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]));
     /* Because older C compilators do not know lround we can use ceil as well
        return lround(pvec[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]);*/
-    /*
-    printf("%f ",conf->pvec[0].pos.z );
+
+    /*if(cond) {
+    printf("pos Z %f ",conf->pvec[0].pos.z );
     printf("%f ",conf->syscm.z);
     printf("%f ",conf->box.z);
     printf("%f ", wl->minorder[wli]);
-    printf("%f \n", wl->dorder[wli] );*/
+    printf("dorder %f \n", wl->dorder[wli] );
+    }*/
 
     return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->box.z- minorder[wli]) / dorder[wli]  );
 }

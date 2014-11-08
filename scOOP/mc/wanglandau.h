@@ -7,6 +7,9 @@
 #include "mesh.h"
 #include "simlib.h"
 
+extern long int test[30];
+extern bool cond;
+
 /**
  * @brief The WangLandau class - Wang landau method (wl)
  */
