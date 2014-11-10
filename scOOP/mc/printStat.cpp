@@ -68,18 +68,9 @@ int printStat::printClusterStat(FILE *stream, bool decor, Sim *sim) {
 
 
 void printStat::printPairList(FILE *stream, Conf *conf) {
-    long i, j;
-    /*for (i = 0; i < topo->npart; i++){    // del after
-        fprintf(stream, "%ld (%ld):", i, sim->pairlist[i].num_pairs);
-        for(j = 0; j < sim->pairlist[i].num_pairs; j++){
-            fprintf(stream, " %ld", sim->pairlist[i].pairs[j]);
-        }
-        fprintf(stream, "\n");
-    }*/
-
-    for (i = 0; i < (long)conf->neighborList.size(); i++){
+    for (unsigned long i = 0; i < conf->neighborList.size(); i++){
         fprintf(stream, "%ld (%ld):", i, conf->neighborList[i].neighborCount);
-        for(j = 0; j < conf->neighborList[i].neighborCount; j++){
+        for(long j = 0; j < conf->neighborList[i].neighborCount; j++){
             fprintf(stream, " %ld", conf->neighborList[i].neighborID[j]);
         }
         fprintf(stream, "\n");

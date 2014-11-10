@@ -1188,7 +1188,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             localmpi.wl_order[wli] = 0;
             receivedmpi.wl_order[wli] = 0;
         }
-        for (wli=0;wli<sim->wl.wl.wlmdim;wli++) {
+        for (wli=0;wli<sim->wl.wlmdim;wli++) {
             localmpi.wl_order[wli] = sim->wl.currorder[wli];
             //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], sim->wl.currorder[wli] );
         }
@@ -1237,18 +1237,18 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     edriftchanges = receivedmpi.energy - localmpi.energy;
                     edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
                     if ( sim->wl.wlm[0] >0 ) {
-                        for (wli=0;wli<sim->wl.wl.wlmdim;wli++) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
                             sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
                         }
                         sim->wl.accept(sim->wl.wlm[0]);
                         //exchange wl data mesh size and radius hole s
-                        for (wli=0;wli<sim->wl.wl.wlmdim;wli++) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
                             switch (sim->wl.wlm[wli]) {
                                 case 2:
                                     //it is complicated to send because of different sizes
                                      //we would have to send sizes first and realocate corrrect mesh size and then send data
                                     // it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->pvec.size(),sim->wl.wl.wlmtype,
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->pvec.size(),sim->wl.wlmtype,
                                                           conf->box, &conf->pvec);
                                     break;
                                 case 5:
@@ -1323,7 +1323,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
                     //printf("edrift %f\n",edriftchanges);
                     if ( sim->wl.wlm[0] > 0 ) {
-                        for (wli=0;wli<sim->wl.wl.wlmdim;wli++) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
                             sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
                         }
                         sim->wl.accept(sim->wl.wlm[0]);
@@ -1345,13 +1345,13 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
                     if ( sim->wl.wlm[0] > 0 ) {
                         //exchange wl data mesh size and radius hole s
-                        for (wli=0;wli<sim->wl.wl.wlmdim;wli++) {
+                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
                             switch (sim->wl.wlm[wli]) {
                                 case 2:
                                     //it is complicated to send because of different sizes
                                     //  we would have to send sizes first and realocate corrrect mesh size and then send data
                                     //  it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->pvec.size(), sim->wl.wl.wlmtype,
+                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->pvec.size(), sim->wl.wlmtype,
                                                           conf->box, &conf->pvec);
                                     break;
                                 case 5:
