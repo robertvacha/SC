@@ -25,6 +25,11 @@ Generating documentation:
 
     $ doxygen
 
+Testing:
+
+    $ cd Tests/
+    $ ./test
+
 GrandCanonical finished.
 
 Version tested against old *.c program. All test succesful.
