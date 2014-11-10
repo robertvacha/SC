@@ -9,6 +9,13 @@ function print {
     fi
 }
 
+function clean {
+    rm -f config.last SC
+    cd ../old/
+    rm -f  a.out config.last
+    cd ../..
+}
+
 cd ../scOOP/
 
 rm -f CMakeCache.txt
@@ -22,62 +29,78 @@ mv SC ../Tests/
 cd ../Tests/
 
 echo ""
+echo "Building comparison version..."
+gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm
+
+echo ""
 echo "testing..."
 
 #
 # TEST normal
 #
-cp SC normal/
-cd normal/
+cp SC normal/new/
+cp a.out normal/old/
+cd normal/old
+./a.out > /dev/null
+cd ../new/
 ./SC > /dev/null
-diff config.last sc35.last > /dev/null
+diff config.last ../old/config.last > /dev/null
 print "1) Basic Test, TCPSC"
-rm -f config.last SC
-cd ..
+clean
 
 #
 # TEST chain
 #
-cp SC chain/
-cd chain/
+cp SC chain/new/
+cp a.out chain/old/
+cd chain/old
+./a.out > /dev/null
+cd ../new/
 ./SC > /dev/null
-diff config.last sc35.last > /dev/null
+diff config.last ../old/config.last > /dev/null
 print "2) Chain Test, 5 TCPSC"
-rm -f config.last SC
-cd ..
+clean
 
 #
 # TEST mempore
 #
-cp SC mempore/
-cd mempore/
+cp SC mempore/new/
+cp a.out mempore/old/
+cd mempore/old
+./a.out > /dev/null
+cd ../new/
 ./SC > /dev/null
-diff config.last sc35.last > /dev/null
+diff config.last ../old/config.last > /dev/null
 print "3) Mempore Test, pressure xy, wanglandau pore, chainmove, SPN-SPA-SPA"
-rm -f config.last SC
-cd ..
+clean
 
 #
 # TEST wallfibril
 #
-cp SC wallfibril/
-cd wallfibril/
+cp SC wallfibril/new/
+cp a.out wallfibril/old/
+cd wallfibril/old
+./a.out > /dev/null
+cd ../new/
 ./SC > /dev/null
-diff config.last sc35.last > /dev/null
+diff config.last ../old/config.last > /dev/null
 print "4) WallFibril Test, external wall, switchmove, CPSC"
-rm -f config.last SC
-cd ..
+clean
 
 #
 # TEST pscthrough
 #
-cp SC normal/
-cd normal/
+cp SC pscthrough/new/
+cp a.out pscthrough/old/
+cd pscthrough/old
+./a.out > /dev/null
+cd ../new/
 ./SC > /dev/null
-diff config.last sc35.last > /dev/null
+diff config.last ../old/config.last > /dev/null
 print "5) PSC-through Test, pressure xy, wanglandau z-direct, chainmove, SPN-SPA-SPA, CPSC"
-rm -f config.last SC
-cd ..
+clean
+
+rm -f a.out SC
 
 echo ""
 echo -e "\e[0mdone"
