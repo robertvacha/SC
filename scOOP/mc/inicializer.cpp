@@ -957,8 +957,12 @@ int Inicializer::fillTypes(char **pline) {
     beforecommand(typestr, *pline, SEPARATOR);
     aftercommand(paramstr, *pline, SEPARATOR);
 
-    fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le",
-                    name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4], &param[5], &param[6], &param[7], &param[8], &param[9], &param[10]);
+    fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le %le",
+                    name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4],
+                    &param[5], &param[6], &param[7], &param[8], &param[9], &param[10], &param[11]);
+
+    cout << "Fields:" << fields << " " << param[11] << endl;
+
     fields -= 5; // number of parameter fields => I am too lazy to adjust everywhere below the numbers
     //DEBUG    fprintf (stdout, "Topology read geotype: %ld with parameters fields %d, str:%s and %s in pline %s\n",geotype,fields,geotypestr,paramstr,pline);
 
@@ -989,7 +993,7 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 10.\n\n", geotype);
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 10, is %d.\n\n", geotype, fields);
         return 0;
     }
 
@@ -1027,7 +1031,7 @@ int Inicializer::fillTypes(char **pline) {
             //topo->ia_params[type][type].pcanglsw[i] =	topo->ia_params[type][type].pcanglsw[i];
             topo->ia_params[type][type].pcoshalfi[i] = cos((param[4]/2.0+param[5])/2.0/180*PI);
             topo->ia_params[type][type].psinhalfi[i] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i] * topo->ia_params[type][type].pcoshalfi[i]);
-            topo->ia_params[type][type].parallel = param[7]; 
+            topo->ia_params[type][type].parallel = param[7];
 	  
 	}
         fprintf(stdout, " | %g %g | %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0], topo->ia_params[type][type].parallel);
@@ -1061,10 +1065,10 @@ int Inicializer::fillTypes(char **pline) {
     if(fields == 10){
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].chiral_cos[i] = cos(param[10] / 360 * PI);
-            topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, " | %g ", param[10]);
+            topo->ia_params[type][type].chiral_cos[i] = cos(param[11] / 360 * PI);
+            topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);      
         }
+        fprintf(stdout, " | %g ", param[11]);
     }
 
     // Volume
