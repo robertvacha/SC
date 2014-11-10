@@ -75,23 +75,6 @@ public:
      */
     double muVTMove();
 
-    /**
-     * @brief radiushole_all filling the radiushole above vec
-     * @param wli
-     * @param position
-     * @return
-     */
-    long radiusholeAll(int wli, Vector *position);
-
-    /**
-     * @brief contParticle_all filling all Particle in the contact
-     * @param wli
-     * @return
-     */
-    long contParticlesAll(int wli);
-
-
-
 private:
 
     int getRandomMuVTType();
@@ -151,87 +134,7 @@ private:
     void clusterRotate(vector<Particle>::iterator begin, unsigned int size);
 
 
-    /**
-     * @brief radiushole_position return order of given radius
-     * @param radius
-     * @param wli
-     * @return
-     */
-    long radiusholePosition(double radius, int wli) {
-        return (long) ceil( ( radius - sim->wl.minorder[wli]) / sim->wl.dorder[wli]  );
-    }
 
-    /**
-     * @brief radiushole_order return current bin of free radius
-     * @return
-     */
-    long radiusholeOrder();
-
-    /**
-     * @brief radiusholeorder_moveone return change in order parameter when one particle moves
-     * @param oldpos
-     * @param target
-     * @param wli
-     * @param position
-     * @return
-     */
-    long radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, Vector *position);
-
-    /**
-     * @brief radiusholeorder_movechain return change in order parameter when chain moves
-     * @param chain
-     * @param chorig
-     * @param wli
-     * @param position
-     * @return
-     */
-    long radiusholeOrderMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli, Vector *position);
-
-    /**
-     * @brief radiushole_print
-     * @param radiushole
-     * @param length
-     */
-    void radiusholePrint(long *radiushole, long length);
-
-
-
-
-    /**
-     * @brief particleinncontact returns if particle is in contact
-     * @param vec
-     * @return
-     */
-    bool particlesInContact(Vector *vec);
-
-    /**
-     * @brief contParticle_order return order for Particle in contact
-     * @param wli
-     * @return
-     */
-    inline long contParticlesOrder(int wli) {
-        return (long) ceil( ( sim->wl.partincontact - sim->wl.minorder[wli]) / sim->wl.dorder[wli]  );
-    }
-
-    /**
-     * @brief contParticle_moveone return change in number of Particle in contact when one particle moves
-     * @param oldpos
-     * @param target
-     * @param wli
-     * @return
-     */
-    long contParticlesMoveOne(Vector *oldpos, long target,int wli);
-
-    /**
-     * @brief contParticle_movechain return change in order parameter when chain moves
-     * @param chain
-     * @param conf
-     * @param sim
-     * @param chorig
-     * @param wli
-     * @return
-     */
-    long contParticlesMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli);
 
     /**
      * @brief movetry Compare energy change to temperature and based on Boltzmann probability

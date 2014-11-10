@@ -30,7 +30,7 @@ void Inicializer::readOptions() {
         {"seed",                Long,   false, &seed},
         {"pairlist_update",     Int,    false, &sim->pairlist_update},
         {"ptype",               Int,    false, &sim->ptype},
-        {"wlm",                 Int2,   false, &sim->wlm},
+        {"wlm",                 Int2,   false, &sim->wl.wlm},
         {"wlmtype",             Int,    false, &sim->wl.wlmtype},
         {"press",               Double, false, &sim->press},
         {"paralpress",          Double, false, &sim->paralpress},
@@ -152,7 +152,7 @@ void Inicializer::readOptions() {
     printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
     printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
     printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
-    printf (" Wang-Landau method:                                 %d %d\n", sim->wlm[0],sim->wlm[1]);
+    printf (" Wang-Landau method:                                 %d %d\n", sim->wl.wlm[0],sim->wl.wlm[1]);
     printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
     printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);
     printf (" Number of Sweeps per pairlist update:               %d\n", sim->pairlist_update);
@@ -191,23 +191,23 @@ void Inicializer::readOptions() {
                 1 - isotropic coupling, 2 - isotropic in xy z=const, 3 - isotropic xy V=const.\n\n",sim->ptype);
         exit (1);
     }
-    if ( (sim->wlm[0] <0) || (sim->wlm[0] > 7) || (sim->wlm[1] <0) || (sim->wlm[1] > 7)  ) {
+    if ( (sim->wl.wlm[0] <0) || (sim->wl.wlm[0] > 7) || (sim->wl.wlm[1] <0) || (sim->wl.wlm[1] > 7)  ) {
         fprintf (stderr, "ERROR: Unknown Wang-Landau method %d %d. Program only knows: 0 - none, \
                 1 - z-direction od 1st particle, 2 - pore in membrane, 3 - zorientation of 0th particle,\
                 4 - distance of fist two particles, 5 - pore around z-axis above CM,\
-                6 - pore around z-axis above 0th particle, 7 - number of particles in contact \n\n",sim->wlm[0],sim->wlm[1]);
+                6 - pore around z-axis above 0th particle, 7 - number of particles in contact \n\n",sim->wl.wlm[0],sim->wl.wlm[1]);
         exit (1);
     }
-    if ( (sim->wlm[0] == 0) && (sim->wlm[1] > 0)  ) {
+    if ( (sim->wl.wlm[0] == 0) && (sim->wl.wlm[1] > 0)  ) {
         fprintf (stderr, "ERROR: Wang-Landau method has to be set for first order parameter and then for second order parameter\n\n");
         exit (1);
     }
-    if ( (sim->wlm[0] == 2) || (sim->wlm[0] == 5) || (sim->wlm[0] == 6)  ) {
+    if ( (sim->wl.wlm[0] == 2) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[0] == 6)  ) {
         if(sim->wl.wlmtype < 1){
             fprintf (stderr, "ERROR: Atom type for the Wang-Landau Method (%d) was false defined.\n\n",sim->wl.wlmtype);
             exit (1);
         }
-        if ( (sim->wlm[1] == 2) || (sim->wlm[1] == 5) || (sim->wlm[1] == 6) ) {
+        if ( (sim->wl.wlm[1] == 2) || (sim->wl.wlm[1] == 5) || (sim->wl.wlm[1] == 6) ) {
             fprintf (stderr, "ERROR: Simulaneous use of two pore order parameters has not been implemented yet.\n\n");
             exit (1);
         }

@@ -44,12 +44,6 @@ private:
     void initValues(long &next_adjust, long &next_calc, long &next_dump, long &next_frame);
 
     /**
-     * @brief Initialization of wang-landaou method
-     */
-    void initWangLandau();
-    void endWangLandau();
-
-    /**
      * @brief optimizestep Optimize the maximum displacement within the specified limits and resets the
        acceptance counters to zero.
      * @param x

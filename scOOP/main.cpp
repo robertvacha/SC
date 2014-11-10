@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     cout << "Equilibration of maximum step sizes: " << sim.nequil/2 << " sweeps" << endl;
 
-    if ( sim.wlm[0] > 0 ) {
+    if ( sim.wl.wlm[0] > 0 ) {
         outfile = fopen(files.wlinfile, "r");
         if (outfile == NULL) {
             printf ("ERROR: Cannot open file for Wang-Landau method (%s).\n",files.wlinfile);

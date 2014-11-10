@@ -61,100 +61,7 @@ void Updater::initValues(long& next_adjust, long& next_calc, long& next_dump, lo
     conf->massCenter(topo);
 }
 
-void Updater::initWangLandau() {
-    if ( sim->wlm[0] >0 ) {
-        if (sim->wl.initCalc(files->wlinfile) != 0)
-            return;
-        sim->wl.wlmdim = 1 ;
-        if ( sim->wlm[1] > 0 )
-            sim->wl.wlmdim = 2 ;
-        for (long wli=0; wli < sim->wl.wlmdim; wli++) {
-            switch (sim->wlm[wli]) {
-                case 1:
-                    conf->massCenter(topo);
-                    sim->wl.currorder[wli] = sim->wl.zOrder(wli);
-                    break;
-                case 2:
-                    sim->wl.wl_meshsize = (topo->ia_params[sim->wl.wlmtype][sim->wl.wlmtype].sigma) / 3.0; // TODO
-                    sim->wl.mesh.data = NULL;
-                    sim->wl.mesh.tmp = NULL;
-                    sim->wl.origmesh.data = NULL;
-                    sim->wl.origmesh.tmp = NULL;
-                    sim->wl.currorder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                           (long)conf->pvec.size(),
-                                                                           sim->wl.wlmtype, conf->box,
-                                                                           &conf->pvec) - sim->wl.minorder[wli]);
-                    break;
-                case 3:
-                    sim->wl.currorder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
-                    break;
-                case 4:
-                    sim->wl.currorder[wli] = sim->wl.twoPartDist(wli);
-                    break;
-                case 5:
-                    conf->massCenter(topo);
-                    sim->wl.radiusholemax = 0;
-                    sim->wl.radiushole = NULL;
-                    sim->wl.radiusholeold = NULL;
-                    sim->wl.currorder[wli] = move.radiusholeAll(wli,&(conf->syscm));
-                    break;
-                case 6:
-                    sim->wl.radiusholemax = 0;
-                    sim->wl.radiushole = NULL;
-                    sim->wl.radiusholeold = NULL;
-                    sim->wl.currorder[wli] = move.radiusholeAll(wli,&(conf->pvec[0].pos));
-                    break;
-                case 7:
-                    sim->wl.currorder[wli] = move.contParticlesAll(wli);
-                    break;
-                default:
-                    sim->wl.currorder[wli] = 0;
-                    break;
-            }
-            if ( (sim->wl.currorder[wli] >= sim->wl.length[wli] ) || (sim->wl.currorder[wli] < 0) ) {
-                printf("Error: starting Wang-Landau method with order parameter %f out of range(%f - %f)\n\n", sim->wl.dorder[wli]*sim->wl.currorder[wli] + \
-                   sim->wl.minorder[wli], sim->wl.minorder[wli], sim->wl.minorder[wli]+sim->wl.dorder[wli]*sim->wl.length[wli]  );
-                sim->wl.end();
-                return;
-            }
-        }
-        if (sim->wl.alpha < WL_ALPHATOL/100) sim->wl.alpha = WL_ZERO;
-        fflush (stdout);
-    }
-}
 
-
-void Updater::endWangLandau() {
-    long i=0,j=0;
-    if (sim->wlm[0] > 0) {
-        sim->wl.min = sim->wl.hist[0];
-        for (i=0;i < sim->wl.length[0];i++) {
-            j=0;
-            if ( sim->wl.hist[i+j*sim->wl.length[0]] < sim->wl.min ) sim->wl.min = sim->wl.hist[i+j*sim->wl.length[0]];
-            for (j=1;j < sim->wl.length[1];j++) {
-                if ( sim->wl.hist[i+j*sim->wl.length[0]] < sim->wl.min ) sim->wl.min = sim->wl.hist[i+j*sim->wl.length[0]];
-            }
-        }
-        sim->wl.wmin = sim->wl.weights[0];
-        for (i=0;i < sim->wl.length[0];i++) {
-            j=0;
-            sim->wl.weights[i+j*sim->wl.length[0]] -= sim->wl.wmin;
-            for (j=1;j < sim->wl.length[1];j++) {
-                sim->wl.weights[i+j*sim->wl.length[0]] -= sim->wl.wmin;
-            }
-        }
-        sim->wl.write(files->wloutfile);
-        sim->wl.end();
-        if ( (sim->wlm[0] == 2)||(sim->wlm[1] == 2) ) {
-            sim->wl.mesh.end();
-            sim->wl.origmesh.end();
-        }
-        if ( (sim->wlm[0] == 5)||(sim->wlm[1] == 5)||(sim->wlm[0] == 6)||(sim->wlm[1] == 6)  ) {
-            if ( sim->wl.radiushole != NULL ) free(sim->wl.radiushole);
-            if ( sim->wl.radiusholeold != NULL ) free(sim->wl.radiusholeold);
-        }
-    }
-}
 
 
 void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
@@ -202,7 +109,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         mf = NULL;
     }
 
-    initWangLandau();
+    sim->wl.init(files->wlinfile);
 
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
@@ -288,7 +195,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             next_adjust += adjust;
         }
 
-        if ( (sim->wlm[0] > 0) && (sim->wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
+        if ( (sim->wl.wlm[0] > 0) && (sim->wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
             // recalculate system CM to be sure there is no accumulation of errors by +- rejection moves
             /* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
               can be calculated from CM movements of individual particles
@@ -383,7 +290,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->box.x * conf->box.y * conf->box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
-            if (sim->wlm[0] > 0) {
+            if (sim->wl.wlm[0] > 0) {
                 sim->wl.write(files->wloutfile);
             }
             //print mesh distribution
@@ -443,7 +350,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     }
     fflush(stdout);
 
-    endWangLandau();
+    sim->wl.endWangLandau(files->wloutfile);
 
     //end movie
     if (sim->movie > 0)

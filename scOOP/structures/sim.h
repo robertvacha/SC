@@ -32,7 +32,7 @@ public:
     //long terms;                 ///< \brief Number of Fourier terms as smectic order parameters
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
-    int wlm[2];                 ///< \brief Wang landau method (wl)
+
     Disp edge;                  ///< \brief Maximum box length change and statistics
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
     Disp trans[MAXT];           ///< \brief Maximum translation  and statistics
