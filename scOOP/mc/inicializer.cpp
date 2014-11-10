@@ -273,6 +273,18 @@ void Inicializer::initTop() {
     initGroupLists();
     initConList();
 
+    if(sim->nGrandCanon != 0) {
+        bool existGrand = false;
+        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+            if(topo->moleculeParam[i].chemPot != -1.0 )
+                existGrand = true;
+        }
+        if(!existGrand) {
+            cout << "In options nGrandCanon != 0, but no activity set for any species in top.init" << endl;
+            exit(1);
+        }
+    }
+
     DEBUG_INIT("Finished with reading the topology");
 
 #ifdef ENABLE_MPI  // Parallel tempering check
@@ -1296,6 +1308,10 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
 
     // INIT of muVT ensemble
     if (!strcmp(molcommand,"ACTIVITY")) {
+        if(sim->nGrandCanon == 0) {
+            cout << "Activity stated in top.init, But nGrandCanon=0 in options" << endl;
+            exit(1);
+        }
         fields = sscanf(molparams, "%le ", &activity);
         topo->moleculeParam[i].activity = activity;
         topo->moleculeParam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]

@@ -78,7 +78,7 @@ void Conf::removeMolecule(int target, int size) {
 
 #ifndef NDEBUG
     assert(pvecGroupList.checkConsistency());
-    assert((int)pvec.size() == pvecGroupList.vecSize);
+    assert((int)pvec.size() == pvecGroupList.vecSize());
     unsigned int pSize = pvec.size();
     int molTypeSize = pvecGroupList.molCountOfType(pvec[target].molType);
     int molType = pvec[target].molType;

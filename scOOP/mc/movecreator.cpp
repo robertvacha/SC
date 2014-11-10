@@ -1413,12 +1413,6 @@ double MoveCreator::muVTMove() {
 
     // Determine what type we will be inserting/deleting
     int molType = getRandomMuVTType();
-    if(topo->moleculeParam[molType].chemPot == -1.0) {
-        cout << "GrandCanonical used without activity set for any species\n"
-             << ",either set activity in top.init\n"
-             << "or set nGrandCanon = 0 in options" << endl;
-        exit(1);
-    }
     molSize = conf->pvecGroupList.molSize[molType];
 
     topo->moleculeParam[molType].muVtSteps++;
@@ -1799,6 +1793,9 @@ int MoveCreator::getRandomMuVTType() {
             molType--;
         }
     }
+
+    assert(topo->moleculeParam[molType].chemPot != -1.0);
+
     return molType;
 }
 

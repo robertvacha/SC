@@ -47,6 +47,8 @@ public:
 
     inline int getChainCount() {return firstChain[molTypeCount];}
 
+    int vecSize() {return first[molTypeCount];}
+
     void calcChainCount() {
         firstChain[molTypeCount]=0;
         for(int molType=0; molType<=molTypeCount; molType++) {
