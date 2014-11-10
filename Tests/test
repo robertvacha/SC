@@ -1,0 +1,83 @@
+#!/bin/bash
+
+function print {
+    if [ $? -eq 0 ]
+    then
+        echo -e $1 " \e[1;32mOK\e[0m."
+    else 
+        echo -e $1 " \e[1;31mNOK\e[0m."
+    fi
+}
+
+cd ../scOOP/
+
+rm -f CMakeCache.txt
+rm -rf CMakeFiles/
+
+cmake .
+
+make
+mv SC ../Tests/
+
+cd ../Tests/
+
+echo ""
+echo "testing..."
+
+#
+# TEST normal
+#
+cp SC normal/
+cd normal/
+./SC > /dev/null
+diff config.last sc35.last > /dev/null
+print "1) Basic Test, TCPSC"
+rm -f config.last SC
+cd ..
+
+#
+# TEST chain
+#
+cp SC chain/
+cd chain/
+./SC > /dev/null
+diff config.last sc35.last > /dev/null
+print "2) Chain Test, 5 TCPSC"
+rm -f config.last SC
+cd ..
+
+#
+# TEST mempore
+#
+cp SC mempore/
+cd mempore/
+./SC > /dev/null
+diff config.last sc35.last > /dev/null
+print "3) Mempore Test, pressure xy, wanglandau pore, chainmove, SPN-SPA-SPA"
+rm -f config.last SC
+cd ..
+
+#
+# TEST wallfibril
+#
+cp SC wallfibril/
+cd wallfibril/
+./SC > /dev/null
+diff config.last sc35.last > /dev/null
+print "4) WallFibril Test, external wall, switchmove, CPSC"
+rm -f config.last SC
+cd ..
+
+#
+# TEST pscthrough
+#
+cp SC normal/
+cd normal/
+./SC > /dev/null
+diff config.last sc35.last > /dev/null
+print "5) PSC-through Test, pressure xy, wanglandau z-direct, chainmove, SPN-SPA-SPA, CPSC"
+rm -f config.last SC
+cd ..
+
+echo ""
+echo -e "\e[0mdone"

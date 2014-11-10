@@ -13,7 +13,6 @@ SOURCES += main.cpp \
     mc/mygetline2.cpp \
     mc/MoveCreatorMesh.cpp \
     mc/movecreator.cpp \
-    mc/mcsimsystem.cpp \
     mc/inicializer.cpp \
     mc/mesh.cpp \
     mc/simlib.cpp \
@@ -33,7 +32,6 @@ HEADERS += \
     structures/quaternion.h \
     mc/pairenergycalculator.h \
     mc/movecreator.h \
-    mc/mcsimsystem.h \
     mc/inicializer.h \
     structures/macros.h \
     mc/math_calc.h \

@@ -976,12 +976,12 @@ int Inicializer::fillTypes(char **pline) {
         fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 3.\n\n", geotype);
         return 0;
     }
-    if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 5)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 5.\n\n", geotype);
+    if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6.\n\n", geotype);
         return 0;
     }
-    if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 6)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6.\n\n", geotype);
+    if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 7.\n\n", geotype);
         return 0;
     }
     if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 9)) {

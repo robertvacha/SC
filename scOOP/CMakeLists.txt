@@ -67,7 +67,6 @@ mc/externalenergycalculator.h mc/externalenergycalculator.cpp # EXTERNAL-ENERGY 
 mc/pairenergycalculator.h mc/pairenergycalculator.cpp         # PAIR-ENERGY CALCULATOR
 mc/mygetline.h mc/mygetline2.cpp                              # MAC PORT FOR IO FUNCTION 
 mc/movecreator.h mc/movecreator.cpp mc/MoveCreatorMesh.cpp    # MOVES - MOVECREATOR
-mc/mcsimsystem.h mc/mcsimsystem.cpp                           # BASE - MCSIMSYSTEM
 mc/inicializer.h mc/inicializer.cpp                           # INICIALIZER
 mc/mesh.h mc/mesh.cpp                                         # MESH
 mc/simlib.h mc/simlib.cpp                                     # SIMLIB
