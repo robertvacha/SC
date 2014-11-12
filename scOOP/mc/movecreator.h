@@ -131,7 +131,26 @@ private:
      */
     void clusterRotate(long target, Vector gc, double max_angle);
 
-    void clusterRotate(vector<Particle>::iterator begin, unsigned int size);
+    void clusterRotate(vector<Particle>::iterator begin, unsigned int size, double max_angle);
+
+    inline Vector clusterCM(vector<Particle>::iterator begin, unsigned int size) {
+        double chainVolume=0.0;
+        Vector cluscm(0.0, 0.0, 0.0);
+
+        for(vector<Particle >::iterator it=begin; it!=begin+size; ++it) {
+            cluscm.x += it->pos.x * topo->ia_params[it->type][it->type].volume;
+            cluscm.y += it->pos.y * topo->ia_params[it->type][it->type].volume;
+            cluscm.z += it->pos.z * topo->ia_params[it->type][it->type].volume;
+
+            chainVolume += topo->ia_params[it->type][it->type].volume;
+        }
+
+        cluscm.x /= chainVolume;
+        cluscm.y /= chainVolume;
+        cluscm.z /= chainVolume;
+
+        return cluscm;
+    }
 
 
 

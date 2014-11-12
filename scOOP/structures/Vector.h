@@ -73,8 +73,17 @@ public:
         z+=o.z;
     }
 
+    inline bool operator!= (Vector& o) {
+        if(o.x != x || o.y != y || o.z != z ) return true;
+        return false;
+    }
+
     inline Vector operator* (double scale) {
         return Vector(this->x*scale, this->y*scale, this->z*scale);
+    }
+
+    inline void operator*= (double scale) {
+        this->x*=scale, this->y*=scale, this->z*=scale;
     }
 
     friend inline Vector operator* (double,Vector&);

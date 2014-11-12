@@ -537,25 +537,18 @@ double MoveCreator::chainDisplace(long target) {
 }
 
 double MoveCreator::chainRotate(long target) {
-    double edriftchanges,energy,enermove,wlener;
-    int reject=0,wli;
-    Vector cluscm;
-    double chainvolume;
+    double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
+    int reject=0;
     long current, i;
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0;
+    vector<Particle>::iterator begin = conf->pvec.begin()+conf->pvecGroupList.getChain(target,0);
+    int size = conf->pvecGroupList.molSize[begin->molType];
 
     /*=== Rotation step of cluster/chain ===*/
     //printf ("rotation of chain\n\n");
-    energy=0.0; /* set values to zero*/
-    edriftchanges=0.0;
-    wlener = 0.0;
     current = conf->pvecGroupList.getChain(target,0);
-    cluscm.x = conf->pvec[current].pos.x*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-    cluscm.y = conf->pvec[current].pos.y*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-    cluscm.z = conf->pvec[current].pos.z*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
     chorig[0] = conf->pvec[current];
-    chainvolume = topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
     energy += (*calcEnergy)(current, 2, target);
     i=1;
     current = conf->pvecGroupList.getChain(target,i);
@@ -578,24 +571,15 @@ double MoveCreator::chainRotate(long target) {
          else
          r_cm.z -= (double)( (long)(r_cm.z+0.5) );
          */
-        cluscm.x += conf->pvec[current].pos.x*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-        cluscm.y += conf->pvec[current].pos.y*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-        cluscm.z += conf->pvec[current].pos.z*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-        chainvolume += topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
         energy += (*calcEnergy)(current, 2, target);
         i++;
         current = conf->pvecGroupList.getChain(target,i);
     }
-    cluscm.x = cluscm.x/chainvolume;
-    cluscm.y = cluscm.y/chainvolume;
-    cluscm.z = cluscm.z/chainvolume;
     /*do actual rotations around geometrical center*/
-    clusterRotate(target, cluscm, sim->chainr[conf->pvec[target].molType].angle);
-    enermove=0.0;
+    clusterRotate(begin, size, sim->chainr[begin->molType].angle);
 
-    reject = 0;
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
+        for (int wli=0;wli<sim->wl.wlmdim;wli++) {
             switch (sim->wl.wlm[wli]) {
                 case 1:
                     if (target == 0) sim->wl.neworder[wli] = sim->wl.zOrder(wli);
@@ -972,7 +956,6 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
     long current,i;
     double vc,vs;
     //double quatsize;
-
     Vector newaxis;
 
     // create rotation quaternion
@@ -1023,32 +1006,16 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
     }
 }
 
-void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int size) {
-    double chainVolume;
+void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int size, double max_angle) {
     Vector cluscm;
     double vc,vs;
     Vector newaxis;
 
-    //current = conf->pvecGroupList.getChain(target,0);
-    cluscm.x = begin->pos.x * topo->ia_params[begin->type][begin->type].volume;
-    cluscm.y = begin->pos.y * topo->ia_params[begin->type][begin->type].volume;
-    cluscm.z = begin->pos.z * topo->ia_params[begin->type][begin->type].volume;
-    chainVolume = topo->ia_params[begin->type][begin->type].volume;
-
-    for(unsigned int i=1; i<size; i++) {
-        cluscm.x += (begin+i)->pos.x * topo->ia_params[(begin+i)->type][begin->type].volume;
-        cluscm.y += (begin+i)->pos.y * topo->ia_params[(begin+i)->type][begin->type].volume;
-        cluscm.z += (begin+i)->pos.z * topo->ia_params[(begin+i)->type][begin->type].volume;
-        chainVolume += topo->ia_params[(begin+i)->type][(begin+i)->type].volume;
-    }
-
-    cluscm.x = cluscm.x/chainVolume;
-    cluscm.y = cluscm.y/chainVolume;
-    cluscm.z = cluscm.z/chainVolume;
+    cluscm = clusterCM(begin, size);
 
     // create rotation quaternion
     newaxis.random(); /*random axes for rotation*/
-    vc = cos(PIH * ran2() );
+    vc = cos(max_angle * ran2() );
     if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
     else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
 
@@ -1057,34 +1024,34 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
     //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
 
     //shift position to geometrical center
-    for(unsigned int i=0; i<size; i++) {
+    for(vector<Particle >::iterator it=begin; it!=begin+size; ++it) {
         //shift position to geometrical center
-        (begin+i)->pos.x -= cluscm.x;
-        (begin+i)->pos.y -= cluscm.y;
-        (begin+i)->pos.z -= cluscm.z;
+        it->pos.x -= cluscm.x;
+        it->pos.y -= cluscm.y;
+        it->pos.z -= cluscm.z;
         //scale things by box not to have them distorted
-        (begin+i)->pos.x *= conf->box.x;
-        (begin+i)->pos.y *= conf->box.y;
-        (begin+i)->pos.z *= conf->box.z;
+        it->pos.x *= conf->box.x;
+        it->pos.y *= conf->box.y;
+        it->pos.z *= conf->box.z;
         //do rotation
-        (begin+i)->pos.rotate(newquat);
-        (begin+i)->dir.rotate(newquat);
-        (begin+i)->patchdir[0].rotate(newquat);
-        (begin+i)->patchdir[1].rotate(newquat);
-        (begin+i)->chdir[0].rotate(newquat);
-        (begin+i)->chdir[1].rotate(newquat);
-        (begin+i)->patchsides[0].rotate(newquat);
-        (begin+i)->patchsides[1].rotate(newquat);
-        (begin+i)->patchsides[2].rotate(newquat);
-        (begin+i)->patchsides[3].rotate(newquat);
+        (it)->pos.rotate(newquat);
+        (it)->dir.rotate(newquat);
+        it->patchdir[0].rotate(newquat);
+        it->patchdir[1].rotate(newquat);
+        it->chdir[0].rotate(newquat);
+        it->chdir[1].rotate(newquat);
+        it->patchsides[0].rotate(newquat);
+        it->patchsides[1].rotate(newquat);
+        it->patchsides[2].rotate(newquat);
+        it->patchsides[3].rotate(newquat);
         //sclae back
-        (begin+i)->pos.x /= conf->box.x;
-        (begin+i)->pos.y /= conf->box.y;
-        (begin+i)->pos.z /= conf->box.z;
+        it->pos.x /= conf->box.x;
+        it->pos.y /= conf->box.y;
+        it->pos.z /= conf->box.z;
         //shift positions back
-        (begin+i)->pos.x += cluscm.x;
-        (begin+i)->pos.y += cluscm.y;
-        (begin+i)->pos.z += cluscm.z;
+        it->pos.x += cluscm.x;
+        it->pos.y += cluscm.y;
+        it->pos.z += cluscm.z;
     }
 }
 
@@ -1469,7 +1436,7 @@ double MoveCreator::muVTMove() {
                 insert[i].pos += displace;
 
             // randomize - rotate chain
-            clusterRotate(insert.begin(),molSize);
+            clusterRotate(insert.begin(),molSize, (double)PIH);
 
             // check overlap
             for(unsigned int i=0; i<insert.size(); i++) {

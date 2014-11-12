@@ -23,9 +23,7 @@ public:
     Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 };
 
-/**
- * @brief The GroupList class - simple grouplist
- */
+
 class GroupList {
 public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
@@ -115,7 +113,7 @@ public:
      * @param molType Type of molecule
      * @return Number of molecules a given type
      */
-    int molCountOfType(int molType) {       
+    int molCountOfType(int molType) {
         assert( ( first[molType+1] -  first[molType]) /  molSize[molType] >= 0);
         return ( first[molType+1] -  first[molType]) /  molSize[molType];
     }
