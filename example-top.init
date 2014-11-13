@@ -17,13 +17,8 @@ beta    1         PSC     1.0        1.0       1.2246205        0.6             
 #
 #  muVT ensemble, only for one single particle type, must be listed as last type
 #  ACTIVITY - activity 
-#  INSERT_TYPE - 0(default - no insert),
-#                1(Random insert) -> attempt muVTmove(Grand canon ensemble)
-#                2(Pool insert) -> attempt muVTmove(Grand canon ensemble)
 #
-#  NOTE TO Grand canonical - dont use swithtype(mu_delta is always 0) -> neccesary to include to chainParams
-#                            dont use conList(any bonds)
-#                            use only atomic species for grand canonical (still in development)
+#  NOTE TO Grand canonical - dont use swithtype(mu_delta is always 0)
 #
 
 
@@ -31,7 +26,6 @@ A: {
 #what:       TYPE   	SWITCHTYPE  	DELTA_MU 
 particles:   1
 ACTIVITY: 0.01
-INSERT_TYPE: 1		
 }
 
 [System]
