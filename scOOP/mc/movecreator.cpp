@@ -1058,7 +1058,6 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
 double MoveCreator::replicaExchangeMove(long sweep) {
     double edriftchanges=0.0;
 #ifdef ENABLE_MPI
-        cout << "replica move" << endl;
         double change, *recwlweights;
         MPI_Status status;
         int oddoreven,count,wli,sizewl = 0;
@@ -1357,7 +1356,6 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 }
             }
         }
-        if(localmpi.accepted) cout << "mpi accept" << endl;
         //if ( (localmpi.accepted) && (sim->pairlist_update) ) gen pair list
 
         MPI_Type_free(&MPI_exchange);
