@@ -55,6 +55,8 @@ int main()
         out.close();
     } else cout << "Unable to open file";
 
+    cout << "Particles: " << largest << endl;
+
     return 0;
 }
 
