@@ -1,5 +1,7 @@
 #include "Conf.h"
 
+extern Topo topo;
+
 void Conf::recalcConList() {
     long k=0;
 
@@ -119,18 +121,18 @@ std::vector<Particle> Conf::getRandomPoolConf(int molType) {
     return vec;
 }
 
-void Conf::massCenter(Topo* topo) {
+void Conf::massCenter() {
     syscm.x = 0;
     syscm.y = 0;
     syscm.z = 0;
     for (unsigned long i=0; i < pvec.size(); i++) {
         //using periodic boundary conditions
         syscm.x += (pvec[i].pos.x - anInt(pvec[i].pos.x) ) *
-            topo->ia_params[pvec[i].type][pvec[i].type].volume;
+            topo.ia_params[pvec[i].type][pvec[i].type].volume;
         syscm.y += (pvec[i].pos.y - anInt(pvec[i].pos.y) ) *
-            topo->ia_params[pvec[i].type][pvec[i].type].volume;
+            topo.ia_params[pvec[i].type][pvec[i].type].volume;
         syscm.z += (pvec[i].pos.z - anInt(pvec[i].pos.z) ) *
-            topo->ia_params[pvec[i].type][pvec[i].type].volume;
+            topo.ia_params[pvec[i].type][pvec[i].type].volume;
     }
     syscm.x /= sysvolume;
     syscm.y /= sysvolume;
@@ -138,10 +140,10 @@ void Conf::massCenter(Topo* topo) {
     return;
 }
 
-void Conf::partVecInit(Topo* topo) {
+void Conf::partVecInit() {
     for(int i = 0; i < (long)pvec.size(); i++){
-        if ( topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]  < SP)
-            pvec[i].init(&(topo->ia_params[pvec[i].type][pvec[i].type]));
+        if ( topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]  < SP)
+            pvec[i].init(&(topo.ia_params[pvec[i].type][pvec[i].type]));
     }
 }
 

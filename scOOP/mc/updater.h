@@ -6,17 +6,15 @@
 #include "printStat.h"
 #include "movecreator.h"
 #include "../structures/Conf.h"
-#include <iomanip>
 
 class Updater
 {
 public:
-    Updater(Topo* topo, Sim* sim, Conf* conf, FileNames* files) :
-        topo(topo), sim(sim), conf(conf), files(files),
-        calcEnergy(topo, sim, conf), move(topo, sim, conf, &calcEnergy) {}
+    Updater(Sim* sim, Conf* conf, FileNames* files) :
+        sim(sim), conf(conf), files(files),
+        calcEnergy(sim, conf), move(sim, conf, &calcEnergy) {}
 
 private:
-    Topo* topo;                // will maybe contain all the topo stuff in future
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;

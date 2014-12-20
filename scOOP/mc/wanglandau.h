@@ -3,9 +3,9 @@
 #ifndef WANGLANDAU_H
 #define WANGLANDAU_H
 
-#include "stdio.h"
 #include "mesh.h"
 #include "simlib.h"
+#include <cstring>
 
 extern long int test[30];
 extern bool cond;
@@ -18,12 +18,10 @@ class WangLandau
 public:
     WangLandau() {}
 
-    void setTopoConf(Topo* topo, Conf* conf) {
-        this->topo = topo;
+    void setConf(Conf* conf) {
         this->conf = conf;
     }
 
-    Topo* topo;
     Conf* conf;
 
     int wlm[2];                ///< \brief Wang landau method (wl)

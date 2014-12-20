@@ -1,7 +1,6 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include "Vector.h"
 #include "structures.h"
 
 /**

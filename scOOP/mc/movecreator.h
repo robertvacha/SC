@@ -3,20 +3,15 @@
 #ifndef MOVECREATOR_H
 #define MOVECREATOR_H
 
-
 #include "totalenergycalculator.h"
-#include "../structures/Conf.h"
 
-#include "randomGenerator.h"
-
-extern long int test[30];
-extern bool cond;
+extern Topo topo;
 
 class MoveCreator
 {
 public:
-    MoveCreator(Topo* topo, Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy)
-        : topo(topo), sim(sim), conf(conf), calcEnergy(calcEnergy) {
+    MoveCreator(Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy)
+        :  sim(sim), conf(conf), calcEnergy(calcEnergy) {
 
         try{
             insert.reserve(MAXCHL);
@@ -28,7 +23,6 @@ public:
     }
 
 private:
-    Topo* topo;                // will maybe contain all the topo stuff in future
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
 
@@ -138,11 +132,11 @@ private:
         Vector cluscm(0.0, 0.0, 0.0);
 
         for(vector<Particle >::iterator it=begin; it!=begin+size; ++it) {
-            cluscm.x += it->pos.x * topo->ia_params[it->type][it->type].volume;
-            cluscm.y += it->pos.y * topo->ia_params[it->type][it->type].volume;
-            cluscm.z += it->pos.z * topo->ia_params[it->type][it->type].volume;
+            cluscm.x += it->pos.x * topo.ia_params[it->type][it->type].volume;
+            cluscm.y += it->pos.y * topo.ia_params[it->type][it->type].volume;
+            cluscm.z += it->pos.z * topo.ia_params[it->type][it->type].volume;
 
-            chainVolume += topo->ia_params[it->type][it->type].volume;
+            chainVolume += topo.ia_params[it->type][it->type].volume;
         }
 
         cluscm.x /= chainVolume;

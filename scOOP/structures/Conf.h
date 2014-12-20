@@ -8,8 +8,6 @@
 #include <assert.h>
 #include <map>
 
-#include <iostream>
-
 using namespace std;
 
 class ConList {
@@ -233,14 +231,13 @@ public:
 
     /**
      * @brief massCenter
-     * @param topo
      */
-    void massCenter(Topo* topo);
+    void massCenter();
 
     /**
      * @brief partvecinit calculate vectors on particles for speedup
      */
-    void partVecInit(Topo *topo);
+    void partVecInit();
 
     /**
      * @brief Determines whether two particles overlap.

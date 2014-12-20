@@ -1,5 +1,9 @@
 #include "wanglandau.h"
 
+#include "stdio.h"
+
+extern Topo topo;
+
 void WangLandau::init(char wlinfile[30]) {
     if ( wlm[0] >0 ) {
         if (initCalc(wlinfile) != 0)
@@ -10,11 +14,11 @@ void WangLandau::init(char wlinfile[30]) {
         for (long wli=0; wli < wlmdim; wli++) {
             switch (wlm[wli]) {
                 case 1:
-                    conf->massCenter(topo);
+                    conf->massCenter();
                     currorder[wli] = zOrder(wli);
                     break;
                 case 2:
-                    wl_meshsize = (topo->ia_params[wlmtype][wlmtype].sigma) / 3.0; // TODO
+                    wl_meshsize = (topo.ia_params[wlmtype][wlmtype].sigma) / 3.0; // TODO
                     mesh.data = NULL;
                     mesh.tmp = NULL;
                     origmesh.data = NULL;
@@ -31,7 +35,7 @@ void WangLandau::init(char wlinfile[30]) {
                     currorder[wli] = twoPartDist(wli);
                     break;
                 case 5:
-                    conf->massCenter(topo);
+                    conf->massCenter();
                     radiusholemax = 0;
                     radiushole = NULL;
                     radiusholeold = NULL;

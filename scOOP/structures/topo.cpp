@@ -1,5 +1,6 @@
 #include "topo.h"
 
+#include <cstring>
 
 void Topo::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
     int a[2];

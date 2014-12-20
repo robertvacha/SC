@@ -3,7 +3,7 @@
 
 #include "macros.h"
 #include "structures.h"
-#include <cstring>
+
 
 /* It would be nice, if this struct would contain all the topo stuff in the end*/
 class Topo

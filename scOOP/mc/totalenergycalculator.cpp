@@ -1,5 +1,9 @@
 #include "totalenergycalculator.h"
 
+#include <stdlib.h>
+#include <iostream>
+
+extern Topo topo;
 
 double TotalEnergyCalculator::operator ()(int target, int mode, int chainnum) {
 
@@ -46,7 +50,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
     }
 
     //add interaction with external potential
-    if (topo->exter.exist)
+    if (topo.exter.exist)
         energy+= extere2(target);
 
     return energy;
@@ -61,7 +65,7 @@ double TotalEnergyCalculator::chainToAll(vector<Particle>::iterator chain,
 //#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 //#endif
     for(int i=0; i<size; i++) {
-        if (topo->exter.exist)
+        if (topo.exter.exist)
             energy += exterE.extere2(&*(chain+i));
 
         for(unsigned int j=0; j < conf->pvec.size(); j++) {
@@ -104,7 +108,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
         }
     }
     //add interaction with external potential
-    if (topo->exter.exist)
+    if (topo.exter.exist)
         energy += extere2(target);
 
     return energy;
@@ -124,7 +128,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist) {
         }
 
     //add interaction with external potential
-    if (topo->exter.exist)
+    if (topo.exter.exist)
         energy += exterE.extere2(target);
 
     return energy;
@@ -139,12 +143,12 @@ double TotalEnergyCalculator::chainInner(vector<Particle >::iterator chain,
             energy += (pairE)(&*(chain+i), &*(con+i), &*(chain+j), &*(con+j));
 
         //for every particle add interaction with external potential
-        if (topo->exter.exist)
+        if (topo.exter.exist)
             energy += exterE.extere2(&*(chain+i));
     }
 
     //add interaction of last particle with external potential
-    if (topo->exter.exist)
+    if (topo.exter.exist)
         energy+= exterE.extere2(&*(chain+size-1));
 
     return energy;
@@ -164,12 +168,12 @@ double TotalEnergyCalculator::allToAll() {
             }
 
             //for every particle add interaction with external potential
-            if (topo->exter.exist)
+            if (topo.exter.exist)
                 energy += extere2(i);
         }
 
         //add interaction of last particle with external potential
-        if (topo->exter.exist)
+        if (topo.exter.exist)
             energy+= extere2(conf->pvec.size() - 1);
 
         return energy;

@@ -15,7 +15,7 @@ double MoveCreator::particleMove() {
     target = ran2() * (long)conf->pvec.size();
 
     if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
-    ((ran2() < 0.5) || (topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
+    ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
         //target = 1;
         //printf ("displacement\n\n");
         edriftchanges = partDisplace(target);
@@ -64,9 +64,9 @@ double MoveCreator::partDisplace(long target) {
         for (wli=0;wli<sim->wl.wlmdim;wli++) {
             switch (sim->wl.wlm[wli]) {
                 case 1: origsyscm = conf->syscm;
-                    conf->syscm.x += dr.x * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.y += dr.y * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.z += dr.z * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.x += dr.x * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.y += dr.y * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.z += dr.z * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
                     sim->wl.neworder[wli] = sim->wl.zOrder(wli);
                     break;
                 case 2: sim->wl.origmesh = sim->wl.mesh;
@@ -78,9 +78,9 @@ double MoveCreator::partDisplace(long target) {
                 case 5:
                     radiusholemax_orig = sim->wl.radiusholemax;
                     origsyscm = conf->syscm;
-                    conf->syscm.x += dr.x * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.y += dr.y * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.z += dr.z * topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.x += dr.x * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.y += dr.y * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
+                    conf->syscm.z += dr.z * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
                     longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
                     sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
                     break;
@@ -145,7 +145,7 @@ double MoveCreator::partRotate(long target) {
 
     origpart = conf->pvec[target];
 
-    pscRotate(&conf->pvec[target],sim->rot[conf->pvec[target].type].angle, topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0]);
+    pscRotate(&conf->pvec[target],sim->rot[conf->pvec[target].type].angle, topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0]);
     /*should be normalised and ortogonal but we do for safety*/
     conf->pvec[target].dir.normalise();
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
@@ -293,8 +293,8 @@ double MoveCreator::switchTypeMove() {
     /*=== This is an attempt to switch a type ===*/
     edriftchanges =0.0;
     wlener = 0.0;
-    target = ran2() * topo->n_switch_part;
-    target = topo->switchlist[target];
+    target = ran2() * topo.n_switch_part;
+    target = topo.switchlist[target];
     DEBUG_SIM("Switching the particle type");
     DEBUG_SIM("PARTICLE: %ld", target);
     energy = (*calcEnergy)(target, 1, 0);
@@ -307,7 +307,7 @@ double MoveCreator::switchTypeMove() {
     conf->pvec[target].type = conf->pvec[target].switchtype;
     conf->pvec[target].switchtype = tmp_type;
     conf->pvec[target].switched += pmone;
-    conf->pvec[target].init(&(topo->ia_params[conf->pvec[target].type][conf->pvec[target].type]));
+    conf->pvec[target].init(&(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type]));
     DEBUG_SIM("Particle %ld is %d switched", target, switched);
     //DEBUG
 #ifdef DEBUGGING_SIM
@@ -372,7 +372,7 @@ double MoveCreator::switchTypeMove() {
         conf->pvec[target].switchtype = conf->pvec[target].type;
         conf->pvec[target].type = tmp_type;
         conf->pvec[target].switched -= pmone;
-        conf->pvec[target].init(&(topo->ia_params[conf->pvec[target].type][conf->pvec[target].type]));
+        conf->pvec[target].init(&(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type]));
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
     } else { /* move was accepted */
         sim->wl.accept(sim->wl.wlm[0]);
@@ -441,9 +441,9 @@ double MoveCreator::chainDisplace(long target) {
     current = conf->pvecGroupList.getChain(target,0);
     while (current >=0 ) { /* move chaine to new position  */
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) ) { /* calculate move of center of mass  */
-            cluscm.x += dr.x*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-            cluscm.y += dr.y*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-            cluscm.z += dr.z*topo->ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
+            cluscm.x += dr.x*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
+            cluscm.y += dr.y*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
+            cluscm.z += dr.z*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
         }
         conf->pvec[current].pos.x += dr.x;
         conf->pvec[current].pos.y += dr.y;
@@ -1380,19 +1380,19 @@ double MoveCreator::muVTMove() {
     int molType = getRandomMuVTType();
     molSize = conf->pvecGroupList.molSize[molType];
 
-    topo->moleculeParam[molType].muVtSteps++;
+    topo.moleculeParam[molType].muVtSteps++;
 
     if(ran2() > 0.5) { //  insert move
 
-        if(topo->moleculeParam[molType].isAtomic()) {
+        if(topo.moleculeParam[molType].isAtomic()) {
 
             // create particle           
             insert.push_back(Particle());
-            insert[0].random(molType, topo->moleculeParam[molType].particleTypes[0], conf->box);
-            insert[0].init(topo->ia_params[insert[0].type]);
+            insert[0].random(molType, topo.moleculeParam[molType].particleTypes[0], conf->box);
+            insert[0].init(topo.ia_params[insert[0].type]);
 
             // check overlap
-            if(conf->overlapAll(&insert[0], topo->ia_params)) {
+            if(conf->overlapAll(&insert[0], topo.ia_params)) {
                 insert.clear();
                 return 0; // overlap detected, move rejected
             }
@@ -1401,19 +1401,19 @@ double MoveCreator::muVTMove() {
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
             if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1.0)) *
-                  exp( topo->moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
+                  exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
 
                 conf->addMolecule(&insert);
                 insert.clear();
-                conf->sysvolume += topo->ia_params[insert[0].type][insert[0].type].volume;
-                topo->moleculeParam[molType].insAcc++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                conf->sysvolume += topo.ia_params[insert[0].type][insert[0].type].volume;
+                topo.moleculeParam[molType].insAcc++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
 
                 return energy - entrophy;
             } else { // rejected
                 insert.clear();
-                topo->moleculeParam[molType].insRej++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].insRej++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
 
                 return 0;
             }
@@ -1438,7 +1438,7 @@ double MoveCreator::muVTMove() {
 
             // check overlap
             for(unsigned int i=0; i<insert.size(); i++) {
-                if(conf->overlapAll(&insert[i], topo->ia_params)) {
+                if(conf->overlapAll(&insert[i], topo.ia_params)) {
                     insert.clear();
                     return 0; // overlap detected, move rejected
                 }
@@ -1476,25 +1476,25 @@ double MoveCreator::muVTMove() {
             }
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-24))  -U(new)/kT)
-            if( ( factor * exp( topo->moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
+            if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
                 // add internal energy(with external)
                 energy += calcEnergy->chainInner(insert.begin(), conlist.begin(), molSize);
 
                 conf->addMolecule(&insert);
 
                 for(unsigned int i=0; i<insert.size(); i++)
-                    conf->sysvolume += topo->ia_params[insert[i].type][insert[i].type].volume;
+                    conf->sysvolume += topo.ia_params[insert[i].type][insert[i].type].volume;
 
                 insert.clear();
                 conlist.clear();               
 
-                topo->moleculeParam[molType].insAcc++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].insAcc++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
 
                 return energy - molSize*entrophy;
             } else {
-                topo->moleculeParam[molType].insRej++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].insRej++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
 
                 insert.clear();
                 conlist.clear();
@@ -1512,23 +1512,23 @@ double MoveCreator::muVTMove() {
         target = conf->pvecGroupList.getStoreIndex(molType, target);
         assert(conf->pvec[target].molType == molType);
 
-        if(topo->moleculeParam[molType].isAtomic()) {
+        if(topo.moleculeParam[molType].isAtomic()) {
             // do energy calc
             energy = calcEnergy->oneToAll(target);
 
             // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
             if( ( ( (double)(conf->pvecGroupList.molCountOfType(molType)) / volume) *
-                  exp( (energy)/sim->temper - topo->moleculeParam[molType].chemPot)) > ran2()) {
+                  exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
 
-                conf->sysvolume -= topo->ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
+                conf->sysvolume -= topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
                 conf->removeMolecule(target, 1);
-                topo->moleculeParam[molType].delAcc++;
-                topo->moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].delAcc++;
+                topo.moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
 
                 return -energy + entrophy;
             } else {
-                topo->moleculeParam[molType].delRej++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].delRej++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
                 return 0;
             }
         } else {
@@ -1541,23 +1541,23 @@ double MoveCreator::muVTMove() {
             }
 
             // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-            if( ( factor * exp( (energy)/sim->temper - topo->moleculeParam[molType].chemPot)) > ran2()) {
+            if( ( factor * exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
 
                 for(unsigned int i=0; i<molSize; i++) {
-                    conf->sysvolume -= topo->ia_params[conf->pvec[target+i].type][conf->pvec[target+i].type].volume;
+                    conf->sysvolume -= topo.ia_params[conf->pvec[target+i].type][conf->pvec[target+i].type].volume;
                 }
 
                 energy += calcEnergy->chainInner(conf->pvec.begin()+target, conf->conlist.begin()+target, molSize);
 
                 conf->removeMolecule(target, molSize);
 
-                topo->moleculeParam[molType].delAcc++;
-                topo->moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].delAcc++;
+                topo.moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
 
                 return -energy + molSize*entrophy;
             } else {
-                topo->moleculeParam[molType].delRej++;
-                topo->moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].delRej++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
                 return 0;
             }
             return 0;
@@ -1570,11 +1570,11 @@ double MoveCreator::muVTMove() {
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
     for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-        if(topo->moleculeParam[i].activity != -1) molType++;
+        if(topo.moleculeParam[i].activity != -1) molType++;
     }
     molType = (long) (ran2() * ((double)molType));
     for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-        if(topo->moleculeParam[i].activity != -1) {
+        if(topo.moleculeParam[i].activity != -1) {
             if(molType == 0) {
                 molType = i;
                 break;
@@ -1583,7 +1583,7 @@ int MoveCreator::getRandomMuVTType() {
         }
     }
 
-    assert(topo->moleculeParam[molType].chemPot != -1.0);
+    assert(topo.moleculeParam[molType].chemPot != -1.0);
 
     return molType;
 }

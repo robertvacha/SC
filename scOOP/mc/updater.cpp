@@ -1,5 +1,7 @@
 #include "updater.h"
 
+#include <iomanip>
+
 void Updater::openFilesClusterStatistics(FILE** cl_stat, FILE** cl, FILE** cl_list, FILE** ef, FILE** statf) {
 
     // Opening files for cluster statistics
@@ -33,7 +35,7 @@ void Updater::openFilesClusterStatistics(FILE** cl_stat, FILE** cl, FILE** cl_li
 void Updater::initValues(long& next_adjust, long& next_calc, long& next_dump, long& next_frame) {
 
     // Initialize some values at begining
-    conf->partVecInit(topo);
+    conf->partVecInit();
     next_adjust = adjust;
     next_calc = paramfrq;
     next_dump = report;
@@ -58,7 +60,7 @@ void Updater::initValues(long& next_adjust, long& next_calc, long& next_dump, lo
     sim->wl.weights = NULL;
     sim->wl.hist = NULL;
 
-    conf->massCenter(topo);
+    conf->massCenter();
 }
 
 
@@ -202,7 +204,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               present center of mass calculation use pbc and thus particles that moved across the box
               is in this calculation used in pripary box but in other moves in in in the particles position
              if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
-                  masscenter(topo->npart,topo->ia_params, conf);
+                  masscenter(topo.npart,topo.ia_params, conf);
             */
             sim->wl.min = sim->wl.hist[0];
             sim->wl.max = sim->wl.hist[0];
@@ -245,7 +247,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         if (!(sweep % 100000)) {
             //reinitialize patch vectors to avoid cummulation of errors
-            conf->partVecInit(topo);
+            conf->partVecInit();
         }
 
         /// Sampling of statistics
@@ -325,25 +327,25 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     printf("System:\n");
 
     for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
-        printf("%s %d\n", topo->moleculeParam[i].name, conf->pvecGroupList.molCountOfType(i));
+        printf("%s %d\n", topo.moleculeParam[i].name, conf->pvecGroupList.molCountOfType(i));
 
     if(sim->nGrandCanon != 0) {
         cout << "Acceptance:\n";
         cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
         cout << std::setprecision(3) <<  std::fixed << std::left;
         for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-            if(topo->moleculeParam[i].activity != -1.0) {
-                cout << "  " << std::setw(6) <<topo->moleculeParam[i].name << " "
+            if(topo.moleculeParam[i].activity != -1.0) {
+                cout << "  " << std::setw(6) <<topo.moleculeParam[i].name << " "
                      << std::setw(6)
-                     << (double)topo->moleculeParam[i].insAcc/(topo->moleculeParam[i].insAcc+topo->moleculeParam[i].insRej) << " "
+                     << (double)topo.moleculeParam[i].insAcc/(topo.moleculeParam[i].insAcc+topo.moleculeParam[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo->moleculeParam[i].insRej/(topo->moleculeParam[i].insAcc+topo->moleculeParam[i].insRej) << " "
+                     << (double)topo.moleculeParam[i].insRej/(topo.moleculeParam[i].insAcc+topo.moleculeParam[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo->moleculeParam[i].delAcc/(topo->moleculeParam[i].delAcc+topo->moleculeParam[i].delRej) << " "
+                     << (double)topo.moleculeParam[i].delAcc/(topo.moleculeParam[i].delAcc+topo.moleculeParam[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo->moleculeParam[i].delRej/(topo->moleculeParam[i].delAcc+topo->moleculeParam[i].delRej) << " "
+                     << (double)topo.moleculeParam[i].delRej/(topo.moleculeParam[i].delAcc+topo.moleculeParam[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo->moleculeParam[i].muVtAverageParticles / topo->moleculeParam[i].muVtSteps << endl;
+                     << (double)topo.moleculeParam[i].muVtAverageParticles / topo.moleculeParam[i].muVtSteps << endl;
             }
         }
         cout << std::setprecision(6);
@@ -497,7 +499,7 @@ void Updater::genSimplePairList() {
             max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \
                     sim->trans[conf->pvec[j].type].mx);
             max_dist *= (1 + sim->pairlist_update) * 2;
-            max_dist += topo->maxcut;
+            max_dist += topo.maxcut;
             max_dist *= max_dist; /* squared */
 
             if (r_cm2 <= max_dist){
@@ -588,8 +590,8 @@ int Updater::genClusterList() {
                     //snd = sim->pairlist[i].pairs[j];
                 }
                 /*do cluster analysis only for spherocylinders*/
-                if ( (topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[0] < SP) && \
-                    (topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[1] < SP) ) {
+                if ( (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[0] < SP) && \
+                    (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[1] < SP) ) {
 
                     /* if they are close to each other */
                     if(sameCluster(fst, snd)){
@@ -723,14 +725,14 @@ int Updater::calcClusterEnergies() {
 int Updater::sameCluster(long fst, long snd) {
 
     /*if two particles are bonded they belong to the same cluster*/
-    if ( ((topo->moleculeParam[conf->pvec[fst].molType]).bond1c >= 0) ||
-        ((topo->moleculeParam[conf->pvec[fst].molType]).bonddc >= 0) ){
+    if ( ((topo.moleculeParam[conf->pvec[fst].molType]).bond1c >= 0) ||
+        ((topo.moleculeParam[conf->pvec[fst].molType]).bonddc >= 0) ){
         if ( (&conf->pvec[snd] == conf->conlist[fst].conlist[1]) || (&conf->pvec[snd] == conf->conlist[fst].conlist[0]) ) {
           return true;
         }
     }
-    if ( ((topo->moleculeParam[conf->pvec[snd].molType]).bond1c >= 0) ||
-        ((topo->moleculeParam[conf->pvec[snd].molType]).bonddc >= 0) ){
+    if ( ((topo.moleculeParam[conf->pvec[snd].molType]).bond1c >= 0) ||
+        ((topo.moleculeParam[conf->pvec[snd].molType]).bonddc >= 0) ){
         if ( (&conf->pvec[fst] == conf->conlist[snd].conlist[1]) || (&conf->pvec[fst] == conf->conlist[snd].conlist[0]) ) {
           return false;
         }
@@ -743,7 +745,7 @@ int Updater::sameCluster(long fst, long snd) {
             conf->box);
     double dist2 = DOT(r_cm, r_cm);
     * TODO: Make it much more efficient => define cluster_dist!!! *
-    if(dist2 > topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma * topo->ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma*4.0){
+    if(dist2 > topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma * topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma*4.0){
         return false;
     }
     else {

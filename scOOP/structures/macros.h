@@ -40,11 +40,6 @@
 #endif
 /* End of DEBUG macros */
 
-
-/* With  pairlist ? */
-#define WITH_PAIRLIST
-
-#define MAXF 20             /* Maximum number of Fourier terms */
 #define MAXN 14000           /* Maximum number of particles */
 #define MAXCHL 10          /* Maximum length of chain */
 #define ZEROTOL 1.0e-12     /* Dot products below ZEROTOL are deemed zero */
