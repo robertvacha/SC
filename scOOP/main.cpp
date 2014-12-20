@@ -1,25 +1,23 @@
 /** @file main.cpp*/
 
-#include "mc/randomGenerator.h"
-#include <iostream>
-#include <iomanip>
 #include "mc/inicializer.h"
 #include "mc/updater.h"
 
 using namespace std;
 
+Topo topo; // Global instance of topology
+
 int main(int argc, char** argv) {
 
     FILE *outfile,*mov;       // Handle for writing configuration
 
-    Topo topo;                // will maybe contain all the topo stuff in future
     Sim sim;                  // Should contain the simulation options.
     Conf conf;                // Should contain fast changing particle and box(?) information
     FileNames files;
 
     Updater* updater; // need to get an instance of updater after initialization, because of initFCE
 
-    sim.wl.setTopoConf(&topo, &conf);
+    sim.wl.setConf(&conf);
 
     cout << "\nPatchy Spherocylinders version 3.6\n"
          << "-------------------------------------" << endl;
@@ -33,7 +31,7 @@ int main(int argc, char** argv) {
     /*                  INITIALIZATION                      */
     /********************************************************/
 
-    Inicializer init(&topo, &sim, &conf, &files);
+    Inicializer init(&sim, &conf, &files);
 
     init.initWriteFiles();
     init.initMPI(argc,argv);
@@ -67,7 +65,7 @@ int main(int argc, char** argv) {
         conf.pairlist_update = true;
     }
 
-    updater = new Updater(&topo, &sim, &conf, &files);
+    updater = new Updater(&sim, &conf, &files);
 
 
     /********************************************************/

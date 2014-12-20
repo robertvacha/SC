@@ -1,9 +1,17 @@
 #include "inicializer.h"
 
+#include <iostream>
+
+#include "simlib.h"
+#include "mygetline.h"
+#include "randomGenerator.h"
+
 #ifdef ENABLE_MPI
 # include <mpi.h>
 extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 #endif
+
+extern Topo topo;
 
 void Inicializer::readOptions() {
 
@@ -264,8 +272,8 @@ void Inicializer::initTop() {
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
     //fill ia_params combinations and topology parameters
-    topo->genParamPairs(&exclusions);
-    topo->genTopoParams();
+    topo.genParamPairs(&exclusions);
+    topo.genTopoParams();
 
     setParticlesParams();
     initClusterList();
@@ -276,7 +284,7 @@ void Inicializer::initTop() {
     if(sim->nGrandCanon != 0) {
         bool existGrand = false;
         for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-            if(topo->moleculeParam[i].chemPot != -1.0 )
+            if(topo.moleculeParam[i].chemPot != -1.0 )
                 existGrand = true;
         }
         if(!existGrand) {
@@ -342,7 +350,7 @@ void Inicializer::initConList() {
                     conf->conlist[k].conlist[2] = &conf->pvec[ conf->pvecGroupList.getChain(i,j-2) ];
             }
         }
-        conf->sysvolume += topo->ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
+        conf->sysvolume += topo.ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
     }
 }
 
@@ -356,17 +364,17 @@ void Inicializer::initSwitchList() {
             n_switch_part++;
         }
     }
-    topo->n_switch_part = n_switch_part;
+    topo.n_switch_part = n_switch_part;
     if (n_switch_part == 0 && sim->switchprob > 0){
         fprintf(stderr, "TOPOLOGY WARNING: No switchable particles found, but probability for a switch is not zero!\n");
         sim->switchprob = 0;
         fprintf(stderr, "TOPOLOGY WARNING: We changed Switch Probability to zero in this run!\n");
     }
-    topo->switchlist=NULL;
+    topo.switchlist=NULL;
     if (n_switch_part > 0){
-        topo->switchlist = (long int*) malloc(sizeof(long) * n_switch_part);
+        topo.switchlist = (long int*) malloc(sizeof(long) * n_switch_part);
         for(long i = 0; i < n_switch_part; i++){
-            topo->switchlist[i] = switchlist[i];
+            topo.switchlist[i] = switchlist[i];
             //DEBUG
             //printf("%ld is in switchlist\n", switchlist[i]);
         }
@@ -390,8 +398,8 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
     double maxlength = 0;
     for(i = 0; i < MAXT; i++){
-        if(maxlength < topo->ia_params[i][i].len[0])
-            maxlength = topo->ia_params[i][i].len[0];
+        if(maxlength < topo.ia_params[i][i].len[0])
+            maxlength = topo.ia_params[i][i].len[0];
     }
 
     infile = fopen(fileName, "r");
@@ -463,7 +471,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         pvec[i].pos.y /= conf->box.y;
         pvec[i].pos.z /= conf->box.z;
 
-        if ((topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
+        if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
             fprintf (stderr,
                     "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
@@ -473,7 +481,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             pvec[i].dir.normalise();
         }
 
-        if ((topo->ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
+        if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
                     "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
             free(line);
@@ -525,9 +533,9 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     }
 
     err = 0;
-    //for (i=0; i < topo->npart-1; i++) {
-    //    for (j=i+1; j < topo->npart; j++) {
-    //        if ( overlap(conf->pvec[i], conf->particle[j], conf->box, topo->ia_params) ) {
+    //for (i=0; i < topo.npart-1; i++) {
+    //    for (j=i+1; j < topo.npart; j++) {
+    //        if ( overlap(conf->pvec[i], conf->particle[j], conf->box, topo.ia_params) ) {
     //            fprintf (stderr,
     //                    "ERROR: Overlap in initial coniguration between particles %ld and %ld.\n",
     //                    i+1, j+1);
@@ -553,7 +561,7 @@ void Inicializer::testChains() {
         sim->chainprob = 0;
     } else {
         for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
-            if(topo->moleculeParam[i].isGrandCanonical() && !topo->moleculeParam[i].isAtomic()) {
+            if(topo.moleculeParam[i].isGrandCanonical() && !topo.moleculeParam[i].isAtomic()) {
                 if(!poolConfig) {
                     cout << "ChainInsert with no Pool system stated! State [Pool] in top.init" << endl;
                     exit(1);
@@ -581,7 +589,7 @@ void Inicializer::initWriteFiles() {
 
 void Inicializer::initNeighborList() {
     cout << "\nAllocating memory for pairlist..." << endl;
-    //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo->npart); // deprecated, see Conf->neighborlist
+    //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo.npart); // deprecated, see Conf->neighborlist
 
     // Highest guess: Every particle interacts with the others
     // TODO: Make it more sophisticated
@@ -636,7 +644,7 @@ void Inicializer::initGroupLists() {
         if(newType != conf->pvec[i].molType) {
             newType = conf->pvec[i].molType;
             conf->pvecGroupList.first[newType] = i;
-            conf->pvecGroupList.molSize[newType] = topo->moleculeParam[newType].molSize();
+            conf->pvecGroupList.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
     conf->pvecGroupList.molTypeCount = newType+1;
@@ -650,7 +658,7 @@ void Inicializer::initGroupLists() {
         if(newType != conf->pool[i].molType) {
             newType = conf->pool[i].molType;
             conf->poolGroupList.first[newType] = i;
-            conf->poolGroupList.molSize[newType] = topo->moleculeParam[newType].molSize();
+            conf->poolGroupList.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
     conf->poolGroupList.molTypeCount = newType+1;
@@ -1014,84 +1022,84 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
 
-    strcpy(topo->ia_params[type][type].name, name);
-    strcpy(topo->ia_params[type][type].other_name, name);
-    topo->ia_params[type][type].geotype[0] = geotype_i;
-    topo->ia_params[type][type].geotype[1] = geotype_i;
-    topo->ia_params[type][type].epsilon = param[0];
-    topo->ia_params[type][type].sigma = param[1];
-    topo->ia_params[type][type].rcutwca = (topo->ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
+    strcpy(topo.ia_params[type][type].name, name);
+    strcpy(topo.ia_params[type][type].other_name, name);
+    topo.ia_params[type][type].geotype[0] = geotype_i;
+    topo.ia_params[type][type].geotype[1] = geotype_i;
+    topo.ia_params[type][type].epsilon = param[0];
+    topo.ia_params[type][type].sigma = param[1];
+    topo.ia_params[type][type].rcutwca = (topo.ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
 
-    fprintf(stdout, "Topology read of %d: %8s (geotype: %s, %d) with parameters %g %g", type, name, geotype, geotype_i, topo->ia_params[type][type].epsilon, topo->ia_params[type][type].sigma);
+    fprintf(stdout, "Topology read of %d: %8s (geotype: %s, %d) with parameters %g %g", type, name, geotype, geotype_i, topo.ia_params[type][type].epsilon, topo.ia_params[type][type].sigma);
 
     if (fields > 0) {
-        topo->ia_params[type][type].pdis = param[2];
-        topo->ia_params[type][type].pswitch = param[3];
-        topo->ia_params[type][type].rcut = topo->ia_params[type][type].pswitch+topo->ia_params[type][type].pdis;
-        fprintf(stdout, " | %g %g",topo->ia_params[type][type].pdis,topo->ia_params[type][type].pswitch);
+        topo.ia_params[type][type].pdis = param[2];
+        topo.ia_params[type][type].pswitch = param[3];
+        topo.ia_params[type][type].rcut = topo.ia_params[type][type].pswitch+topo.ia_params[type][type].pdis;
+        fprintf(stdout, " | %g %g",topo.ia_params[type][type].pdis,topo.ia_params[type][type].pswitch);
     }
     if (fields > 2) {
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].len[i] = param[6];
-            topo->ia_params[type][type].half_len[i] = param[6] / 2;
-            topo->ia_params[type][type].pangl[i] = param[4];
-            topo->ia_params[type][type].panglsw[i] = param[5];
-            topo->ia_params[type][type].pcangl[i] = cos(param[4]/2.0/180*PI);                 // C1
-            topo->ia_params[type][type].pcanglsw[i] = cos((param[4]/2.0+param[5])/180*PI);    // C2
-            //topo->ia_params[type][type].pcangl[i] = topo->ia_params[type][type].pcangl[i];
-            //topo->ia_params[type][type].pcanglsw[i] =	topo->ia_params[type][type].pcanglsw[i];
-            topo->ia_params[type][type].pcoshalfi[i] = cos((param[4]/2.0+param[5])/2.0/180*PI);
-            topo->ia_params[type][type].psinhalfi[i] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i] * topo->ia_params[type][type].pcoshalfi[i]);
-            topo->ia_params[type][type].parallel = param[7];
+            topo.ia_params[type][type].len[i] = param[6];
+            topo.ia_params[type][type].half_len[i] = param[6] / 2;
+            topo.ia_params[type][type].pangl[i] = param[4];
+            topo.ia_params[type][type].panglsw[i] = param[5];
+            topo.ia_params[type][type].pcangl[i] = cos(param[4]/2.0/180*PI);                 // C1
+            topo.ia_params[type][type].pcanglsw[i] = cos((param[4]/2.0+param[5])/180*PI);    // C2
+            //topo.ia_params[type][type].pcangl[i] = topo.ia_params[type][type].pcangl[i];
+            //topo.ia_params[type][type].pcanglsw[i] =	topo.ia_params[type][type].pcanglsw[i];
+            topo.ia_params[type][type].pcoshalfi[i] = cos((param[4]/2.0+param[5])/2.0/180*PI);
+            topo.ia_params[type][type].psinhalfi[i] = sqrt(1.0 - topo.ia_params[type][type].pcoshalfi[i] * topo.ia_params[type][type].pcoshalfi[i]);
+            topo.ia_params[type][type].parallel = param[7];
 	  
 	}
-        fprintf(stdout, " | %g %g | %g", topo->ia_params[type][type].pangl[0], topo->ia_params[type][type].panglsw[0], topo->ia_params[type][type].parallel);
+        fprintf(stdout, " | %g %g | %g", topo.ia_params[type][type].pangl[0], topo.ia_params[type][type].panglsw[0], topo.ia_params[type][type].parallel);
     }
     if(fields == 7){
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].chiral_cos[i] = cos(param[8] / 360 * PI);
-            topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);
+            topo.ia_params[type][type].chiral_cos[i] = cos(param[8] / 360 * PI);
+            topo.ia_params[type][type].chiral_sin[i] = sqrt(1 - topo.ia_params[type][type].chiral_cos[i] * topo.ia_params[type][type].chiral_cos[i]);
             fprintf(stdout, "| %g ", param[8]);
         }
     }
     if ((fields == 9)||(fields == 10)) {
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].csecpatchrot[i] = cos(param[8] / 360 * PI);
-            topo->ia_params[type][type].ssecpatchrot[i] = sqrt(1 - topo->ia_params[type][type].csecpatchrot[i] * topo->ia_params[type][type].csecpatchrot[i]);
-            //fprintf(stdout, " | %g %g", topo->ia_params[type][type].csecpatchrot[0], topo->ia_params[type][type].ssecpatchrot[0]);
+            topo.ia_params[type][type].csecpatchrot[i] = cos(param[8] / 360 * PI);
+            topo.ia_params[type][type].ssecpatchrot[i] = sqrt(1 - topo.ia_params[type][type].csecpatchrot[i] * topo.ia_params[type][type].csecpatchrot[i]);
+            //fprintf(stdout, " | %g %g", topo.ia_params[type][type].csecpatchrot[0], topo.ia_params[type][type].ssecpatchrot[0]);
 
-            topo->ia_params[type][type].pangl[i+2] = param[9];
-            topo->ia_params[type][type].panglsw[i+2] = param[10];
-            topo->ia_params[type][type].pcangl[i+2] = cos(param[9]/2.0/180*PI);                 // C1
-            topo->ia_params[type][type].pcanglsw[i+2] = cos((param[9]/2.0+param[10])/180*PI);    // C2
-            //topo->ia_params[type][type].pcangl[i] = topo->ia_params[type][type].pcangl[i];
-            //topo->ia_params[type][type].pcanglsw[i] = topo->ia_params[type][type].pcanglsw[i];
-            topo->ia_params[type][type].pcoshalfi[i+2] = cos((param[9]/2.0+param[10])/2.0/180*PI);
-            topo->ia_params[type][type].psinhalfi[i+2] = sqrt(1.0 - topo->ia_params[type][type].pcoshalfi[i+2] * topo->ia_params[type][type].pcoshalfi[i+2]);
+            topo.ia_params[type][type].pangl[i+2] = param[9];
+            topo.ia_params[type][type].panglsw[i+2] = param[10];
+            topo.ia_params[type][type].pcangl[i+2] = cos(param[9]/2.0/180*PI);                 // C1
+            topo.ia_params[type][type].pcanglsw[i+2] = cos((param[9]/2.0+param[10])/180*PI);    // C2
+            //topo.ia_params[type][type].pcangl[i] = topo.ia_params[type][type].pcangl[i];
+            //topo.ia_params[type][type].pcanglsw[i] = topo.ia_params[type][type].pcanglsw[i];
+            topo.ia_params[type][type].pcoshalfi[i+2] = cos((param[9]/2.0+param[10])/2.0/180*PI);
+            topo.ia_params[type][type].psinhalfi[i+2] = sqrt(1.0 - topo.ia_params[type][type].pcoshalfi[i+2] * topo.ia_params[type][type].pcoshalfi[i+2]);
         }
-        fprintf(stdout, " | %g  %g %g", param[8], topo->ia_params[type][type].pangl[2], topo->ia_params[type][type].panglsw[2]);
+        fprintf(stdout, " | %g  %g %g", param[8], topo.ia_params[type][type].pangl[2], topo.ia_params[type][type].panglsw[2]);
     }
     if(fields == 10){
         int i;
         for(i = 0; i < 2; i++){
-            topo->ia_params[type][type].chiral_cos[i] = cos(param[11] / 360 * PI);
-            topo->ia_params[type][type].chiral_sin[i] = sqrt(1 - topo->ia_params[type][type].chiral_cos[i] * topo->ia_params[type][type].chiral_cos[i]);      
+            topo.ia_params[type][type].chiral_cos[i] = cos(param[11] / 360 * PI);
+            topo.ia_params[type][type].chiral_sin[i] = sqrt(1 - topo.ia_params[type][type].chiral_cos[i] * topo.ia_params[type][type].chiral_cos[i]);
         }
         fprintf(stdout, " | %g ", param[11]);
     }
 
     // Volume
     if (geotype_i < SP)
-        topo->ia_params[type][type].volume = 4.0/3.0*PI*pow((topo->ia_params[type][type].sigma)/2.0,3.0) + PI/2.0*topo->ia_params[type][type].len[0]*pow((topo->ia_params[type][type].sigma)/2.0,2.0) ;
+        topo.ia_params[type][type].volume = 4.0/3.0*PI*pow((topo.ia_params[type][type].sigma)/2.0,3.0) + PI/2.0*topo.ia_params[type][type].len[0]*pow((topo.ia_params[type][type].sigma)/2.0,2.0) ;
     else
-        topo->ia_params[type][type].volume = 4.0/3.0*PI*pow((topo->ia_params[type][type].sigma)/2.0,3.0);
-    if ( topo->ia_params[type][type].rcutwca > topo->sqmaxcut )
-        topo->sqmaxcut = topo->ia_params[type][type].rcutwca;
-    if ( topo->ia_params[type][type].rcut > topo->sqmaxcut )
-        topo->sqmaxcut = topo->ia_params[type][type].rcut;
+        topo.ia_params[type][type].volume = 4.0/3.0*PI*pow((topo.ia_params[type][type].sigma)/2.0,3.0);
+    if ( topo.ia_params[type][type].rcutwca > topo.sqmaxcut )
+        topo.sqmaxcut = topo.ia_params[type][type].rcutwca;
+    if ( topo.ia_params[type][type].rcut > topo.sqmaxcut )
+        topo.sqmaxcut = topo.ia_params[type][type].rcut;
     fprintf(stdout, " \n");
     DEBUG_INIT("Finished filltypes");
     return 1;
@@ -1145,19 +1153,19 @@ int Inicializer::fillExter(char **pline) {
         return 0;
     }
     if (fields >0) {
-        topo->exter.exist = true;
-        topo->exter.thickness = param[0];
-        fprintf(stdout, "External potential with thickness: %le ",topo->exter.thickness);
+        topo.exter.exist = true;
+        topo.exter.thickness = param[0];
+        fprintf(stdout, "External potential with thickness: %le ",topo.exter.thickness);
         if (fields >1) {
-            topo->exter.epsilon = param[1];
-            fprintf(stdout, "epsilon: %le ",topo->exter.epsilon);
+            topo.exter.epsilon = param[1];
+            fprintf(stdout, "epsilon: %le ",topo.exter.epsilon);
             if (fields >2) {
-                topo->exter.attraction = param[2];
-                fprintf(stdout, "and range of attraction: %le ",topo->exter.attraction);
+                topo.exter.attraction = param[2];
+                fprintf(stdout, "and range of attraction: %le ",topo.exter.attraction);
             }
         }
     } else{
-        topo->exter.exist = false;
+        topo.exter.exist = false;
         fprintf(stdout, "No external potential ");
     }
 
@@ -1200,11 +1208,11 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
         fprintf (stdout, "%d ",molecules[i].type[j]);
 
         if(j==0) {
-            topo->moleculeParam[i].name = (char*) malloc(strlen(molname)+1);
-            strcpy(topo->moleculeParam[i].name, molname);
+            topo.moleculeParam[i].name = (char*) malloc(strlen(molname)+1);
+            strcpy(topo.moleculeParam[i].name, molname);
         }
 
-        topo->moleculeParam[i].particleTypes[j] = molecules[i].type[j];
+        topo.moleculeParam[i].particleTypes[j] = molecules[i].type[j];
 
         if (fields == 1){
                 (molecules[i].switchtype[j]) = (molecules[i].type[j]);
@@ -1239,9 +1247,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->moleculeParam[i].bond1c = bondk;
-        topo->moleculeParam[i].bond1eq = bonddist;
-        fprintf (stdout, "bond1: %f %f \n",topo->moleculeParam[i].bond1c,topo->moleculeParam[i].bond1eq);
+        topo.moleculeParam[i].bond1c = bondk;
+        topo.moleculeParam[i].bond1eq = bonddist;
+        fprintf (stdout, "bond1: %f %f \n",topo.moleculeParam[i].bond1c,topo.moleculeParam[i].bond1eq);
         return 1;
     }
     if (!strcmp(molcommand,"BOND2")) {
@@ -1254,9 +1262,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->moleculeParam[i].bond2c = bondk;
-        topo->moleculeParam[i].bond2eq = bonddist;
-        fprintf (stdout, "bond2: %f %f \n",topo->moleculeParam[i].bond2c,topo->moleculeParam[i].bond2eq);
+        topo.moleculeParam[i].bond2c = bondk;
+        topo.moleculeParam[i].bond2eq = bonddist;
+        fprintf (stdout, "bond2: %f %f \n",topo.moleculeParam[i].bond2c,topo.moleculeParam[i].bond2eq);
         return 1;
     }
     if (!strcmp(molcommand,"BONDD")) {
@@ -1269,9 +1277,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->moleculeParam[i].bonddc = bondk;
-        topo->moleculeParam[i].bonddeq = bonddist;
-        fprintf (stdout, "bondd: %f %f \n",topo->moleculeParam[i].bonddc,topo->moleculeParam[i].bonddeq);
+        topo.moleculeParam[i].bonddc = bondk;
+        topo.moleculeParam[i].bonddeq = bonddist;
+        fprintf (stdout, "bondd: %f %f \n",topo.moleculeParam[i].bonddc,topo.moleculeParam[i].bonddeq);
         return 1;
     }
 
@@ -1285,9 +1293,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: equilibrium angle cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->moleculeParam[i].angle1c = bondk;
-        topo->moleculeParam[i].angle1eq = bonddist/180.0*PI;
-        fprintf (stdout, "angle1: %f %f \n",topo->moleculeParam[i].angle1c,topo->moleculeParam[i].angle1eq);
+        topo.moleculeParam[i].angle1c = bondk;
+        topo.moleculeParam[i].angle1eq = bonddist/180.0*PI;
+        fprintf (stdout, "angle1: %f %f \n",topo.moleculeParam[i].angle1c,topo.moleculeParam[i].angle1eq);
         return 1;
     }
     if (!strcmp(molcommand,"ANGLE2")) {
@@ -1300,9 +1308,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             fprintf (stderr, "TOPOLOGY ERROR: equilibrium angle cannot be negative: %f \n\n",bonddist);
             return 0;
         }
-        topo->moleculeParam[i].angle2c = bondk;
-        topo->moleculeParam[i].angle2eq = bonddist/180.0*PI;
-        fprintf (stdout, "angle2: %f %f \n",topo->moleculeParam[i].angle2c,topo->moleculeParam[i].angle2eq);
+        topo.moleculeParam[i].angle2c = bondk;
+        topo.moleculeParam[i].angle2eq = bonddist/180.0*PI;
+        fprintf (stdout, "angle2: %f %f \n",topo.moleculeParam[i].angle2c,topo.moleculeParam[i].angle2eq);
         return 1;
     }
 
@@ -1313,9 +1321,9 @@ int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
             exit(1);
         }
         fields = sscanf(molparams, "%le ", &activity);
-        topo->moleculeParam[i].activity = activity;
-        topo->moleculeParam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
-        fprintf (stdout, "activity: %f \n",topo->moleculeParam[i].activity);
+        topo.moleculeParam[i].activity = activity;
+        topo.moleculeParam[i].chemPot = log(activity*Nav*1e-24); // faunus log(activity*Nav*1e-27) [mol/l]
+        fprintf (stdout, "activity: %f \n",topo.moleculeParam[i].activity);
         return 1;
     }
 

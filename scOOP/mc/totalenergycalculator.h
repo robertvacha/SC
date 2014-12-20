@@ -3,10 +3,6 @@
 #ifndef TOTALENERGYCALCULATOR_H
 #define TOTALENERGYCALCULATOR_H
 
-#include <stdlib.h> // exit()
-
-#include <iostream>
-
 #include "pairenergycalculator.h"
 #include "externalenergycalculator.h"
 #include "../structures/sim.h"
@@ -20,14 +16,12 @@ public:
     ExternalEnergyCalculator exterE;
 
 private:
-    Topo* topo;
     Sim* sim;
     Conf* conf;
 
 public:
-    TotalEnergyCalculator(Topo * topo, Sim * sim, Conf * conf):
-        pairE(topo, &conf->box), exterE(&topo->exter, &conf->box),
-        topo(topo), sim(sim), conf(conf) {pairE.initIntFCE();}
+    TotalEnergyCalculator(Sim * sim, Conf * conf):
+        pairE(&conf->box), exterE(&conf->box), sim(sim), conf(conf) {pairE.initIntFCE();}
 
     /**
      * @brief calc_energy Calculate the different energy contributions.

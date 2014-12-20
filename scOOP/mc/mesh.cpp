@@ -2,6 +2,12 @@
 
 #include "mesh.h"
 
+#include "../structures/structures.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 int Mesh::meshInit(double meshsize, long npart, int wlmtype, Vector box, std::vector<Particle >* pvec) {
     //  int i;
     int maxsize,length;

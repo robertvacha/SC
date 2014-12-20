@@ -7,11 +7,6 @@
  *  Initialize Topology, Inicial configuration,
  */
 
-#include "mygetline.h"
-#include <iostream>
-
-#include "simlib.h"
-#include "randomGenerator.h"
 #include "../structures/sim.h"
 
 using namespace std;
@@ -21,7 +16,6 @@ class Inicializer
 public:
     bool poolConfig;
 private:
-    Topo* topo;                // will maybe contain all the topo stuff in future
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;
@@ -36,8 +30,8 @@ private:
 
 
 public:
-    Inicializer(Topo *topo, Sim* sim, Conf *conf, FileNames* files):
-        poolConfig(false), topo(topo), sim(sim), conf(conf), files(files) {
+    Inicializer(Sim* sim, Conf *conf, FileNames* files):
+        poolConfig(false), sim(sim), conf(conf), files(files) {
 
         for(int i=0; i<MAXN; i++) {
             sysnames[i] = NULL;

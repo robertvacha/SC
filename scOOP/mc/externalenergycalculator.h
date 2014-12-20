@@ -1,3 +1,5 @@
+/** @file externalenergycalculator.h*/
+
 #ifndef EXTERNALENERGYCALCULATOR_H
 #define EXTERNALENERGYCALCULATOR_H
 
@@ -6,7 +8,6 @@
 class ExternalEnergyCalculator
 {
 private:
-    Exters* exter;
     Vector* box;
 
     double dist;            /* closest distance */
@@ -20,7 +21,7 @@ private:
     Vector project;         /*vector2 for projection down to plane */
 
 public:
-    ExternalEnergyCalculator(Exters* exter, Vector* box) : exter(exter), box(box) {}
+    ExternalEnergyCalculator(Vector* box) : box(box) {}
 
     double extere2(Particle* target);
 

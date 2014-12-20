@@ -1,5 +1,7 @@
 #include "externalenergycalculator.h"
 
+extern Topo topo;
+
 double ExternalEnergyCalculator::extere2(Particle *target) {
     double repenergy=0.0,atrenergy=0.0;  /* energy*/
 
@@ -30,12 +32,12 @@ double ExternalEnergyCalculator::extere2(Particle *target) {
         project.z = -1.0;
     }
 
-    if ( rcmz * rcmz > exter->sqmaxcut)
+    if ( rcmz * rcmz > topo.exter.sqmaxcut)
         return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     part1 = target;
-    param = &exter->interactions[target->type];
-    halfl = 0.5* exter->interactions[target->type].len[0];
+    param = &topo.exter.interactions[target->type];
+    halfl = 0.5* topo.exter.interactions[target->type].len[0];
     ndist = dist;
     orientin = true;
     orient = 0.0;

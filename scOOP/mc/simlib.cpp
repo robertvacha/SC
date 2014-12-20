@@ -1,5 +1,9 @@
 #include "simlib.h"
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 void trim (char *str) {
     ltrim (str);
     rtrim (str);

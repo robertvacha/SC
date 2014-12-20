@@ -6,8 +6,6 @@
 #include "../structures/Vector.h"
 
 
-
-
 /**
  * @brief Returns the nearest integer to its argument as a double precision number. e.g.
    anint(-0.49) = 0.0 and anint(-0.51) = -1.0. Equivalent to the Fortran intrinsic ANINT.

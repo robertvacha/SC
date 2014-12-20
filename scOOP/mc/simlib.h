@@ -4,10 +4,8 @@
 #define SIMLIB_H
 
 #include "../structures/macros.h"
-#include <ctype.h>
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 /**
  * @brief trim string from left and right

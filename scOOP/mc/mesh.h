@@ -3,11 +3,8 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <string.h>
-#include "../structures/structures.h"
 #include "../structures/Conf.h"
-#include <stdio.h>
-#include <stdlib.h>
+
 
 /**
  * @brief Mesh for hole order parameter

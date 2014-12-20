@@ -12,7 +12,6 @@ namespace printStat {
      * @brief print_clusterlist print the clusterlist
      * @param stream
      * @param decor
-     * @param topo
      * @param sim
      * @param conf
      * @return
@@ -41,7 +40,6 @@ namespace printStat {
      * @brief print_pairlist Print out the pairlist
      * @param stream
      * @param sim
-     * @param topo
      */
     void printPairList(FILE * stream, Conf *conf);
 

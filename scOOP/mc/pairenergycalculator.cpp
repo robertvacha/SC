@@ -1,7 +1,14 @@
 #include "pairenergycalculator.h"
 
+#include "math_calc.h"
+
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+
 using namespace std;
+
+extern Topo topo;
 
 double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Particle *part2, ConList* conlist2) {
 
@@ -33,7 +40,7 @@ double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Par
     dotrcm = DOT(r_cm,r_cm);
 
 
-    if (dotrcm > topo->sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
+    if (dotrcm > topo.sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     contt = 0;
     distvec.x = 0;
@@ -64,8 +71,8 @@ void PairEnergyCalculator::initIntFCE() {
         for(j = 0; j < MAXT; j++){
             /* Initialize them as not existing */
             intFCE[i][j] = &PairEnergyCalculator::eNoExist;
-            geotype = topo->ia_params[i][j].geotype[0];
-            other_geotype = topo->ia_params[i][j].geotype[1];
+            geotype = topo.ia_params[i][j].geotype[0];
+            other_geotype = topo.ia_params[i][j].geotype[1];
 
             if ( ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
@@ -111,10 +118,10 @@ void PairEnergyCalculator::initIntFCE() {
 double PairEnergyCalculator::angleEnergy() {
     double energy=0.0, currangle, halfl;
     Vector vec1, vec2;
-    int * geotype = topo->ia_params[part1->type][part2->type].geotype;
+    int * geotype = topo.ia_params[part1->type][part2->type].geotype;
 
     /*angle interaction with nearest neighbours -harmonic*/
-    if ((topo->moleculeParam[part1->molType]).angle1c >= 0) {
+    if ((topo.moleculeParam[part1->molType]).angle1c >= 0) {
         if (part2 == conlist1->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
@@ -124,7 +131,7 @@ double PairEnergyCalculator::angleEnergy() {
                 if (geotype[0] < SP)
                     vec1 = part1->dir;
                 else {
-                    halfl = topo->ia_params[part1->type][part2->type].half_len[1];
+                    halfl = topo.ia_params[part1->type][part2->type].half_len[1];
                     //sphere angle is defined versus the end of spherocylinder
                     vec1.x = part2->pos.x - part2->dir.x * halfl / box->x;
                     vec1.y = part2->pos.y - part2->dir.y * halfl / box->y;
@@ -134,7 +141,7 @@ double PairEnergyCalculator::angleEnergy() {
                 if (geotype[1] < SP)
                     vec2 = part2->dir;
                 else {
-                    halfl = topo->ia_params[part1->type][part2->type].half_len[0];
+                    halfl = topo.ia_params[part1->type][part2->type].half_len[0];
                     vec2.x = part1->pos.x + part1->dir.x * halfl / box->x;
                     vec2.y = part1->pos.y + part1->dir.y * halfl / box->y;
                     vec2.z = part1->pos.z + part1->dir.z * halfl / box->z;
@@ -143,7 +150,7 @@ double PairEnergyCalculator::angleEnergy() {
                 vec1.normalise();
                 vec2.normalise();
                 currangle = acos(DOT(vec1,vec2));
-                energy += harmonicPotential(currangle,topo->moleculeParam[part1->molType].angle1eq,topo->moleculeParam[part1->molType].angle1c);
+                energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
             }
         } else {
             if (part2 == conlist1->conlist[1]) {
@@ -155,7 +162,7 @@ double PairEnergyCalculator::angleEnergy() {
                     if (geotype[0] < SP)
                         vec1 = part1->dir;
                     else {
-                        halfl = topo->ia_params[part1->type][part2->type].half_len[1];
+                        halfl = topo.ia_params[part1->type][part2->type].half_len[1];
                         //sphere angle is defined versus the end of spherocylinder
                         vec1.x = part2->pos.x + part2->dir.x * halfl / box->x;
                         vec1.y = part2->pos.y + part2->dir.y * halfl / box->y;
@@ -165,7 +172,7 @@ double PairEnergyCalculator::angleEnergy() {
                     if (geotype[1] < SP)
                         vec2 = part2->dir;
                     else {
-                        halfl = topo->ia_params[part1->type][part2->type].half_len[0];
+                        halfl = topo.ia_params[part1->type][part2->type].half_len[0];
                         vec2.x = part1->pos.x - part1->dir.x * halfl / box->x;
                         vec2.y = part1->pos.y - part1->dir.y * halfl / box->y;
                         vec2.z = part1->pos.z - part1->dir.z * halfl / box->z;
@@ -174,19 +181,19 @@ double PairEnergyCalculator::angleEnergy() {
                     vec1.normalise();
                     vec2.normalise();
                     currangle = acos(DOT(vec1,vec2));
-                    energy += harmonicPotential(currangle,topo->moleculeParam[part2->molType].angle1eq,topo->moleculeParam[part2->molType].angle1c);
+                    energy += harmonicPotential(currangle,topo.moleculeParam[part2->molType].angle1eq,topo.moleculeParam[part2->molType].angle1c);
                 }
             }
         }
     }
 
     /*interaction between the orientation of  spherocylinders patches -harmonic*/
-    if (topo->moleculeParam[part1->molType].angle2c >= 0) {
+    if (topo.moleculeParam[part1->molType].angle2c >= 0) {
         if (part2 == conlist1->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                 currangle = acos(DOT(part1->patchdir[0],part2->patchdir[0]) - DOT(part1->dir,part2->patchdir[0])  );
-                energy += harmonicPotential(currangle,topo->moleculeParam[part1->molType].angle2eq,topo->moleculeParam[part1->molType].angle2c);
+                energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle2eq,topo.moleculeParam[part1->molType].angle2c);
             } else {
                 energy += 0.0;
             }
@@ -195,7 +202,7 @@ double PairEnergyCalculator::angleEnergy() {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                     currangle = acos(DOT(part2->patchdir[0],part1->patchdir[0]) - DOT(part2->dir,part1->patchdir[0])  );
-                    energy += harmonicPotential(currangle,topo->moleculeParam[part2->molType].angle2eq,topo->moleculeParam[part2->molType].angle2c);
+                    energy += harmonicPotential(currangle,topo.moleculeParam[part2->molType].angle2eq,topo.moleculeParam[part2->molType].angle2c);
                 } else {
                     energy += 0.0;
                 }
@@ -209,18 +216,18 @@ double PairEnergyCalculator::angleEnergy() {
 double PairEnergyCalculator::bondEnergy() {
     double energy=0.0, bondlength, halfl;
     Vector vec1, vec2, vecbond;
-    int * geotype = topo->ia_params[part1->type][part2->type].geotype;
+    int * geotype = topo.ia_params[part1->type][part2->type].geotype;
 
     /*interaction with nearest neighbours -harmonic*/
-    if ((topo->moleculeParam[part1->molType]).bond1c >= 0) {
+    if ((topo.moleculeParam[part1->molType]).bond1c >= 0) {
 
         if (part2 == conlist1->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
+                energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
             else {
                 if (geotype[0] < SP)
-                    halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
 
@@ -229,7 +236,7 @@ double PairEnergyCalculator::bondEnergy() {
                 vec1.z = part1->pos.z - part1->dir.z * halfl / box->z;
 
                 if (geotype[1] < SP)
-                    halfl =topo->ia_params[part1->type][part2->type].half_len[1];
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
 
@@ -238,16 +245,16 @@ double PairEnergyCalculator::bondEnergy() {
                 vec2.z = part2->pos.z + part2->dir.z * halfl / box->z;
                 vecbond = image(&vec1, &vec2, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
+                energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
             }
         } else {
             if (part2 == conlist1->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
+                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
                 else {
                     if (geotype[0] < SP)
-                        halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
                     vec1.x = part1->pos.x + part1->dir.x * halfl / box->x;
@@ -255,7 +262,7 @@ double PairEnergyCalculator::bondEnergy() {
                     vec1.z = part1->pos.z + part1->dir.z * halfl / box->z;
 
                     if (geotype[0] < SP)
-                        halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
 
@@ -264,76 +271,76 @@ double PairEnergyCalculator::bondEnergy() {
                     vec2.z = part2->pos.z - part2->dir.z * halfl / box->z;
                     vecbond = image(&vec1, &vec2, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
+                    energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
                 }
             }
         }
     }
     /*interaction with second nearest neighbours -harmonic*/
-    if (topo->moleculeParam[part1->molType].bond2c >= 0) {
+    if (topo.moleculeParam[part1->molType].bond2c >= 0) {
         if (part2 == conlist1->conlist[2]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
+                energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
             else {
                 vecbond = image(&part1->pos, &part2->pos, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
+                energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
             }
         } else {
             if (part2 == conlist1->conlist[3]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
+                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
                 else {
                     vecbond = image(&part1->pos, &part2->pos, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,topo->moleculeParam[part1->molType].bond2eq,topo->moleculeParam[part1->molType].bond2c);
+                    energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
                 }
             }
         }
     }
     /*interaction with nearest neighbours - direct harmonic bond*/
-    if ((topo->moleculeParam[part1->molType]).bonddc > 0) {
+    if ((topo.moleculeParam[part1->molType]).bonddc > 0) {
 
         if (part2 == conlist1->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bonddeq,topo->moleculeParam[part1->molType].bonddc);
+                energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bonddeq,topo.moleculeParam[part1->molType].bonddc);
             else {
                 if (geotype[0] < SP)
-                    halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
                 vec1.x = part1->pos.x - part1->dir.x * halfl / box->x;
                 vec1.y = part1->pos.y - part1->dir.y * halfl / box->y;
                 vec1.z = part1->pos.z - part1->dir.z * halfl / box->z;
                 if (geotype[1] < SP)
-                    halfl =topo->ia_params[part1->type][part2->type].half_len[1];
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
-                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->x ;
-                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->y ;
-                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->z ;
+                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->x ;
+                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->y ;
+                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->z ;
                 vecbond = image(&vec1, &vec2, box);
                 bondlength = sqrt(DOT(vecbond,vecbond));
-                energy = harmonicPotential(bondlength,0.0,topo->moleculeParam[part1->molType].bonddc);
+                energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
             }
         } else {
             if (part2 == conlist1->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo->moleculeParam[part1->molType].bond1eq,topo->moleculeParam[part1->molType].bond1c);
+                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
                 else {
                     if (geotype[0] < SP)
-                        halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->x ;
-                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->y ;
-                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo->moleculeParam[part1->molType].bonddeq) / box->z ;
+                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->x ;
+                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->y ;
+                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / box->z ;
                     if (geotype[0] < SP)
-                        halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
                     vec2.x = part2->pos.x - part2->dir.x * halfl / box->x;
@@ -341,7 +348,7 @@ double PairEnergyCalculator::bondEnergy() {
                     vec2.z = part2->pos.z - part2->dir.z * halfl / box->z;
                     vecbond = image(&vec1, &vec2, box);
                     bondlength = sqrt(DOT(vecbond,vecbond));
-                    energy = harmonicPotential(bondlength,0.0,topo->moleculeParam[part1->molType].bonddc);
+                    energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
                 }
             }
         }
@@ -365,15 +372,15 @@ double PairEnergyCalculator::ePscPsc() {
 
     closestDist();
     repenergy = eRepulsive();
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
             firstCH = true;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[1] == CHPSC)||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
             secondCH = true;
         if (firstCH)
             part1->dir = part1->chdir[0];
@@ -386,12 +393,12 @@ double PairEnergyCalculator::ePscPsc() {
         atrenergy = eattractivePscPsc(0,0);
 
         /*addition of interaction of second patches*/
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
-          (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
+          (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
             bool firstT=false, secondT=false;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
             firstT = true;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
             secondT = true;
 
             if (firstT) {
@@ -434,16 +441,16 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
    
-    //interact->halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+    //interact->halfl =topo.ia_params[part1->type][part2->type].half_len[0];
     //DEBUG_SIM("halfl = %lf", interact->halfl);
     for(i=0 ;i<5; i++)
         intersections[i]=0;
-    //cospatch =topo->ia_params.pcanglsw;
-    //cospatchinr =topo->ia_params.pcangl;
+    //cospatch =topo.ia_params.pcanglsw;
+    //cospatchinr =topo.ia_params.pcangl;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at.
       cut distance C*/
     //DEBUG_SIM("first intersection");
-    intrs = pscIntersect(part1,part2,topo->ia_params[part1->type][part2->type].half_len[0],topo->ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
+    intrs = pscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
     if (intrs <2){
         //DEBUG_SIM("No intersection :(");
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
@@ -457,7 +464,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     //DEBUG_SIM("get vector");
     vec1 = -1.0*r_cm;
     //DEBUG_SIM("second intersection");
-    intrs = pscIntersect(part2, part1,topo->ia_params[part1->type][part2->type].half_len[1],topo->ia_params[part1->type][part2->type].half_len[0], vec1, intersections, 1, patchnum2);
+    intrs = pscIntersect(part2, part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0], vec1, intersections, 1, patchnum2);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
 
@@ -485,12 +492,12 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     //fprintf (stderr, "segments closest dist: %.8f %.8f %.8f \n",vec_mindist.x,vec_mindist.y,vec_mindist.z);
     ndist=sqrt(DOT(vec_mindist,vec_mindist));
     //dist=DOT(vec_intrs,vec_intrs);
-    if (ndist <topo->ia_params[part1->type][part2->type].pdis)
-        atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+    if (ndist <topo.ia_params[part1->type][part2->type].pdis)
+        atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
     //atrenergy = -1.0;
     else {
-        atrenergy = cos(PIH*(ndist-topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+        atrenergy = cos(PIH*(ndist-topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
     }
     /*5- scaling function2: angular dependence of patch1*/
     vec1 = 1.0 * vec_intrs;
@@ -511,7 +518,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
 
     //add scaling increased if particles are parallel or antiparallel
     paral=1.0;
-    paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
+    paral = scparallel(topo.ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
     
     /*7- put it all together*/
     atrenergy *=f0*f1*f2*paral;
@@ -529,15 +536,15 @@ double PairEnergyCalculator::eCpscCpsc() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist > topo->ia_params[part1->type][part2->type].rcut ) || ( topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist > topo.ia_params[part1->type][part2->type].rcut ) || ( topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == CHCPSC)||(topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHCPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
             firstCH = true;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[1] == CHCPSC)||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHCPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
             secondCH = true;
         if(firstCH)
             part1->dir = part1->chdir[0];
@@ -550,12 +557,12 @@ double PairEnergyCalculator::eCpscCpsc() {
         atrenergy = eattractiveCpscCpsc(0,0);
 
         /*addition of interaction of second patches*/
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
-          (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ) {
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
+          (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ) {
             bool firstT=false, secondT=false;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
             firstT = true;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC)  )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC)  )
             secondT = true;
 
             if (firstT) {
@@ -595,13 +602,13 @@ double PairEnergyCalculator::eCpscCpsc() {
 
         double distRcm = sqrt(dotrcm);
 
-        if (distRcm > topo->ia_params[part1->type][part2->type].pdis+extraInteractionSwitch) {
+        if (distRcm > topo.ia_params[part1->type][part2->type].pdis+extraInteractionSwitch) {
             extraAttr = 0.0;
         } else {
-            if (distRcm < topo->ia_params[part1->type][part2->type].pdis)
+            if (distRcm < topo.ia_params[part1->type][part2->type].pdis)
                 extraAttr = extraEpsilon;
             else {
-                extraAttr = cos(PIH*(distRcm - topo->ia_params[part1->type][part2->type].pdis)/extraInteractionSwitch);
+                extraAttr = cos(PIH*(distRcm - topo.ia_params[part1->type][part2->type].pdis)/extraInteractionSwitch);
                 extraAttr *= extraAttr * extraEpsilon ;
             }
             // cos between two SC
@@ -620,15 +627,15 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     double intersections[5];
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
-    //rcut =topo->ia_params[part1->type][part2->type].rcut; // dont use, just a reminder
+    //rcut =topo.ia_params[part1->type][part2->type].rcut; // dont use, just a reminder
 
-//	interact->halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+//	interact->halfl =topo.ia_params[part1->type][part2->type].half_len[0];
     for(i=0;i<5;i++)
         intersections[i]=0;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at.
       cut distance C*/
-    intrs = cpscIntersect(part1,part2,topo->ia_params[part1->type][part2->type].half_len[0],
-            topo->ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
+    intrs = cpscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],
+            topo.ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
     T1 = intersections[0]; /*points on sc2*/
@@ -637,8 +644,8 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     for(i=0;i<5;i++)
         intersections[i]=0;
     vec1 = -1.0 * r_cm;
-    intrs = cpscIntersect(part2,part1,topo->ia_params[part1->type][part2->type].half_len[1],
-            topo->ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+    intrs = cpscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],
+            topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
     S1=intersections[0]; /*points on sc1*/
@@ -667,11 +674,11 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
 
     //dist=DOT(vec_intrs,vec_intrs);
 
-    if (ndist <topo->ia_params[part1->type][part2->type].pdis)
-        atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+    if (ndist <topo.ia_params[part1->type][part2->type].pdis)
+        atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
     else {
-        atrenergy = cos(PIH*(ndist-topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+        atrenergy = cos(PIH*(ndist-topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
     }
 
     /*5- scaling function2: angular dependence of patch1*/
@@ -692,7 +699,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
 
     //add scaling increased if particles are parallel or antiparallel
     paral=1.0;
-    paral = scparallel(topo->ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
+    paral = scparallel(topo.ia_params[part1->type][part2->type].parallel,part1->dir,part2->dir);
     
     /*7- put it all together*/
     atrenergy *=f0*f1*f2*paral;
@@ -711,17 +718,17 @@ double PairEnergyCalculator::ePscCpsc() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
-        if ((topo->ia_params[part1->type][part2->type].geotype[0] == CHPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == CHCPSC)||
-          (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
+        if ((topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == CHCPSC)||
+          (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
             firstCH = true;
-        if ((topo->ia_params[part1->type][part2->type].geotype[1] == CHPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == CHCPSC)||
-          (topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
+        if ((topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == CHCPSC)||
+          (topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
             secondCH = true;
         if(firstCH)
             part1->dir = part1->chdir[0];
@@ -735,16 +742,16 @@ double PairEnergyCalculator::ePscCpsc() {
 
 
         /*addition of interaction of second patches*/
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
-              (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
-              (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ||
-              (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
+              (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
+              (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ||
+              (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
             bool firstT=false, secondT=false;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
-                (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
+                (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
             firstT = true;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ||
-                (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ||
+                (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
             secondT = true;
 
             if (firstT) {
@@ -786,27 +793,27 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     double intersections[5];
     Vector vec1, vec2, vec_intrs, vec_mindist;
 
-    //rcut =topo->ia_params[part1->type][part2->type].rcut;
+    //rcut =topo.ia_params[part1->type][part2->type].rcut;
 
-    //interact->halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+    //interact->halfl =topo.ia_params[part1->type][part2->type].half_len[0];
     //DEBUG_SIM("halfl = %lf", interact->halfl);
     for(i=0;i<5;i++)
         intersections[i]=0;
     bool first;
-    if ( (topo->ia_params[part1->type][part2->type].geotype[0] == PSC)||(topo->ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo->ia_params[part1->type][part2->type].geotype[0] == TPSC)||(topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ){
+    if ( (topo.ia_params[part1->type][part2->type].geotype[0] == PSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ){
         first = true;
     } else {
         first = false;
     }
-    //cospatch =topo->ia_params.pcanglsw;
-    //cospatchinr =topo->ia_params.pcangl;
+    //cospatch =topo.ia_params.pcanglsw;
+    //cospatchinr =topo.ia_params.pcangl;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at.
       cut distance C*/
     //DEBUG_SIM("first intersection");
     if (first) {
-        intrs = pscIntersect(part1,part2,topo->ia_params[part1->type][part2->type].half_len[0],topo->ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
+        intrs = pscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
     } else {
-        intrs = cpscIntersect(part1,part2,topo->ia_params[part1->type][part2->type].half_len[0],topo->ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
+        intrs = cpscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
     }
     //DEBUG_SIM("first intersection: done");
     if (intrs <2){
@@ -823,9 +830,9 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     vec1 = -1.0 * r_cm;
     //DEBUG_SIM("second intersection");
     if (first) {
-        intrs = cpscIntersect(part2,part1,topo->ia_params[part1->type][part2->type].half_len[1],topo->ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+        intrs = cpscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
     } else {
-        intrs = pscIntersect(part2,part1,topo->ia_params[part1->type][part2->type].half_len[1],topo->ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+        intrs = pscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
     }
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
@@ -854,12 +861,12 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     //	    fprintf (stderr, "segments closest dist: %.8f %.8f %.8f \n",vec_mindist.x,vec_mindist.y,vec_mindist.z);
     ndist=sqrt(DOT(vec_mindist,vec_mindist));
     //dist=DOT(vec_intrs,vec_intrs);
-    if (ndist <topo->ia_params[part1->type][part2->type].pdis)
-        atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+    if (ndist <topo.ia_params[part1->type][part2->type].pdis)
+        atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
     //atrenergy = -1.0;
     else {
-        atrenergy = cos(PIH*(ndist-topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+        atrenergy = cos(PIH*(ndist-topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
     }
 
     /*5- scaling function2: angular dependence of patch1*/
@@ -894,24 +901,24 @@ double PairEnergyCalculator::eSpaSca() {
     closestDist();
     repenergy = eRepulsive();
 
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
         /*calculate closest distance attractive energy*/
-        if (dist <topo->ia_params[part1->type][part2->type].pdis)
-            atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+        if (dist <topo.ia_params[part1->type][part2->type].pdis)
+            atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
         else {
-            atrenergy = cos(PIH*(dist -topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-            atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+            atrenergy = cos(PIH*(dist -topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+            atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
         }
 
         /*scaling function for the length of spherocylinder within cutoff*/
 
-        if (topo->ia_params[part1->type][part2->type].geotype [0] < SP)
-            halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+        if (topo.ia_params[part1->type][part2->type].geotype [0] < SP)
+            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
         else
-        halfl =topo->ia_params[part1->type][part2->type].half_len[1];
-        b = sqrt(topo->ia_params[part1->type][part2->type].rcut*topo->ia_params[part1->type][part2->type].rcut - dist*dist);
+        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
+        b = sqrt(topo.ia_params[part1->type][part2->type].rcut*topo.ia_params[part1->type][part2->type].rcut - dist*dist);
         if ( contt + b > halfl )
             f0 = halfl;
         else
@@ -937,15 +944,15 @@ double PairEnergyCalculator::ePscSpa() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == CHPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
             firstCH = true;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[1] == CHPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
             secondCH = true;
         if(firstCH)
             part1->dir = part1->chdir[0];
@@ -958,12 +965,12 @@ double PairEnergyCalculator::ePscSpa() {
         atrenergy = eattractivePscSpa(0);
 
         /*addition of interaction of second patches*/
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
-          (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
+          (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
             bool firstT=false, secondT=false;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
             firstT = true;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
             secondT = true;
 
             if (firstT) {
@@ -1000,29 +1007,29 @@ double PairEnergyCalculator::eattractivePscSpa(int patchnum1) {
     int which;
 
     /*calculate closest distance attractive energy*/
-    if (dist <topo->ia_params[part1->type][part2->type].pdis)
-        atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+    if (dist <topo.ia_params[part1->type][part2->type].pdis)
+        atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
     else {
-        atrenergy = cos(PIH*(dist -topo->ia_params[part1->type][part2->type].pdis) /topo->ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+        atrenergy = cos(PIH*(dist -topo.ia_params[part1->type][part2->type].pdis) /topo.ia_params[part1->type][part2->type].pswitch);
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
     }
     /*scaling function: angular dependence of patch1*/
-    if (topo->ia_params[part1->type][part2->type].geotype[0] < SP) {
+    if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) {
         which = 0;
         vec1=vecPerpProject(&distvec, &part1->dir);
         vec1.normalise();
         a = DOT(vec1, part1->patchdir[patchnum1]);
-        halfl=topo->ia_params[part1->type][part2->type].half_len[0];
+        halfl=topo.ia_params[part1->type][part2->type].half_len[0];
     } else {
         which = 1;
         vec1 = vecPerpProject(&distvec, &part2->dir);
         vec1.normalise();
         a = DOT(vec1, part2->patchdir[patchnum1]);
-        halfl=topo->ia_params[part1->type][part2->type].half_len[1];
+        halfl=topo.ia_params[part1->type][part2->type].half_len[1];
     }
     /*scaling function for the length of spherocylinder within cutoff*/
 
-    b = sqrt(topo->ia_params[part1->type][part2->type].rcut*topo->ia_params[part1->type][part2->type].rcut - dist*dist);
+    b = sqrt(topo.ia_params[part1->type][part2->type].rcut*topo.ia_params[part1->type][part2->type].rcut - dist*dist);
     if ( contt + b > halfl )
         f0 = halfl;
     else
@@ -1048,21 +1055,21 @@ double PairEnergyCalculator::eCpscSpa() {
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
 
-    if (topo->ia_params[part1->type][part2->type].geotype[0] < SP) {
-        halfl=topo->ia_params[part1->type][part2->type].half_len[0];
+    if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) {
+        halfl=topo.ia_params[part1->type][part2->type].half_len[0];
     } else {
-        halfl=topo->ia_params[part1->type][part2->type].half_len[1];
+        halfl=topo.ia_params[part1->type][part2->type].half_len[1];
     }
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) || ( dist >topo->ia_params[part1->type][part2->type].rcut )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) || ( dist >topo.ia_params[part1->type][part2->type].rcut )
       || (contt > halfl) || (contt < -halfl) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == CHCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
             firstCH = true;
-        if ( (topo->ia_params[part1->type][part2->type].geotype[1] == CHCPSC) || (topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
+        if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHCPSC) || (topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) )
             secondCH = true;
         if(firstCH)
             part1->dir = part1->chdir[0];
@@ -1075,12 +1082,12 @@ double PairEnergyCalculator::eCpscSpa() {
         atrenergy = eattractiveCpscSpa(0);
 
         /*addition of interaction of second patches*/
-        if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
-          (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ) {
+        if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) ||
+          (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC) ) {
             bool firstT=false, secondT=false;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo->ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TCPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHCPSC) )
             firstT = true;
-            if ( (topo->ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo->ia_params[part1->type][part2->type].geotype[1] == TCHCPSC)  )
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TCPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHCPSC)  )
             secondT = true;
 
             if (firstT) {
@@ -1119,28 +1126,28 @@ double PairEnergyCalculator::eattractiveCpscSpa(int patchnum1) {
 
     /*if it is in cylindrical part c>-halfl and c<halfl*/
     /*calculate closest distance attractive energy*/
-    if (dist <topo->ia_params[part1->type][part2->type].pdis)
-        atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+    if (dist <topo.ia_params[part1->type][part2->type].pdis)
+        atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
     else {
-        atrenergy = cos(PIH*(dist -topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+        atrenergy = cos(PIH*(dist -topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
     }
     /*scaling function: angular dependence of patch1*/
-    if (topo->ia_params[part1->type][part2->type].geotype[0] < SP) {
+    if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) {
         which = 0;
         vec1 = vecPerpProject(&distvec, &part1->dir);
         vec1.normalise();
         a = DOT(vec1, part1->patchdir[patchnum1]);
-        halfl =topo->ia_params[part1->type][part2->type].half_len[0];
+        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
     } else {
         which = 1;
         vec1 = vecPerpProject(&distvec, &part2->dir);
         vec1.normalise();
         a = DOT(vec1,part2->patchdir[patchnum1]);
-        halfl =topo->ia_params[part1->type][part2->type].half_len[1];
+        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
     }
     /*scaling function for the length of spherocylinder within cutoff*/
-    b = sqrt(topo->ia_params[part1->type][part2->type].rcut*topo->ia_params[part1->type][part2->type].rcut - dist*dist);
+    b = sqrt(topo.ia_params[part1->type][part2->type].rcut*topo.ia_params[part1->type][part2->type].rcut - dist*dist);
     if ( contt + b > halfl )
         f0 = halfl;
     else
@@ -1164,14 +1171,14 @@ double PairEnergyCalculator::e2ScaOr2Spa() {
 
     closestDist();
     repenergy = eRepulsive();
-    if ( ( dist >topo->ia_params[part1->type][part2->type].rcut ) || (topo->ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
     else {
-        if (dist <topo->ia_params[part1->type][part2->type].pdis)
-            atrenergy = -topo->ia_params[part1->type][part2->type].epsilon;
+        if (dist <topo.ia_params[part1->type][part2->type].pdis)
+            atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
         else  {
-            atrenergy = cos(PIH*(dist - topo->ia_params[part1->type][part2->type].pdis)/topo->ia_params[part1->type][part2->type].pswitch);
-            atrenergy *= -atrenergy*topo->ia_params[part1->type][part2->type].epsilon ;
+            atrenergy = cos(PIH*(dist - topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
+            atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
         }
     }
 
@@ -1195,19 +1202,19 @@ double PairEnergyCalculator::scparallel(double epsilonparallel,Vector dir1,Vecto
 void PairEnergyCalculator::closestDist() {
     double c, d, halfl;
 
-    //printf("we have %d %d  ",topo->ia_params[part1->type][part2->type].geotype[0],topo->ia_params[part1->type][part2->type].geotype[1] );
-    if ((topo->ia_params[part1->type][part2->type].geotype[0] >= SP) && (topo->ia_params[part1->type][part2->type].geotype[1] >= SP)) { /*we have two spheres - most common, do nothing*/
+    //printf("we have %d %d  ",topo.ia_params[part1->type][part2->type].geotype[0],topo.ia_params[part1->type][part2->type].geotype[1] );
+    if ((topo.ia_params[part1->type][part2->type].geotype[0] >= SP) && (topo.ia_params[part1->type][part2->type].geotype[1] >= SP)) { /*we have two spheres - most common, do nothing*/
         //printf("we have two spheres ");
         distvec = r_cm;
         dist = sqrt(dotrcm);
         distcm = dist;
     } else {
-        if ((topo->ia_params[part1->type][part2->type].geotype[0] < SP) && (topo->ia_params[part1->type][part2->type].geotype[1] < SP)) { /*we have two spherocylinders*/
-            distvec = minDistSegments(topo->ia_params[part1->type][part2->type].half_len[0],topo->ia_params[part1->type][part2->type].half_len[1], r_cm);
+        if ((topo.ia_params[part1->type][part2->type].geotype[0] < SP) && (topo.ia_params[part1->type][part2->type].geotype[1] < SP)) { /*we have two spherocylinders*/
+            distvec = minDistSegments(topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1], r_cm);
             dist = sqrt(DOT(distvec,distvec));
         } else {
-            if (topo->ia_params[part1->type][part2->type].geotype[0] < SP) { /*We have one spherocylinder -it is first one*/
-                halfl=topo->ia_params[part1->type][part2->type].half_len[0];/*finding closest vector from sphyrocylinder to sphere*/
+            if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) { /*We have one spherocylinder -it is first one*/
+                halfl=topo.ia_params[part1->type][part2->type].half_len[0];/*finding closest vector from sphyrocylinder to sphere*/
                 c = DOT(part1->dir,r_cm);
                 if (c >= halfl) d = halfl;
                 else {
@@ -1220,7 +1227,7 @@ void PairEnergyCalculator::closestDist() {
                 distvec.z = - r_cm.z + part1->dir.z * d;
                 dist=sqrt(DOT(distvec, distvec));
             } else { /*lst option first one is sphere second one spherocylinder*/
-                halfl =topo->ia_params[part1->type][part2->type].half_len[1]; /*finding closest vector from sphyrocylinder to sphere*/
+                halfl =topo.ia_params[part1->type][part2->type].half_len[1]; /*finding closest vector from sphyrocylinder to sphere*/
                 c = DOT(part2->dir,r_cm);
                 if (c >= halfl) d = halfl;
                 else {
@@ -1241,15 +1248,15 @@ double PairEnergyCalculator::fanglScale(double a, int which) {
     double f;
 
     // TODO for different types
-    if (a <=topo->ia_params[part1->type][part2->type].pcanglsw[which])
+    if (a <=topo.ia_params[part1->type][part2->type].pcanglsw[which])
         f=0.0;
     else {
-        if (a >=topo->ia_params[part1->type][part2->type].pcangl[which])
+        if (a >=topo.ia_params[part1->type][part2->type].pcangl[which])
             f=1.0;
         else {
-            f = 0.5 - ((topo->ia_params[part1->type][part2->type].pcanglsw[which]
-                    +topo->ia_params[part1->type][part2->type].pcangl[which])*0.5 - a )
-                    /(topo->ia_params[part1->type][part2->type].pcangl[which] -topo->ia_params[part1->type][part2->type].pcanglsw[which]);
+            f = 0.5 - ((topo.ia_params[part1->type][part2->type].pcanglsw[which]
+                    +topo.ia_params[part1->type][part2->type].pcangl[which])*0.5 - a )
+                    /(topo.ia_params[part1->type][part2->type].pcangl[which] -topo.ia_params[part1->type][part2->type].pcanglsw[which]);
         }
     }
 
@@ -1260,9 +1267,9 @@ double PairEnergyCalculator::eRepulsive() {
     double repenergy, en6;
 
     /* WCA repulsion */
-    if (dist >topo->ia_params[part1->type][part2->type].rcutwca) repenergy = 0.0;
+    if (dist >topo.ia_params[part1->type][part2->type].rcutwca) repenergy = 0.0;
     else {
-            en6 = pow((topo->ia_params[part1->type][part2->type].sigma / dist),6);
+            en6 = pow((topo.ia_params[part1->type][part2->type].sigma / dist),6);
             repenergy = 4*en6*(en6-1) + 1.0;
     }
     //printf("repenergy: %f dist: %f\n",repenergy, interact->dist);
@@ -1305,7 +1312,7 @@ Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vecto
     tN = D;
     tD = D;      // tc = tN / tD, default tD = D >= 0
 
-    // compute the linetopo->ia_paramseters of the two closest points
+    // compute the linetopo.ia_paramseters of the two closest points
     if (D < 0.00000001) { // the lines are almost parallel
         paralel = true;
         sN = 0.0;        // force using point P0 on segment S1
@@ -1385,7 +1392,7 @@ Vector PairEnergyCalculator::minDistSegments(double halfl1, double halfl2, Vecto
         tN = D;
         tD = D;      // tc = tN / tD, default tD = D >= 0
 
-        // compute the linetopo->ia_paramseters of the two closest points
+        // compute the linetopo.ia_paramseters of the two closest points
         if (D < 0.00000001) { // the lines are almost parallel
             sN = 0.0;        // force using point P0 on segment S1
             sD = 1.0;        // to prevent possible division by 0.0 later
@@ -1444,7 +1451,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
     Vector cm21, vec1, vec2, vec3, vec4;
 
     intrs = 0;
-    rcut2 =topo->ia_params[part1->type][part2->type].rcut *topo->ia_params[part1->type][part2->type].rcut;
+    rcut2 =topo.ia_params[part1->type][part2->type].rcut *topo.ia_params[part1->type][part2->type].rcut;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at
       cut distance C*/
     /*1a- test intersection with half planes of patch and look how far they are
@@ -1453,14 +1460,14 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
     /* plane1 */
     /* find intersections of part2 with plane by par1 and patchsides[0] */
     intrs += findIntersectPlane(part1,part2,halfl2,r_cm,part1->patchsides[0+2*patchnum],
-           topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
+           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
     //	    printf("plane1 %d\n", intrs);
     /* plane2 */
     /* find intersections of part2 with plane by par1 and patchsides[1] */
     intrs += findIntersectPlane(part1,part2,halfl2,r_cm,part1->patchsides[1+2*patchnum],
-           topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
+           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
 
-    if ( (intrs == 2 ) && (topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum] <0) ) {
+    if ( (intrs == 2 ) && (topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum] <0) ) {
         fprintf (stderr, "ERROR: Patch is larger than 180 degrees and we are getting two segments - this hasnot been programed yet.\n\n");
         //exit (1);
     }
@@ -1486,7 +1493,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                 e = DOT(part1->dir,vec1);
                 if ((e >=halfl1) || (e <= -halfl1)) intrs+=0; /*intersection is outside sc1*/
                 else {
-                    intrs+=testIntrPatch(part1,vec1,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
+                    intrs+=testIntrPatch(part1,vec1,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
                 }
             }
             if ( d > 0 ){
@@ -1499,7 +1506,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                     e = DOT(part1->dir,vec2);
                     if ((e >=halfl1) || (e <= -halfl1)) intrs+=0; /*intersection is outside sc1*/
                     else {
-                        intrs+=testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
+                        intrs+=testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
                     }
                 }
             }
@@ -1531,7 +1538,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                 vec3.z = part2->dir.z*x1 - r_cm.z;
                 e = DOT(part1->dir,vec3);
                 if ((e >= halfl1) || (e <= -halfl1)) { /*if not intersection is inside sc1*/
-                    intrs += testIntrPatch(part1,vec3,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
+                    intrs += testIntrPatch(part1,vec3,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
                 }
             }
             if ( d > 0) {
@@ -1543,7 +1550,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                     vec4.z = part2->dir.z*x2 - r_cm.z;
                     e = DOT(part1->dir,vec4);
                     if ((e >=halfl1) || (e <= -halfl1)) { /*if not intersection is inside sc1*/
-                        intrs += testIntrPatch(part1,vec4,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
+                        intrs += testIntrPatch(part1,vec4,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
                     }
                 }
             }
@@ -1563,7 +1570,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                 vec3.z = part2->dir.z*x1 - r_cm.z;
                 e = DOT(part1->dir,vec3);
                 if ((e >=halfl1) || (e <= -halfl1)) { /*if not intersection is inside sc1*/
-                    intrs+=testIntrPatch(part1,vec3,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
+                    intrs+=testIntrPatch(part1,vec3,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
                 }
             }
             if ( d > 0 ) {
@@ -1575,7 +1582,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                     vec4.z = part2->dir.z*x2 - r_cm.z;
                     e = DOT(part1->dir,vec4);
                     if ((e >=halfl1) || (e <= -halfl1)) { /*if not intersection is inside sc1*/
-                        intrs+=testIntrPatch(part1,vec4,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
+                        intrs+=testIntrPatch(part1,vec4,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
                     }
                 }
             }
@@ -1604,7 +1611,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
             c = d*d + b; /*is inside caps*/
         /*c is distance squared from line or end to test if is inside sc*/
         if (c < rcut2)
-            intrs += testIntrPatch(part1,vec1,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],halfl2,intersections,patchnum);
+            intrs += testIntrPatch(part1,vec1,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],halfl2,intersections,patchnum);
         if (intrs < 2 ) {
             vec2.x = -part2->dir.x*halfl2 - r_cm.x;
             vec2.y = -part2->dir.y*halfl2 - r_cm.y;
@@ -1622,7 +1629,7 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
                 c = d*d + b; /*is inside caps*/
             /*c is distance squared from line or end to test if is inside sc*/
             if (c < rcut2)
-                intrs += testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],-1.0*halfl2,intersections,patchnum);
+                intrs += testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],-1.0*halfl2,intersections,patchnum);
         }
         //		    printf ("ends %d\n", intrs);
     }
@@ -1679,8 +1686,8 @@ int PairEnergyCalculator::findIntersectPlane(Particle *part1, Particle *part2, d
                 d = fabs(DOT (d_vec, part1->dir)) - halfl2;
                 if (d <= 0) disti = c*c; /*is inside cylinder*/
                 else disti = d*d + c*c; /*is inside patch*/
-                if (disti >topo->ia_params[part1->type][part2->type].rcut *
-                       topo->ia_params[part1->type][part2->type].rcut) intrs=0; /* the intersection is outside sc */
+                if (disti >topo.ia_params[part1->type][part2->type].rcut *
+                       topo.ia_params[part1->type][part2->type].rcut) intrs=0; /* the intersection is outside sc */
                 else {
                     intrs=1;
                     i=0;
@@ -1722,7 +1729,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
     Vector cm21, vec1, vec2, vec3, vec4;
 
     intrs = 0;
-    rcut2 =topo->ia_params[part1->type][part2->type].rcut *topo->ia_params[part1->type][part2->type].rcut;
+    rcut2 =topo.ia_params[part1->type][part2->type].rcut *topo.ia_params[part1->type][part2->type].rcut;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at
       cut distance C*/
     /*1a- test intersection with half planes of patch and look how far they are
@@ -1731,14 +1738,14 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
     /* plane1 */
     /* find intersections of part2 with plane by par1 and part1->patchsides[0] */
     intrs += findIntersectPlanec(part1,part2,halfl2,r_cm,part1->patchsides[0+2*patchnum],
-           topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
+           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
     //	    printf("plane1 %d\n", intrs);
     /* plane2 */
     /* find intersections of part2 with plane by par1 and part1->patchsides[1] */
     intrs += findIntersectPlanec(part1,part2,halfl2,r_cm,part1->patchsides[1+2*patchnum],
-           topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
+           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
 
-    if ( (intrs == 2 ) && (topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum] < 0) ) {
+    if ( (intrs == 2 ) && (topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum] < 0) ) {
         fprintf (stderr, "ERROR: Patch is larger than 180 degrees and we are getting two segments - this hasnot been programed yet.\n\n");
         //exit (1);
     }
@@ -1764,7 +1771,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
                 e = DOT(part1->dir,vec1);
                 if ((e >=halfl1) || (e <= -halfl1)) intrs+=0; /*intersection is outside sc1*/
                 else {
-                    intrs += testIntrPatch(part1,vec1,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
+                    intrs += testIntrPatch(part1,vec1,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
                 }
             }
             if ( d > 0 ){
@@ -1777,7 +1784,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
                     e = DOT(part1->dir,vec2);
                     if ((e >=halfl1) || (e <= -halfl1)) intrs+=0; /*intersection is outside sc1*/
                     else {
-                        intrs += testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
+                        intrs += testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
                     }
                 }
             }
@@ -1802,7 +1809,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
                 b = DOT (vec2, vec2);
                 if (b > rcut2) intrs+=0;   /* the intersection is outside sc */
                 else {
-                    intrs += testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
+                    intrs += testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x1,intersections,patchnum);
                 }
             }
             //		    printf ("plane cap1 %d %f\n", intrs, x1);
@@ -1819,7 +1826,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
                 b = DOT (vec2, vec2);
                 if (b > rcut2) intrs+=0;   /* the intersection is outside sc */
                 else {
-                    intrs += testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
+                    intrs += testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],x2,intersections,patchnum);
                 }
             }
             //		    printf ("plane cap2 %d %f\n", intrs,x2);
@@ -1844,7 +1851,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
         d = fabs(a)-halfl1;
         if ( d <= 0) { /*is in cylindrical part*/
             /*c is distance squared from line or end to test if is inside sc*/
-            if (b < rcut2) intrs += testIntrPatch(part1,vec1,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],halfl2,intersections,patchnum);
+            if (b < rcut2) intrs += testIntrPatch(part1,vec1,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],halfl2,intersections,patchnum);
         }
         if (intrs < 2 ) {
             vec2.x = -part2->dir.x*halfl2 - r_cm.x;
@@ -1859,7 +1866,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
             d = fabs(a) -halfl1;
             if (d <= 0) {
                 /*c is distance squared from line or end to test if is inside sc*/
-                if (b < rcut2) intrs += testIntrPatch(part1,vec2,topo->ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],-1.0*halfl2,intersections,patchnum);
+                if (b < rcut2) intrs += testIntrPatch(part1,vec2,topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],-1.0*halfl2,intersections,patchnum);
             }
         }
                 //    printf ("ends %d\n", intrs);
@@ -1892,7 +1899,7 @@ int PairEnergyCalculator::findIntersectPlanec(Particle *part1, Particle *part2, 
                 d = fabs(DOT (d_vec, part1->dir)) - halfl;
                 if (d <= 0) {
                     disti= c*c; /*is inside cylinder*/
-                    if (disti >topo->ia_params[part1->type][part2->type].rcut*topo->ia_params[part1->type][part2->type].rcut)
+                    if (disti >topo.ia_params[part1->type][part2->type].rcut*topo.ia_params[part1->type][part2->type].rcut)
                         intrs=0; /* the intersection is outside sc */
                     else {
                         intrs=1;
