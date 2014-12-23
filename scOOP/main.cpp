@@ -104,7 +104,11 @@ int main(int argc, char** argv) {
 #endif
 
     outfile = fopen(files.configurationoutfile, "w");
+#ifdef TESTING
+    fprintf (outfile, "%15.7e %15.7e %15.7e\n", conf.box.x, conf.box.y, conf.box.z);
+#else
     fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.box.x, conf.box.y, conf.box.z);
+#endif
     conf.draw (outfile);
     fclose (outfile);
 

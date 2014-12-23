@@ -758,7 +758,11 @@ int main(int argc, char **argv)
 	printf ("   MPI replica changeT / changeP / acceptance ratio: \t %.6lf   /   %.6lf  /  %.6lf\n\n", sim.mpiexch.mx,sim.mpiexch.angle,RATIO(sim.mpiexch));
 #endif
 	outfile = fopen(files.configurationoutfile, "w");
-	fprintf (outfile, "%15.8le %15.8le %15.8le\n", conf.box.x, conf.box.y, conf.box.z);
+#ifdef TESTING
+    fprintf (outfile, "%15.7le %15.7le %15.7le\n", conf.box.x, conf.box.y, conf.box.z);
+#else
+    fprintf (outfile, "%15.8le %15.8le %15.8le\n", conf.box.x, conf.box.y, conf.box.z);
+#endif
 	draw (outfile, &conf, &topo);
 	fclose (outfile);
 
@@ -7852,8 +7856,9 @@ void draw(FILE *outfile, /*struct vector box, long npart,
 	double anint(double);
 
 	//fprintf (outfile, "%15.8le %15.8le %15.8le\n", box.x, box.y, box.z);
+#ifdef TESTING
 	for (i = 0; i < topo->npart; i++) {
-		fprintf (outfile, "%15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le %d\n",
+        fprintf (outfile, "%15.7le %15.7le %15.7le   %15.7le %15.7le %15.7le   %15.7le %15.7le %15.7le %d\n",
 				conf->box.x * ((conf->particle[i].pos.x) - anint(conf->particle[i].pos.x)),
 				conf->box.y * ((conf->particle[i].pos.y) - anint(conf->particle[i].pos.y)),
 				conf->box.z * ((conf->particle[i].pos.z) - anint(conf->particle[i].pos.z)),
@@ -7861,6 +7866,17 @@ void draw(FILE *outfile, /*struct vector box, long npart,
 				conf->particle[i].patchdir[0].x, conf->particle[i].patchdir[0].y, conf->particle[i].patchdir[0].z,
 				conf->particle[i].switched);
 	}
+#else
+    for (i = 0; i < topo->npart; i++) {
+        fprintf (outfile, "%15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le %d\n",
+                conf->box.x * ((conf->particle[i].pos.x) - anint(conf->particle[i].pos.x)),
+                conf->box.y * ((conf->particle[i].pos.y) - anint(conf->particle[i].pos.y)),
+                conf->box.z * ((conf->particle[i].pos.z) - anint(conf->particle[i].pos.z)),
+                conf->particle[i].dir.x, conf->particle[i].dir.y, conf->particle[i].dir.z,
+                conf->particle[i].patchdir[0].x, conf->particle[i].patchdir[0].y, conf->particle[i].patchdir[0].z,
+                conf->particle[i].switched);
+    }
+#endif
 }
 /*............................................................................*/
 

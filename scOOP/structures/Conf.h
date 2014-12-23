@@ -229,6 +229,17 @@ public:
      */
     void draw(FILE *outfile) {
         //fprintf (outfile, "%15.8e %15.8e %15.8e\n", box.x, box.y, box.z);
+#ifdef TESTING
+        for (unsigned int i=0; i < pvec.size(); i++) {
+            fprintf (outfile, "%15.7e %15.7e %15.7e   %15.7e %15.7e %15.7e   %15.7e %15.7e %15.7e %d\n",
+                    box.x * ((pvec[i].pos.x) - anInt(pvec[i].pos.x)),
+                    box.y * ((pvec[i].pos.y) - anInt(pvec[i].pos.y)),
+                    box.z * ((pvec[i].pos.z) - anInt(pvec[i].pos.z)),
+                    pvec[i].dir.x, pvec[i].dir.y, pvec[i].dir.z,
+                    pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
+                    pvec[i].switched);
+        }
+#else
         for (unsigned int i=0; i < pvec.size(); i++) {
             fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
                     box.x * ((pvec[i].pos.x) - anInt(pvec[i].pos.x)),
@@ -238,6 +249,7 @@ public:
                     pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
                     pvec[i].switched);
         }
+#endif
     }
 
     /**
