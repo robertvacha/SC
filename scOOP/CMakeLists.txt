@@ -22,6 +22,13 @@ if(ENABLE_TWISTER)
     add_definitions(-DMERSENNETWISTER)
 endif()
 
+# -------------------------------------
+#   For Testing
+# ----=--------------------------------
+if(TESTING)
+    add_definitions(-DTESTING)
+endif()
+
 # -----------------------
 #   Link with MPI
 # -----------------------

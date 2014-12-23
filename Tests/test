@@ -21,7 +21,7 @@ cd ../scOOP/
 rm -f CMakeCache.txt
 rm -rf CMakeFiles/
 
-cmake .
+cmake . -DTESTING=ON
 
 make
 mv SC ../Tests/
@@ -30,7 +30,7 @@ cd ../Tests/
 
 echo ""
 echo "Building comparison version..."
-gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm
+gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm -DTESTING
 
 echo ""
 echo "testing..."
