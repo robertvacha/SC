@@ -195,6 +195,32 @@ public:
         conf.particle = NULL;*/
     }
 
+    double distSq(Particle* part1, Particle* part2) {
+        Vector r_cm;
+        r_cm.x = part1->pos.x - part2->pos.x;
+        r_cm.y = part1->pos.y - part2->pos.y;
+        r_cm.z = part1->pos.z - part2->pos.z;
+
+        if ( r_cm.x < 0  )
+            r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
+        else
+            r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
+        if ( r_cm.y < 0  )
+            r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
+        else
+            r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
+        if ( r_cm.z < 0  )
+            r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
+        else
+            r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+
+        return DOT(r_cm,r_cm);
+    }
+
+    double dist(Particle* part1, Particle* part2) {
+        return sqrt(distSq(part1,part2));
+    }
+
     void recalcConList();
 
     /**

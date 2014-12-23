@@ -15,10 +15,12 @@
 //
 #define NDEBUG
 
-
 #ifdef ENABLE_MPI
 # include <mpi.h>
 #endif
+
+#include "omp.h"
+//#define OMP
 
 
 #ifdef DEBUGGING_INIT

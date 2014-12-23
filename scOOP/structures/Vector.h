@@ -154,6 +154,7 @@ public:
         do {
             xi1 = 1.0 - 2.0*ran2();
             xi2 = 1.0 - 2.0*ran2();
+
             a = xi1*xi1 + xi2*xi2;
         } while (a > 1.0);
 

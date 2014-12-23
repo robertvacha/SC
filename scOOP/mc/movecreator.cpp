@@ -13,6 +13,7 @@ double MoveCreator::particleMove() {
 
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
+    if(target == (long)conf->pvec.size()) target--;
 
     if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
     ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
@@ -43,8 +44,9 @@ double MoveCreator::partDisplace(long target) {
     energy = (*calcEnergy)(target, 1, 0);
 
     orig = conf->pvec[target].pos;
+
     dr.random();
-    //ran = sqrt(ran2(&seed));
+
     dr.x *= sim->trans[conf->pvec[target].type].mx/conf->box.x;
     dr.y *= sim->trans[conf->pvec[target].type].mx/conf->box.y;
     dr.z *= sim->trans[conf->pvec[target].type].mx/conf->box.z;
@@ -109,7 +111,6 @@ double MoveCreator::partDisplace(long target) {
             wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
             energy += wlener;
         }
-
     }
 
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
@@ -1593,6 +1594,7 @@ int MoveCreator::getRandomMuVTType() {
 int MoveCreator::moveTry(double energyold, double energynew, double temperature) {
     /*DEBUG   printf ("   Move trial:    %13.8f %13.8f %13.8f %13.8f\n",
       energynew, energyold, temperature, ran2(&seed));*/
+
     if (energynew <= energyold ) {
         return 0;
     } else {

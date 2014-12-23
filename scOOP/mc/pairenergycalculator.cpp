@@ -47,9 +47,9 @@ double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Par
     distvec.y = 0;
     distvec.z = 0;
 
-    if(intFCE[part1->type][part2->type] == NULL){
+    if(intFCE[part1->type][part2->type] == NULL)
         fprintf(stderr, "interaction function for type %d and %d not defined!\n", part1->type, part2->type);
-    }
+
     energy = (this->*intFCE[part1->type][part2->type])();
 
     //printf("num: %ld  %ld   e: %f dist: %f",num1,num2,energy,interact.dist);

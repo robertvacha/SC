@@ -66,4 +66,4 @@ double Ran2::operator ()() {
 #undef EPS
 #undef RNMX
 
-ranGen ran2;
+Ran2 ran2;

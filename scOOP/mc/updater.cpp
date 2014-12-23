@@ -157,7 +157,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
-
             moveprobab = ran2();
 
             if ( moveprobab < sim->shprob) {
@@ -175,6 +174,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 // single particle moves
                 edriftchanges += move.particleMove();
             }
+
         } // End of step loop for this sweep
 
         //=== Start of end-of-sweep housekeeping ===
@@ -710,7 +710,7 @@ int Updater::calcClusterEnergies() {
         sim->clustersenergy[i]=0.0;
         for(int j = 0; j < sim->clusters[i].npart; j++) {
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
-                sim->clustersenergy[i]+= (calcEnergy.pairE)(&conf->pvec[sim->clusters[i].particles[j]]
+                sim->clustersenergy[i]+= calcEnergy.p2p(&conf->pvec[sim->clusters[i].particles[j]]
                         , &conf->conlist[sim->clusters[i].particles[j]]
                         , &conf->pvec[sim->clusters[i].particles[k]]
                         , &conf->conlist[sim->clusters[i].particles[k]]);
@@ -756,7 +756,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if((calcEnergy.pairE)(&conf->pvec[fst], &conf->conlist[fst], &conf->pvec[snd], &conf->conlist[snd]) > -0.10 ){
+    if(calcEnergy.p2p(&conf->pvec[fst], &conf->conlist[fst], &conf->pvec[snd], &conf->conlist[snd]) > -0.10 ){
         return false;
     }
     else {

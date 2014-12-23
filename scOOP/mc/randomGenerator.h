@@ -38,12 +38,8 @@ private:
     long int seed;
 };
 
-/*#if defined(MERSENNETWISTER)
-  typedef Faunus::RandomTwister<double,std::mt19937> slump;
-#else*/
-  typedef Ran2 ranGen;
-//#endif
-  extern ranGen ran2;
+
+extern Ran2 ran2;
 
 
 #endif // RANDOMGENERATOR_H
