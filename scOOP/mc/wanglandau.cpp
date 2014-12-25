@@ -85,6 +85,9 @@ long WangLandau::zOrder(int wli) {
 long WangLandau::twoPartDist(int wli) {
     Vector r_cm;
 
+
+    r_cm = conf->pbc.image(&conf->pvec[0].pos, &conf->pvec[1].pos);
+/*
     r_cm.x = conf->pvec[0].pos.x - conf->pvec[1].pos.x;
     r_cm.y = conf->pvec[0].pos.y - conf->pvec[1].pos.y;
     r_cm.z = conf->pvec[0].pos.z - conf->pvec[1].pos.z;
@@ -100,6 +103,7 @@ long WangLandau::twoPartDist(int wli) {
         r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
     else
         r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+*/
 
     return (long) ceil( (( sqrt(r_cm.x*r_cm.x + r_cm.y*r_cm.y) ) - minorder[wli]) / dorder[wli]  );
 }

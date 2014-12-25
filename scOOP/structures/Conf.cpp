@@ -159,7 +159,7 @@ int Conf::overlap(Particle *part1, Particle *part2, Ia_param ia_params[][MAXT]) 
     double dist;         /* Distance between particles*/
     Vector distvec; /* Distance vector between particles*/
 
-    r_cm = image(&part1->pos, &part2->pos, &box);
+    r_cm = pbc.image(&part1->pos, &part2->pos);
 
     if ((part1->type >= SP) && (part2->type >= SP)) { /*we have two spheres - most common, do nothing*/
         dist=sqrt(DOT(r_cm,r_cm));

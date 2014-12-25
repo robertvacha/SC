@@ -449,7 +449,7 @@ double Updater::alignmentOrder() {
 
     for (i = 0; i < (long)(long)conf->pvec.size() - 1; i++) {
         for (j = i + 1; j < (long)(long)conf->pvec.size(); j++) {
-            r_cm = image(&conf->pvec[i].pos, &conf->pvec[j].pos, &conf->box);
+            r_cm = conf->pbc.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
             if ( DOT(r_cm,r_cm) < 1.5*1.5 ) {
                 sumdot+= DOT(conf->pvec[i].dir,conf->pvec[j].dir);
             }
@@ -480,7 +480,9 @@ void Updater::genSimplePairList() {
             assert(&conf->pvec[i] != NULL);
             assert(&conf->pvec[j] != NULL);
 
-            r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
+            r_cm = conf->pbc.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+
+            /*r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
             r_cm.y = conf->pvec[i].pos.y - conf->pvec[j].pos.y;
             r_cm.z = conf->pvec[i].pos.z - conf->pvec[j].pos.z;
             if ( r_cm.x < 0  )
@@ -494,7 +496,7 @@ void Updater::genSimplePairList() {
             if ( r_cm.z < 0  )
                 r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
             else
-                r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+                r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );*/
 
             r_cm2 = DOT(r_cm,r_cm);
             max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \

@@ -147,6 +147,190 @@ public:
 
 };
 
+class PbcBase {
+public:
+    Vector* box;
+
+    PbcBase(){}
+    PbcBase(Vector* box) : box(box) {}
+
+    virtual void usePBC(Vector *pos) = 0;
+    virtual Vector image(Vector* r1, Vector* r2) = 0;
+    virtual bool boundaryOverlap(Vector *pos) {return false;} // default - no solid boundaries
+};
+
+class Cuboid: public PbcBase {
+public:
+
+    Cuboid(){cout << "NO PARAMETERS GIVEN !!!" << endl;}
+    Cuboid(Vector* box) : PbcBase(box) {}
+
+    /**
+     * @brief use of periodic boundary conditions
+     * @param pos
+     * @param pbc
+     */
+    void usePBC(Vector *pos) {
+        do {
+            (*pos).x += box->x;
+        } while ((*pos).x < 0.0);
+        do {
+            (*pos).x -= box->x;
+        } while ((*pos).x > box->x);
+
+        do {
+            (*pos).y += box->y;
+        } while ((*pos).y < 0.0);
+        do {
+            (*pos).y -= box->y;
+        } while ((*pos).y > box->y);
+
+        do {
+            (*pos).z += box->z;
+        } while ((*pos).z < 0.0);
+        do {
+            (*pos).z -= box->z;
+        } while ((*pos).z > box->z);
+    }
+
+    /**
+     * @brief Returns the vector pointing from the centre of mass of particle 2 to the
+       centre of mass of the closest image of particle 1.
+     * @param r1
+     * @param r2
+     * @param box
+     * @return
+     */
+    inline Vector image(Vector* r1, Vector* r2) {
+        /*double x = r1->x - r2->x, y = r1->y - r2->y, z = r1->z - r2->z;
+        return Vector( box->x * (x - anInt(x)),
+                      box->y * (y - anInt(y)),
+                      box->z * (z - anInt(z)) );*/
+
+        Vector r_cm;
+        r_cm.x = r1->x - r2->x;
+        r_cm.y = r1->y - r2->y;
+        r_cm.z = r1->z - r2->z;
+
+        Vector temp(r_cm.x + 6755399441055744.0, r_cm.y + 6755399441055744.0, r_cm.z + 6755399441055744.0);
+
+        r_cm.x = box->x * (r_cm.x - static_cast<double>(reinterpret_cast<int&>(temp.x) ) );
+        r_cm.y = box->y * (r_cm.y - static_cast<double>(reinterpret_cast<int&>(temp.y) ) );
+        r_cm.z = box->z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp.z) ) );
+
+        return r_cm;
+    }
+
+};
+
+/**
+ * @brief The Wedge class
+ * Solid rotational boundaries - inner and outer radius - around Z axis
+ * Unit Z pbc
+ * rotational XY pbc
+ *
+ * CHAINS NOT SUPPORTED
+ *
+ */
+class Wedge : public PbcBase {
+private:
+    double angleSin;
+    double angleCos;
+    double angleRad;
+
+    inline void rotateClockWise(Vector* pos) {
+        pos->x = pos->x * angleCos - pos->y * (angleSin);
+        pos->y = pos->x * angleSin + pos->y * angleCos;
+    }
+
+    inline void rotateCounterClock(Vector* pos) {
+        pos->x = pos->x * angleCos + pos->y * (angleSin);
+        pos->y = pos->y * angleCos - pos->x * angleSin;
+    }
+
+public:
+    double innerR; // diameter = 2 * radius
+    double outerR;
+    double angleDeg;
+
+    Wedge(){cout << "NO PARAMETERS GIVEN !!!" << endl;}
+    Wedge(Vector* box, double angle, double outerR, double innerR) : PbcBase(box), angleDeg(angle) {
+        if(box->x != box->y) {
+            cout << "Box size X and Y must be the same for WEDGE BOX!!!" << endl;
+            exit(1);
+        }
+        if(innerR > outerR) {
+            cout << "Mixed Inner and outer radius!!!" << endl;
+            exit(1);
+        }
+        this->innerR = innerR/box->x;
+        this->outerR = outerR/box->x;
+        angleRad = angle*PI / 180.0;
+        angleSin = sin(angleRad);
+        angleCos = cos(angleRad);
+    }
+
+    inline bool boundaryOverlap(Vector *pos) {
+        // check if between inner and outer radius
+        double radius = pos->x*pos->x + pos->y*pos->y;
+        if(radius < outerR && radius > innerR)
+            return false;
+        // check plane YZ (angle 0) -> x go negative -> rotate clockwise
+        if(pos->x < 0.0)
+            return true;
+        // check angle
+        if(PI - atan2(pos->x, pos->y) > angleRad)
+            return true;
+        return false;
+    }
+
+    virtual void usePBC(Vector *pos) {
+        // check plane YZ (angle 0) -> x go negative -> rotate clockwise
+        if(pos->x < 0.0)
+            rotateClockWise(pos);
+        // check angle
+        if(PI - atan2(pos->x, pos->y) > angleRad)
+            rotateCounterClock(pos);
+
+        do {
+            (*pos).z += box->z;
+        } while ((*pos).z < 0.0);
+        do {
+            (*pos).z -= box->z;
+        } while ((*pos).z > box->z);
+    }
+
+    virtual Vector image(Vector* r1, Vector* r2) {
+        Vector r_cm, r_cm2 = *r1;
+        r_cm.x = r1->x - r2->x;
+        r_cm.y = r1->y - r2->y;
+        r_cm.z = r1->z - r2->z;
+
+        if ( r_cm.z < 0  )
+            r_cm.z = box->z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
+        else
+            r_cm.z = box->z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+
+        if(PI - atan2(r_cm2.x, r_cm2.y) < angleRad*0.5)
+            rotateClockWise(&r_cm2);
+        else rotateCounterClock(&r_cm2);
+
+        r_cm2.x = r_cm2.x - r2->x;
+        r_cm2.y = r_cm2.y - r2->y;
+        r_cm2.z = r_cm2.z - r2->z;
+
+        if ( r_cm2.z < 0  )
+            r_cm2.z = box->z * (r_cm2.z - (double)( (long)(r_cm2.z-0.5) ) );
+        else
+            r_cm2.z = box->z * (r_cm2.z - (double)( (long)(r_cm2.z+0.5) ) );
+
+        if(r_cm.dot(r_cm) < r_cm2.dot(r_cm2) )
+            return r_cm;
+        else return r_cm2;
+    }
+
+};
+
 /**
  * @brief Configuration of the system
  */
@@ -165,6 +349,13 @@ public:
     GroupList poolGroupList;
 
     bool pairlist_update;
+
+#ifdef WEDGE
+    Wedge pbc;
+#else
+    Cuboid pbc;
+#endif
+
 
 public:
     /**
@@ -196,24 +387,7 @@ public:
     }
 
     double distSq(Particle* part1, Particle* part2) {
-        Vector r_cm;
-        r_cm.x = part1->pos.x - part2->pos.x;
-        r_cm.y = part1->pos.y - part2->pos.y;
-        r_cm.z = part1->pos.z - part2->pos.z;
-
-        if ( r_cm.x < 0  )
-            r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
-        else
-            r_cm.x = box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
-        if ( r_cm.y < 0  )
-            r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
-        else
-            r_cm.y = box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
-        if ( r_cm.z < 0  )
-            r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
-        else
-            r_cm.z = box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
-
+        Vector r_cm = pbc.image(&part1->pos, &part2->pos);
         return DOT(r_cm,r_cm);
     }
 

@@ -20,21 +20,6 @@ inline double anInt(double arg)  {
     }
 }
 
-/**
- * @brief Returns the vector pointing from the centre of mass of particle 2 to the
-   centre of mass of the closest image of particle 1.
- * @param r1
- * @param r2
- * @param box
- * @return
- */
-inline Vector image(Vector* r1, Vector* r2, Vector* box) {
-    double x = r1->x - r2->x,y = r1->y - r2->y,z = r1->z - r2->z;
-    return Vector( box->x * (x - anInt(x)),
-                  box->y * (y - anInt(y)),
-                  box->z * (z - anInt(z)) );
-}
-
 
 /**
  * @brief vec cross_product

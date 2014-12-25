@@ -437,6 +437,12 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         printf ("WARNING: z box length is less than two spherocylinders long.\n\n");
     }
 
+#ifdef WEDGE
+    conf->pbc = Wedge(&conf->box, 10, 40, 35); //(Vector* box, double angle, double outerR, double innerR)
+#else
+    conf->pbc = Cuboid(&conf->box);
+#endif
+
     DEBUG_INIT("Position of the particle");
     for (i=0; i < (long)pvec.size(); i++) {
         if(myGetLine(&line, &line_size, infile) == -1){
@@ -465,7 +471,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             exit (1);
         }
         /* Scale position vector to the unit cube */
-        usePBC(&pvec[i].pos, conf->box );
+        conf->pbc.usePBC(&pvec[i].pos);
 
         pvec[i].pos.x /= conf->box.x;
         pvec[i].pos.y /= conf->box.y;
@@ -924,30 +930,6 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln, char*
     }
     fprintf (stdout, "%s %s %ld\n",name, sysnames[i],(*sysmoln)[i]);
     return 1;
-}
-
-
-void Inicializer::usePBC(Vector *pos, Vector pbc){
-    do {
-        (*pos).x += pbc.x;
-    } while ((*pos).x < 0.0);
-    do {
-        (*pos).x -= pbc.x;
-    } while ((*pos).x > pbc.x);
-
-    do {
-        (*pos).y += pbc.y;
-    } while ((*pos).y < 0.0);
-    do {
-        (*pos).y -= pbc.y;
-    } while ((*pos).y > pbc.y);
-
-    do {
-        (*pos).z += pbc.z;
-    } while ((*pos).z < 0.0);
-    do {
-        (*pos).z -= pbc.z;
-    } while ((*pos).z > pbc.z);
 }
 
 

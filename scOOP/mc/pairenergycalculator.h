@@ -30,13 +30,13 @@ private:
     double dotrcm;                  // square size of r_cm
     double contt;                   // closest point on spherocylinder to sphere
 
-    Vector* box; // box size
+    PbcBase* pbc; // box size
 
     double (PairEnergyCalculator::*intFCE[MAXT][MAXT])();
 
 
 public:
-    PairEnergyCalculator(Vector* box) : box(box) {}
+    PairEnergyCalculator(PbcBase* pbc) : pbc(pbc) {}
 
     double operator() (Particle* part1, ConList* conlist1, Particle* part2, ConList* conlist2);
 

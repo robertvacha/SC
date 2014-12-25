@@ -191,13 +191,6 @@ private:
     int fillMol(char *molname, char *pline, Molecule * molecules);
 
     /**
-     * @brief use of periodic boundary conditions
-     * @param pos
-     * @param pbc
-     */
-    void usePBC(Vector *pos,Vector pbc);
-
-    /**
      * @brief convert string num into two integers
      * @param num
      * @param value
