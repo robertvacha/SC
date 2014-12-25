@@ -73,6 +73,11 @@ public:
         z+=o.z;
     }
 
+    inline bool operator==(Vector& o) {
+        if(x == o.x && y == o.y && z == o.z) return true;
+        else return false;
+    }
+
     inline bool operator!= (Vector& o) {
         if(o.x != x || o.y != y || o.z != z ) return true;
         return false;

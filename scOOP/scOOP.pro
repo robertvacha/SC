@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-QMAKE_CXXFLAGS += -O3 -march=native -msse2 -mfpmath=sse
+QMAKE_CXXFLAGS += -O3 -msse2 -mfpmath=sse -g
 
 #QMAKE_CXXFLAGS+= -fopenmp
 #QMAKE_LFLAGS +=  -fopenmp

@@ -29,7 +29,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
     double energy=0.0;
     long i,j=0;
 
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
     for (i = 0; i < target; i++) {
@@ -41,7 +41,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
     }
     j++;
 
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
     for (i = target + 1; i < (long)conf->pvec.size(); i++) {
@@ -66,7 +66,7 @@ double TotalEnergyCalculator::chainToAll(vector<Particle>::iterator chain,
     bool notChain = true;
     int i;
 
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
     for(i=0; i<size; i++) {
@@ -93,7 +93,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
     long i;
 
     if (sim->pairlist_update) {
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
@@ -103,7 +103,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
                              &conf->conlist[ conf->neighborList[target].neighborID[i] ]);
         }
     } else { // no neighborList
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
         for (i = 0; i < (long)conf->pvec.size(); i++) {
@@ -120,17 +120,27 @@ double TotalEnergyCalculator::oneToAll(int target) {
 }
 
 
-double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist) {
+double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neighbors* neighborList) {
     double energy=0.0;
     unsigned long i;
 
-    // no neighborList, used only for conlist
-#ifdef OMP
+    if (sim->pairlist_update) {
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-    for (i = 0; i < conf->pvec.size(); i++) {
-        if(target != &conf->pvec[i]) {
-            energy += (pairE[getThreadNum()])(target, conlist, &conf->pvec[i], &conf->conlist[i]);
+        for (i = 0; i < (unsigned long)neighborList->neighborCount; i++){
+           energy += (pairE[getThreadNum()])(target, conlist,
+                                             &conf->pvec[ neighborList->neighborID[i] ],
+                                             &conf->conlist[ neighborList->neighborID[i] ]);
+        }
+    } else {
+#ifdef OMP1
+#pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
+#endif
+        for (i = 0; i < conf->pvec.size(); i++) {
+            if(*target != conf->pvec[i]) {
+                energy += (pairE[getThreadNum()])(target, conlist, &conf->pvec[i], &conf->conlist[i]);
+            }
         }
     }
 
@@ -165,7 +175,7 @@ double TotalEnergyCalculator::allToAll() {
     double energy=0.0;
     unsigned long i;
 
-#ifdef OMP
+#ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
     for (i = 0; i < conf->pvec.size() - 1; i++) {

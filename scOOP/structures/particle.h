@@ -29,6 +29,16 @@ public:
      */
     void init(Ia_param * ia_parami);
 
+    inline bool operator== (Particle& other) {
+        if(pos == other.pos) return true;
+        else return false;
+    }
+
+    inline bool operator!= (Particle& other) {
+        if(pos != other.pos) return true;
+        else return false;
+    }
+
     void random(int molType,int type, Vector& box) {
         pos.random();
         pos.x *= box.x;

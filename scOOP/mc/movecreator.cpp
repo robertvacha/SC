@@ -41,6 +41,7 @@ double MoveCreator::partDisplace(long target) {
     origsyscm.x = 0;
     origsyscm.y = 0;
     origsyscm.z = 0;
+
     energy = (*calcEnergy)(target, 1, 0);
 
     orig = conf->pvec[target].pos;
@@ -1398,7 +1399,7 @@ double MoveCreator::muVTMove() {
                 return 0; // overlap detected, move rejected
             }
 
-            energy = calcEnergy->oneToAll(&insert[0], NULL);
+            energy = calcEnergy->oneToAll(&insert[0], NULL, NULL);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
             if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1.0)) *

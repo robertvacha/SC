@@ -78,7 +78,7 @@ public:
     /**
      * @brief Calculates energy between particle "target" and the rest
      */
-    double oneToAll(Particle* target, ConList* conlist);
+    double oneToAll(Particle* target, ConList* conlist, Neighbors* neighborList);
 
     /**
      * @brief Calculates energy between particle "target" and the rest

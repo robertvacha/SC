@@ -203,10 +203,12 @@ typedef struct { /* extra type for mpi communication*/
     long wl_order[2];     /* wang-landau order parameter*/
 } MpiExchangeData;
 
-typedef struct {
+class Neighbors {
+public:
+    Neighbors() : neighborCount(0), neighborID(NULL) {}
     long neighborCount; ///< \brief The number of neighbors (pairs eq. num_pairs)
     long * neighborID;  ///< \brief The particle indexes of the neighbors
-} Neighbors;
+};
 
 #ifdef ENABLE_MPI
 extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;

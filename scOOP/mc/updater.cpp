@@ -322,6 +322,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     edriftend = calcEnergy(0, 0, 0);
     pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
+    //printf("EdriftChanges: %.5e\n", edriftchanges);
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
