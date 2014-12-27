@@ -32,6 +32,8 @@ Testing:
 
 GrandCanonical finished.
 
+Use scripts/movie-scripts/python 2.x/sc35-movie.py -g 1 for grandCanonical movie
+
 Version tested against old *.c program. All test succesful.
 
 NOTE: to submit a job with grandCanonically active species use runGrand
