@@ -3,6 +3,9 @@
 #this program convert movie data to atom data = for each spherocylinder make residue
 #consiting of two atoms at begining and end then in vmd use cpk to draw cylinders
 #no it also ads a spherocylinder for patch
+#05.11.2014 -- script change to be compatible with new parameter paralel_EPS
+#03.12.2014 -- script is now able to deal with GC simulations (number of particles in frames differ)
+#           new option -g --gc 1 or 0 | 0 for non Grand Canonical simulations and 1 for GC simulations
 
 import os
 import sys
@@ -27,6 +30,7 @@ TCHCPSC = SC+9
 SP = 30
 SPN = SP+0
 SPA = SP+1
+
 
 def convert_geotype(geotype):
     if(geotype == "SC"):
@@ -112,8 +116,10 @@ def write_data(data,box,particles, types, geotypes, params,outfilename,outfilena
 		#patch=params[types[j]][3]+2*params[types[j]][4]
 		patch=params[particles[j]][4]+2*params[particles[j]][5]
 		#print headpatch
-		patchmove=math.fabs(0.5*math.cos((patch+10*pow(patch/180,2))/360*math.pi)) # displacement
+		#patchmove=math.fabs(0.5*math.cos((patch+10*pow(patch/180,2))/360*math.pi)) # displacement
 		#patchmove= params[particles[j]][2] * patch/ 1080 + params[particles[j]][2] / 12 # displacement
+		# Set patch center on top of particle (into sigma)
+		patchmove=params[particles[j]][2]*0.3
 		# The displacement varries between sigma / 12 and sigma / 4 depending on the angle
 		nx=x+leng/2*vec[0]+patchmove*px
 		ny=y+leng/2*vec[1]+patchmove*py
@@ -133,10 +139,12 @@ def write_data(data,box,particles, types, geotypes, params,outfilename,outfilena
 		    if (switch):
 			swstring = swstring + "%d %d " % (tsw, tsw)
 		    vec2=[px,py,pz]
-		    vec2=usefulmath.rotatevec(vec2,vec,params[particles[j]][7])
-		    patch=params[particles[j]][8]+2*params[particles[j]][9]
+		    vec2=usefulmath.rotatevec(vec2,vec,params[particles[j]][8])
+		    patch=params[particles[j]][9]+2*params[particles[j]][10]
 		    #print headpatch
-		    patchmove=0.5*math.cos((patch+10*pow(patch/180,2))/360*math.pi) # displacement
+		    #patchmove=0.5*math.cos((patch+10*pow(patch/180,2))/360*math.pi) # displacement
+		    # Set patch center on top of particle (into sigma)
+		    patchmove=params[particles[j]][2]*0.3
 		    #patchmove= params[particles[j]][2] * patch/ 1080 + params[particles[j]][2] / 12 # displacement
 		    # The displacement varries between sigma / 12 and sigma / 4 depending on the angle
 		    nx=x+leng/2*vec[0]+patchmove*vec2[0]
@@ -281,7 +289,7 @@ def write_vmd(outfilename,outfilename2,particles, types, geotypes, params, num_f
     outstring+="display projection orthographic\n"
     outstring+="mol delrep 0 0\n"
     outstring+="mol material Edgy\n"
-    vmdpckratio=1.50
+    vmdpckratio=1.5
     sizeratio=1.1
 
     j=0
@@ -315,13 +323,13 @@ def write_vmd(outfilename,outfilename2,particles, types, geotypes, params, num_f
             outstring+="mol color ColorID %d\n"%(j)
             #outstring+="mol color Beta\n"
             outstring+="mol addrep 0\n"
-            j = j + 1
+            j = j + 4
             patch=params[type_set[i]][4]+2*params[type_set[i]][5]
             angle = patch / 360 * math.pi
-            rpatch=math.sin(angle*pow((2-2*angle/math.pi),2))
+            #rpatch=math.sin(angle*pow((2-2*angle/math.pi),2))*0.8
             #Noah alternative size calculation
             #displ = params[type_set[i]][4] *  params[type_set[i]][2] / 1080 + params[type_set[i]][2] / 12
-            #rpatch = radius * math.sqrt(pow(math.sin(angle),2) + pow(math.cos(angle),2) / 4)
+            rpatch = radius * math.sqrt(pow(math.sin(angle),2) + pow(math.cos(angle),2) / 4)
             #rpatch = math.sqrt(pow(radius * math.sin(angle),2) + pow(radius * math.cos(angle) - displ, 2))
             
             if (switch):
@@ -334,18 +342,20 @@ def write_vmd(outfilename,outfilename2,particles, types, geotypes, params, num_f
             outstring+="mol addrep 0\n"
             j = j + 1
             if ((convert_geotype(geotype) == TCHCPSC) or (convert_geotype(geotype) == TCHPSC) or (convert_geotype(geotype) == TPSC) or (convert_geotype(geotype) == TCPSC)):
-        	patch=params[type_set[i]][8]+2*params[type_set[i]][9]
+        	patch=params[type_set[i]][9]+2*params[type_set[i]][10]
         	#rpatch=sizeratio*math.sin((patch+10)/2/180*math.pi)
         	angle = patch / 360 * math.pi
-        	displ = params[type_set[i]][8] *  params[type_set[i]][2] / 1080 + params[type_set[i]][2] / 12
+        	#rpatch=math.sin(angle*pow((2-2*angle/math.pi),2))*0.8
+        	#Noah alternative size calculation
+        	displ = params[type_set[i]][9] *  params[type_set[i]][2] / 1080 + params[type_set[i]][2] / 12
         	rpatch = radius * math.sqrt(pow(math.sin(angle),2) + pow(math.cos(angle),2) / 4)
-        	rpatch = math.sqrt(pow(radius * math.sin(angle),2) + pow(radius * math.cos(angle) - displ, 2))
+        	#rpatch = math.sqrt(pow(radius * math.sin(angle),2) + pow(radius * math.cos(angle) - displ, 2))
         	if (switch):
         	    outstring+="mol selection \"beta %4.2f\"\n" % float(type_set[i]+2)
         	else:
         	    outstring+="mol selection \"name T%d\"\n" %(i + 1)
         	outstring+="mol representation CPK %f %f 20 20\n" %(rpatch,rpatch*vmdpckratio)
-        	outstring+="mol color ColorID %d\n"%(j)
+        	outstring+="mol color ColorID %d\n"%(j-2)
         	#outstring+="mol color Beta\n"
         	outstring+="mol addrep 0\n"
         	j = j + 1
@@ -365,6 +375,7 @@ def write_vmd(outfilename,outfilename2,particles, types, geotypes, params, num_f
     outstring+="}\n"
     outstring+="mol load psf %s \n" %(outfilename2)
     outstring+="mol addfile %s waitfor 2000  0\n"%(outfilename)
+    outstring+="pbc box\n"
     outstring+="setlook\n"
 
     if (switch):
@@ -489,35 +500,35 @@ def read_top(topfilename):
 			        geotypes[type]=geotype
 		    #if ( (long(before) == PSC) or (long(before) == CPSC) ):
 		    if ( (geotype == "PSC") or (geotype == "CPSC") ):
-			    if (len(linesplit) != 7):
-			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s" %(type)
+			    if (len(linesplit) != 8):
+			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s CPSC" %(type)
 			        return [[],[]]
 			    else: 
-			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6])]
+			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]), float(linesplit[7])]
 			        types[type]=type
 			        geotypes[type]=geotype
 		    if ( (geotype == "CHPSC")or (geotype == "CHCPSC") ):
-			    if (len(linesplit) != 8):
+			    if (len(linesplit) != 9):
 			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s" %(type)
 			        return [[],[]]
 			    else: 
-			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6])]
+			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]), float(linesplit[7]), float(linesplit[8])]
 			        types[type]=type
 			        geotypes[type]=geotype
 		    if ( (geotype == "TPSC") or (geotype == "TCPSC") ):
-			    if (len(linesplit) != 10):
-			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s" %(type)
-			        return [[],[]]
-			    else: 
-			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]),float(linesplit[7]), float(linesplit[8]), float(linesplit[9]) ]
-			        types[type]=type
-			        geotypes[type]=geotype
-		    if ( (geotype == "TCHPSC")or (geotype == "TCHCPSC") ):
 			    if (len(linesplit) != 11):
 			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s" %(type)
 			        return [[],[]]
 			    else: 
-			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]),float(linesplit[7]), float(linesplit[8]), float(linesplit[9]) ]
+			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]),float(linesplit[7]), float(linesplit[8]), float(linesplit[9]), float(linesplit[10]) ]
+			        types[type]=type
+			        geotypes[type]=geotype
+		    if ( (geotype == "TCHPSC")or (geotype == "TCHCPSC") ):
+			    if (len(linesplit) != 12):
+			        print "TOPOLOGY ERROR: wrong number of parameters for given type %s" %(type)
+			        return [[],[]]
+			    else: 
+			        params[type]=[float(linesplit[0]),float(linesplit[1]),float(linesplit[2]),float(linesplit[3]),float(linesplit[4]), float(linesplit[5]), float(linesplit[6]),float(linesplit[7]), float(linesplit[8]), float(linesplit[9]), float(linesplit[10]), float(linesplit[11]) ]
 			        types[type]=type
 			        geotypes[type]=geotype
 		else:
@@ -603,10 +614,61 @@ def read_top(topfilename):
     #return [types, geotypes, params]
     return [particles, types, geotypes, params, switch, switchtype]
 
+def gc_sim(infilename,topfilename):
+    formated_line="{0:+.8e} {0:+.8e} {0:+.8e}   {1:+.8e} {0:+.8e} {0:+.8e}   {0:+.8e} {1:+.8e} {0:+.8e} 0\n".format(0.0, 1.0)
+    infile = open(infilename, 'r')
+    ## find largest number of particles
+    max_num = 0
+    for line in infile:
+            splits = line.split()
+            if (len(splits) == 1) and (int(splits[0]) > max_num):
+                    max_num = int(line)
+    ## create new movie file
+    print max_num
+    infile.seek(0, 0)
+    infile_new = open(infilename+"_new", 'w')
+    line = infile.readline()
+    while line:
+            if len(line.split()) == 1:
+                    infile_new.write(str(max_num)+"\n")
+                    line = infile.readline()
+                    for i in xrange(max_num+1):
+                            if len(line.split()) != 1:
+                                    infile_new.write(line)
+                                    line = infile.readline()
+                            else:
+                                    infile_new.write(formated_line)
+            line = infile.readline()
+    infile.close()
+    infile_new.close()
+    ## change topology file
+    topfile = open(topfilename, 'r')
+    topfile_new = open(topfilename+"_new", 'w')
+    for line in topfile:
+        if line.split()[0] == "[System]":
+            topfile_new.write(line)
+            line = topfile.next()
+            topfile_new.write(line.split()[0]+" "+str(max_num))
+	else:
+    	    topfile_new.write(line)
+    topfile.close()
+    topfile_new.close()
+    
+    return [infilename+"_new", topfilename+"_new"]
 
-def make(infilename,outfilename,outfilename2,topfilename):
+
+def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
+    if gc_switch == "1":
+       [infilename, topfilename] = gc_sim(infilename, topfilename)
     print "Reading topology..."
     [particles, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
+##    #DEBUG
+##    print ">>PARTICLES:",particles
+##    print ">>TYPES:",types
+##    print ">>GEOTYPES:",geotypes
+##    print ">>PARAMS:",params
+##    print ">>SWITCH:",switch
+##    print ">>SWITCHTYPES:",switchtypes    
     if (len(types) < 1):
 	print "ERROR: types have not been read"
 	return 1
@@ -661,7 +723,15 @@ parser.add_option(
     dest="topfilename",
     default="top.init"
     )
+parser.add_option(
+    "-g",
+    "--gc",
+    help="Set to 1 if you want to visualize Grand Canonical simulations",
+    dest="grandcanon",
+    default="0"
+    )
+
 
 (options,arguments)=parser.parse_args()
-make(options.infilename,options.outfilename,options.outfilename2,options.topfilename)
+make(options.infilename,options.outfilename,options.outfilename2,options.topfilename,options.grandcanon)
 # vim: set noexpandtab ts=8: 
