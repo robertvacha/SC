@@ -153,7 +153,7 @@ void Inicializer::readOptions() {
     printf (" Average chain move attempts per sweep:              %.8f\n", sim->chainprob);
     printf (" Initial maximum displacement:                       %.8f\n", transmx);
     printf (" Inititial maximum angular change (degrees):         %.8f\n", rotmx);
-    printf (" Inititial maximum box edge change:                  %.8f\n", sim->edge.mx);
+    printf (" Inititial maximum geo.box edge change:                  %.8f\n", sim->edge.mx);
     printf (" Initial maximum chain displacement:                 %.8f\n", chainmmx);
     printf (" Inititial maximum chain angular change (degrees):   %.8f\n", chainrmx);
     printf (" Temperature in kT/e:                                %.8f\n", sim->temper);
@@ -409,39 +409,57 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     }
 
     if(myGetLine(&line, &line_size, infile) == -1){
-        fprintf (stderr, "ERROR: Could not read box size.\n\n");
+        fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
         exit (1);
     }
     strip_comment(line);
-        trim(line);
-    if (sscanf(line, "%le %le %le", &(conf->box.x), &(conf->box.y), &(conf->box.z)) != 3) {
+    trim(line);
+#ifdef WEDGE
+    double angle, innerR, outerR;
+    Vector box;
+    if (sscanf(line, "%le %le %le %le", &box.z, &angle, &outerR, &innerR) != 4) {
         if(myGetLine(&line, &line_size, infile) == -1){
-              fprintf (stderr, "ERROR: Could not read box size.\n\n");
-              exit (1);
+            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
+            exit (1);
         }
         aftercommand(line2,line,BOXSEP);
         strip_comment(line2);
         trim(line2);
-        if (sscanf(line2, "%le %le %le", &(conf->box.x), &(conf->box.y), &(conf->box.z)) != 3) {
-              fprintf (stderr, "ERROR: Could not read box size.\n\n");
-              exit (1);
+        if (sscanf(line2, "%le %le %le %le", &box.z, &angle, &outerR, &innerR) != 4) {
+            fprintf (stderr, "ERROR: Could not read box size.\n\n");
+            exit (1);
         }
     }
-    if (conf->box.x < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: x box length is less than two spherocylinders long.\n\n");
-    }
-    if (conf->box.y < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: y box length is less than two spherocylinders long.\n\n");
-    }
-    if (conf->box.z < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: z box length is less than two spherocylinders long.\n\n");
+
+    conf->geo = Wedge(box.z, angle, outerR, innerR); //(double box.z, double angle, double outerR, double innerR)
+#else
+    Vector box;
+
+    if (sscanf(line, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
+        if(myGetLine(&line, &line_size, infile) == -1){
+            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
+            exit (1);
+        }
+        aftercommand(line2,line,BOXSEP);
+        strip_comment(line2);
+        trim(line2);
+        if (sscanf(line2, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
+            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
+            exit (1);
+        }
     }
 
-#ifdef WEDGE
-    conf->pbc = Wedge(&conf->box, 10, 40, 35); //(Vector* box, double angle, double outerR, double innerR)
-#else
-    conf->pbc = Cuboid(&conf->box);
+    conf->geo = Cuboid(box);
 #endif
+    if (conf->geo.box.x < maxlength * 2.0 + 2.0) {
+        printf ("WARNING: x geo.box length is less than two spherocylinders long.\n\n");
+    }
+    if (conf->geo.box.y < maxlength * 2.0 + 2.0) {
+        printf ("WARNING: y geo.box length is less than two spherocylinders long.\n\n");
+    }
+    if (conf->geo.box.z < maxlength * 2.0 + 2.0) {
+        printf ("WARNING: z geo.box length is less than two spherocylinders long.\n\n");
+    }
 
     DEBUG_INIT("Position of the particle");
     for (i=0; i < (long)pvec.size(); i++) {
@@ -466,16 +484,16 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         }
         if (fields != 10) {
             fprintf (stderr, "ERROR: Could not read coordinates for particle %ld.\n \
-                    Did you specify box size at the begining?\n\n", i+1);
+                    Did you specify geo.box size at the begining?\n\n", i+1);
             free(line);
             exit (1);
         }
         /* Scale position vector to the unit cube */
-        conf->pbc.usePBC(&pvec[i].pos);
+        pvec[i].pos.x /= conf->geo.box.x;
+        pvec[i].pos.y /= conf->geo.box.y;
+        pvec[i].pos.z /= conf->geo.box.z;
 
-        pvec[i].pos.x /= conf->box.x;
-        pvec[i].pos.y /= conf->box.y;
-        pvec[i].pos.z /= conf->box.z;
+        conf->geo.usePBC(&pvec[i]);
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
@@ -523,7 +541,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             pvec[current].pos.x -= chorig[0].pos.x;
             pvec[current].pos.y -= chorig[0].pos.y;
             pvec[current].pos.z -= chorig[0].pos.z;
-            /*put it in orig box*/
+            /*put it in orig geo.box*/
             pvec[current].pos.x -=  anInt(pvec[current].pos.x);
             pvec[current].pos.y -=  anInt(pvec[current].pos.y);
             pvec[current].pos.z -=  anInt(pvec[current].pos.z);
@@ -541,7 +559,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     err = 0;
     //for (i=0; i < topo.npart-1; i++) {
     //    for (j=i+1; j < topo.npart; j++) {
-    //        if ( overlap(conf->pvec[i], conf->particle[j], conf->box, topo.ia_params) ) {
+    //        if ( overlap(conf->pvec[i], conf->particle[j], conf->geo.box, topo.ia_params) ) {
     //            fprintf (stderr,
     //                    "ERROR: Overlap in initial coniguration between particles %ld and %ld.\n",
     //                    i+1, j+1);

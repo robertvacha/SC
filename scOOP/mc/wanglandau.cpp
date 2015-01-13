@@ -25,7 +25,7 @@ void WangLandau::init(char wlinfile[30]) {
                     origmesh.tmp = NULL;
                     currorder[wli] = (long) (mesh.meshInit(wl_meshsize,
                                                                            (long)conf->pvec.size(),
-                                                                           wlmtype, conf->box,
+                                                                           wlmtype, conf->geo.box,
                                                                            &conf->pvec) - minorder[wli]);
                     break;
                 case 3:
@@ -79,14 +79,14 @@ long WangLandau::zOrder(int wli) {
     printf("dorder %f \n", wl->dorder[wli] );
     }*/
 
-    return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->box.z- minorder[wli]) / dorder[wli]  );
+    return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->geo.box.z- minorder[wli]) / dorder[wli]  );
 }
 
 long WangLandau::twoPartDist(int wli) {
     Vector r_cm;
 
 
-    r_cm = conf->pbc.image(&conf->pvec[0].pos, &conf->pvec[1].pos);
+    r_cm = conf->geo.image(&conf->pvec[0].pos, &conf->pvec[1].pos);
 /*
     r_cm.x = conf->pvec[0].pos.x - conf->pvec[1].pos.x;
     r_cm.y = conf->pvec[0].pos.y - conf->pvec[1].pos.y;
@@ -277,7 +277,7 @@ long WangLandau::radiusholeAll(int wli, Vector *position) {
     long i,nr,radiusholemax;
     double rx,ry,z;
 
-    radiusholemax = radiusholePosition(sqrt(conf->box.x*conf->box.x+conf->box.y*conf->box.y),wli);
+    radiusholemax = radiusholePosition(sqrt(conf->geo.box.x * conf->geo.box.x + conf->geo.box.y * conf->geo.box.y),wli);
     if ( radiusholemax > radiusholemax ) {
         if (radiushole != NULL)
             free(radiushole);
@@ -294,8 +294,8 @@ long WangLandau::radiusholeAll(int wli, Vector *position) {
         if ( conf->pvec[i].type == wlmtype ) {
             z=conf->pvec[i].pos.z - (*position).z; /*if above position*/
             if (z-anInt(z) > 0) {
-                rx = conf->box.x * (conf->pvec[i].pos.x - anInt(conf->pvec[i].pos.x));
-                ry = conf->box.y * (conf->pvec[i].pos.y - anInt(conf->pvec[i].pos.y));
+                rx = conf->geo.box.x * (conf->pvec[i].pos.x - anInt(conf->pvec[i].pos.x));
+                ry = conf->geo.box.y * (conf->pvec[i].pos.y - anInt(conf->pvec[i].pos.y));
                 nr = radiusholePosition(sqrt(rx*rx+ry*ry), wli);
                 if (nr < 0)
                     return -100;
@@ -380,8 +380,8 @@ long WangLandau::radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, Ve
     if ( !(nz) && !(oz) )
         return currorder[wli];
 
-    rx = conf->box.x * (conf->pvec[target].pos.x - anInt(conf->pvec[target].pos.x));
-    ry = conf->box.y * (conf->pvec[target].pos.y - anInt(conf->pvec[target].pos.y));
+    rx = conf->geo.box.x * (conf->pvec[target].pos.x - anInt(conf->pvec[target].pos.x));
+    ry = conf->geo.box.y * (conf->pvec[target].pos.y - anInt(conf->pvec[target].pos.y));
     nr = radiusholePosition(sqrt(rx*rx+ry*ry),wli);
 
     if (nr < 0)
@@ -391,8 +391,8 @@ long WangLandau::radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, Ve
         radiushole[nr]++;
     }
     if (oz) {
-        rx = conf->box.x * (oldpos->x - anInt(oldpos->x));
-        ry = conf->box.y * (oldpos->y - anInt(oldpos->y));
+        rx = conf->geo.box.x * (oldpos->x - anInt(oldpos->x));
+        ry = conf->geo.box.y * (oldpos->y - anInt(oldpos->y));
         oor = radiusholePosition(sqrt(rx*rx+ry*ry),wli);
         radiushole[oor]--;
         if ( radiushole[oor] < 0 ) {
@@ -422,8 +422,8 @@ long WangLandau::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], 
         if ( conf->pvec[current].type == wlmtype ) {
             z=conf->pvec[current].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
-                rx = conf->box.x * (conf->pvec[current].pos.x - anInt(conf->pvec[current].pos.x));
-                ry = conf->box.y * (conf->pvec[current].pos.y - anInt(conf->pvec[current].pos.y));
+                rx = conf->geo.box.x * (conf->pvec[current].pos.x - anInt(conf->pvec[current].pos.x));
+                ry = conf->geo.box.y * (conf->pvec[current].pos.y - anInt(conf->pvec[current].pos.y));
                 nr = radiusholePosition(sqrt(rx*rx+ry*ry),wli);
                 if (nr < 0)
                     return -100;
@@ -437,8 +437,8 @@ long WangLandau::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], 
         if ( conf->pvec[current].type == wlmtype ) {
             z=chorig[i].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
-                rx = conf->box.x * (chorig[i].pos.x - anInt(chorig[i].pos.x));
-                ry = conf->box.y * (chorig[i].pos.y - anInt(chorig[i].pos.y));
+                rx = conf->geo.box.x * (chorig[i].pos.x - anInt(chorig[i].pos.x));
+                ry = conf->geo.box.y * (chorig[i].pos.y - anInt(chorig[i].pos.y));
                 nr = radiusholePosition(sqrt(rx*rx+ry*ry),wli);
                 radiushole[nr]--;
                 if ( radiushole[nr] < 0 ) {
@@ -507,9 +507,9 @@ bool WangLandau::particlesInContact(Vector *vec) {
     y = vec->y - conf->pvec[0].pos.y;
     z = vec->z - conf->pvec[0].pos.z;
 
-    x = conf->box.x * (x - anInt(x));
-    y = conf->box.y * (y - anInt(y));
-    z = conf->box.z * (z - anInt(z));
+    x = conf->geo.box.x * (x - anInt(x));
+    y = conf->geo.box.y * (y - anInt(y));
+    z = conf->geo.box.z * (z - anInt(z));
 
     if ( x*x + y*y + z*z < WL_CONTACTS) {
         return true;

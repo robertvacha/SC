@@ -153,7 +153,7 @@ public:
                         See Allen & Tildesley p349 or Frenkel & Smit p410.
      * @return    RANDOM vector2 ON UNIT SPHERE
      */
-    inline void random() {
+    inline void randomUnitSphere() {
         double a, b, xi1, xi2;
 
         do {
@@ -168,6 +168,22 @@ public:
         x = xi1 * b;
         y = xi2 * b;
         z = 1.0 - 2.0*a;
+    }
+
+    inline void randomUnitCube() {
+        x = ran2();
+        y = ran2();
+        z = ran2();
+    }
+
+    static inline Vector getRandomUnitCube() {
+        return Vector(ran2(), ran2(), ran2());
+    }
+
+    static inline Vector getRandomUnitSphere() {
+        Vector vec;
+        vec.randomUnitSphere();
+        return vec;
     }
 };
 

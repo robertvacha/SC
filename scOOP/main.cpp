@@ -83,12 +83,12 @@ int main(int argc, char** argv) {
         cout << "Further equilibration of configuration:  " << sim.nequil/2 <<  " sweeps" << endl;
 
         outfile = fopen("config.eq", "w");
-        fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.box.x, conf.box.y, conf.box.z);
+        fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.geo.box.x, conf.geo.box.y, conf.geo.box.z);
         conf.draw(outfile);
         fclose (outfile);
 
         printf ("   Equilibrated configuration written to config.eq\n");
-        printf ("   Box dimensions: %.10f, %.10f, %.10f\n\n", conf.box.x, conf.box.y, conf.box.z);
+        printf ("   Box dimensions: %.10f, %.10f, %.10f\n\n", conf.geo.box.x, conf.geo.box.y, conf.geo.box.z);
     }
 
     /********************************************************/
@@ -105,9 +105,9 @@ int main(int argc, char** argv) {
 
     outfile = fopen(files.configurationoutfile, "w");
 #ifdef TESTING
-    fprintf (outfile, "%15.7e %15.7e %15.7e\n", conf.box.x, conf.box.y, conf.box.z);
+    fprintf (outfile, "%15.6e %15.6e %15.6e\n", conf.geo.box.x, conf.geo.box.y, conf.geo.box.z);
 #else
-    fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.box.x, conf.box.y, conf.box.z);
+    fprintf (outfile, "%15.8e %15.8e %15.8e\n", conf.geo.box.x, conf.geo.box.y, conf.geo.box.z);
 #endif
     conf.draw (outfile);
     fclose (outfile);

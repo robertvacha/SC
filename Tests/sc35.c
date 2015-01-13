@@ -759,7 +759,7 @@ int main(int argc, char **argv)
 #endif
 	outfile = fopen(files.configurationoutfile, "w");
 #ifdef TESTING
-    fprintf (outfile, "%15.7le %15.7le %15.7le\n", conf.box.x, conf.box.y, conf.box.z);
+    fprintf (outfile, "%15.6le %15.6le %15.6le\n", conf.box.x, conf.box.y, conf.box.z);
 #else
     fprintf (outfile, "%15.8le %15.8le %15.8le\n", conf.box.x, conf.box.y, conf.box.z);
 #endif
@@ -7858,7 +7858,7 @@ void draw(FILE *outfile, /*struct vector box, long npart,
 	//fprintf (outfile, "%15.8le %15.8le %15.8le\n", box.x, box.y, box.z);
 #ifdef TESTING
 	for (i = 0; i < topo->npart; i++) {
-        fprintf (outfile, "%15.7le %15.7le %15.7le   %15.7le %15.7le %15.7le   %15.7le %15.7le %15.7le %d\n",
+        fprintf (outfile, "%15.6le %15.6le %15.6le   %15.6le %15.6le %15.6le   %15.6le %15.6le %15.6le %d\n",
 				conf->box.x * ((conf->particle[i].pos.x) - anint(conf->particle[i].pos.x)),
 				conf->box.y * ((conf->particle[i].pos.y) - anint(conf->particle[i].pos.y)),
 				conf->box.z * ((conf->particle[i].pos.z) - anint(conf->particle[i].pos.z)),

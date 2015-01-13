@@ -18,6 +18,8 @@
 // DEFAULT CUBOID
 //#define WEDGE
 
+//#define TESTING
+
 #ifdef ENABLE_MPI
 # include <mpi.h>
 #endif

@@ -91,7 +91,6 @@ double TotalEnergyCalculator::chainToAll(vector<Particle>::iterator chain,
 double TotalEnergyCalculator::oneToAll(int target) {
     double energy=0.0;
     long i;
-
     if (sim->pairlist_update) {
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
@@ -115,7 +114,6 @@ double TotalEnergyCalculator::oneToAll(int target) {
     //add interaction with external potential
     if (topo.exter.exist)
         energy += extere2(target);
-
     return energy;
 }
 
@@ -139,7 +137,12 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
 #endif
         for (i = 0; i < conf->pvec.size(); i++) {
             if(*target != conf->pvec[i]) {
-                energy += (pairE[getThreadNum()])(target, conlist, &conf->pvec[i], &conf->conlist[i]);
+                energy += pairE[getThreadNum()](target, conlist, &conf->pvec[i], &conf->conlist[i]);
+                /*std::cout.precision(15);
+                cout << pairE[getThreadNum()](target, conlist, &conf->pvec[i], &conf->conlist[i])
+                        <<" == "<< pairE[getThreadNum()](&conf->pvec[i], &conf->conlist[i], target, conlist) << endl;
+                assert((float)pairE[getThreadNum()](target, conlist, &conf->pvec[i], &conf->conlist[i])
+                        == (float)pairE[getThreadNum()](&conf->pvec[i], &conf->conlist[i], target, conlist) );*/
             }
         }
     }
@@ -172,6 +175,7 @@ double TotalEnergyCalculator::chainInner(vector<Particle >::iterator chain,
 }
 
 double TotalEnergyCalculator::allToAll() {
+    if(conf->pvec.empty()) return 0.0;
     double energy=0.0;
     unsigned long i;
 
@@ -188,10 +192,8 @@ double TotalEnergyCalculator::allToAll() {
         if (topo.exter.exist)
             energy += extere2(i);
     }
-
     //add interaction of last particle with external potential
-    if (topo.exter.exist)
-        energy+= extere2(conf->pvec.size() - 1);
-
+    if (topo.exter.exist && !conf->pvec.empty())
+        exterE[getThreadNum()].extere2(&conf->pvec.back());
     return energy;
 }

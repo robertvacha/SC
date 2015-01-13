@@ -36,8 +36,8 @@ public:
 #endif
 
         for(int i=0; i < threadCount; i++) {
-            pairE.push_back(PairEnergyCalculator(&conf->pbc));
-            exterE.push_back(ExternalEnergyCalculator(&conf->box));
+            pairE.push_back(PairEnergyCalculator(&conf->geo));
+            exterE.push_back(ExternalEnergyCalculator(&conf->geo.box));
             pairE[i].initIntFCE();
         }
     }

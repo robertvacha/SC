@@ -22,23 +22,25 @@ double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Par
     //r_cm = pbc->image(&part1->pos, &part2->pos); // explicit statement below for performance optimization*/
 
     r_cm = pbc->image(&part1->pos, &part2->pos);
+    /*Vector test = pbc->image(&part2->pos, &part1->pos);
+    cout <<"dot: " << r_cm.dot(r_cm) << " == " << test.dot(test) << endl;*/
 /*
     r_cm.x = part1->pos.x - part2->pos.x;
     r_cm.y = part1->pos.y - part2->pos.y;
     r_cm.z = part1->pos.z - part2->pos.z;
 
     if ( r_cm.x < 0  )
-        r_cm.x = pbc->box->x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
+        r_cm.x = pbc->box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
     else
-        r_cm.x = pbc->box->x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
+        r_cm.x = pbc->box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
     if ( r_cm.y < 0  )
-        r_cm.y = pbc->box->y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
+        r_cm.y = pbc->box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
     else
-        r_cm.y = pbc->box->y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
+        r_cm.y = pbc->box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
     if ( r_cm.z < 0  )
-        r_cm.z = pbc->box->z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
+        r_cm.z = pbc->box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
     else
-        r_cm.z = pbc->box->z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
+        r_cm.z = pbc->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );
 */
 
     dotrcm = DOT(r_cm,r_cm);
@@ -135,19 +137,19 @@ double PairEnergyCalculator::angleEnergy() {
                     vec1 = part1->dir;
                 else {
                     halfl = topo.ia_params[part1->type][part2->type].half_len[1];
-                    //sphere angle is defined versus the end of spherocylinder
-                    vec1.x = part2->pos.x - part2->dir.x * halfl / pbc->box->x;
-                    vec1.y = part2->pos.y - part2->dir.y * halfl / pbc->box->y;
-                    vec1.z = part2->pos.z - part2->dir.z * halfl / pbc->box->z;
+                    //sphere angle is defined versus the end of spherocylind.er
+                    vec1.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
+                    vec1.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
+                    vec1.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
                     vec1 = pbc->image(&vec1, &part1->pos);
                 }
                 if (geotype[1] < SP)
                     vec2 = part2->dir;
                 else {
                     halfl = topo.ia_params[part1->type][part2->type].half_len[0];
-                    vec2.x = part1->pos.x + part1->dir.x * halfl / pbc->box->x;
-                    vec2.y = part1->pos.y + part1->dir.y * halfl / pbc->box->y;
-                    vec2.z = part1->pos.z + part1->dir.z * halfl / pbc->box->z;
+                    vec2.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
+                    vec2.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
+                    vec2.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
                     vec2 = pbc->image(&vec2, &part2->pos);
                 }
                 vec1.normalise();
@@ -167,18 +169,18 @@ double PairEnergyCalculator::angleEnergy() {
                     else {
                         halfl = topo.ia_params[part1->type][part2->type].half_len[1];
                         //sphere angle is defined versus the end of spherocylinder
-                        vec1.x = part2->pos.x + part2->dir.x * halfl / pbc->box->x;
-                        vec1.y = part2->pos.y + part2->dir.y * halfl / pbc->box->y;
-                        vec1.z = part2->pos.z + part2->dir.z * halfl / pbc->box->z;
+                        vec1.x = part2->pos.x + part2->dir.x * halfl / pbc->box.x;
+                        vec1.y = part2->pos.y + part2->dir.y * halfl / pbc->box.y;
+                        vec1.z = part2->pos.z + part2->dir.z * halfl / pbc->box.z;
                         vec1 = pbc->image(&vec1, &part1->pos);
                     }
                     if (geotype[1] < SP)
                         vec2 = part2->dir;
                     else {
                         halfl = topo.ia_params[part1->type][part2->type].half_len[0];
-                        vec2.x = part1->pos.x - part1->dir.x * halfl / pbc->box->x;
-                        vec2.y = part1->pos.y - part1->dir.y * halfl / pbc->box->y;
-                        vec2.z = part1->pos.z - part1->dir.z * halfl / pbc->box->z;
+                        vec2.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
+                        vec2.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
+                        vec2.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
                         vec2 = pbc->image(&vec2, &part2->pos);
                     }
                     vec1.normalise();
@@ -234,18 +236,18 @@ double PairEnergyCalculator::bondEnergy() {
                 else
                     halfl = 0.0;
 
-                vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box->x;
-                vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box->y;
-                vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box->z;
+                vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
+                vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
+                vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
 
                 if (geotype[1] < SP)
                     halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
 
-                vec2.x = part2->pos.x + part2->dir.x * halfl / pbc->box->x;
-                vec2.y = part2->pos.y + part2->dir.y * halfl / pbc->box->y;
-                vec2.z = part2->pos.z + part2->dir.z * halfl / pbc->box->z;
+                vec2.x = part2->pos.x + part2->dir.x * halfl / pbc->box.x;
+                vec2.y = part2->pos.y + part2->dir.y * halfl / pbc->box.y;
+                vec2.z = part2->pos.z + part2->dir.z * halfl / pbc->box.z;
                 vecbond = pbc->image(&vec1, &vec2);
                 bondlength = sqrt(DOT(vecbond,vecbond));
                 energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
@@ -260,18 +262,18 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec1.x = part1->pos.x + part1->dir.x * halfl / pbc->box->x;
-                    vec1.y = part1->pos.y + part1->dir.y * halfl / pbc->box->y;
-                    vec1.z = part1->pos.z + part1->dir.z * halfl / pbc->box->z;
+                    vec1.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
+                    vec1.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
+                    vec1.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
 
                     if (geotype[0] < SP)
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
 
-                    vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box->x;
-                    vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box->y;
-                    vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box->z;
+                    vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
+                    vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
+                    vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
                     vecbond = pbc->image(&vec1, &vec2);
                     bondlength = sqrt(DOT(vecbond,vecbond));
                     energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
@@ -315,16 +317,16 @@ double PairEnergyCalculator::bondEnergy() {
                     halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
-                vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box->x;
-                vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box->y;
-                vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box->z;
+                vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
+                vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
+                vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
                 if (geotype[1] < SP)
                     halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
-                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->x ;
-                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->y ;
-                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->z ;
+                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
+                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
+                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
                 vecbond = pbc->image(&vec1, &vec2);
                 bondlength = sqrt(DOT(vecbond,vecbond));
                 energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
@@ -339,16 +341,16 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->x ;
-                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->y ;
-                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box->z ;
+                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
+                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
+                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
                     if (geotype[0] < SP)
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
-                    vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box->x;
-                    vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box->y;
-                    vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box->z;
+                    vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
+                    vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
+                    vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
                     vecbond = pbc->image(&vec1, &vec2);
                     bondlength = sqrt(DOT(vecbond,vecbond));
                     energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);

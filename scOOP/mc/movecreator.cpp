@@ -46,11 +46,11 @@ double MoveCreator::partDisplace(long target) {
 
     orig = conf->pvec[target].pos;
 
-    dr.random();
+    dr.randomUnitSphere();
 
-    dr.x *= sim->trans[conf->pvec[target].type].mx/conf->box.x;
-    dr.y *= sim->trans[conf->pvec[target].type].mx/conf->box.y;
-    dr.z *= sim->trans[conf->pvec[target].type].mx/conf->box.z;
+    dr.x *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.x;
+    dr.y *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.y;
+    dr.z *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.z;
     if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
         dr.z = 0;
         dr.y = 0;
@@ -60,6 +60,10 @@ double MoveCreator::partDisplace(long target) {
     conf->pvec[target].pos.y += dr.y;
     conf->pvec[target].pos.z += dr.z;
     //} while (conf->pvec[target].pos.x < 0.25 || conf->pvec[target].pos.x > 0.50);
+
+#ifdef WEDGE
+        conf->geo.usePBC(&conf->pvec[target]);
+#endif
 
     reject = 0;
     wlener = 0.0;
@@ -114,6 +118,18 @@ double MoveCreator::partDisplace(long target) {
         }
     }
 
+#ifdef WEDGE
+    if(conf->geo.boundaryOverlap(&conf->pvec[target].pos)) { // reject solid overlap, soft already handled by usePBC()
+        conf->pvec[target].pos = orig;
+        sim->trans[conf->pvec[target].type].rej++;
+        if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
+            conf->syscm = origsyscm;
+        sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
+
+        return 0.0;
+    }
+#endif
+
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
         enermove =  (*calcEnergy)(target, 1, 0);
     }
@@ -129,7 +145,7 @@ double MoveCreator::partDisplace(long target) {
 
         edriftchanges = enermove - energy + wlener;
 
-        //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->box.z , enermove);
+        //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->geo.box.z , enermove);
         //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
     }
 
@@ -147,7 +163,9 @@ double MoveCreator::partRotate(long target) {
 
     origpart = conf->pvec[target];
 
-    pscRotate(&conf->pvec[target],sim->rot[conf->pvec[target].type].angle, topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0]);
+    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+    //conf->pvec[target].pscRotate(Vector::getRandomUnitSphere(), ran2() * sim->rot[conf->pvec[target].type].angle, ran2() < 0.5);
+
     /*should be normalised and ortogonal but we do for safety*/
     conf->pvec[target].dir.normalise();
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
@@ -184,7 +202,7 @@ double MoveCreator::partRotate(long target) {
         sim->wl.reject(sim->wl.radiusholemax, sim->wl.wlm);
     } else { /* move was accepted */
         // DEBUG
-        //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->box.x , enermove);
+        //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
         sim->rot[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
@@ -192,98 +210,6 @@ double MoveCreator::partRotate(long target) {
     }
 
     return edriftchanges;
-}
-
-void MoveCreator::pscRotate(Particle *psc, double max_angle, int geotype) {
-    double vc, vs, t2, t3, t4, t5, t6, t7, t8, t9, t10;
-    double d1, d2, d3, d4, d5, d6, d7, d8, d9 , newx, newy, newz;
-    int k,m;
-    Vector newaxis;
-
-    /* generate quaternion for rotation*/
-    newaxis.random(); /*random axes for rotation*/
-    //    maxcos = cos(maxorient/2/180*PI);
-    // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
-
-    vc = cos(max_angle * ran2() );
-
-    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
-    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
-
-    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
-
-    /* do quaternion rotation*/
-    t2 =  newquat.w * newquat.x;
-    t3 =  newquat.w * newquat.y;
-    t4 =  newquat.w * newquat.z;
-    t5 = -newquat.x * newquat.x;
-    t6 =  newquat.x * newquat.y;
-    t7 =  newquat.x * newquat.z;
-    t8 = -newquat.y * newquat.y;
-    t9 =  newquat.y * newquat.z;
-    t10 = -newquat.z * newquat.z;
-
-    d1 = t8 + t10;
-    d2 = t6 - t4;
-    d3 = t3 + t7;
-    d4 = t4 + t6;
-    d5 = t5 + t10;
-    d6 = t9 - t2;
-    d7 = t7 - t3;
-    d8 = t2 + t9;
-    d9 = t5 + t8;
-
-    /*rotate spherocylinder direction vector2*/
-    newx = 2.0 * ( d1*psc->dir.x + d2*psc->dir.y + d3*psc->dir.z ) + psc->dir.x;
-    newy = 2.0 * ( d4*psc->dir.x + d5*psc->dir.y + d6*psc->dir.z ) + psc->dir.y;
-    newz = 2.0 * ( d7*psc->dir.x + d8*psc->dir.y + d9*psc->dir.z ) + psc->dir.z;
-    psc->dir.x = newx;
-    psc->dir.y = newy;
-    psc->dir.z = newz;
-
-    m=1;
-    if ( (geotype != SCN) && (geotype != SCA) ) {
-        if ( (geotype == TPSC) || (geotype == TCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) )
-        m=2;
-        for (k=0;k<m;k++) {
-        /*rotate patch direction vector2*/
-        newx = 2.0 * ( d1*psc->patchdir[k].x + d2*psc->patchdir[k].y + d3*psc->patchdir[k].z ) + psc->patchdir[k].x;
-        newy = 2.0 * ( d4*psc->patchdir[k].x + d5*psc->patchdir[k].y + d6*psc->patchdir[k].z ) + psc->patchdir[k].y;
-        newz = 2.0 * ( d7*psc->patchdir[k].x + d8*psc->patchdir[k].y + d9*psc->patchdir[k].z ) + psc->patchdir[k].z;
-        psc->patchdir[k].x = newx;
-        psc->patchdir[k].y = newy;
-        psc->patchdir[k].z = newz;
-
-        /*rotate patch sides vector2s*/
-        newx = 2.0 * ( d1*psc->patchsides[0+2*k].x + d2*psc->patchsides[0+2*k].y + d3*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].x;
-        newy = 2.0 * ( d4*psc->patchsides[0+2*k].x + d5*psc->patchsides[0+2*k].y + d6*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].y;
-        newz = 2.0 * ( d7*psc->patchsides[0+2*k].x + d8*psc->patchsides[0+2*k].y + d9*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].z;
-        psc->patchsides[0+2*k].x = newx;
-        psc->patchsides[0+2*k].y = newy;
-        psc->patchsides[0+2*k].z = newz;
-        newx = 2.0 * ( d1*psc->patchsides[1+2*k].x + d2*psc->patchsides[1+2*k].y + d3*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].x;
-        newy = 2.0 * ( d4*psc->patchsides[1+2*k].x + d5*psc->patchsides[1+2*k].y + d6*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].y;
-        newz = 2.0 * ( d7*psc->patchsides[1+2*k].x + d8*psc->patchsides[1+2*k].y + d9*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].z;
-        psc->patchsides[1+2*k].x = newx;
-        psc->patchsides[1+2*k].y = newy;
-        psc->patchsides[1+2*k].z = newz;
-        }
-    }
-
-    m=1;
-    if ( (geotype == CHPSC) || (geotype == CHCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
-        if ( (geotype == TCHPSC) || (geotype == TCHCPSC) )
-        m=2;
-        for (k=0;k<m;k++) {
-        /*rotate chiral direction vector2*/
-        newx = 2.0 * ( d1*psc->chdir[k].x + d2*psc->chdir[k].y + d3*psc->chdir[k].z ) + psc->chdir[k].x;
-        newy = 2.0 * ( d4*psc->chdir[k].x + d5*psc->chdir[k].y + d6*psc->chdir[k].z ) + psc->chdir[k].y;
-        newz = 2.0 * ( d7*psc->chdir[k].x + d8*psc->chdir[k].y + d9*psc->chdir[k].z ) + psc->chdir[k].z;
-        psc->chdir[k].x = newx;
-        psc->chdir[k].y = newy;
-        psc->chdir[k].z = newz;
-        }
-    }
 }
 
 double MoveCreator::switchTypeMove() {
@@ -327,7 +253,7 @@ double MoveCreator::switchTypeMove() {
                     sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                           (long)conf->pvec.size(),
                                                                           sim->wl.wlmtype,
-                                                                          conf->box,
+                                                                          conf->geo.box,
                                                                           &conf->pvec) - sim->wl.minorder[wli]);
                     break;
                 /*case 4:
@@ -430,10 +356,10 @@ double MoveCreator::chainDisplace(long target) {
         i++;
         current = conf->pvecGroupList.getChain(target,i);
     }
-    dr.random();
-    dr.x *= sim->chainm[conf->pvec[target].molType].mx/conf->box.x;
-    dr.y *= sim->chainm[conf->pvec[target].molType].mx/conf->box.y;
-    dr.z *= sim->chainm[conf->pvec[target].molType].mx/conf->box.z;
+    dr.randomUnitSphere();
+    dr.x *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.x;
+    dr.y *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.y;
+    dr.z *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.z;
     i=0;
     if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
         dr.z = 0;
@@ -662,9 +588,9 @@ double MoveCreator::chainRotate(long target) {
 double MoveCreator::pressureMove() {
     double edriftchanges,energy,enermove,wlener;
     int reject=0,wli;
-    double old_side;   /* Box length before attempted change */
-    double *side;      /* Box dimension to try changing */
-    double psch;       /* Size of a box change during pressure */
+    double old_side;   /* geo.box length before attempted change */
+    double *side;      /* geo.box dimension to try changing */
+    double psch;       /* Size of a geo.box change during pressure */
     double pvol;       /* Size of a volume during pressure */
     double pvoln;      /* Size of a new volume during pressure */
     double rsave;      /* Saved random number */
@@ -682,14 +608,14 @@ double MoveCreator::pressureMove() {
             /* Anisotropic pressure coupling */
             rsave = ran2();
             if (rsave < 1.0/3.0) {
-                side = &(conf->box.x);
-                area = conf->box.y * conf->box.z;
+                side = &(conf->geo.box.x);
+                area = conf->geo.box.y * conf->geo.box.z;
             } else if (rsave < 2.0/3.0) {
-                side = &(conf->box.y);
-                area = conf->box.x * conf->box.z;
+                side = &(conf->geo.box.y);
+                area = conf->geo.box.x * conf->geo.box.z;
             } else {
-                side = &(conf->box.z);
-                area = conf->box.x * conf->box.y;
+                side = &(conf->geo.box.z);
+                area = conf->geo.box.x * conf->geo.box.y;
             }
             old_side = *side;
             *side += sim->edge.mx * (ran2() - 0.5);
@@ -706,7 +632,7 @@ double MoveCreator::pressureMove() {
                             sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                                   conf->pvec.size(),
                                                                                   sim->wl.wlmtype,
-                                                                                  conf->box,
+                                                                                  conf->geo.box,
                                                                                   &conf->pvec) - sim->wl.minorder[wli]);
                             break;
                         case 4:
@@ -754,11 +680,11 @@ double MoveCreator::pressureMove() {
         case 1:
             /* Isotropic pressure coupling */
             psch = sim->edge.mx * (ran2() - 0.5);
-            pvol = conf->box.x * conf->box.y * conf->box.z;
-            conf->box.x += psch;
-            conf->box.y += psch;
-            conf->box.z += psch;
-            pvoln = conf->box.x * conf->box.y * conf->box.z;
+            pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+            conf->geo.box.x += psch;
+            conf->geo.box.y += psch;
+            conf->geo.box.z += psch;
+            pvoln = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -770,7 +696,7 @@ double MoveCreator::pressureMove() {
                             sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                                   conf->pvec.size(),
                                                                                   sim->wl.wlmtype,
-                                                                                  conf->box,
+                                                                                  conf->geo.box,
                                                                                   &conf->pvec) - sim->wl.minorder[wli]);
                             break;
                         case 4:
@@ -806,9 +732,9 @@ double MoveCreator::pressureMove() {
                 enermove += (*calcEnergy)(0, 0, 0);
             }
             if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
-                conf->box.x -= psch;
-                conf->box.y -= psch;
-                conf->box.z -= psch;
+                conf->geo.box.x -= psch;
+                conf->geo.box.y -= psch;
+                conf->geo.box.z -= psch;
                 sim->edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
@@ -820,21 +746,21 @@ double MoveCreator::pressureMove() {
         case 2:
             /* Isotropic pressure coupling in xy, z constant */
             psch = sim->edge.mx * (ran2() - 0.5);
-            pvol = conf->box.x * conf->box.y;
-            conf->box.x += psch;
-            conf->box.y += psch;
-            pvoln = conf->box.x * conf->box.y;
+            pvol = conf->geo.box.x * conf->geo.box.y;
+            conf->geo.box.x += psch;
+            conf->geo.box.y += psch;
+            pvoln = conf->geo.box.x * conf->geo.box.y;
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
                 for (wli=0;wli<sim->wl.wlmdim;wli++) {
                     switch (sim->wl.wlm[wli]) {
-                        /*no change in case 1, it does not change box.z*/
+                        /*no change in case 1, it does not change geo.box.z*/
                         case 2: sim->wl.origmesh = sim->wl.mesh;
                             sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                                   conf->pvec.size(),
                                                                                   sim->wl.wlmtype,
-                                                                                  conf->box,
+                                                                                  conf->geo.box,
                                                                                   &conf->pvec) - sim->wl.minorder[wli]);
                             break;
                         case 4:
@@ -866,12 +792,12 @@ double MoveCreator::pressureMove() {
                 }
             }
             if (!reject) { /* wang-landaou ok, try move - calculate energy */
-                enermove = sim->press * conf->box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
+                enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
                 enermove += (*calcEnergy)(0, 0, 0);
             }
             if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
-                conf->box.x -= psch;
-                conf->box.y -= psch;
+                conf->geo.box.x -= psch;
+                conf->geo.box.y -= psch;
                 sim->edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
@@ -883,10 +809,10 @@ double MoveCreator::pressureMove() {
         case 3:
             /* Isotropic pressure coupling in xy, z coupled to have fixed volume */
             psch = sim->edge.mx * (ran2() - 0.5);
-            pvol = conf->box.x * conf->box.y * conf->box.z;
-            conf->box.x += psch;
-            conf->box.y += psch;
-            conf->box.z = pvol / conf->box.x / conf->box.y;
+            pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+            conf->geo.box.x += psch;
+            conf->geo.box.y += psch;
+            conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -898,7 +824,7 @@ double MoveCreator::pressureMove() {
                             sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                                   conf->pvec.size(),
                                                                                   sim->wl.wlmtype,
-                                                                                  conf->box,
+                                                                                  conf->geo.box,
                                                                                   &conf->pvec) - sim->wl.minorder[wli]);
                             break;
                         case 4:
@@ -933,9 +859,9 @@ double MoveCreator::pressureMove() {
                 enermove = (*calcEnergy)(0, 0, 0);
             }
             if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
-                conf->box.x -= psch;
-                conf->box.y -= psch;
-                conf->box.z = pvol / conf->box.x / conf->box.y;
+                conf->geo.box.x -= psch;
+                conf->geo.box.y -= psch;
+                conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
                 sim->edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
@@ -961,7 +887,7 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
     Vector newaxis;
 
     // create rotation quaternion
-    newaxis.random(); /*random axes for rotation*/
+    newaxis.randomUnitSphere(); /*random axes for rotation*/
     //    maxcos = cos(maxorient/2/180*PI);
     //vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
     vc = cos(max_angle * ran2() );
@@ -980,10 +906,10 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
         conf->pvec[current].pos.x -= gc.x;
         conf->pvec[current].pos.y -= gc.y;
         conf->pvec[current].pos.z -= gc.z;
-        //scale things by box not to have them distorted
-        conf->pvec[current].pos.x *= conf->box.x;
-        conf->pvec[current].pos.y *= conf->box.y;
-        conf->pvec[current].pos.z *= conf->box.z;
+        //scale things by geo.box not to have them distorted
+        conf->pvec[current].pos.x *= conf->geo.box.x;
+        conf->pvec[current].pos.y *= conf->geo.box.y;
+        conf->pvec[current].pos.z *= conf->geo.box.z;
         //do rotation
         conf->pvec[current].pos.rotate(newquat);
         conf->pvec[current].dir.rotate(newquat);
@@ -996,9 +922,9 @@ void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
         conf->pvec[current].patchsides[2].rotate(newquat);
         conf->pvec[current].patchsides[3].rotate(newquat);
         //sclae back
-        conf->pvec[current].pos.x /= conf->box.x;
-        conf->pvec[current].pos.y /= conf->box.y;
-        conf->pvec[current].pos.z /= conf->box.z;
+        conf->pvec[current].pos.x /= conf->geo.box.x;
+        conf->pvec[current].pos.y /= conf->geo.box.y;
+        conf->pvec[current].pos.z /= conf->geo.box.z;
         //shift positions back
         conf->pvec[current].pos.x += gc.x;
         conf->pvec[current].pos.y += gc.y;
@@ -1016,7 +942,7 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
     cluscm = clusterCM(begin, size);
 
     // create rotation quaternion
-    newaxis.random(); /*random axes for rotation*/
+    newaxis.randomUnitSphere(); /*random axes for rotation*/
     vc = cos(max_angle * ran2() );
     if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
     else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
@@ -1031,10 +957,10 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
         it->pos.x -= cluscm.x;
         it->pos.y -= cluscm.y;
         it->pos.z -= cluscm.z;
-        //scale things by box not to have them distorted
-        it->pos.x *= conf->box.x;
-        it->pos.y *= conf->box.y;
-        it->pos.z *= conf->box.z;
+        //scale things by geo.box not to have them distorted
+        it->pos.x *= conf->geo.box.x;
+        it->pos.y *= conf->geo.box.y;
+        it->pos.z *= conf->geo.box.z;
         //do rotation
         (it)->pos.rotate(newquat);
         (it)->dir.rotate(newquat);
@@ -1047,9 +973,9 @@ void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int 
         it->patchsides[2].rotate(newquat);
         it->patchsides[3].rotate(newquat);
         //sclae back
-        it->pos.x /= conf->box.x;
-        it->pos.y /= conf->box.y;
-        it->pos.z /= conf->box.z;
+        it->pos.x /= conf->geo.box.x;
+        it->pos.y /= conf->geo.box.y;
+        it->pos.z /= conf->geo.box.z;
         //shift positions back
         it->pos.x += cluscm.x;
         it->pos.y += cluscm.y;
@@ -1133,7 +1059,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         int          blocklen3[7] = {1, 1, 1, 1, 1, 1, 2};
         MPI_Aint     disp3[7];
         MPI_Address( &exch, &dispstart);
-        MPI_Address( &(exch.box), &disp3[0]);
+        MPI_Address( &(exch.geo.box), &disp3[0]);
         MPI_Address( &(exch.energy), &disp3[1]);
         MPI_Address( &(exch.volume), &disp3[2]);
         MPI_Address( &(exch.accepted), &disp3[3]);
@@ -1145,9 +1071,9 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         MPI_Type_commit( &MPI_exchange);
         //=== This is an attempt to switch replicas ===
 
-        localmpi.box = conf->box;
+        localmpi.geo.box = conf->geo.box;
         localmpi.energy = (*calcEnergy)(0, 0, 0);
-        localmpi.volume = conf->box.x * conf->box.y * conf->box.z;
+        localmpi.volume = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
         localmpi.accepted = 0;
         localmpi.syscm = conf->syscm;
         localmpi.radiusholemax = sim->wl.radiusholemax;
@@ -1199,7 +1125,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     //printf("part0  molType %ld chainn %ld type %d\n",conf->pvec[0].molType,conf->pvec[0].chainn,conf->pvec[0].type);
 
                     localmpi.accepted = receivedmpi.accepted;
-                    conf->box = receivedmpi.box;
+                    conf->geo.box = receivedmpi.geo.box;
                     conf->syscm = receivedmpi.syscm;
                     memcpy(&conf->pvec[0],temppart,conf->pvec.size()*sizeof(Particle));
                     edriftchanges = receivedmpi.energy - localmpi.energy;
@@ -1217,7 +1143,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                                      //we would have to send sizes first and realocate corrrect mesh size and then send data
                                     // it is better to recalculate (a bit slower though)
                                     sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->pvec.size(),sim->wl.wlmtype,
-                                                          conf->box, &conf->pvec);
+                                                          conf->geo.box, &conf->pvec);
                                     break;
                                 case 5:
                                     //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
@@ -1285,7 +1211,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     //printf("exchange accepted \n");
                     sim->mpiexch.acc++;
                     localmpi.accepted = 1;
-                    conf->box = receivedmpi.box;
+                    conf->geo.box = receivedmpi.geo.box;
                     conf->syscm = receivedmpi.syscm;
                     edriftchanges = receivedmpi.energy - localmpi.energy;
                     edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
@@ -1320,7 +1246,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                                     //  we would have to send sizes first and realocate corrrect mesh size and then send data
                                     //  it is better to recalculate (a bit slower though)
                                     sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->pvec.size(), sim->wl.wlmtype,
-                                                          conf->box, &conf->pvec);
+                                                          conf->geo.box, &conf->pvec);
                                     break;
                                 case 5:
                                     //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
@@ -1371,7 +1297,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 double MoveCreator::muVTMove() {
 
     long target;
-    double volume = conf->box.x * conf->box.y * conf->box.z;
+    double volume = conf->geo.volume();
     double entrophy = log(volume)/sim->temper;
     double energy = 0.0;
     double factor = 1.0;
@@ -1390,7 +1316,8 @@ double MoveCreator::muVTMove() {
 
             // create particle           
             insert.push_back(Particle());
-            insert[0].random(molType, topo.moleculeParam[molType].particleTypes[0], conf->box);
+            insert[0].init(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
+                           , molType, topo.moleculeParam[molType].particleTypes[0]);
             insert[0].init(topo.ia_params[insert[0].type]);
 
             // check overlap
@@ -1422,10 +1349,7 @@ double MoveCreator::muVTMove() {
 
         } else { // this is chain insert
 
-            displace.random();
-            displace.x *= conf->box.x;
-            displace.y *= conf->box.y;
-            displace.z *= conf->box.z;
+            displace.randomUnitCube();
 
             // get configuration
             insert = conf->getRandomPoolConf(molType);

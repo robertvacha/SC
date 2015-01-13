@@ -83,7 +83,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     //struct stat nem;   // Nematic order parameter
     //struct stat vol;   // Volume statistic
-    //struct stat shapex, shapey, shapez;   // Box shape statistics
+    //struct stat shapex, shapey, shapez;   // geo.box shape statistics
     //struct stat smec[MAXF];       // Smectic order parameters (Fourier coeeficients)
 
     FILE *mf=NULL;                                  // Handle for movie file
@@ -95,7 +95,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double edriftend;       // Energy drift calculation - end
     double pvdriftstart;    // PV drift calculation - start
     double pvdriftend;      // PV drift calculation - end
-    double volume;          // volume of box
+    double volume;          // volume of geo.box
     double moveprobab;      // random number selecting the move
 
     openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
@@ -119,7 +119,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     }
 
     //do energy drift check - start calculation
-    volume = conf->box.x * conf->box.y * conf->box.z;
+    volume = conf->geo.volume();
     edriftstart = calcEnergy(0, 0, 0);
     pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
@@ -201,8 +201,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             // recalculate system CM to be sure there is no accumulation of errors by +- rejection moves
             /* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
               can be calculated from CM movements of individual particles
-              present center of mass calculation use pbc and thus particles that moved across the box
-              is in this calculation used in pripary box but in other moves in in in the particles position
+              present center of mass calculation use pbc and thus particles that moved across the geo.box
+              is in this calculation used in pripary geo.box but in other moves in in in the particles position
              if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
                   masscenter(topo.npart,topo.ia_params, conf);
             */
@@ -259,10 +259,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               ci = smectic(npart, particle, i+1);
               accumulate (&smec[i], ci);
               }
-              accumulate (&shapex, (*box).x);
-              accumulate (&shapey, (*box).y);
-              accumulate (&shapez, (*box).z);
-              volume = (*box).x * (*box).y * (*box).z;
+              accumulate (&shapex, (*geo.box).x);
+              accumulate (&shapey, (*geo.box).y);
+              accumulate (&shapez, (*geo.box).z);
+              volume = (*geo.box).x * (*geo.box).y * (*geo.box).z;
               accumulate (&vol, volume);
               next_calc += paramfrq;
              */
@@ -276,7 +276,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               printf ("   Mean & fluc. Fourier coeff. %3ld: %13.8f %13.8f\n",
               i+1, smec[i].mean, smec[i].rms);
               }
-              printf ("   Mean & fluc box dimensions:  x   %13.8f %13.8f\n",
+              printf ("   Mean & fluc geo.box dimensions:  x   %13.8f %13.8f\n",
               shapex.mean, shapex.rms);
               printf ("                                y   %13.8f %13.8f\n",
               shapey.mean, shapey.rms);
@@ -290,7 +290,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               fflush (stdout);
              */
 
-            fprintf (statf, " %ld; %.10f\n", sweep, conf->box.x * conf->box.y * conf->box.z);
+            fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
             if (sim->wl.wlm[0] > 0) {
                 sim->wl.write(files->wloutfile);
@@ -303,7 +303,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Writing of movie frame
         if (sweep == next_frame) {
             fprintf (mf, "%ld\n", (long)conf->pvec.size());
-            fprintf (mf, "sweep %ld;  box %.10f %.10f %.10f\n", sweep, conf->box.x, conf->box.y, conf->box.z);
+            fprintf (mf, "sweep %ld;  geo.box %.10f %.10f %.10f\n", sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
             conf->draw(mf);
             fflush (mf);
             next_frame += sim->movie;
@@ -318,12 +318,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     }  // End of sweeps loop
 
     //do energy drift check - at the end calculation
-    volume = conf->box.x * conf->box.y * conf->box.z;
-    edriftend = calcEnergy(0, 0, 0);
+    volume = conf->geo.volume();
+    edriftend = calcEnergy.allToAll();
     pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
     //printf("EdriftChanges: %.5e\n", edriftchanges);
     printf("Starting energy: %.8f \n",edriftstart);
+    printf("Ending energy: %.8f \n",edriftend);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
 
@@ -449,7 +450,7 @@ double Updater::alignmentOrder() {
 
     for (i = 0; i < (long)(long)conf->pvec.size() - 1; i++) {
         for (j = i + 1; j < (long)(long)conf->pvec.size(); j++) {
-            r_cm = conf->pbc.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+            r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
             if ( DOT(r_cm,r_cm) < 1.5*1.5 ) {
                 sumdot+= DOT(conf->pvec[i].dir,conf->pvec[j].dir);
             }
@@ -480,23 +481,23 @@ void Updater::genSimplePairList() {
             assert(&conf->pvec[i] != NULL);
             assert(&conf->pvec[j] != NULL);
 
-            r_cm = conf->pbc.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+            r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
 
             /*r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
             r_cm.y = conf->pvec[i].pos.y - conf->pvec[j].pos.y;
             r_cm.z = conf->pvec[i].pos.z - conf->pvec[j].pos.z;
             if ( r_cm.x < 0  )
-                r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
+                r_cm.x = conf->geo.box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
             else
-                r_cm.x = conf->box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
+                r_cm.x = conf->geo.box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
             if ( r_cm.y < 0  )
-                r_cm.y = conf->box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
+                r_cm.y = conf->geo.box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
             else
-                r_cm.y = conf->box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
+                r_cm.y = conf->geo.box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
             if ( r_cm.z < 0  )
-                r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
+                r_cm.z = conf->geo.box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
             else
-                r_cm.z = conf->box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );*/
+                r_cm.z = conf->geo.box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );*/
 
             r_cm2 = DOT(r_cm,r_cm);
             max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \
@@ -742,10 +743,10 @@ int Updater::sameCluster(long fst, long snd) {
     }
 
     /*cluster is made of particles closer tna some distance*/
-/*	struct vector2 image(struct vector2 r1, struct vector2 r2, struct vector2 box);
+/*	struct vector2 image(struct vector2 r1, struct vector2 r2, struct vector2 geo.box);
     struct vector2 r_cm = image(conf->pvec[fst].pos,
             conf->pvec[snd].pos,
-            conf->box);
+            conf->geo.box);
     double dist2 = DOT(r_cm, r_cm);
     * TODO: Make it much more efficient => define cluster_dist!!! *
     if(dist2 > topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma * topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].sigma*4.0){
