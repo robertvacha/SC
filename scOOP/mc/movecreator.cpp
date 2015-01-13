@@ -1531,4 +1531,96 @@ int MoveCreator::moveTry(double energyold, double energynew, double temperature)
     }
 }
 
+void MoveCreator::pscRotate(Particle *psc, double max_angle, int geotype) {
+    double vc, vs, t2, t3, t4, t5, t6, t7, t8, t9, t10;
+    double d1, d2, d3, d4, d5, d6, d7, d8, d9 , newx, newy, newz;
+    int k,m;
+    Vector newaxis;
+
+    /* generate quaternion for rotation*/
+    newaxis.randomUnitSphere(); /*random axes for rotation*/
+    //    maxcos = cos(maxorient/2/180*PI);
+    // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
+
+    vc = cos(max_angle * ran2() );
+
+    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
+    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
+
+    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
+
+    /* do quaternion rotation*/
+    t2 =  newquat.w * newquat.x;
+    t3 =  newquat.w * newquat.y;
+    t4 =  newquat.w * newquat.z;
+    t5 = -newquat.x * newquat.x;
+    t6 =  newquat.x * newquat.y;
+    t7 =  newquat.x * newquat.z;
+    t8 = -newquat.y * newquat.y;
+    t9 =  newquat.y * newquat.z;
+    t10 = -newquat.z * newquat.z;
+
+    d1 = t8 + t10;
+    d2 = t6 - t4;
+    d3 = t3 + t7;
+    d4 = t4 + t6;
+    d5 = t5 + t10;
+    d6 = t9 - t2;
+    d7 = t7 - t3;
+    d8 = t2 + t9;
+    d9 = t5 + t8;
+
+    /*rotate spherocylinder direction vector2*/
+    newx = 2.0 * ( d1*psc->dir.x + d2*psc->dir.y + d3*psc->dir.z ) + psc->dir.x;
+    newy = 2.0 * ( d4*psc->dir.x + d5*psc->dir.y + d6*psc->dir.z ) + psc->dir.y;
+    newz = 2.0 * ( d7*psc->dir.x + d8*psc->dir.y + d9*psc->dir.z ) + psc->dir.z;
+    psc->dir.x = newx;
+    psc->dir.y = newy;
+    psc->dir.z = newz;
+
+    m=1;
+    if ( (geotype != SCN) && (geotype != SCA) ) {
+        if ( (geotype == TPSC) || (geotype == TCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) )
+            m=2;
+        for (k=0;k<m;k++) {
+            /*rotate patch direction vector2*/
+            newx = 2.0 * ( d1*psc->patchdir[k].x + d2*psc->patchdir[k].y + d3*psc->patchdir[k].z ) + psc->patchdir[k].x;
+            newy = 2.0 * ( d4*psc->patchdir[k].x + d5*psc->patchdir[k].y + d6*psc->patchdir[k].z ) + psc->patchdir[k].y;
+            newz = 2.0 * ( d7*psc->patchdir[k].x + d8*psc->patchdir[k].y + d9*psc->patchdir[k].z ) + psc->patchdir[k].z;
+            psc->patchdir[k].x = newx;
+            psc->patchdir[k].y = newy;
+            psc->patchdir[k].z = newz;
+
+            /*rotate patch sides vector2s*/
+            newx = 2.0 * ( d1*psc->patchsides[0+2*k].x + d2*psc->patchsides[0+2*k].y + d3*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].x;
+            newy = 2.0 * ( d4*psc->patchsides[0+2*k].x + d5*psc->patchsides[0+2*k].y + d6*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].y;
+            newz = 2.0 * ( d7*psc->patchsides[0+2*k].x + d8*psc->patchsides[0+2*k].y + d9*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].z;
+            psc->patchsides[0+2*k].x = newx;
+            psc->patchsides[0+2*k].y = newy;
+            psc->patchsides[0+2*k].z = newz;
+            newx = 2.0 * ( d1*psc->patchsides[1+2*k].x + d2*psc->patchsides[1+2*k].y + d3*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].x;
+            newy = 2.0 * ( d4*psc->patchsides[1+2*k].x + d5*psc->patchsides[1+2*k].y + d6*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].y;
+            newz = 2.0 * ( d7*psc->patchsides[1+2*k].x + d8*psc->patchsides[1+2*k].y + d9*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].z;
+            psc->patchsides[1+2*k].x = newx;
+            psc->patchsides[1+2*k].y = newy;
+            psc->patchsides[1+2*k].z = newz;
+        }
+    }
+
+    m=1;
+    if ( (geotype == CHPSC) || (geotype == CHCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
+        if ( (geotype == TCHPSC) || (geotype == TCHCPSC) )
+            m=2;
+        for (k=0;k<m;k++) {
+            /*rotate chiral direction vector2*/
+            newx = 2.0 * ( d1*psc->chdir[k].x + d2*psc->chdir[k].y + d3*psc->chdir[k].z ) + psc->chdir[k].x;
+            newy = 2.0 * ( d4*psc->chdir[k].x + d5*psc->chdir[k].y + d6*psc->chdir[k].z ) + psc->chdir[k].y;
+            newz = 2.0 * ( d7*psc->chdir[k].x + d8*psc->chdir[k].y + d9*psc->chdir[k].z ) + psc->chdir[k].z;
+            psc->chdir[k].x = newx;
+            psc->chdir[k].y = newy;
+            psc->chdir[k].z = newz;
+        }
+    }
+}
+
 

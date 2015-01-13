@@ -489,11 +489,20 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             exit (1);
         }
         /* Scale position vector to the unit cube */
+#ifdef WEDGE
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
         pvec[i].pos.z /= conf->geo.box.z;
 
         conf->geo.usePBC(&pvec[i]);
+#else
+        // for compatibility unfortunately
+        conf->geo.usePBC(&pvec[i]);
+
+        pvec[i].pos.x /= conf->geo.box.x;
+        pvec[i].pos.y /= conf->geo.box.y;
+        pvec[i].pos.z /= conf->geo.box.z;
+#endif
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
