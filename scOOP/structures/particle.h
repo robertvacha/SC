@@ -24,15 +24,8 @@ public:
     double delta_mu;        ///< \brief Chemical potential for the switch
     int switched;           ///< \brief 0: in initial stat; 1: in the switched stat
 
-public:
-    /**
-     * @brief int_partvec initiate vectors of a single particle
-     * @param target
-     * @param ia_parami
-     */
-    void init(Ia_param * ia_parami);
-
-    void init(Vector pos, Vector dir, Vector patchDir, int molType, int type) {
+    Particle() {}
+    Particle(Vector pos, Vector dir, Vector patchDir, int molType, int type) {
         this->pos = pos;
         this->dir = dir;
         this->patchdir[0] = patchDir;
@@ -46,6 +39,13 @@ public:
         switchtype = 0;
         switched = 0;
     }
+
+    /**
+     * @brief int_partvec initiate vectors of a single particle
+     * @param target
+     * @param ia_parami
+     */
+    void init(Ia_param * ia_parami);
 
     inline bool operator== (Particle& other) {
         if(pos == other.pos) return true;

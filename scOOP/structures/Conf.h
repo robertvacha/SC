@@ -424,7 +424,7 @@ public:
         conf.particle = NULL;*/
     }
 
-    double distSq(Particle* part1, Particle* part2) {
+    inline double distSq(Particle* part1, Particle* part2) {
         Vector r_cm = geo.image(&part1->pos, &part2->pos);
         return DOT(r_cm,r_cm);
     }

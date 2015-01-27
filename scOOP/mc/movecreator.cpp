@@ -1315,9 +1315,8 @@ double MoveCreator::muVTMove() {
         if(topo.moleculeParam[molType].isAtomic()) {
 
             // create particle           
-            insert.push_back(Particle());
-            insert[0].init(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
-                           , molType, topo.moleculeParam[molType].particleTypes[0]);
+            insert.push_back(Particle(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
+                                      , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(topo.ia_params[insert[0].type]);
 
             // check overlap

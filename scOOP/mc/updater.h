@@ -15,12 +15,12 @@ public:
         calcEnergy(sim, conf), move(sim, conf, &calcEnergy) {}
 
 private:
-    Sim* sim;                  // Should contain the simulation options.
-    Conf* conf;                // Should contain fast changing particle and box(?) information
+    Sim* sim;            ///< \brief contains the simulation options.
+    Conf* conf;          ///< \brief contains particle vector and geometry
     FileNames* files;
 
-    TotalEnergyCalculator calcEnergy;
-    MoveCreator move;
+    TotalEnergyCalculator calcEnergy;   ///< \brief energy calculations
+    MoveCreator move;                   ///< \brief move calculations
 
     long nsweeps;
     long adjust;
