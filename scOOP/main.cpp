@@ -125,8 +125,8 @@ int main(int argc, char** argv) {
             }
             fputs(line, outfile);
         }
-        for(int i=0; i < conf.pvecGroupList.molTypeCount; i++)
-            fprintf(outfile, "%s %d\n", topo.moleculeParam[i].name, conf.pvecGroupList.molCountOfType(i));
+        for(int i=0; i < conf.pvec.molTypeCount; i++)
+            fprintf(outfile, "%s %d\n", topo.moleculeParam[i].name, conf.pvec.molCountOfType(i));
 
         fclose (outfile);
         fclose (inFile);
