@@ -57,8 +57,22 @@ public:
      */
     double operator() (int target, int mode, int chainnum);
 
-    double p2p(Particle* part1, ConList* conlist1, Particle* part2, ConList* conlist2) {
-        return pairE[getThreadNum()](part1,conlist1,part2,conlist2);
+    /**
+     * @brief Calculates energy between all pairs. Returns energy
+     * @return
+     */
+    double allToAll();
+
+    /**
+     * @brief p2p
+     * @param part1
+     * @param part2
+     * @param conlist of first particle
+     * @return
+     */
+    double p2p(int part1, int part2) {
+        ConList conlist = conf->pvec.getConlist(part1);
+        return pairE[getThreadNum()](&conf->pvec[part1], &conf->pvec[part2], &conlist);
     }
 
     /**
@@ -68,7 +82,9 @@ public:
      */
     double chainToAll(int target, int chainnum);
 
-    double chainToAll(vector<Particle>::iterator chain, vector<ConList>::iterator con, int size);
+    double mol2others(vector<Particle> &mol);
+
+    double mol2others(Molecule &mol);
 
     /**
      * @brief Calculates energy between particle "target" and the rest
@@ -83,13 +99,7 @@ public:
     /**
      * @brief Calculates energy between particle "target" and the rest
      */
-    double chainInner(vector<Particle >::iterator chain, vector<ConList>::iterator con, int size);
-
-    /**
-     * @brief Calculates energy between all pairs. Returns energy
-     * @return
-     */
-    double allToAll();
+    double chainInner(vector<Particle >::iterator chain, int size, vector<ConList>::iterator con);
 
     /**
      * @brief extere2    Calculates interaction of target particle and external field version 2

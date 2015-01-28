@@ -7,6 +7,7 @@
 #include "particle.h"
 #include <assert.h>
 #include <map>
+#include "geometry.h"
 
 extern Topo topo;
 
@@ -14,17 +15,17 @@ using namespace std;
 
 class ConList {
 public:
-    ConList() {
-        conlist[0]=NULL;
-        conlist[1]=NULL;
-        conlist[2]=NULL;
-        conlist[3]=NULL;
-    }
+    ConList() : conlist() {}
     Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+
+    inline Particle* operator[] (int j) {
+        return conlist[j];
+    }
 };
 
+class Molecule : public vector<int > {};
 
-class GroupList {
+class ParticleVector : public std::vector<Particle > {
 public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
     /// on [molTypeCount] == size of vector
@@ -37,7 +38,9 @@ public:
 
     int molTypeCount;   ///< \brief Count of molecular types in use
 
-    GroupList() {
+    /***********************************************************************************************************/
+
+    ParticleVector() {
         for(int i=0; i<MAXMT; i++) {
             first[i] = -1; molSize[i] = -1; firstChain[i]=0;
         }
@@ -59,7 +62,7 @@ public:
         }
     }
 
-    inline int getChain(int chainN, int pos) {
+    inline int getChainPart(int chainN, int pos) {
         for(int type=0; type<=molTypeCount; type++) {
             if(firstChain[type] > chainN) {
                 type--;
@@ -68,12 +71,48 @@ public:
                 return first[type]+chainN*molSize[type] + pos;
             }
         }
-        //assert(false && "ChainN not found");
+        assert(false && "ChainN not found");
         return -1;
     }
 
-    vector<int> getChain(int chainN) {
-        vector<int> ret;
+    inline ConList getConlist(int part1) {
+        ConList conlist; // all NULL already
+
+        if(molSize[this->operator [](part1).molType] == 1)  // particle not in any chain
+            return conlist;
+
+        int pos = (part1 - first[this->operator [](part1).molType]) % molSize[this->operator [](part1).molType]; // position within chain
+
+        if(pos > 0)
+            conlist.conlist[0] = &this->operator [](part1-1);
+        if(pos+1 < molSize[this->operator [](part1).molType])
+        conlist.conlist[1] = &this->operator [](part1+1);
+        if(pos > 1)
+            conlist.conlist[2] = &this->operator [](part1-2);
+        if(pos+2 < molSize[this->operator [](part1).molType])
+            conlist.conlist[3] = &this->operator [](part1+2);
+
+        return conlist;
+    }
+
+    inline ConList getConlist(int part1, int pos) {
+        ConList conlist; // all NULL already
+
+        if(pos > 0)
+            conlist.conlist[0] = &this->operator [](part1-1);
+        if(pos+1 < molSize[this->operator [](part1).molType])
+        conlist.conlist[1] = &this->operator [](part1+1);
+        if(pos > 1)
+            conlist.conlist[2] = &this->operator [](part1-2);
+        if(pos+2 < molSize[this->operator [](part1).molType])
+            conlist.conlist[3] = &this->operator [](part1+2);
+
+        return conlist;
+    }
+
+
+    Molecule getChain(int chainN) {
+        Molecule ret;
         for(int type=0; type<=molTypeCount; type++) {
             if(firstChain[type] > chainN) {
                 type--;
@@ -85,6 +124,17 @@ public:
             }
         }
         assert(false && "ChainN not found");
+        return ret;
+    }
+
+    Molecule getMolecule(int chainN, int molType) {
+        Molecule ret;
+        chainN *= molSize[molType];
+        chainN += first[molType];
+
+        for(int i=0; i<molSize[molType]; i++)
+            ret.push_back(chainN + i);
+        assert(this->operator [](ret[0]).molType == molType); // did we pick correct molType
         return ret;
     }
 
@@ -128,15 +178,17 @@ public:
         assert(checkConsistency());
     }
 
-    void deleteMolecule(int molType) {
-        for(int i=molType+1; i<=molTypeCount; i++)
-            first[i] -= molSize[molType];
+    void deleteMolecule(Molecule& mol) {
+        for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++)
+            first[i] -= molSize[this->operator [](mol[0]).molType];
 
-        if(molSize[molType] > 1)
+        if(molSize[this->operator [](mol[0]).molType] > 1)
             calcChainCount();
 
         assert(checkConsistency());
+        erase(begin()+mol[0], begin()+mol[0]+mol.size()); // delete actual data
     }
+
 
 #ifndef NDEBUG
     int checkConsistency() {
@@ -146,245 +198,21 @@ public:
         return 0;
     }
 #endif
-
 };
 
-class GeoBase {
-public:
-    Vector box;                             ///< \brief Box size */
-
-    GeoBase(){}
-
-    virtual void usePBC(Particle *pos) = 0;
-    virtual Vector image(Vector* r1, Vector* r2) = 0;
-    virtual bool boundaryOverlap(Vector *pos) {return false;}       // all - for insertion because of uniformity
-
-    virtual Vector randomPos() =0;
-    virtual double volume() = 0;
-};
-
-class Cuboid: public GeoBase {
-public:
-
-    Cuboid(){}
-    Cuboid(Vector box) {
-        this->box = box;
-        cout << "Box: " << this->box.info() << endl;
-    }
-
-    inline double volume() {
-        return box.x*box.y*box.z;
-    }
-
-    /**
-     * @brief use of periodic boundary conditions
-     * @param pos
-     * @param pbc
-     */
-    void usePBC(Particle *part) {
-        do {
-            part->pos.x += box.x;
-        } while (part->pos.x < 0.0);
-        do {
-            part->pos.x -= box.x;
-        } while (part->pos.x > box.x);
-
-        do {
-            part->pos.y += box.y;
-        } while (part->pos.y < 0.0);
-        do {
-            part->pos.y -= box.y;
-        } while (part->pos.y > box.y);
-
-        do {
-            part->pos.z += box.z;
-        } while (part->pos.z < 0.0);
-        do {
-            part->pos.z -= box.z;
-        } while (part->pos.z > box.z);
-    }
-
-    /**
-     * @brief Returns the vector pointing from the centre of mass of particle 2 to the
-       centre of mass of the closest image of particle 1.
-     * @param r1
-     * @param r2
-     * @param box
-     * @return
-     */
-    inline Vector image(Vector* r1, Vector* r2) {
-        Vector r_cm( r1->x - r2->x, r1->y - r2->y, r1->z - r2->z );
-
-        Vector temp(r_cm.x + 6755399441055744.0, r_cm.y + 6755399441055744.0, r_cm.z + 6755399441055744.0);
-
-        r_cm.x = box.x * (r_cm.x - static_cast<double>(reinterpret_cast<int&>(temp.x) ) );
-        r_cm.y = box.y * (r_cm.y - static_cast<double>(reinterpret_cast<int&>(temp.y) ) );
-        r_cm.z = box.z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp.z) ) );
-
-        return r_cm;
-    }
-
-    virtual Vector randomPos() {
-        return Vector(ran2(), ran2(), ran2());
-    }
-
-};
-
-/**
- * @brief The Wedge class
- * Solid rotational boundaries - inner and outer radius - around Z axis
- * Unit Z pbc
- * rotational XY pbc
- *
- * CHAINS NOT SUPPORTED
- *
- */
-class Wedge : public GeoBase {
-private:
-    double angleSin;
-    double angleCos;
-    double angleRad;
-    Vector scale;       // scale unitCube -> higher prob of insert into wedge
-    Vector offset;      // offset scaled unitCube to wedge
-
-    inline void rotateClockWise(Vector* pos) { // OK
-        double x = pos->x;
-        pos->x = x * angleCos + pos->y * angleSin;
-        pos->y = pos->y * angleCos - x * angleSin;
-    }
-
-    inline void rotateCounterClock(Vector* pos) { // OK
-        double x = pos->x;
-        pos->x = x * angleCos - pos->y * angleSin;
-        pos->y = pos->y * angleCos + x * angleSin;
-    }
-
-public:
-    double innerR; // diameter = 2 * radius
-    double outerR;
-    double angleDeg;
-
-    Wedge(){cout << "NO PARAMETERS GIVEN !!!" << endl;}
-    Wedge(double z, double angle, double outerR, double innerR) : angleDeg(angle) {
-        this->box = Vector(outerR, outerR, z);
-        cout << "Wedge: box: " << this->box.info() << " Angle:" << angleDeg
-             << " Inner radius: " << innerR << " Outer radius: " << outerR << endl;
-        if(innerR > outerR) {
-            cout << "Mixed Inner and outer radius!!!" << endl;
-            exit(1);
-        }
-        if(0.0 <= angle && angle > 90) {
-            cout << "Angle: " << angle << " must be between 0 and 90 degrees!!!" << endl;
-            exit(1);
-        }
-        if(2*innerR*innerR < topo.sqmaxcut) {
-            cout << "inner radius too small for interactions of species, see constructor Wedge" << endl;
-            exit(1);
-        }
-        this->innerR = innerR/box.x;
-        this->outerR = outerR/box.x;
-        angleRad = angle*PI / 180.0;
-        angleSin = sin(angleRad);
-        angleCos = cos(angleRad);
-
-        //cout << "Sin: " << angleSin << " Cos: " << angleCos << endl;
-
-        scale = Vector(angleSin, angleCos, 0.0);
-        offset = Vector(0.0, 1.0 - angleCos, 0.0);
-    }
-
-    inline double volume() {
-        return box.x*box.x*box.z*angleRad*0.5*(outerR*outerR - innerR*innerR);
-    }
-
-    inline bool boundaryOverlap(Vector *pos) { // OK
-        double radius = pos->x*pos->x + pos->y*pos->y;
-        if(radius > outerR*outerR || radius < innerR*innerR)
-            return true;
-        // check plane YZ (angle 0) -> x go negative -> rotate clockwise
-        if(pos->x < 0.0)
-            return true;
-        // check angle
-        if(atan2(pos->x, pos->y) > angleRad)
-            return true;
-        return false;
-    }
-
-    virtual void usePBC(Particle *part) {
-        // check plane YZ (angle 0) -> x go negative -> rotate clockwise
-        if(part->pos.x < 0.0) {
-            rotateClockWise(&part->pos);
-            part->pscRotate(Vector(0,0,1), angleRad, true);
-        }
-        // check angle
-        if(atan2(part->pos.x, part->pos.y) > angleRad) {
-            rotateCounterClock(&part->pos);
-            part->pscRotate(Vector(0,0,1), angleRad, false);
-        }
-
-        /*do { // unit lenght scaling for z axis
-            (*pos).z += box->z;
-        } while ((*pos).z < 0.0);
-        do {
-            (*pos).z -= box->z;
-        } while ((*pos).z > box->z);*/
-    }
-
-    virtual Vector image(Vector* r1, Vector* r2) {
-        Vector r_cm, r_cm2 = *r1;
-        r_cm.x = r1->x - r2->x;
-        r_cm.y = r1->y - r2->y;
-        r_cm.z = r1->z - r2->z;
-
-        double temp =  r_cm.z + 6755399441055744.0;
-        r_cm.z = box.z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp) ) );
-
-        if(atan2(r_cm2.x, r_cm2.y) < angleRad*0.5)
-            rotateClockWise(&r_cm2);
-        else rotateCounterClock(&r_cm2);
-
-        r_cm2.x = r_cm2.x - r2->x;
-        r_cm2.y = r_cm2.y - r2->y;
-        r_cm2.z = r_cm2.z - r2->z;
-
-        temp =  r_cm2.z + 6755399441055744.0;
-        r_cm2.z = box.z * (r_cm2.z - static_cast<double>(reinterpret_cast<int&>(temp) ) );
-
-        if(r_cm.dot(r_cm) < r_cm2.dot(r_cm2) )
-            return r_cm;
-        else return r_cm2;
-    }
-
-    virtual Vector randomPos() {
-        Vector pos;
-        pos.randomUnitCube();
-        pos.x = pos.x * scale.x;
-        pos.y = pos.y * scale.y + offset.y;
-        while(boundaryOverlap(&pos)) {
-            pos.randomUnitCube();
-            pos.x = pos.x * scale.x;
-            pos.y = pos.y * scale.y + offset.y;
-        }
-        return pos;
-    }
-
-};
 
 /**
  * @brief Configuration of the system
  */
 class Conf {
 public:  
-    std::vector<Particle > pvec;  ///< \brief Main store of all particles, grouped by Molecular types
+    ParticleVector pvec;  ///< \brief Main store of all particles, grouped by Molecular types
     std::vector<Neighbors > neighborList;
-    std::vector<ConList > conlist;
-    std::vector<Particle > pool; ///< \brief Store for chains for muVT insert of chain
+    //std::vector<ConList > conlist;
+    ParticleVector pool; ///< \brief Store for chains for muVT insert of chain
 
     double sysvolume;                       ///< \brief Something like total mass -> for each += massOfParticle
     Vector syscm;                           ///< \brief System center of mass
-
-    GroupList pvecGroupList;
-    GroupList poolGroupList;
 
     bool pairlist_update;
 
@@ -402,7 +230,6 @@ public:
     Conf() : pairlist_update(false) {
         try{
             pvec.reserve(MAXN);
-            conlist.reserve(MAXN);
             pool.reserve(MAXN);
             neighborList.reserve(MAXN);
         } catch(std::bad_alloc& bad) {
@@ -432,8 +259,6 @@ public:
     double dist(Particle* part1, Particle* part2) {
         return sqrt(distSq(part1,part2));
     }
-
-    void recalcConList();
 
     /**
      * @brief draw Dumps a configuration to the supplied file handle.
@@ -487,7 +312,7 @@ public:
      * @param molType
      * @param molID
      */
-    void removeMolecule(int target, int size);
+    void removeMolecule(Molecule &target);
 
     std::vector<Particle> getRandomPoolConf(int molType);
 
@@ -530,7 +355,6 @@ public:
      * @return  Returns 1 if overlap detected, 0 otherwise.
      */
     int checkall(Ia_param ia_params[MAXT][MAXT]);
-
 };
 
 

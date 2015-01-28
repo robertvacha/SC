@@ -27,7 +27,7 @@ long MoveCreator::meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, lon
     return sim->wl.currorder[wli];
 }
 
-long MoveCreator::meshOrderMoveChain(vector<int> chain, Mesh *mesh, long npart, Particle chorig[], int wli) {
+long MoveCreator::meshOrderMoveChain(Molecule chain, Mesh *mesh, long npart, Particle chorig[], int wli) {
     long current;
     int change;
 

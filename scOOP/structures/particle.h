@@ -64,6 +64,10 @@ public:
 
     }
 
+    inline void rotateRandom(double max_angle, int geotype) {
+        pscRotate(max_angle * ran2() , geotype, Vector::getRandomUnitSphere());
+    }
+
     /**
      * @brief psc_rotate rotate spherocylinder by quaternion of random axis and angle smaller than
        maxcos(cosine of angle half), we do everything on site for speed
@@ -71,21 +75,25 @@ public:
      * @param angle (radians)
      * @param clockWise
      */
-    void pscRotate(Vector axis, double angle, bool clockWise) {
-        int geotype = topo.ia_params[type][type].geotype[0]; // ASK ROBERT -> difference [0] [1]
+    void pscRotate(double angle, int geotype, Vector newaxis, int clockwise=2) {
         double vc, vs, t2, t3, t4, t5, t6, t7, t8, t9, t10;
-        double d1, d2, d3, d4, d5, d6, d7, d8, d9;
-        double newx,newy,newz;
+        double d1, d2, d3, d4, d5, d6, d7, d8, d9 , newx, newy, newz;
         int k,m;
+
+        /* generate quaternion for rotation*/
+        //    maxcos = cos(maxorient/2/180*PI);
+        // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
 
         vc = cos(angle);
 
-        if (clockWise) vs = sqrt(1.0 - vc*vc);
-        else vs = -sqrt(1.0 - vc*vc); //randomly choose orientation of direction of rotation clockwise or counterclockwise
+        // GNU compiler wont keep the order of calls for ran2() when taken as an argument for clockwise/counterclockwise
+        if ( (ran2()<0.5 && clockwise==2) || clockwise==1 )
+            vs = sqrt(1.0 - vc*vc);
+        else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
 
-        Quat newquat(vc, axis.x*vs, axis.y*vs, axis.z*vs);
+        Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
 
-        // do quaternion rotation
+        /* do quaternion rotation*/
         t2 =  newquat.w * newquat.x;
         t3 =  newquat.w * newquat.y;
         t4 =  newquat.w * newquat.z;
@@ -106,10 +114,10 @@ public:
         d8 = t2 + t9;
         d9 = t5 + t8;
 
-        //rotate spherocylinder direction vector2
-        newx = 2.0 * ( d1*dir.x + d2*dir.y + d3*dir.z ) + dir.x;
-        newy = 2.0 * ( d4*dir.x + d5*dir.y + d6*dir.z ) + dir.y;
-        newz = 2.0 * ( d7*dir.x + d8*dir.y + d9*dir.z ) + dir.z;
+        /*rotate spherocylinder direction vector2*/
+        newx = 2.0 * ( d1*this->dir.x + d2*this->dir.y + d3*this->dir.z ) + this->dir.x;
+        newy = 2.0 * ( d4*this->dir.x + d5*this->dir.y + d6*this->dir.z ) + this->dir.y;
+        newz = 2.0 * ( d7*this->dir.x + d8*this->dir.y + d9*this->dir.z ) + this->dir.z;
         this->dir.x = newx;
         this->dir.y = newy;
         this->dir.z = newz;
@@ -117,44 +125,44 @@ public:
         m=1;
         if ( (geotype != SCN) && (geotype != SCA) ) {
             if ( (geotype == TPSC) || (geotype == TCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) )
-            m=2;
+                m=2;
             for (k=0;k<m;k++) {
-            //rotate patch direction vector2
-            newx = 2.0 * ( d1*this->patchdir[k].x + d2*this->patchdir[k].y + d3*this->patchdir[k].z ) + this->patchdir[k].x;
-            newy = 2.0 * ( d4*this->patchdir[k].x + d5*this->patchdir[k].y + d6*this->patchdir[k].z ) + this->patchdir[k].y;
-            newz = 2.0 * ( d7*this->patchdir[k].x + d8*this->patchdir[k].y + d9*this->patchdir[k].z ) + this->patchdir[k].z;
-            this->patchdir[k].x = newx;
-            this->patchdir[k].y = newy;
-            this->patchdir[k].z = newz;
+                /*rotate patch direction vector2*/
+                newx = 2.0 * ( d1*this->patchdir[k].x + d2*this->patchdir[k].y + d3*this->patchdir[k].z ) + this->patchdir[k].x;
+                newy = 2.0 * ( d4*this->patchdir[k].x + d5*this->patchdir[k].y + d6*this->patchdir[k].z ) + this->patchdir[k].y;
+                newz = 2.0 * ( d7*this->patchdir[k].x + d8*this->patchdir[k].y + d9*this->patchdir[k].z ) + this->patchdir[k].z;
+                this->patchdir[k].x = newx;
+                this->patchdir[k].y = newy;
+                this->patchdir[k].z = newz;
 
-            //rotate patch sides vector2s
-            newx = 2.0 * ( d1*patchsides[0+2*k].x + d2*patchsides[0+2*k].y + d3*patchsides[0+2*k].z ) + patchsides[0+2*k].x;
-            newy = 2.0 * ( d4*patchsides[0+2*k].x + d5*patchsides[0+2*k].y + d6*patchsides[0+2*k].z ) + patchsides[0+2*k].y;
-            newz = 2.0 * ( d7*patchsides[0+2*k].x + d8*patchsides[0+2*k].y + d9*patchsides[0+2*k].z ) + patchsides[0+2*k].z;
-            this->patchsides[0+2*k].x = newx;
-            this->patchsides[0+2*k].y = newy;
-            this->patchsides[0+2*k].z = newz;
-            newx = 2.0 * ( d1 * patchsides[1+2*k].x + d2 * patchsides[1+2*k].y + d3 *patchsides[1+2*k].z ) + patchsides[1+2*k].x;
-            newy = 2.0 * ( d4 * patchsides[1+2*k].x + d5 * patchsides[1+2*k].y + d6 *patchsides[1+2*k].z ) + patchsides[1+2*k].y;
-            newz = 2.0 * ( d7 * patchsides[1+2*k].x + d8 * patchsides[1+2*k].y + d9 * patchsides[1+2*k].z ) + patchsides[1+2*k].z;
-            this->patchsides[1+2*k].x = newx;
-            this->patchsides[1+2*k].y = newy;
-            this->patchsides[1+2*k].z = newz;
+                /*rotate patch sides vector2s*/
+                newx = 2.0 * ( d1*this->patchsides[0+2*k].x + d2*this->patchsides[0+2*k].y + d3*this->patchsides[0+2*k].z ) + this->patchsides[0+2*k].x;
+                newy = 2.0 * ( d4*this->patchsides[0+2*k].x + d5*this->patchsides[0+2*k].y + d6*this->patchsides[0+2*k].z ) + this->patchsides[0+2*k].y;
+                newz = 2.0 * ( d7*this->patchsides[0+2*k].x + d8*this->patchsides[0+2*k].y + d9*this->patchsides[0+2*k].z ) + this->patchsides[0+2*k].z;
+                this->patchsides[0+2*k].x = newx;
+                this->patchsides[0+2*k].y = newy;
+                this->patchsides[0+2*k].z = newz;
+                newx = 2.0 * ( d1*this->patchsides[1+2*k].x + d2*this->patchsides[1+2*k].y + d3*this->patchsides[1+2*k].z ) + this->patchsides[1+2*k].x;
+                newy = 2.0 * ( d4*this->patchsides[1+2*k].x + d5*this->patchsides[1+2*k].y + d6*this->patchsides[1+2*k].z ) + this->patchsides[1+2*k].y;
+                newz = 2.0 * ( d7*this->patchsides[1+2*k].x + d8*this->patchsides[1+2*k].y + d9*this->patchsides[1+2*k].z ) + this->patchsides[1+2*k].z;
+                this->patchsides[1+2*k].x = newx;
+                this->patchsides[1+2*k].y = newy;
+                this->patchsides[1+2*k].z = newz;
             }
         }
 
         m=1;
         if ( (geotype == CHPSC) || (geotype == CHCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
             if ( (geotype == TCHPSC) || (geotype == TCHCPSC) )
-            m=2;
+                m=2;
             for (k=0;k<m;k++) {
-            //rotate chiral direction vector2
-            newx = 2.0 * ( d1*this->chdir[k].x + d2*this->chdir[k].y + d3*this->chdir[k].z ) + this->chdir[k].x;
-            newy = 2.0 * ( d4*this->chdir[k].x + d5*this->chdir[k].y + d6*this->chdir[k].z ) + this->chdir[k].y;
-            newz = 2.0 * ( d7*this->chdir[k].x + d8*this->chdir[k].y + d9*this->chdir[k].z ) + this->chdir[k].z;
-            this->chdir[k].x = newx;
-            this->chdir[k].y = newy;
-            this->chdir[k].z = newz;
+                /*rotate chiral direction vector2*/
+                newx = 2.0 * ( d1*this->chdir[k].x + d2*this->chdir[k].y + d3*this->chdir[k].z ) + this->chdir[k].x;
+                newy = 2.0 * ( d4*this->chdir[k].x + d5*this->chdir[k].y + d6*this->chdir[k].z ) + this->chdir[k].y;
+                newz = 2.0 * ( d7*this->chdir[k].x + d8*this->chdir[k].y + d9*this->chdir[k].z ) + this->chdir[k].z;
+                this->chdir[k].x = newx;
+                this->chdir[k].y = newy;
+                this->chdir[k].z = newz;
             }
         }
     }

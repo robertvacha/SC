@@ -13,7 +13,6 @@ double MoveCreator::particleMove() {
 
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
-    if(target == (long)conf->pvec.size()) target--;
 
     if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
     ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
@@ -163,8 +162,8 @@ double MoveCreator::partRotate(long target) {
 
     origpart = conf->pvec[target];
 
-    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
-    //conf->pvec[target].pscRotate(Vector::getRandomUnitSphere(), ran2() * sim->rot[conf->pvec[target].type].angle, ran2() < 0.5);
+    //pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+    conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     /*should be normalised and ortogonal but we do for safety*/
     conf->pvec[target].dir.normalise();
@@ -316,7 +315,8 @@ double MoveCreator::chainMove() {
     long target;
 
     /*=== This is a chain move step ===*/
-    target = ran2() * conf->pvecGroupList.getChainCount();
+    target = ran2() * conf->pvec.getChainCount();
+
     if (ran2() < 0.5) {
         /*=== Displacement step of cluster/chain ===*/
         edriftchanges = chainDisplace(target);
@@ -328,58 +328,43 @@ double MoveCreator::chainMove() {
     return edriftchanges;
 }
 
-double MoveCreator::chainDisplace(long target) {
-    double edriftchanges,energy,enermove,wlener;
-    Vector dr, origsyscm;
+double MoveCreator::chainDisplace(long target)
+{
+    Molecule chain = conf->pvec.getChain(target);
+    double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
+    Vector dr, origsyscm(0.0, 0.0, 0.0);
     int reject=0,wli;
-    Vector cluscm;
-    long current,i;
+    Vector cluscm(0.0, 0.0, 0.0);
     Particle chorig[MAXCHL];
-    double radiusholemax_orig=0;
+    double radiusholemax_orig=0.0;
 
     /*=== Displacement step of cluster/chain ===*/
     //printf ("move chain\n\n");
-    energy =0.0;
-    wlener = 0.0;
-    edriftchanges=0.0;
-    i=0;
-    current = conf->pvecGroupList.getChain(target, 0);
-    cluscm.x = 0;
-    cluscm.y = 0;
-    cluscm.z = 0;
-    origsyscm.x = 0;
-    origsyscm.y = 0;
-    origsyscm.z = 0;
-    while (current >=0 ) {   /* store old configuration calculate energy*/
-        chorig[i].pos = conf->pvec[current].pos;
-        energy += (*calcEnergy)(current, 2, target);
-        i++;
-        current = conf->pvecGroupList.getChain(target,i);
-    }
+    for(unsigned int i=0; i<chain.size(); i++) // store old configuration
+        chorig[i].pos = conf->pvec[chain[i]].pos;
+
+    energy += calcEnergy->mol2others(chain); // Inner energy indiferent to displacement of chain
+
     dr.randomUnitSphere();
-    dr.x *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.x;
-    dr.y *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.y;
-    dr.z *= sim->chainm[conf->pvec[target].molType].mx/conf->geo.box.z;
-    i=0;
+    dr.x *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
+    dr.y *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
+    dr.z *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
+
     if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
         dr.z = 0;
         dr.y = 0;
         dr.x = 0;
     }
-    current = conf->pvecGroupList.getChain(target,0);
-    while (current >=0 ) { /* move chaine to new position  */
+    for(unsigned int j=0; j<chain.size(); j++) { // move chaine to new position
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) ) { /* calculate move of center of mass  */
-            cluscm.x += dr.x*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-            cluscm.y += dr.y*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
-            cluscm.z += dr.z*topo.ia_params[conf->pvec[current].type][conf->pvec[current].type].volume;
+            cluscm.x += dr.x*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
+            cluscm.y += dr.y*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
+            cluscm.z += dr.z*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
         }
-        conf->pvec[current].pos.x += dr.x;
-        conf->pvec[current].pos.y += dr.y;
-        conf->pvec[current].pos.z += dr.z;
-        i++;
-        current = conf->pvecGroupList.getChain(target,i);
+        conf->pvec[chain[j]].pos.x += dr.x;
+        conf->pvec[chain[j]].pos.y += dr.y;
+        conf->pvec[chain[j]].pos.z += dr.z;
     }
-    enermove = 0.0;
 
     reject = 0;
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -393,7 +378,7 @@ double MoveCreator::chainDisplace(long target) {
                     break;
                 case 2:
                     sim->wl.origmesh = sim->wl.mesh;
-                    sim->wl.neworder[wli] = meshOrderMoveChain(conf->pvecGroupList.getChain(target), &sim->wl.mesh, conf->pvec.size(), chorig,wli);
+                    sim->wl.neworder[wli] = meshOrderMoveChain(chain, &sim->wl.mesh, conf->pvec.size(), chorig,wli);
                     break;
                 case 4:
                     sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
@@ -413,14 +398,14 @@ double MoveCreator::chainDisplace(long target) {
                     if ( target == 0 )
                       sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
                     else
-                      sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(conf->pvecGroupList.getChain(target), chorig,wli,&(conf->pvec[0].pos));
+                      sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(chain, chorig,wli,&(conf->pvec[0].pos));
                     break;
                 case 7:
                     sim->wl.partincontactold = sim->wl.partincontact;
                     if ( target == 0 )
                         sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
                     else
-                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(conf->pvecGroupList.getChain(target),chorig,wli);
+                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(chain,chorig,wli);
                     break;
                 default:
                     sim->wl.neworder[wli] = sim->wl.currorder[wli];
@@ -435,28 +420,18 @@ double MoveCreator::chainDisplace(long target) {
         }
     }
     if (!reject) { /* wang-landaou ok, try move - calcualte energy */
-        i=0;
-        current = conf->pvecGroupList.getChain(target,0);
-        while (current >=0 ) {            
-            enermove += (*calcEnergy)(current, 2, target);
-            i++;
-            current = conf->pvecGroupList.getChain(target,i);
-        }
+        enermove += calcEnergy->mol2others(chain);
     }
-    if ( reject || moveTry(energy, enermove, sim->temper) ) {  /* probability acceptance */
-        i=0;
-        current = conf->pvecGroupList.getChain(target,0);
-        while (current >=0 ) {
-            conf->pvec[current].pos = chorig[i].pos;
-            i++;
-            current = conf->pvecGroupList.getChain(target,i);
-        }
-        sim->chainm[conf->pvec[target].molType].rej++;
+    if ( reject || moveTry(energy, enermove, sim->temper) ) {  // probability acceptance
+        for(unsigned int j=0; j<chain.size(); j++)
+            conf->pvec[chain[j]].pos = chorig[j].pos;
+
+        sim->chainm[conf->pvec[chain[0]].molType].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
     } else { /* move was accepted */
-        sim->chainm[conf->pvec[target].molType].acc++;
+        sim->chainm[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
     }
@@ -465,23 +440,19 @@ double MoveCreator::chainDisplace(long target) {
 }
 
 double MoveCreator::chainRotate(long target) {
+    Molecule chain = conf->pvec.getChain(target);
     double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
     int reject=0;
     long current, i;
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0;
-    vector<Particle>::iterator begin = conf->pvec.begin()+conf->pvecGroupList.getChain(target,0);
-    int size = conf->pvecGroupList.molSize[begin->molType];
+    vector<Particle>::iterator begin = conf->pvec.begin()+conf->pvec.getChainPart(target,0);
+    int size = conf->pvec.molSize[begin->molType];
 
     /*=== Rotation step of cluster/chain ===*/
     //printf ("rotation of chain\n\n");
-    current = conf->pvecGroupList.getChain(target,0);
-    chorig[0] = conf->pvec[current];
-    energy += (*calcEnergy)(current, 2, target);
-    i=1;
-    current = conf->pvecGroupList.getChain(target,i);
-    while (current >=0 ) {   /* store old configuration calculate energy*/
-        chorig[i] = conf->pvec[current];
+    for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
+        chorig[j] = conf->pvec[chain[j]];
         /*We have chains whole! don't have to do PBC*/
         /*r_cm.x = conf->pvec[current].pos.x - conf->particle[first].pos.x;
          r_cm.y = conf->pvec[current].pos.y - conf->particle[first].pos.y;
@@ -499,11 +470,11 @@ double MoveCreator::chainRotate(long target) {
          else
          r_cm.z -= (double)( (long)(r_cm.z+0.5) );
          */
-        energy += (*calcEnergy)(current, 2, target);
-        i++;
-        current = conf->pvecGroupList.getChain(target,i);
     }
-    /*do actual rotations around geometrical center*/
+
+    energy += calcEnergy->mol2others(chain);
+
+    //do actual rotations around geometrical center
     clusterRotate(begin, size, sim->chainr[begin->molType].angle);
 
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -516,7 +487,7 @@ double MoveCreator::chainRotate(long target) {
                     break;
                 case 2:
                     sim->wl.origmesh = sim->wl.mesh;
-                   sim->wl.neworder[wli] = meshOrderMoveChain(conf->pvecGroupList.getChain(target), &sim->wl.mesh, conf->pvec.size(), chorig,wli);
+                   sim->wl.neworder[wli] = meshOrderMoveChain(chain, &sim->wl.mesh, conf->pvec.size(), chorig,wli);
                     break;
                 case 3:
                     if (target == 0)  sim->wl.neworder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
@@ -537,14 +508,14 @@ double MoveCreator::chainRotate(long target) {
                     if ( target == 0 )
                         sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
                     else
-                        sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(conf->pvecGroupList.getChain(target), chorig,wli,&(conf->pvec[0].pos));
+                        sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(chain, chorig,wli,&(conf->pvec[0].pos));
                     break;
                 case 7:
                     sim->wl.partincontactold = sim->wl.partincontact;
                     if ( target == 0 )
                         sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
                     else
-                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(conf->pvecGroupList.getChain(target),chorig,wli);
+                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(chain,chorig,wli);
                     break;
                 default:
                     sim->wl.neworder[wli] = sim->wl.currorder[wli];
@@ -557,27 +528,17 @@ double MoveCreator::chainRotate(long target) {
             energy += wlener;
         }
     }
-    if (!reject) { /* wang-landaou ok, try move - calcualte energy */
-        i=0;
-        current = conf->pvecGroupList.getChain(target,0);
-        while (current >=0 ) {
-            enermove +=  (*calcEnergy)(current, 2, target);
-            i++;
-            current = conf->pvecGroupList.getChain(target,i);
-        }
+    if (!reject) { // wang-landaou ok, try move - calcualte energy
+        enermove += calcEnergy->mol2others(chain);
     }
-    if ( reject || moveTry(energy, enermove, sim->temper) ) { /* probability acceptance */
-        i=0;
-        current = conf->pvecGroupList.getChain(target,0);
-        while (current >=0 ) {
-            conf->pvec[current] = chorig[i];
-            i++;
-            current = conf->pvecGroupList.getChain(target,i);
-        }
-        sim->chainr[conf->pvec[target].molType].rej++;
+    if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
+        for(unsigned int j=0; j<chain.size(); j++)
+            conf->pvec[chain[j]] = chorig[j];
+
+        sim->chainr[conf->pvec[chain[0]].molType].rej++;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-    } else { /* move was accepted */
-        sim->chainr[conf->pvec[target].molType].acc++;
+    } else { // move was accepted
+        sim->chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
     }
@@ -880,59 +841,7 @@ double MoveCreator::pressureMove() {
     return edriftchanges;
 }
 
-void MoveCreator::clusterRotate(long target, Vector gc, double max_angle) {
-    long current,i;
-    double vc,vs;
-    //double quatsize;
-    Vector newaxis;
 
-    // create rotation quaternion
-    newaxis.randomUnitSphere(); /*random axes for rotation*/
-    //    maxcos = cos(maxorient/2/180*PI);
-    //vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
-    vc = cos(max_angle * ran2() );
-    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
-    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
-
-    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
-
-    //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
-
-    //shift position to geometrical center
-    i=0;
-    current = conf->pvecGroupList.getChain(target,0);
-    while (current >=0 ) {
-        //shift position to geometrical center
-        conf->pvec[current].pos.x -= gc.x;
-        conf->pvec[current].pos.y -= gc.y;
-        conf->pvec[current].pos.z -= gc.z;
-        //scale things by geo.box not to have them distorted
-        conf->pvec[current].pos.x *= conf->geo.box.x;
-        conf->pvec[current].pos.y *= conf->geo.box.y;
-        conf->pvec[current].pos.z *= conf->geo.box.z;
-        //do rotation
-        conf->pvec[current].pos.rotate(newquat);
-        conf->pvec[current].dir.rotate(newquat);
-        conf->pvec[current].patchdir[0].rotate(newquat);
-        conf->pvec[current].patchdir[1].rotate(newquat);
-        conf->pvec[current].chdir[0].rotate(newquat);
-        conf->pvec[current].chdir[1].rotate(newquat);
-        conf->pvec[current].patchsides[0].rotate(newquat);
-        conf->pvec[current].patchsides[1].rotate(newquat);
-        conf->pvec[current].patchsides[2].rotate(newquat);
-        conf->pvec[current].patchsides[3].rotate(newquat);
-        //sclae back
-        conf->pvec[current].pos.x /= conf->geo.box.x;
-        conf->pvec[current].pos.y /= conf->geo.box.y;
-        conf->pvec[current].pos.z /= conf->geo.box.z;
-        //shift positions back
-        conf->pvec[current].pos.x += gc.x;
-        conf->pvec[current].pos.y += gc.y;
-        conf->pvec[current].pos.z += gc.z;
-        i++;
-        current = conf->pvecGroupList.getChain(target,i);
-    }
-}
 
 void MoveCreator::clusterRotate(vector<Particle >::iterator begin, unsigned int size, double max_angle) {
     Vector cluscm;
@@ -1296,7 +1205,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
 double MoveCreator::muVTMove() {
 
-    long target;
+    Molecule target;
     double volume = conf->geo.volume();
     double entrophy = log(volume)/sim->temper;
     double energy = 0.0;
@@ -1306,7 +1215,7 @@ double MoveCreator::muVTMove() {
 
     // Determine what type we will be inserting/deleting
     int molType = getRandomMuVTType();
-    molSize = conf->pvecGroupList.molSize[molType];
+    molSize = conf->pvec.molSize[molType];
 
     topo.moleculeParam[molType].muVtSteps++;
 
@@ -1328,20 +1237,20 @@ double MoveCreator::muVTMove() {
             energy = calcEnergy->oneToAll(&insert[0], NULL, NULL);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
-            if( ( (volume / (conf->pvecGroupList.molCountOfType(molType) + 1.0)) *
+            if( ( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
                   exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
 
                 conf->addMolecule(&insert);
                 insert.clear();
                 conf->sysvolume += topo.ia_params[insert[0].type][insert[0].type].volume;
                 topo.moleculeParam[molType].insAcc++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 return energy - entrophy;
             } else { // rejected
                 insert.clear();
                 topo.moleculeParam[molType].insRej++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 return 0;
             }
@@ -1394,16 +1303,14 @@ double MoveCreator::muVTMove() {
             }
 
             // calc energ
-            energy += calcEnergy->chainToAll(insert.begin(), conlist.begin(), molSize);
+            energy += calcEnergy->mol2others(insert);
 
-            for(unsigned int i=0; i<insert.size(); i++) {
-                factor *= volume / (conf->pvecGroupList.molCountOfType(molType) + 1.0 +i);
-            }
+            factor *= volume / (conf->pvec.molCountOfType(molType) + 1.0);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-24))  -U(new)/kT)
             if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
                 // add internal energy(with external)
-                energy += calcEnergy->chainInner(insert.begin(), conlist.begin(), molSize);
+                energy += calcEnergy->chainInner(insert.begin(), molSize, conlist.begin());
 
                 conf->addMolecule(&insert);
 
@@ -1414,12 +1321,12 @@ double MoveCreator::muVTMove() {
                 conlist.clear();               
 
                 topo.moleculeParam[molType].insAcc++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 return energy - molSize*entrophy;
             } else {
                 topo.moleculeParam[molType].insRej++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 insert.clear();
                 conlist.clear();
@@ -1429,62 +1336,35 @@ double MoveCreator::muVTMove() {
 
     } else { // delete move
 
-        // choose particle -> only of certain type -> list of certain types
-        if(conf->pvecGroupList.molCountOfType(molType) == 0) return 0;        
-        assert(conf->pvecGroupList.molCountOfType(molType) > 0);
+        if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
+            return 0;
 
-        target = ran2() * conf->pvecGroupList.molCountOfType(molType);
-        target = conf->pvecGroupList.getStoreIndex(molType, target);
-        assert(conf->pvec[target].molType == molType);
+        target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
 
-        if(topo.moleculeParam[molType].isAtomic()) {
-            // do energy calc
-            energy = calcEnergy->oneToAll(target);
+        energy += calcEnergy->mol2others(target);
 
-            // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-            if( ( ( (double)(conf->pvecGroupList.molCountOfType(molType)) / volume) *
-                  exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
+        factor *= (conf->pvec.molCountOfType(molType))/volume;
+        // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
+        if( ( factor * exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
 
-                conf->sysvolume -= topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume;
-                conf->removeMolecule(target, 1);
-                topo.moleculeParam[molType].delAcc++;
-                topo.moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
+            for(unsigned int i=0; i<molSize; i++)
+                conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
 
-                return -energy + entrophy;
-            } else {
-                topo.moleculeParam[molType].delRej++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
-                return 0;
-            }
-        } else {
-            // do energy calc
-            energy += calcEnergy->chainToAll(conf->pvec.begin()+target, conf->conlist.begin()+target, molSize);
-
-            volume = 1.0/volume;
+            vector<ConList> con;
             for(unsigned int i=0; i<molSize; i++) {
-                factor *= volume * (conf->pvecGroupList.molCountOfType(molType) -i);
+                con.push_back(conf->pvec.getConlist(target[i], i));
             }
+            energy += calcEnergy->chainInner(conf->pvec.begin()+target[0], molSize, con.begin());
 
-            // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-            if( ( factor * exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
+            conf->removeMolecule(target);
 
-                for(unsigned int i=0; i<molSize; i++) {
-                    conf->sysvolume -= topo.ia_params[conf->pvec[target+i].type][conf->pvec[target+i].type].volume;
-                }
+            topo.moleculeParam[molType].delAcc++;
+            topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
 
-                energy += calcEnergy->chainInner(conf->pvec.begin()+target, conf->conlist.begin()+target, molSize);
-
-                conf->removeMolecule(target, molSize);
-
-                topo.moleculeParam[molType].delAcc++;
-                topo.moleculeParam[molType].muVtAverageParticles += conf->pvecGroupList.molCountOfType(molType);
-
-                return -energy + molSize*entrophy;
-            } else {
-                topo.moleculeParam[molType].delRej++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvecGroupList.molCountOfType(molType);
-                return 0;
-            }
+            return -energy + molSize*entrophy;
+        } else {
+            topo.moleculeParam[molType].delRej++;
+            topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
             return 0;
         }
     }
@@ -1494,11 +1374,11 @@ double MoveCreator::muVTMove() {
 
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
-    for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+    for(int i=0; i<conf->pvec.molTypeCount; i++) {
         if(topo.moleculeParam[i].activity != -1) molType++;
     }
     molType = (long) (ran2() * ((double)molType));
-    for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+    for(int i=0; i<conf->pvec.molTypeCount; i++) {
         if(topo.moleculeParam[i].activity != -1) {
             if(molType == 0) {
                 molType = i;
@@ -1530,96 +1410,6 @@ int MoveCreator::moveTry(double energyold, double energynew, double temperature)
     }
 }
 
-void MoveCreator::pscRotate(Particle *psc, double max_angle, int geotype) {
-    double vc, vs, t2, t3, t4, t5, t6, t7, t8, t9, t10;
-    double d1, d2, d3, d4, d5, d6, d7, d8, d9 , newx, newy, newz;
-    int k,m;
-    Vector newaxis;
 
-    /* generate quaternion for rotation*/
-    newaxis.randomUnitSphere(); /*random axes for rotation*/
-    //    maxcos = cos(maxorient/2/180*PI);
-    // vc = maxcos + ran2(&seed)*(1-maxcos); /*cos of angle must be bigger than maxcos and smaller than one*/
-
-    vc = cos(max_angle * ran2() );
-
-    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
-    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
-
-    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
-
-    /* do quaternion rotation*/
-    t2 =  newquat.w * newquat.x;
-    t3 =  newquat.w * newquat.y;
-    t4 =  newquat.w * newquat.z;
-    t5 = -newquat.x * newquat.x;
-    t6 =  newquat.x * newquat.y;
-    t7 =  newquat.x * newquat.z;
-    t8 = -newquat.y * newquat.y;
-    t9 =  newquat.y * newquat.z;
-    t10 = -newquat.z * newquat.z;
-
-    d1 = t8 + t10;
-    d2 = t6 - t4;
-    d3 = t3 + t7;
-    d4 = t4 + t6;
-    d5 = t5 + t10;
-    d6 = t9 - t2;
-    d7 = t7 - t3;
-    d8 = t2 + t9;
-    d9 = t5 + t8;
-
-    /*rotate spherocylinder direction vector2*/
-    newx = 2.0 * ( d1*psc->dir.x + d2*psc->dir.y + d3*psc->dir.z ) + psc->dir.x;
-    newy = 2.0 * ( d4*psc->dir.x + d5*psc->dir.y + d6*psc->dir.z ) + psc->dir.y;
-    newz = 2.0 * ( d7*psc->dir.x + d8*psc->dir.y + d9*psc->dir.z ) + psc->dir.z;
-    psc->dir.x = newx;
-    psc->dir.y = newy;
-    psc->dir.z = newz;
-
-    m=1;
-    if ( (geotype != SCN) && (geotype != SCA) ) {
-        if ( (geotype == TPSC) || (geotype == TCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) )
-            m=2;
-        for (k=0;k<m;k++) {
-            /*rotate patch direction vector2*/
-            newx = 2.0 * ( d1*psc->patchdir[k].x + d2*psc->patchdir[k].y + d3*psc->patchdir[k].z ) + psc->patchdir[k].x;
-            newy = 2.0 * ( d4*psc->patchdir[k].x + d5*psc->patchdir[k].y + d6*psc->patchdir[k].z ) + psc->patchdir[k].y;
-            newz = 2.0 * ( d7*psc->patchdir[k].x + d8*psc->patchdir[k].y + d9*psc->patchdir[k].z ) + psc->patchdir[k].z;
-            psc->patchdir[k].x = newx;
-            psc->patchdir[k].y = newy;
-            psc->patchdir[k].z = newz;
-
-            /*rotate patch sides vector2s*/
-            newx = 2.0 * ( d1*psc->patchsides[0+2*k].x + d2*psc->patchsides[0+2*k].y + d3*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].x;
-            newy = 2.0 * ( d4*psc->patchsides[0+2*k].x + d5*psc->patchsides[0+2*k].y + d6*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].y;
-            newz = 2.0 * ( d7*psc->patchsides[0+2*k].x + d8*psc->patchsides[0+2*k].y + d9*psc->patchsides[0+2*k].z ) + psc->patchsides[0+2*k].z;
-            psc->patchsides[0+2*k].x = newx;
-            psc->patchsides[0+2*k].y = newy;
-            psc->patchsides[0+2*k].z = newz;
-            newx = 2.0 * ( d1*psc->patchsides[1+2*k].x + d2*psc->patchsides[1+2*k].y + d3*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].x;
-            newy = 2.0 * ( d4*psc->patchsides[1+2*k].x + d5*psc->patchsides[1+2*k].y + d6*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].y;
-            newz = 2.0 * ( d7*psc->patchsides[1+2*k].x + d8*psc->patchsides[1+2*k].y + d9*psc->patchsides[1+2*k].z ) + psc->patchsides[1+2*k].z;
-            psc->patchsides[1+2*k].x = newx;
-            psc->patchsides[1+2*k].y = newy;
-            psc->patchsides[1+2*k].z = newz;
-        }
-    }
-
-    m=1;
-    if ( (geotype == CHPSC) || (geotype == CHCPSC) || (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
-        if ( (geotype == TCHPSC) || (geotype == TCHCPSC) )
-            m=2;
-        for (k=0;k<m;k++) {
-            /*rotate chiral direction vector2*/
-            newx = 2.0 * ( d1*psc->chdir[k].x + d2*psc->chdir[k].y + d3*psc->chdir[k].z ) + psc->chdir[k].x;
-            newy = 2.0 * ( d4*psc->chdir[k].x + d5*psc->chdir[k].y + d6*psc->chdir[k].z ) + psc->chdir[k].y;
-            newz = 2.0 * ( d7*psc->chdir[k].x + d8*psc->chdir[k].y + d9*psc->chdir[k].z ) + psc->chdir[k].z;
-            psc->chdir[k].x = newx;
-            psc->chdir[k].y = newy;
-            psc->chdir[k].z = newz;
-        }
-    }
-}
 
 

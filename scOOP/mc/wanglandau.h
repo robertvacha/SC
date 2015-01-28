@@ -158,7 +158,7 @@ public:
      * @param position
      * @return
      */
-    long radiusholeOrderMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli, Vector *position);
+    long radiusholeOrderMoveChain(Molecule chain, Particle chorig[MAXCHL], int wli, Vector *position);
 
     /**
      * @brief contParticle_movechain return change in order parameter when chain moves
@@ -169,7 +169,7 @@ public:
      * @param wli
      * @return
      */
-    long contParticlesMoveChain(vector<int> chain, Particle chorig[MAXCHL], int wli);
+    long contParticlesMoveChain(Molecule chain, Particle chorig[MAXCHL], int wli);
 
 private:
     /**
@@ -178,7 +178,7 @@ private:
      * @param wli
      * @return
      */
-    long radiusholePosition(double radius, int wli) {
+    inline long radiusholePosition(double radius, int wli) {
         return (long) ceil( ( radius - minorder[wli]) / dorder[wli]  );
     }
 
@@ -186,7 +186,13 @@ private:
      * @brief radiushole_order return current bin of free radius
      * @return
      */
-    long radiusholeOrder();
+    inline long radiusholeOrder() {
+        for (int i=0;i<radiusholemax-3;i++){
+            if ((radiushole[i] >0 ) && (radiushole[i+1] >0 ) && (radiushole[i+2] >0 ) && (radiushole[i+3] >0 ))
+                return i-1;
+        }
+        return -100;
+    }
 
     /**
      * @brief radiushole_print
@@ -209,7 +215,24 @@ private:
      * @param vec
      * @return
      */
-    bool particlesInContact(Vector *vec);
+    inline bool particlesInContact(Vector *vec) {
+        double x,y,z;
+
+        x = vec->x - conf->pvec[0].pos.x;
+        y = vec->y - conf->pvec[0].pos.y;
+        z = vec->z - conf->pvec[0].pos.z;
+
+        x = conf->geo.box.x * (x - anInt(x));
+        y = conf->geo.box.y * (y - anInt(y));
+        z = conf->geo.box.z * (z - anInt(z));
+
+        if ( x*x + y*y + z*z < WL_CONTACTS) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
 };
 

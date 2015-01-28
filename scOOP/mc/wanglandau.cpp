@@ -333,19 +333,16 @@ long WangLandau::contParticlesMoveOne(Vector *oldpos, long target, int wli) {
     return contParticlesOrder(wli);
 }
 
-long WangLandau::contParticlesMoveChain(vector<int> chain, Particle chorig[], int wli) {
-    long current;
+long WangLandau::contParticlesMoveChain(Molecule chain, Particle chorig[], int wli) {
 
     for(unsigned int i=0; i<chain.size(); i++ ) {
-        current = chain[i];
-        if ( conf->pvec[current].type == wlmtype ) {
-            if ( particlesInContact (&(conf->pvec[current].pos)) )
+        if ( conf->pvec[chain[i]].type == wlmtype ) {
+            if ( particlesInContact (&(conf->pvec[chain[i]].pos)) )
                 partincontact++;
         }
     }
     for(unsigned int i=0; i<chain.size(); i++ ) {
-        current = chain[i];
-        if ( conf->pvec[current].type == wlmtype ) {
+        if ( conf->pvec[chain[i]].type == wlmtype ) {
             if ( particlesInContact (&(chorig[i].pos)) )
                 partincontact--;
         }
@@ -354,14 +351,16 @@ long WangLandau::contParticlesMoveChain(vector<int> chain, Particle chorig[], in
     return contParticlesOrder(wli);
 }
 
-
-long WangLandau::radiusholeOrder() {
-    for (int i=0;i<radiusholemax-3;i++){
-        if ((radiushole[i] >0 ) && (radiushole[i+1] >0 ) && (radiushole[i+2] >0 ) && (radiushole[i+3] >0 ))
-          return i-1;
+void WangLandau::radiusholePrint(long *radiushole, long length) {
+    printf("radiushole:\n");
+    for (int i=0;i<length;i++) {
+        printf("%ld ",radiushole[i]);
     }
-    return -100;
+    printf("\n");
 }
+
+
+
 
 long WangLandau::radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, Vector *position) {
     long nr,oor; /* position in radiushole */
@@ -411,19 +410,18 @@ long WangLandau::radiusholeOrderMoveOne(Vector *oldpos, long target, int wli, Ve
     return currorder[wli];
 }
 
-long WangLandau::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], int wli, Vector *position) {
-    long current,nr;
+long WangLandau::radiusholeOrderMoveChain(Molecule chain, Particle chorig[], int wli, Vector *position) {
+    long nr;
     double rx,ry,z;
     bool change=false;
 
     rx=0;
     for(unsigned int i=0; i<chain.size(); i++ ) {
-        current = chain[i];
-        if ( conf->pvec[current].type == wlmtype ) {
-            z=conf->pvec[current].pos.z - position->z; /*if above system CM*/
+        if ( conf->pvec[chain[i]].type == wlmtype ) {
+            z=conf->pvec[chain[i]].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
-                rx = conf->geo.box.x * (conf->pvec[current].pos.x - anInt(conf->pvec[current].pos.x));
-                ry = conf->geo.box.y * (conf->pvec[current].pos.y - anInt(conf->pvec[current].pos.y));
+                rx = conf->geo.box.x * (conf->pvec[chain[i]].pos.x - anInt(conf->pvec[chain[i]].pos.x));
+                ry = conf->geo.box.y * (conf->pvec[chain[i]].pos.y - anInt(conf->pvec[chain[i]].pos.y));
                 nr = radiusholePosition(sqrt(rx*rx+ry*ry),wli);
                 if (nr < 0)
                     return -100;
@@ -433,8 +431,7 @@ long WangLandau::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], 
         }
     }
     for(unsigned int i=0; i<chain.size(); i++ ) {
-        current = chain[i];
-        if ( conf->pvec[current].type == wlmtype ) {
+        if ( conf->pvec[chain[i]].type == wlmtype ) {
             z=chorig[i].pos.z - position->z; /*if above system CM*/
             if (z-anInt(z) > 0) {
                 rx = conf->geo.box.x * (chorig[i].pos.x - anInt(chorig[i].pos.x));
@@ -457,13 +454,7 @@ long WangLandau::radiusholeOrderMoveChain(vector<int> chain, Particle chorig[], 
     return currorder[wli];
 }
 
-void WangLandau::radiusholePrint(long *radiushole, long length) {
-    printf("radiushole:\n");
-    for (int i=0;i<length;i++) {
-        printf("%ld ",radiushole[i]);
-    }
-    printf("\n");
-}
+
 
 
 void WangLandau::endWangLandau(char wloutfile[30]) {
@@ -500,22 +491,5 @@ void WangLandau::endWangLandau(char wloutfile[30]) {
 
 
 
-bool WangLandau::particlesInContact(Vector *vec) {
-    double x,y,z;
 
-    x = vec->x - conf->pvec[0].pos.x;
-    y = vec->y - conf->pvec[0].pos.y;
-    z = vec->z - conf->pvec[0].pos.z;
-
-    x = conf->geo.box.x * (x - anInt(x));
-    y = conf->geo.box.y * (y - anInt(y));
-    z = conf->geo.box.z * (z - anInt(z));
-
-    if ( x*x + y*y + z*z < WL_CONTACTS) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
 

@@ -63,6 +63,7 @@ structures/sim.h                                  # SIM
 structures/topo.h structures/topo.cpp             # TOPO
 structures/Conf.h structures/Conf.cpp             # CONF
 structures/particle.h structures/particle.cpp     # PARTICLE
+structures/geometry.h     			  # GEOMETRY
 #
 # MC
 #

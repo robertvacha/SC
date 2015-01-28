@@ -10,20 +10,15 @@ using namespace std;
 
 extern Topo topo;
 
-double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Particle *part2, ConList* conlist2) {
+double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConList* conlist) {
 
     double energy=0.0;
     this->part1 = part1;
     this->part2 = part2;
-    this->conlist1 = conlist1;
-    this->conlist2 = conlist2;
+    this->conlist = conlist;
 
     /*Placing interactin particle in unit pbc->box and finding vector connecting CM*/
-    //r_cm = pbc->image(&part1->pos, &part2->pos); // explicit statement below for performance optimization*/
-
-    r_cm = pbc->image(&part1->pos, &part2->pos);
-    /*Vector test = pbc->image(&part2->pos, &part1->pos);
-    cout <<"dot: " << r_cm.dot(r_cm) << " == " << test.dot(test) << endl;*/
+    r_cm = pbc->image(&part1->pos, &part2->pos); // explicit statement below for performance optimization*/
 /*
     r_cm.x = part1->pos.x - part2->pos.x;
     r_cm.y = part1->pos.y - part2->pos.y;
@@ -58,8 +53,11 @@ double PairEnergyCalculator::operator ()(Particle *part1, ConList* conlist1, Par
     energy = (this->*intFCE[part1->type][part2->type])();
 
     //printf("num: %ld  %ld   e: %f dist: %f",num1,num2,energy,interact.dist);
-    energy += bondEnergy ();
-    energy += angleEnergy ();
+
+    if(conlist != NULL) {
+        energy += bondEnergy ();
+        energy += angleEnergy ();
+    }
 
     //printf("  e: %f\n",energy);
     return energy;
@@ -127,7 +125,7 @@ double PairEnergyCalculator::angleEnergy() {
 
     /*angle interaction with nearest neighbours -harmonic*/
     if ((topo.moleculeParam[part1->molType]).angle1c >= 0) {
-        if (part2 == conlist1->conlist[0]) {
+        if (part2 == conlist->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 /*spheres do not have this interaction*/
@@ -158,7 +156,7 @@ double PairEnergyCalculator::angleEnergy() {
                 energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
             }
         } else {
-            if (part2 == conlist1->conlist[1]) {
+            if (part2 == conlist->conlist[1]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 /*spheres do not have this interaction*/
@@ -194,7 +192,7 @@ double PairEnergyCalculator::angleEnergy() {
 
     /*interaction between the orientation of  spherocylinders patches -harmonic*/
     if (topo.moleculeParam[part1->molType].angle2c >= 0) {
-        if (part2 == conlist1->conlist[0]) {
+        if (part2 == conlist->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                 currangle = acos(DOT(part1->patchdir[0],part2->patchdir[0]) - DOT(part1->dir,part2->patchdir[0])  );
@@ -203,7 +201,7 @@ double PairEnergyCalculator::angleEnergy() {
                 energy += 0.0;
             }
         } else {
-            if (part2 == conlist1->conlist[1]) {
+            if (part2 == conlist->conlist[1]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                     currangle = acos(DOT(part2->patchdir[0],part1->patchdir[0]) - DOT(part2->dir,part1->patchdir[0])  );
@@ -226,7 +224,7 @@ double PairEnergyCalculator::bondEnergy() {
     /*interaction with nearest neighbours -harmonic*/
     if ((topo.moleculeParam[part1->molType]).bond1c >= 0) {
 
-        if (part2 == conlist1->conlist[1]) {
+        if (part2 == conlist->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
@@ -253,7 +251,7 @@ double PairEnergyCalculator::bondEnergy() {
                 energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
             }
         } else {
-            if (part2 == conlist1->conlist[0]) {
+            if (part2 == conlist->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                     energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
@@ -283,7 +281,7 @@ double PairEnergyCalculator::bondEnergy() {
     }
     /*interaction with second nearest neighbours -harmonic*/
     if (topo.moleculeParam[part1->molType].bond2c >= 0) {
-        if (part2 == conlist1->conlist[2]) {
+        if (part2 == conlist->conlist[2]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
@@ -293,7 +291,7 @@ double PairEnergyCalculator::bondEnergy() {
                 energy = harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
             }
         } else {
-            if (part2 == conlist1->conlist[3]) {
+            if (part2 == conlist->conlist[3]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                     energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
@@ -308,7 +306,7 @@ double PairEnergyCalculator::bondEnergy() {
     /*interaction with nearest neighbours - direct harmonic bond*/
     if ((topo.moleculeParam[part1->molType]).bonddc > 0) {
 
-        if (part2 == conlist1->conlist[1]) {
+        if (part2 == conlist->conlist[1]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                 energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bonddeq,topo.moleculeParam[part1->molType].bonddc);
@@ -332,7 +330,7 @@ double PairEnergyCalculator::bondEnergy() {
                 energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
             }
         } else {
-            if (part2 == conlist1->conlist[0]) {
+            if (part2 == conlist->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
                     energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);

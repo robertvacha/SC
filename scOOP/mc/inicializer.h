@@ -20,7 +20,7 @@ private:
     Conf* conf;                // Should contain fast changing particle and box(?) information
     FileNames* files;
 
-    Molecule* molecules;    ///< @brief List of AtomType parameters read from init.top
+    MolIO* molecules;    ///< @brief List of AtomType parameters read from init.top
 
     char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
     char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
@@ -38,7 +38,7 @@ public:
             poolNames[i] = NULL;
         }
 
-        molecules = new Molecule[MAXMT];
+        molecules = new MolIO[MAXMT];
 
         sysmoln = (long int*) malloc( sizeof(long)*MAXN);
         if(sysmoln == NULL){
@@ -134,7 +134,7 @@ private:
 
     void readTopoFile(bool exclusions[][MAXT]);
 
-    void setParticlesParams(Molecule *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
+    void setParticlesParams(MolIO *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
 
     /**
      * @brief xmalloc nice malloc, which does the error checking for us
@@ -188,7 +188,7 @@ private:
      * @param molecules
      * @return
      */
-    int fillMol(char *molname, char *pline, Molecule * molecules);
+    int fillMol(char *molname, char *pline, MolIO *molecules);
 
     /**
      * @brief convert string num into two integers

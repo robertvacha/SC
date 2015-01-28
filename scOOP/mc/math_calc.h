@@ -13,11 +13,13 @@
  * @return
  */
 inline double anInt(double arg)  {
-    if (arg < 0) {
+    arg+=6755399441055744.0;
+    return static_cast<double>(reinterpret_cast<int&>(arg) );
+    /*if (arg < 0) {
         return (double)( (long)(arg-0.5) );
     } else {
         return (double)( (long)(arg+0.5) );
-    }
+    }*/
 }
 
 

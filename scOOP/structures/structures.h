@@ -23,7 +23,7 @@ typedef struct{
 /**
  * @brief This structure is for io only
  */
-class Molecule {
+class MolIO {
 public:
     char * name;        ///< \brief The name of the molecule
     int * type;         ///< \brief The type of the particle
@@ -31,7 +31,7 @@ public:
     double * delta_mu;  ///< \brief The chemical potential for the switch
     long * count;       ///< \brief count of molecules
 
-    Molecule() {
+    MolIO() {
         name = NULL;
         type = (int*) malloc(sizeof(long)*MAXMT);
         switchtype = (long int*) malloc(sizeof(long)*MAXMT);
@@ -41,7 +41,7 @@ public:
         }
     }
 
-    ~Molecule() {
+    ~MolIO() {
         free(name);
         free(type);
         free(switchtype);

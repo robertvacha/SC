@@ -17,8 +17,7 @@ private:
     Particle* part1;
     Particle* part2;
 
-    ConList* conlist1;
-    ConList* conlist2;
+    ConList* conlist;
 
     /*
      *  Parameters pased to functions of interaction calculation
@@ -38,7 +37,7 @@ private:
 public:
     PairEnergyCalculator(GeoBase* pbc) : pbc(pbc) {}
 
-    double operator() (Particle* part1, ConList* conlist1, Particle* part2, ConList* conlist2);
+    double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL);
 
     /**
      * @brief init_intfce Initializes the array with the pointers to the energy function

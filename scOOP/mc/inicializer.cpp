@@ -279,11 +279,14 @@ void Inicializer::initTop() {
     initClusterList();
     initSwitchList();
     initGroupLists();
-    initConList();
+
+    conf->sysvolume = 0;
+    for (unsigned int i=0; i<conf->pvec.size(); i++)
+        conf->sysvolume += topo.ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
 
     if(sim->nGrandCanon != 0) {
         bool existGrand = false;
-        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+        for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(topo.moleculeParam[i].chemPot != -1.0 )
                 existGrand = true;
         }
@@ -315,43 +318,6 @@ void Inicializer::initClusterList() {
         exit(1);
     }
     sim->clusters = NULL;
-}
-
-void Inicializer::initConList() {
-    //clear connectivity and then fill it from chain list
-    cout << "Generating connectivity..." << endl;
-    long k=0;
-
-    conf->conlist.resize(conf->pvec.size());
-    for (unsigned int i=0; i < conf->conlist.size(); i++) {
-        conf->conlist[i].conlist[0] = NULL;
-        conf->conlist[i].conlist[1] = NULL;
-        conf->conlist[i].conlist[2] = NULL;
-        conf->conlist[i].conlist[3] = NULL;
-    }
-
-    // generate conlist
-    conf->sysvolume = 0;
-    for (unsigned int i=0; i<conf->conlist.size(); i++) {
-        for (long j=0; j<MAXCHL; j++) {
-            if (conf->pvecGroupList.getChain(i,j) >= 0) {
-                k = conf->pvecGroupList.getChain(i,j);
-                if ((j+1 < MAXCHL)&&(conf->pvecGroupList.getChain(i,j+1) >= 0))
-                    //if there is a next particle fill it to head bond
-                    conf->conlist[k].conlist[1] = &conf->pvec[ conf->pvecGroupList.getChain(i,j+1) ];
-                if (j > 0)
-                    //if this is not first particle fill tail bond
-                    conf->conlist[k].conlist[0] = &conf->pvec[ conf->pvecGroupList.getChain(i,j-1) ];
-                if ((j+2 < MAXCHL)&& (conf->pvecGroupList.getChain(i,j+2) >= 0))
-                    //if there is a second next particle fill it second neighbour
-                    conf->conlist[k].conlist[3] = &conf->pvec[ conf->pvecGroupList.getChain(i,j+2) ];
-                if (j > 1)
-                    //if this is not second or first particle fill second tail bond
-                    conf->conlist[k].conlist[2] = &conf->pvec[ conf->pvecGroupList.getChain(i,j-2) ];
-            }
-        }
-        conf->sysvolume += topo.ia_params[conf->pvec[i].type][conf->pvec[i].type].volume;
-    }
 }
 
 void Inicializer::initSwitchList() {
@@ -540,9 +506,9 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (i=0;i<conf->pvecGroupList.getChainCount();i++){
+    for (i=0;i<conf->pvec.getChainCount();i++){
         j=0;
-        current = conf->pvecGroupList.getChain(i,0);
+        current = conf->pvec.getChainPart(i,0);
         first = current;
         chorig[0].pos = pvec[first].pos;
         while (current >=0 ) {
@@ -561,7 +527,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             pvec[current].pos.z += chorig[0].pos.z;
             //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
             j++;
-            current = conf->pvecGroupList.getChain(i,j);
+            current = conf->pvec.getChainPart(i,j);
         }
     }
 
@@ -588,12 +554,12 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
 
 void Inicializer::testChains() {
-    if (conf->pvecGroupList.getChainCount() == 0) {    // no chain -> make the probability of moving them 0
+    if (conf->pvec.getChainCount() == 0) {    // no chain -> make the probability of moving them 0
         if (sim->chainprob > 0)
             printf ("No chains... chain move probability set to 0.\n");
         sim->chainprob = 0;
     } else {
-        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+        for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(topo.moleculeParam[i].isGrandCanonical() && !topo.moleculeParam[i].isAtomic()) {
                 if(!poolConfig) {
                     cout << "ChainInsert with no Pool system stated! State [Pool] in top.init" << endl;
@@ -676,26 +642,26 @@ void Inicializer::initGroupLists() {
         // set simple grouplist
         if(newType != conf->pvec[i].molType) {
             newType = conf->pvec[i].molType;
-            conf->pvecGroupList.first[newType] = i;
-            conf->pvecGroupList.molSize[newType] = topo.moleculeParam[newType].molSize();
+            conf->pvec.first[newType] = i;
+            conf->pvec.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
-    conf->pvecGroupList.molTypeCount = newType+1;
-    conf->pvecGroupList.first[newType+1] = conf->pvec.size();
+    conf->pvec.molTypeCount = newType+1;
+    conf->pvec.first[newType+1] = conf->pvec.size();
 
-    conf->pvecGroupList.calcChainCount();
+    conf->pvec.calcChainCount();
 
     newType = -1;
     for(unsigned int i = 0; i < conf->pool.size(); i++) {
         // set simple grouplist
         if(newType != conf->pool[i].molType) {
             newType = conf->pool[i].molType;
-            conf->poolGroupList.first[newType] = i;
-            conf->poolGroupList.molSize[newType] = topo.moleculeParam[newType].molSize();
+            conf->pool.first[newType] = i;
+            conf->pool.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
-    conf->poolGroupList.molTypeCount = newType+1;
-    conf->poolGroupList.first[newType+1] = conf->pool.size();
+    conf->pool.molTypeCount = newType+1;
+    conf->pool.first[newType+1] = conf->pool.size();
 }
 
 
@@ -708,7 +674,7 @@ void Inicializer::initGroupLists() {
 
 
 
-void Inicializer::setParticlesParams(Molecule* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
+void Inicializer::setParticlesParams(MolIO* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
     long i=0, j=0, mol, k, maxpart=0;
 
     while (sysnames[i]!=NULL) {
@@ -1184,7 +1150,7 @@ int Inicializer::fillExter(char **pline) {
 }
 
 
-int Inicializer::fillMol(char *molname, char *pline, Molecule *molecules) {
+int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
     DEBUG_INIT("fillmol just has been called!");
     char str[STRLEN],str2[STRLEN],molcommand[STRLEN],molparams[STRLEN];
     int i,j,fields;

@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-QMAKE_CXXFLAGS += -O3 -msse2 -mfpmath=sse -g
+QMAKE_CXXFLAGS += -O3 -msse2 -mfpmath=sse -g -fno-inline
 
 #QMAKE_CXXFLAGS+= -fopenmp
 #QMAKE_LFLAGS +=  -fopenmp
@@ -48,5 +48,6 @@ HEADERS += \
     structures/moleculeparams.h \
     structures/topo.h \
     mc/randomGenerator.h \
-    mc/externalenergycalculator.h
+    mc/externalenergycalculator.h \
+    structures/geometry.h
 

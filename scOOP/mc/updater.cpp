@@ -328,14 +328,14 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
     printf("System:\n");
 
-    for(i=0; i < conf->pvecGroupList.molTypeCount; i++)
-        printf("%s %d\n", topo.moleculeParam[i].name, conf->pvecGroupList.molCountOfType(i));
+    for(i=0; i < conf->pvec.molTypeCount; i++)
+        printf("%s %d\n", topo.moleculeParam[i].name, conf->pvec.molCountOfType(i));
 
     if(sim->nGrandCanon != 0) {
         cout << "Acceptance:\n";
         cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
         cout << std::setprecision(3) <<  std::fixed << std::left;
-        for(int i=0; i<conf->pvecGroupList.molTypeCount; i++) {
+        for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(topo.moleculeParam[i].activity != -1.0) {
                 cout << "  " << std::setw(6) <<topo.moleculeParam[i].name << " "
                      << std::setw(6)
@@ -714,10 +714,8 @@ int Updater::calcClusterEnergies() {
         sim->clustersenergy[i]=0.0;
         for(int j = 0; j < sim->clusters[i].npart; j++) {
             for(int k = j+1; k < sim->clusters[i].npart; k++) {
-                sim->clustersenergy[i]+= calcEnergy.p2p(&conf->pvec[sim->clusters[i].particles[j]]
-                        , &conf->conlist[sim->clusters[i].particles[j]]
-                        , &conf->pvec[sim->clusters[i].particles[k]]
-                        , &conf->conlist[sim->clusters[i].particles[k]]);
+                sim->clustersenergy[i]+= calcEnergy.p2p(sim->clusters[i].particles[j], // particle 1
+                                                        sim->clusters[i].particles[k]);        // particle 2
             }
         }
     }
@@ -728,16 +726,19 @@ int Updater::calcClusterEnergies() {
 
 int Updater::sameCluster(long fst, long snd) {
 
+    ConList conFst = conf->pvec.getConlist(fst);
+    ConList conSnd = conf->pvec.getConlist(snd);
+
     /*if two particles are bonded they belong to the same cluster*/
     if ( ((topo.moleculeParam[conf->pvec[fst].molType]).bond1c >= 0) ||
         ((topo.moleculeParam[conf->pvec[fst].molType]).bonddc >= 0) ){
-        if ( (&conf->pvec[snd] == conf->conlist[fst].conlist[1]) || (&conf->pvec[snd] == conf->conlist[fst].conlist[0]) ) {
+        if ( (&conf->pvec[snd] == conFst.conlist[1]) || (&conf->pvec[snd] == conFst.conlist[0]) ) {
           return true;
         }
     }
     if ( ((topo.moleculeParam[conf->pvec[snd].molType]).bond1c >= 0) ||
         ((topo.moleculeParam[conf->pvec[snd].molType]).bonddc >= 0) ){
-        if ( (&conf->pvec[fst] == conf->conlist[snd].conlist[1]) || (&conf->pvec[fst] == conf->conlist[snd].conlist[0]) ) {
+        if ( (&conf->pvec[fst] == conSnd.conlist[1]) || (&conf->pvec[fst] == conSnd.conlist[0]) ) {
           return false;
         }
     }
@@ -760,7 +761,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if(calcEnergy.p2p(&conf->pvec[fst], &conf->conlist[fst], &conf->pvec[snd], &conf->conlist[snd]) > -0.10 ){
+    if(calcEnergy.p2p(fst, snd) > -0.10 ){
         return false;
     }
     else {
