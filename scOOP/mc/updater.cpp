@@ -17,7 +17,7 @@ void Updater::openFilesClusterStatistics(FILE** cl_stat, FILE** cl, FILE** cl_li
         *cl = fopen(files->clusterfile, "a");
     }
     // write energy
-    if (report < nsweeps){
+    if (report <= nsweeps){
         // Empty file
         *ef = fopen(files->energyfile, "w");
         fclose(*ef);
