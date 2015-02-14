@@ -4,7 +4,7 @@
 #include "macros.h"
 
 /**
- * @brief Parameters for inner interaction in chains
+ * @brief Parameters for interactions of molecules(mainly inner interaction in chains), each molType has a MoleculeParams instance
  */
 class MoleculeParams
 {
@@ -24,7 +24,7 @@ public:
     // For muVT enseble
     double activity;                ///< \brief activity, specific to each molecule type
     double chemPot;                 ///< \brief mu + 3*ln(A), specific to each type
-    std::vector<int> particleTypes; ///< \brief 0..40 single particle type of each particle, -1: no particle
+    std::vector<int> particleTypes; ///< \brief 0..40 particle type, -1: no particle, What particle types make a molecule
 
     int delAcc;
     int delRej;
@@ -40,25 +40,20 @@ public:
                        activity(-1.0), chemPot(-1.0),
                        delAcc(0), delRej(0), insAcc(0), insRej(0),
                        muVtAverageParticles(0), muVtSteps(0) {
-        particleTypes.resize(MAXCHL);
-        for(int j=0; j<MAXCHL; j++)
-            particleTypes[j] = -1;
+        particleTypes.reserve(MAXCHL);
     }
 
     /**
      * @return True if Molecule of only one particle
      */
-    bool isAtomic() {return (particleTypes[1] == -1);}
+    bool isAtomic() {return (particleTypes.size() == 1);}
 
     bool isGrandCanonical() {return chemPot!=-1.0;}
 
     int molSize() {
-        int size = 0;
-        for(int i=0; i<MAXCHL; i++) if(particleTypes[i] != -1) size++;
-        return size;
+        return particleTypes.size();
     }
 
-    enum {NO_INSERT=0, RANDOM=1, POOL=2};
 };
 
 #endif // MOLECULEPARAMS_H

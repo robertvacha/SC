@@ -314,7 +314,10 @@ double MoveCreator::chainMove() {
     double edriftchanges =0.0;
     long target;
 
-    /*=== This is a chain move step ===*/
+    if(conf->pvec.getChainCount() == 0) // no chains to displace - muVTmove deleted all
+        return 0.0;
+
+    //=== This is a chain move step ===
     target = ran2() * conf->pvec.getChainCount();
 
     if (ran2() < 0.5) {
@@ -447,7 +450,7 @@ double MoveCreator::chainRotate(long target) {
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0;
     vector<Particle>::iterator begin = conf->pvec.begin()+conf->pvec.getChainPart(target,0);
-    int size = conf->pvec.molSize[begin->molType];
+    int size = topo.moleculeParam[begin->molType].molSize();
 
     /*=== Rotation step of cluster/chain ===*/
     //printf ("rotation of chain\n\n");
@@ -1215,7 +1218,7 @@ double MoveCreator::muVTMove() {
 
     // Determine what type we will be inserting/deleting
     int molType = getRandomMuVTType();
-    molSize = conf->pvec.molSize[molType];
+    molSize = topo.moleculeParam[molType].molSize();
 
     topo.moleculeParam[molType].muVtSteps++;
 
@@ -1240,7 +1243,7 @@ double MoveCreator::muVTMove() {
             if( ( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
                   exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
 
-                conf->addMolecule(&insert);
+                conf->insertMolecule(insert);
                 insert.clear();
                 conf->sysvolume += topo.ia_params[insert[0].type][insert[0].type].volume;
                 topo.moleculeParam[molType].insAcc++;
@@ -1279,27 +1282,21 @@ double MoveCreator::muVTMove() {
             }
 
             //generate conlists
+            vector<ConList> con;
             for(unsigned int j=0; j<insert.size(); j++) {
-                conlist.push_back(ConList() );
-                conlist.back().conlist[0]=NULL;
-                conlist.back().conlist[1]=NULL;
-                conlist.back().conlist[2]=NULL;
-                conlist.back().conlist[3]=NULL;
-
-                if ( (j+1 < MAXCHL) && (j+1 < insert.size()) )
-                    //if there is a next particle fill it to head bond
-                    conlist[j].conlist[1] = &insert[j+1];
+                con.push_back(ConList() );
 
                 if (j > 0) //if this is not first particle fill tail bond
-                    conlist[j].conlist[0] = &insert[j-1];
+                    con[j].conlist[0] = &insert[j-1];
 
-                if ( (j+2 < MAXCHL) && (j+2 < insert.size()) )
-                    //if there is a second next particle fill it second neighbour
-                    conlist[j].conlist[3] = &insert[j+2];
+                if ( j+1 < insert.size() ) //if there is a next particle fill it to head bond
+                    con[j].conlist[1] = &insert[j+1];
 
-                if (j > 1)
-                    //if this is not second or first particle fill second tail bond
-                    conlist[j].conlist[2] = &insert[j-2];
+                if (j > 1) //if this is not second or first particle fill second tail bond
+                    con[j].conlist[2] = &insert[j-2];
+
+                if ( j+2 < insert.size() ) //if there is a second next particle fill it second neighbour
+                    con[j].conlist[3] = &insert[j+2];
             }
 
             // calc energ
@@ -1310,15 +1307,14 @@ double MoveCreator::muVTMove() {
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-24))  -U(new)/kT)
             if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
                 // add internal energy(with external)
-                energy += calcEnergy->chainInner(insert.begin(), molSize, conlist.begin());
+                energy += calcEnergy->chainInner(insert.begin(), molSize, con.begin());
 
-                conf->addMolecule(&insert);
+                conf->insertMolecule(insert);
 
                 for(unsigned int i=0; i<insert.size(); i++)
                     conf->sysvolume += topo.ia_params[insert[i].type][insert[i].type].volume;
 
-                insert.clear();
-                conlist.clear();               
+                insert.clear();         
 
                 topo.moleculeParam[molType].insAcc++;
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
@@ -1329,7 +1325,6 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 insert.clear();
-                conlist.clear();
                 return 0;
             }
         }

@@ -30,11 +30,10 @@ public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
     /// on [molTypeCount] == size of vector
     int first[MAXMT+1]; ///<
-    int molSize[MAXMT]; ///< \brief Number of particles per molecule of moleculeType, array over molecular types
 
     /// \brief chainIndex of first chain of molType
     /// on [molTypeCount] == number of all chains
-    int firstChain[MAXMT+1];
+    int chainCount[MAXMT+1];
 
     int molTypeCount;   ///< \brief Count of molecular types in use
 
@@ -42,33 +41,33 @@ public:
 
     ParticleVector() {
         for(int i=0; i<MAXMT; i++) {
-            first[i] = -1; molSize[i] = -1; firstChain[i]=0;
+            first[i] = -1; chainCount[i]=0;
         }
     }
 
-    inline int getChainCount() {return firstChain[molTypeCount];}
+    inline int getChainCount() {return chainCount[molTypeCount];}
 
     int vecSize() {return first[molTypeCount];}
 
     void calcChainCount() {
-        firstChain[molTypeCount]=0;
+        chainCount[molTypeCount]=0;
         for(int molType=0; molType<=molTypeCount; molType++) {
-            if(molSize[molType] > 1) {
-                firstChain[molType] = firstChain[molTypeCount];
-                firstChain[molTypeCount] += molCountOfType(molType);
+            if(topo.moleculeParam[molType].molSize() > 1) {
+                chainCount[molType] = chainCount[molTypeCount];
+                chainCount[molTypeCount] += molCountOfType(molType);
             } else {
-                firstChain[molType] = firstChain[molTypeCount];
+                chainCount[molType] = chainCount[molTypeCount];
             }
         }
     }
 
     inline int getChainPart(int chainN, int pos) {
         for(int type=0; type<=molTypeCount; type++) {
-            if(firstChain[type] > chainN) {
+            if(chainCount[type] > chainN) {
                 type--;
-                if(molSize[type] <= pos) return -1;
-                chainN -= firstChain[type];
-                return first[type]+chainN*molSize[type] + pos;
+                if(topo.moleculeParam[type].molSize() <= pos) return -1;
+                chainN -= chainCount[type];
+                return first[type]+chainN*topo.moleculeParam[type].molSize() + pos;
             }
         }
         assert(false && "ChainN not found");
@@ -78,18 +77,18 @@ public:
     inline ConList getConlist(int part1) {
         ConList conlist; // all NULL already
 
-        if(molSize[this->operator [](part1).molType] == 1)  // particle not in any chain
+        if(topo.moleculeParam[(*this)[part1].molType].isAtomic())  // particle not in any chain
             return conlist;
 
-        int pos = (part1 - first[this->operator [](part1).molType]) % molSize[this->operator [](part1).molType]; // position within chain
+        int pos = (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize(); // position within chain
 
         if(pos > 0)
             conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < molSize[this->operator [](part1).molType])
+        if(pos+1 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
         conlist.conlist[1] = &this->operator [](part1+1);
         if(pos > 1)
             conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < molSize[this->operator [](part1).molType])
+        if(pos+2 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
             conlist.conlist[3] = &this->operator [](part1+2);
 
         return conlist;
@@ -100,11 +99,11 @@ public:
 
         if(pos > 0)
             conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < molSize[this->operator [](part1).molType])
+        if(pos+1 < topo.moleculeParam[(*this)[part1].molType].molSize())
         conlist.conlist[1] = &this->operator [](part1+1);
         if(pos > 1)
             conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < molSize[this->operator [](part1).molType])
+        if(pos+2 < topo.moleculeParam[(*this)[part1].molType].molSize())
             conlist.conlist[3] = &this->operator [](part1+2);
 
         return conlist;
@@ -114,11 +113,11 @@ public:
     Molecule getChain(int chainN) {
         Molecule ret;
         for(int type=0; type<=molTypeCount; type++) {
-            if(firstChain[type] > chainN) {
+            if(chainCount[type] > chainN) {
                 type--;
-                chainN -= firstChain[type];
-                chainN *= molSize[type];
-                for(int i=0; i<molSize[type]; i++)
+                chainN -= chainCount[type];
+                chainN *= topo.moleculeParam[type].molSize();
+                for(int i=0; i < topo.moleculeParam[type].molSize(); i++)
                     ret.push_back(first[type]+chainN + i);
                 return ret;
             }
@@ -129,10 +128,10 @@ public:
 
     Molecule getMolecule(int chainN, int molType) {
         Molecule ret;
-        chainN *= molSize[molType];
+        chainN *= topo.moleculeParam[molType].molSize();
         chainN += first[molType];
 
-        for(int i=0; i<molSize[molType]; i++)
+        for(int i=0; i < topo.moleculeParam[molType].molSize(); i++)
             ret.push_back(chainN + i);
         assert(this->operator [](ret[0]).molType == molType); // did we pick correct molType
         return ret;
@@ -152,7 +151,7 @@ public:
      * @return Index of first particle of molecule
      */
     inline int getStoreIndex(int molType, int molID) const {
-        return first[molType] + molSize[molType]*molID;
+        return first[molType] + topo.moleculeParam[molType].molSize()*molID;
     }
 
     inline int getInsertIndex(int molType) const {
@@ -164,15 +163,17 @@ public:
      * @return Number of molecules a given type
      */
     int molCountOfType(int molType) {
-        assert( ( first[molType+1] -  first[molType]) /  molSize[molType] >= 0);
-        return ( first[molType+1] -  first[molType]) /  molSize[molType];
+        assert( (first[molType+1] - first[molType]) / topo.moleculeParam[molType].molSize() >= 0);
+        return ( first[molType+1] - first[molType]) / topo.moleculeParam[molType].molSize();
     }
 
-    void insertMolecule(int molType) {
-        for(int i= molType+1; i<=molTypeCount; i++)
-            first[i] += molSize[molType];
+    void insertMolecule(std::vector<Particle>& molecule) {
+        insert(begin()+first[molecule[0].molType+1], molecule.begin(), molecule.end());
 
-        if(molSize[molType] > 1)
+        for(int i= molecule[0].molType+1; i<=molTypeCount; i++)
+            first[i] += topo.moleculeParam[molecule[0].molType].molSize();
+
+        if(topo.moleculeParam[molecule[0].molType].molSize() > 1)
             calcChainCount();
 
         assert(checkConsistency());
@@ -180,9 +181,13 @@ public:
 
     void deleteMolecule(Molecule& mol) {
         for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++)
-            first[i] -= molSize[this->operator [](mol[0]).molType];
+            first[i] -= topo.moleculeParam[ (*this)[mol[0]].molType ].molSize();
 
-        if(molSize[this->operator [](mol[0]).molType] > 1)
+        // mol[0] - index of first particle of molecule
+        // (*this)[ mol[0] ] - access Particle
+        // (*this)[mol[0]].molType - moltype
+        // topo.moleculeParam[molType].molSize() ...
+        if(topo.moleculeParam[ (*this)[mol[0]].molType ].molSize() > 1)
             calcChainCount();
 
         assert(checkConsistency());
@@ -277,27 +282,16 @@ public:
                     pvec[i].switched);
         }
 #else
-#ifdef WEDGE
         for (unsigned int i=0; i < pvec.size(); i++) {
-            fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
-                    geo.box.x * ((pvec[i].pos.x)),
-                    geo.box.y * ((pvec[i].pos.y)),
-                    geo.box.z * ((pvec[i].pos.z) - anInt(pvec[i].pos.z)),
-                    pvec[i].dir.x, pvec[i].dir.y, pvec[i].dir.z,
-                    pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
-                    pvec[i].switched);
+            fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d %d\n",
+                     geo.box.x * ((pvec[i].pos.x) - anInt(pvec[i].pos.x)),
+                     geo.box.y * ((pvec[i].pos.y) - anInt(pvec[i].pos.y)),
+                     geo.box.z * ((pvec[i].pos.z) - anInt(pvec[i].pos.z)),
+                     pvec[i].dir.x, pvec[i].dir.y, pvec[i].dir.z,
+                     pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
+                    pvec[i].switched,
+                    pvec[i].molType);
         }
-#else
-        for (unsigned int i=0; i < pvec.size(); i++) {
-            fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d\n",
-                    geo.box.x * ((pvec[i].pos.x) - anInt(pvec[i].pos.x)),
-                    geo.box.y * ((pvec[i].pos.y) - anInt(pvec[i].pos.y)),
-                    geo.box.z * ((pvec[i].pos.z) - anInt(pvec[i].pos.z)),
-                    pvec[i].dir.x, pvec[i].dir.y, pvec[i].dir.z,
-                    pvec[i].patchdir[0].x, pvec[i].patchdir[0].y, pvec[i].patchdir[0].z,
-                    pvec[i].switched);
-        }
-#endif
 #endif
     }
 
@@ -305,7 +299,7 @@ public:
      * @brief Adds molecule to pvec, ensures Particle order, grouplist, conlist
      * @param molecule
      */
-    void addMolecule(std::vector<Particle>* molecule);
+    void insertMolecule(std::vector<Particle> &molecule);
 
     /**
      * @brief removeMolecule

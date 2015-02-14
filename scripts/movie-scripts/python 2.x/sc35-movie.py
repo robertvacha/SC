@@ -84,7 +84,7 @@ def write_data(data,box,particles, types, geotypes, params,outfilename,outfilena
 	#print(len(frame))
 	atm=1
 	for j in range(len(frame)):
-	    [x,y,z,vx,vy,vz,px,py,pz,sw]=frame[j][:]
+            [x,y,z,vx,vy,vz,px,py,pz,sw,moltype]=frame[j][:]
 	    [x,y,z] = usefulmath.usepbc([x,y,z],box[i])
 	    #if (types[j] <SP):
 	    #print("j : %d\n" % j)
@@ -250,6 +250,7 @@ def read_input(infilename):
     data=[]
     box=[]
     frame=[]
+    sweep_num=[]
     inp=open(infilename)
     i=0
     atomnum=0
@@ -266,10 +267,12 @@ def read_input(infilename):
 	    else:
 		if (len(linesplit)==6):
 		    [sweep,num,boxstr,bx,by,bz]=linesplit[:]
-		    box.append([float(bx),float(by),float(bz)])
+                    num = num[:-1]
+                    sweep_num.append(int(num))
+                    box.append([float(bx),float(by),float(bz)])
 		else:
-		    [x,y,z,vx,vy,vz,px,py,pz,sw]=linesplit[:]
-		    frame.append([float(x),float(y),float(z),float(vx),float(vy),float(vz),float(px),float(py),float(pz),float(sw)])
+                    [x,y,z,vx,vy,vz,px,py,pz,sw,moltype]=linesplit[:]
+                    frame.append([float(x),float(y),float(z),float(vx),float(vy),float(vz),float(px),float(py),float(pz),float(sw),int(moltype)])
 		    i=i+1
 	if ( (atomnum!=0) and (i==atomnum) ):
 	    #print frame
@@ -278,7 +281,7 @@ def read_input(infilename):
     if (atomnum==0):
 	data.append(frame)
     
-    return [box,data]
+    return [box,data,sweep_num]
 
 def write_vmd(outfilename,outfilename2,particles, types, geotypes, params, num_frames, switch, switchtypes):
     f = open("vmd.script", 'w')
@@ -614,43 +617,109 @@ def read_top(topfilename):
     #return [types, geotypes, params]
     return [particles, types, geotypes, params, switch, switchtype]
 
-def gc_sim(infilename,topfilename):
-    formated_line="{0:+.8e} {0:+.8e} {0:+.8e}   {1:+.8e} {0:+.8e} {0:+.8e}   {0:+.8e} {1:+.8e} {0:+.8e} 0\n".format(0.0, 1.0)
-    infile = open(infilename, 'r')
+def gc_sim(infilename,topfilename,data,box, sweep):
+    formated_line="{0:+.8e} {0:+.8e} {0:+.8e}   {1:+.8e} {0:+.8e} {0:+.8e}   {0:+.8e} {1:+.8e} {0:+.8e} 0 0\n".format(0.0, 1.0)
+
     ## find largest number of particles
-    max_num = 0
-    for line in infile:
-            splits = line.split()
-            if (len(splits) == 1) and (int(splits[0]) > max_num):
-                    max_num = int(line)
+    max_num = [0,0,0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0]
+    current_moltype = 0
+    max = 0
+    num_of_particles = 0;
+    last_moltype = 0
+
+    ## for movie frame
+        ## for particles of frame
+            ## calculate maximums per all types
+    for i in range(len(data)):
+        max=0
+        current_moltype = 0
+        for j in range(len(data[i])):
+            if(data[i][j][10] == current_moltype):
+                max = max+1
+            else:
+                if(max > max_num[current_moltype]):
+                    max_num[current_moltype] = max
+                current_moltype = data[i][j][10]
+                max = 1 # we must include current particle
+        if(max > max_num[current_moltype]):
+            max_num[current_moltype] = max
+        if(current_moltype > last_moltype):
+            last_moltype = current_moltype
+
     ## create new movie file
-    print max_num
-    infile.seek(0, 0)
+    for i in range(len(max_num)):
+        num_of_particles = num_of_particles + max_num[i]
+
     infile_new = open(infilename+"_new", 'w')
-    line = infile.readline()
-    while line:
-            if len(line.split()) == 1:
-                    infile_new.write(str(max_num)+"\n")
-                    line = infile.readline()
-                    for i in xrange(max_num+1):
-                            if len(line.split()) != 1:
-                                    infile_new.write(line)
-                                    line = infile.readline()
-                            else:
-                                    infile_new.write(formated_line)
-            line = infile.readline()
-    infile.close()
+
+    check = 0
+    for i in range(len(data)): # frames
+        current_moltype = 0
+        num_written = 0
+        infile_new.write(str(num_of_particles) + "\n" )
+        infile_new.write("sweep "+str(sweep[i])+ ";  box "+ str(round(box[i][0],8))+ " "+ str(round(box[i][1],8))+ " "+ str(round(box[i][2],8))+"\n" )
+        for j in range(len(data[i])): # particles
+            if(data[i][j][10] != current_moltype):
+                for q in range(num_written, max_num[current_moltype]):
+                    infile_new.write(formated_line)
+                    check = check+1
+                current_moltype = current_moltype +1
+                num_written = 0
+            x = "{:.8e}".format(data[i][j][0])
+            y = "{:.8e}".format(data[i][j][1])
+            z = "{:.8e}".format(data[i][j][2])
+            xx = "{:.8e}".format(data[i][j][3])
+            yy = "{:.8e}".format(data[i][j][4])
+            zz = "{:.8e}".format(data[i][j][5])
+            xxx = "{:.8e}".format(data[i][j][6])
+            yyy = "{:.8e}".format(data[i][j][7])
+            zzz = "{:.8e}".format(data[i][j][8])
+            chi = "{:.8e}".format(data[i][j][9])
+            moltype = "{:.0f}".format(data[i][j][10])
+
+            infile_new.write(x+" "+y+" "+z+" "+xx+" "+yy+" "+zz+" "+xxx+" "+yyy+" "+zzz+" "+chi+" "+moltype+"\n")
+            check = check+1
+
+            num_written = num_written+1
+
+        for q in range(num_written, max_num[current_moltype]): # case - current_moltype -> writting out 0.0 particles
+            infile_new.write(formated_line)
+            check = check+1
+
+        if(current_moltype != last_moltype): # case - last moltype defined had 0 particles -> current moltype++
+            current_moltype = last_moltype
+            num_written = 0
+            for q in range(num_written, max_num[current_moltype]):
+                infile_new.write(formated_line)
+                check = check+1
+
+        if(check != num_of_particles):
+            print "should be"
+            print num_of_particles
+            print "actually written"
+            print check
+            print "frame"
+            print i
+            print "Wrong number of particles - implementation error, PM Lukas"
+        check = 0
+
     infile_new.close()
-    ## change topology file
+
+    ## create new topology file
+    bool_system = 0
     topfile = open(topfilename, 'r')
     topfile_new = open(topfilename+"_new", 'w')
     for line in topfile:
         if line.split()[0] == "[System]":
+            current_moltype = 0
+            bool_system = 1
             topfile_new.write(line)
-            line = topfile.next()
-            topfile_new.write(line.split()[0]+" "+str(max_num))
 	else:
-    	    topfile_new.write(line)
+            if(bool_system == 1):
+                topfile_new.write(line.split()[0]+" "+str(max_num[current_moltype]) + "\n")
+                current_moltype = current_moltype +1
+            else:
+                topfile_new.write(line)
     topfile.close()
     topfile_new.close()
     
@@ -658,10 +727,10 @@ def gc_sim(infilename,topfilename):
 
 
 def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
-    if gc_switch == "1":
-       [infilename, topfilename] = gc_sim(infilename, topfilename)
     print "Reading topology..."
+
     [particles, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
+
 ##    #DEBUG
 ##    print ">>PARTICLES:",particles
 ##    print ">>TYPES:",types
@@ -669,20 +738,43 @@ def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
 ##    print ">>PARAMS:",params
 ##    print ">>SWITCH:",switch
 ##    print ">>SWITCHTYPES:",switchtypes    
+
     if (len(types) < 1):
 	print "ERROR: types have not been read"
 	return 1
+
     print "Reading coordinates..."
-    [box,data]=read_input(infilename)
+
+    [box,data,sweep]=read_input(infilename)
+
     if ((len(data) < 1 ) or ( len(box) < 1 )):
 	print "ERROR: data has not been read"
 	return 1
+
+    if gc_switch == "1":
+       [infilename, topfilename] = gc_sim(infilename, topfilename, data, box, sweep)
+       del particles[:]
+       del types[:]
+       del geotypes[:]
+       del params[:]
+       switch = []
+       del switchtypes[:]
+       del box[:]
+       del data[:]
+       del sweep[:]
+       print "Re-reading topology, coordinates for grandcanonical"
+       [particles, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
+       [box,data,sweep]=read_input(infilename)
+
     if ( (len(data[0]) % len(particles)) != 0):
 	print "ERROR: data with length %d does not fit types with length %d" % (len(data[0]),len(particles))
 	return 1
+
     print "Writing data..."
+
     switchfile = "switch.dat"
-    write_data(data,box,particles, types, geotypes, params, outfilename, outfilename2, switch, switchtypes, switchfile)
+
+    write_data(data,box,particles, types, geotypes, params, outfilename, outfilename2, switch, switchtypes, switchfile)   
     print "Writing psf..."
     write_psf(outfilename2,box,particles, types, geotypes, params)
     print "Writing vmd..."

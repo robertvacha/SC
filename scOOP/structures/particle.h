@@ -17,7 +17,7 @@ public:
     Vector patchsides[4];   ///< \brief Vector defining sides of patch
     Vector chdir[2];        ///< \brief Direction for chirality - keep in memory to increase speed
 
-    long molType;           ///< \brief Molecule type 0-100, given sequentialy from 0
+    int molType;           ///< \brief Molecule type 0-100, given sequentialy from 0
     //long chainIndex;        ///< \brief Chain number, only for Molecules of two or more particles
     int type;               ///< \brief Type of the particle 0 - 40
     int switchtype;         ///< \brief With which kind of particle do you want to switch?

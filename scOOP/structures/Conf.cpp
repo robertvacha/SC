@@ -2,42 +2,27 @@
 
 extern Topo topo;
 
-void Conf::addMolecule(std::vector<Particle>* molecule) {
+void Conf::insertMolecule(std::vector<Particle>& molecule) {
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
     int size = pvec.size();
-    int molTypeSize = pvec.molCountOfType((*molecule)[0].molType);
+    int molTypeSize = pvec.molCountOfType(molecule[0].molType);
 #endif
 
-    int insID = pvec.getInsertIndex((*molecule)[0].molType);   // store index where to insert
-
-    // add neighbors to neighborList, conlists to conlist
+    // add neighbors to neighborList
     if(pairlist_update) {
-        for(unsigned int i = 0; i<molecule->size(); i++) {
+        for(unsigned int i = 0; i<molecule.size(); i++) {
             neighborList.push_back(Neighbors() );
             neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
         }
     }
-    // change groupList
-    pvec.insertMolecule((*molecule)[0].molType);
 
-    // insert at end of pvec -> trivial
-    if((*molecule)[0].molType == pvec.molTypeCount-1) {
-        for(unsigned int i=0; i<molecule->size(); i++)
-            pvec.push_back((*molecule)[i]);
-
-    } else { // insert in middle of particleVector
-        //
-        // copy all particles after insert (done automatically by std::vector::insert() )
-        // optimalization, when possible copy only minimal number of particles of succeeding molTypes
-        //
-        pvec.insert(pvec.begin()+insID, molecule->begin(), molecule->end());
-    }
+    pvec.insertMolecule(molecule);
 
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
-    assert(pvec.size() == molecule->size() + size);
-    assert(pvec.molCountOfType((*molecule)[0].molType) == molTypeSize + 1);
+    assert(pvec.size() == molecule.size() + size);
+    assert(pvec.molCountOfType(molecule[0].molType) == molTypeSize + 1);
 #endif
 }
 
@@ -74,7 +59,7 @@ std::vector<Particle> Conf::getRandomPoolConf(int molType) {
     target = ran2() * pool.molCountOfType(molType);
     target = pool.getStoreIndex(molType, target);
 
-    for(int i=0; i < pool.molSize[molType]; i++) {
+    for(int i=0; i < topo.moleculeParam[molType].molSize(); i++) {
         vec.push_back(pool[target+i]);
     }
     return vec;

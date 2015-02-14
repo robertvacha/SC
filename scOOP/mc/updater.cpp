@@ -128,6 +128,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
+        if(sweep%(nsweeps/10) == 0)
+            cout << "sweep: " << sweep << " particles: " << conf->pvec.size() << endl;
+
         // Try replica exchange
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
             edriftchanges += move.replicaExchangeMove(sweep);
@@ -303,7 +306,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Writing of movie frame
         if (sweep == next_frame) {
             fprintf (mf, "%ld\n", (long)conf->pvec.size());
-            fprintf (mf, "sweep %ld;  geo.box %.10f %.10f %.10f\n", sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+            fprintf (mf, "sweep %ld; box %.10f %.10f %.10f\n", sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
             conf->draw(mf);
             fflush (mf);
             next_frame += sim->movie;

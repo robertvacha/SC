@@ -123,8 +123,6 @@ private:
 
     void initClusterList();
 
-    void initConList();
-
     void initSwitchList();
 
     void setParticlesParams() {

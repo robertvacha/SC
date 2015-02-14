@@ -643,7 +643,6 @@ void Inicializer::initGroupLists() {
         if(newType != conf->pvec[i].molType) {
             newType = conf->pvec[i].molType;
             conf->pvec.first[newType] = i;
-            conf->pvec.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
     conf->pvec.molTypeCount = newType+1;
@@ -657,7 +656,6 @@ void Inicializer::initGroupLists() {
         if(newType != conf->pool[i].molType) {
             newType = conf->pool[i].molType;
             conf->pool.first[newType] = i;
-            conf->pool.molSize[newType] = topo.moleculeParam[newType].molSize();
         }
     }
     conf->pool.molTypeCount = newType+1;
@@ -1187,7 +1185,8 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
             strcpy(topo.moleculeParam[i].name, molname);
         }
 
-        topo.moleculeParam[i].particleTypes[j] = molecules[i].type[j];
+        topo.moleculeParam[i].particleTypes.push_back(molecules[i].type[j]);
+        assert(topo.moleculeParam[i].particleTypes[j] == molecules[i].type[j]);
 
         if (fields == 1){
                 (molecules[i].switchtype[j]) = (molecules[i].type[j]);
