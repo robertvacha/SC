@@ -19,6 +19,7 @@ typedef struct{
     long * particles;
 } Cluster;
 
+class Molecule : public vector<int > {};
 
 /**
  * @brief This structure is for io only

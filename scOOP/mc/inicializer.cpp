@@ -383,7 +383,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 #ifdef WEDGE
     double angle, innerR, outerR;
     Vector box;
-    if (sscanf(line, "%le %le %le %le", &box.z, &angle, &outerR, &innerR) != 4) {
+    if (sscanf(line, "%le %le %le %le", &outerR, &innerR, &box.z, &angle) != 4) {
         if(myGetLine(&line, &line_size, infile) == -1){
             fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
             exit (1);
@@ -434,11 +434,13 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         }
         strip_comment(line);
         trim(line);
+
         fields = sscanf(line, "%le %le %le %le %le %le %le %le %le %d",
-                &pvec[i].pos.x, &pvec[i].pos.y, &pvec[i].pos.z,
-                &pvec[i].dir.x, &pvec[i].dir.y, &pvec[i].dir.z,
-                &pvec[i].patchdir[0].x, &pvec[i].patchdir[0].y, &pvec[i].patchdir[0].z,
-                &pvec[i].switched);
+                        &pvec[i].pos.x, &pvec[i].pos.y, &pvec[i].pos.z,
+                        &pvec[i].dir.x, &pvec[i].dir.y, &pvec[i].dir.z,
+                        &pvec[i].patchdir[0].x, &pvec[i].patchdir[0].y, &pvec[i].patchdir[0].z,
+                        &pvec[i].switched);
+
         pvec[i].patchdir[1].x = pvec[i].patchdir[1].y = pvec[i].patchdir[1].z =0;
         pvec[i].chdir[0].x = pvec[i].chdir[0].y = pvec[i].chdir[0].z =0;
         pvec[i].chdir[1].x = pvec[i].chdir[1].y = pvec[i].chdir[1].z =0;

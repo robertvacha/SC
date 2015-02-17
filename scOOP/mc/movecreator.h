@@ -107,18 +107,39 @@ private:
      * @param size
      * @param max_angle
      */
-    void clusterRotate(vector<Particle>::iterator begin, unsigned int size, double max_angle);
+    void clusterRotate(vector<int >& cluster, double max_angle);
 
-    inline Vector clusterCM(vector<Particle>::iterator begin, unsigned int size) {
+    void clusterRotate(vector<Particle >& cluster, double max_angle);
+
+    inline Vector clusterCM(vector<int >& cluster) {
         double chainVolume=0.0;
         Vector cluscm(0.0, 0.0, 0.0);
 
-        for(vector<Particle >::iterator it=begin; it!=begin+size; ++it) {
-            cluscm.x += it->pos.x * topo.ia_params[it->type][it->type].volume;
-            cluscm.y += it->pos.y * topo.ia_params[it->type][it->type].volume;
-            cluscm.z += it->pos.z * topo.ia_params[it->type][it->type].volume;
+        for(unsigned int i=0; i<cluster.size(); i++) {
+            cluscm.x += conf->pvec[cluster[i]].pos.x * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+            cluscm.y += conf->pvec[cluster[i]].pos.y * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+            cluscm.z += conf->pvec[cluster[i]].pos.z * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
 
-            chainVolume += topo.ia_params[it->type][it->type].volume;
+            chainVolume += topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+        }
+
+        cluscm.x /= chainVolume;
+        cluscm.y /= chainVolume;
+        cluscm.z /= chainVolume;
+
+        return cluscm;
+    }
+
+    inline Vector clusterCM(vector<Particle >& cluster) {
+        double chainVolume=0.0;
+        Vector cluscm(0.0, 0.0, 0.0);
+
+        for(unsigned int i=0; i<cluster.size(); i++) {
+            cluscm.x += cluster[i].pos.x * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+            cluscm.y += cluster[i].pos.y * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+            cluscm.z += cluster[i].pos.z * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+
+            chainVolume += topo.ia_params[cluster[i].type][cluster[i].type].volume;
         }
 
         cluscm.x /= chainVolume;

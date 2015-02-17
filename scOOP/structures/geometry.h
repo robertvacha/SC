@@ -98,8 +98,6 @@ private:
     double angleSin;
     double angleCos;
     double angleRad;
-    Vector scale;       // scale unitCube -> higher prob of insert into wedge
-    Vector offset;      // offset scaled unitCube to wedge
 
     inline void rotateClockWise(Vector* pos) { // OK
         double x = pos->x;
@@ -140,11 +138,6 @@ public:
         angleRad = angle*PI / 180.0;
         angleSin = sin(angleRad);
         angleCos = cos(angleRad);
-
-        //cout << "Sin: " << angleSin << " Cos: " << angleCos << endl;
-
-        scale = Vector(angleSin, angleCos, 0.0);
-        offset = Vector(0.0, 1.0 - angleCos, 0.0);
     }
 
     inline double volume() {
@@ -168,20 +161,20 @@ public:
         // check plane YZ (angle 0) -> x go negative -> rotate clockwise
         if(part->pos.x < 0.0) {
             rotateClockWise(&part->pos);
-            part->pscRotate(angleRad, topo.ia_params[part->type][part->type].geotype[0], Vector(0,0,1), true);
+            //part->pscRotate(angleRad*0.5, topo.ia_params[part->type][part->type].geotype[0], Vector(0,0,1), false);
         }
         // check angle
         if(atan2(part->pos.x, part->pos.y) > angleRad) {
             rotateCounterClock(&part->pos);
-            part->pscRotate(angleRad, topo.ia_params[part->type][part->type].geotype[0], Vector(0,0,1), false);
+            //part->pscRotate(angleRad*0.5, topo.ia_params[part->type][part->type].geotype[0], Vector(0,0,1), true);
         }
 
         /*do { // unit lenght scaling for z axis
-            (*pos).z += box->z;
-        } while ((*pos).z < 0.0);
+            (part->pos).z += box.z;
+        } while ((part->pos).z < 0.0);
         do {
-            (*pos).z -= box->z;
-        } while ((*pos).z > box->z);*/
+            (part->pos).z -= box.z;
+        } while ((part->pos).z > box.z);*/
     }
 
     virtual Vector image(Vector* r1, Vector* r2) {
@@ -212,12 +205,8 @@ public:
     virtual Vector randomPos() {
         Vector pos;
         pos.randomUnitCube();
-        pos.x = pos.x * scale.x;
-        pos.y = pos.y * scale.y + offset.y;
         while(boundaryOverlap(&pos)) {
             pos.randomUnitCube();
-            pos.x = pos.x * scale.x;
-            pos.y = pos.y * scale.y + offset.y;
         }
         return pos;
     }
