@@ -1438,6 +1438,64 @@ int MoveCreator::getRandomMuVTType() {
     return molType;
 }
 
+double MoveCreator::clusterMove() {
+
+    double edriftchanges =0.0;
+    long target;
+
+    target = ran2() * (long)conf->pvec.size();// Select random particle from config
+    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
+    return edriftchanges;
+}
+
+double MoveCreator::clusterMoveGeom(long target) {
+    /*
+     * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
+    */
+    double edriftchanges =0.0, max_displacement= 1.0, cluster[MAXN]={}/*array with all particles that gona move*/, energy_old, energy_new;
+    int counter= 0, num_particles= 1;
+    Vector r_center;
+    Particle reflection;
+
+    r_center.randomUnitSphere();// create unit random vector
+    r_center *= ran2() * max_displacement;// set displacement from range [0:max_displacement]
+    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
+
+    cluster[0]= target;// first particle allways move so its set to be first in cluster
+
+    do{
+        // do reflection
+        reflection = conf->pvec[cluster[counter]];// copy old particle into reflected particle
+        reflection.pos = 2*r_center - reflection.pos;// reflect center of particle around r_center
+        reflection.dir *=-1;//reflect orientation of particle
+        reflection.patchdir[0] *=-1;// reflect orientation of patch
+        reflection.patchdir[1] *=-1;// reflect orientation of patch
+        //insert.push_back(reflection);// insert reflected particle into system ?? mozna neni potreba ale pokud je mozno spocitat energii mezi dvema casticema pokud
+        /*
+         * TODO:create neighbour list for reflection (reflected particle)
+         * TODO:create condensated neighbour list ... which contain neighbours to curent target particle and to its reflection
+         * TODO:count energy drift .... but how ...
+        */
+
+
+        for (long i = 0; i < conf->neighborList[cluster[counter]].neighborCount; i++){
+            energy_old = calcEnergy->p2p(cluster[counter], conf->neighborList[cluster[counter]].neighborID[i]);
+
+            energy_new = calcEnergy->p2p(&reflection, conf->neighborList[cluster[counter]].neighborID[i]);
+
+            if (ran2() > (1-exp(-((energy_new-energy_old)/sim->temper)))/* && check if neighbour is not in cluster allready*/ ){// add neighbor into cluster based on strength of interaction
+                cluster[num_particles] = conf->neighborList[cluster[counter]].neighborID[i];
+                num_particles++;
+            }
+        }
+        conf->pvec[cluster[counter]] = reflection;// actual move of particle by reflection
+        counter++;
+    }while(counter <= num_particles);
+
+    return edriftchanges;
+}
+
+
 
 
 int MoveCreator::moveTry(double energyold, double energynew, double temperature) {

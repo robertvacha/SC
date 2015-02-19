@@ -37,6 +37,18 @@ public:
     double particleMove();
 
     /**
+     * @brief clustermove
+     * @return
+     */
+    double clusterMove();
+
+    /**
+     * @brief clustermovegeometric
+     * @return
+     */
+    double clusterMoveGeom(long target);
+
+    /**
      * @brief switchtypemove This is an attempt to switch a type
      * @return
      */

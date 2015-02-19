@@ -75,6 +75,11 @@ public:
         return pairE[getThreadNum()](&conf->pvec[part1], &conf->pvec[part2], &conlist);
     }
 
+    double p2p(Particle* part1, int part2) {
+        ConList conlist = conf->pvec.getConlist(part2);
+        return pairE[getThreadNum()](part1, &conf->pvec[part2], &conlist);
+    }
+
     /**
      * @brief Calculates energy between particle "target" and the rest skipping particles from the given chain
               -particles has to be sorted in chain!!
