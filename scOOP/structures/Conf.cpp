@@ -27,7 +27,6 @@ void Conf::insertMolecule(std::vector<Particle>& molecule) {
 }
 
 void Conf::removeMolecule(Molecule &target) {
-
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
     assert((int)pvec.size() == pvec.vecSize());

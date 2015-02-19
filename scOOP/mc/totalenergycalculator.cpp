@@ -135,7 +135,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
     double energy=0.0;
     unsigned long i;
 
-    if (sim->pairlist_update) {
+    if (sim->pairlist_update && neighborList!=NULL) {
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
@@ -165,22 +165,21 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
     return energy;
 }
 
-double TotalEnergyCalculator::chainInner(vector<Particle >::iterator chain,
-                                         int size, vector<ConList>::iterator con) {
+double TotalEnergyCalculator::chainInner(vector<Particle >& chain, vector<ConList>& con) {
     double energy = 0.0;
 
-    for (int i=0; i<size-1; i++) {
-        for (int j=i+1; j<size; j++)
-            energy += (pairE[getThreadNum()])(&*(chain+i), &*(chain+j),  &*(con+i));
+    for (unsigned int i=0; i<chain.size(); i++) {
+        for (unsigned int j=i+1; j<chain.size(); j++)
+            energy += (pairE[getThreadNum()])(&chain[i], &chain[j],  &con[i]);
 
         //for every particle add interaction with external potential
         if (topo.exter.exist)
-            energy += exterE[getThreadNum()].extere2(&*(chain+i));
+            energy += exterE[getThreadNum()].extere2(&chain[i]);
     }
 
     //add interaction of last particle with external potential
     if (topo.exter.exist)
-        energy+= exterE[getThreadNum()].extere2(&*(chain+size-1));
+        energy+= exterE[getThreadNum()].extere2(&chain.back());
 
     return energy;
 }

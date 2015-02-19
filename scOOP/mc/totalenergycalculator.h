@@ -97,9 +97,9 @@ public:
     double oneToAll(Particle* target, ConList* conlist, Neighbors* neighborList);
 
     /**
-     * @brief Calculates energy between particle "target" and the rest
+     * @brief Calculates inner chain energy
      */
-    double chainInner(vector<Particle >::iterator chain, int size, vector<ConList>::iterator con);
+    double chainInner(vector<Particle >& chain, vector<ConList>& con);
 
     /**
      * @brief extere2    Calculates interaction of target particle and external field version 2

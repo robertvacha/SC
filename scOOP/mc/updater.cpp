@@ -146,8 +146,12 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             if(sim->pairlist_update)
                 genPairList();
         }
+#ifdef TRIM
+        if(sweep%1000000 ==0) {
+            edriftchanges += move.trim();
+        }
+#endif
 
-        // Generate the pairlist, also generate after each muVT move
         if( (sim->pairlist_update) && // pair_list allowed
                 (
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep

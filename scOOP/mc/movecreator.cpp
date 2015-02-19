@@ -29,6 +29,49 @@ double MoveCreator::particleMove() {
     return edriftchanges;
 }
 
+double MoveCreator::trim() {
+    // in cluster when dist < 3
+    // Breadth-first search, BFS
+    double volume = conf->geo.volume();
+    double entrophy = log(volume)/sim->temper;
+    unsigned int size = conf->pvec.size();
+    double energyOld = calcEnergy->allToAll();
+    double dotrcm = 0.0;
+    Vector r_cm;
+    vector<unsigned int> cluster;
+    cluster.push_back(9);
+    bool push = true;
+    for(unsigned int i=0; i<cluster.size(); i++) {
+        for(unsigned int j=0; j<conf->pvec.size(); j++) {
+            push = true;
+            r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos); // explicit statement below for performance optimization*/
+            dotrcm = DOT(r_cm,r_cm);
+            if(dotrcm < 9) {
+                for(unsigned int q=0; q<cluster.size(); q++)
+                    if(j == cluster[q])
+                        push=false;
+                if(push)
+                    cluster.push_back(j);
+            }
+        }
+    }
+
+    bool del=true;
+    for(unsigned int i=0; i<conf->pvec.size(); i++) {
+        del = true;
+        for(unsigned int q=0; q<cluster.size(); q++)
+            if(i == cluster[q])
+                del=false;
+        if(del) {
+            Molecule mol;
+            mol.push_back(i);
+            conf->removeMolecule(mol);
+        }
+    }
+
+    return entrophy*(size-conf->pvec.size()) - calcEnergy->allToAll() + energyOld;
+}
+
 double MoveCreator::partDisplace(long target) {
     double edriftchanges,energy,enermove,wlener;
     Vector orig, dr, origsyscm;
@@ -1357,7 +1400,7 @@ double MoveCreator::muVTMove() {
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-24))  -U(new)/kT)
             if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
                 // add internal energy(with external)
-                energy += calcEnergy->chainInner(insert.begin(), molSize, con.begin());
+                energy += calcEnergy->chainInner(insert, con);
 
                 conf->insertMolecule(insert);
 
@@ -1399,7 +1442,7 @@ double MoveCreator::muVTMove() {
             for(unsigned int i=0; i<molSize; i++) {
                 con.push_back(conf->pvec.getConlist(target[i], i));
             }
-            energy += calcEnergy->chainInner(conf->pvec.begin()+target[0], molSize, con.begin());
+            energy += calcEnergy->chainInner(insert, con);
 
             conf->removeMolecule(target);
 

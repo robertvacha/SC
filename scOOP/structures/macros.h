@@ -8,6 +8,7 @@
 #endif
 
 //#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
+//#define TRIM
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled

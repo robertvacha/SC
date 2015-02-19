@@ -16,7 +16,7 @@ public:
         try{
             insert.reserve(MAXCHL);
         } catch(std::bad_alloc& bad) {
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for insert or conlist, see MoveCreator::constructor\n");
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for insert, see MoveCreator::constructor\n");
             exit(1);
         }
     }
@@ -35,6 +35,8 @@ public:
      * @return
      */
     double particleMove();
+
+    double trim();
 
     /**
      * @brief switchtypemove This is an attempt to switch a type
