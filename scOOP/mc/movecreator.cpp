@@ -1064,7 +1064,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         int          blocklen3[7] = {1, 1, 1, 1, 1, 1, 2};
         MPI_Aint     disp3[7];
         MPI_Address( &exch, &dispstart);
-        MPI_Address( &(exch.geo.box), &disp3[0]);
+        MPI_Address( &(exch.box), &disp3[0]);
         MPI_Address( &(exch.energy), &disp3[1]);
         MPI_Address( &(exch.volume), &disp3[2]);
         MPI_Address( &(exch.accepted), &disp3[3]);
@@ -1076,7 +1076,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         MPI_Type_commit( &MPI_exchange);
         //=== This is an attempt to switch replicas ===
 
-        localmpi.geo.box = conf->geo.box;
+        localmpi.box = conf->geo.box;
         localmpi.energy = (*calcEnergy)(0, 0, 0);
         localmpi.volume = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
         localmpi.accepted = 0;
@@ -1130,7 +1130,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     //printf("part0  molType %ld chainn %ld type %d\n",conf->pvec[0].molType,conf->pvec[0].chainn,conf->pvec[0].type);
 
                     localmpi.accepted = receivedmpi.accepted;
-                    conf->geo.box = receivedmpi.geo.box;
+                    conf->geo.box = receivedmpi.box;
                     conf->syscm = receivedmpi.syscm;
                     memcpy(&conf->pvec[0],temppart,conf->pvec.size()*sizeof(Particle));
                     edriftchanges = receivedmpi.energy - localmpi.energy;
@@ -1216,7 +1216,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     //printf("exchange accepted \n");
                     sim->mpiexch.acc++;
                     localmpi.accepted = 1;
-                    conf->geo.box = receivedmpi.geo.box;
+                    conf->geo.box = receivedmpi.box;
                     conf->syscm = receivedmpi.syscm;
                     edriftchanges = receivedmpi.energy - localmpi.energy;
                     edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
