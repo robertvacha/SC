@@ -166,6 +166,35 @@ public:
         return ( first[molType+1] - first[molType]) / topo.moleculeParam[molType].molSize();
     }
 
+
+
+    long switchPartCount() {
+        int size=0;
+        for(int i=0; i<molTypeCount; i++) {
+            // size += number of swichtypes per molType * number of molecules of moltype
+            size += topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize();
+        }
+        return size;
+    }
+
+    int getSwitchPart(int target, int& seq) {
+        int count;
+        for(int i=0; i<molTypeCount; i++) {
+            count = topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize();
+            if(target > count)
+                target -= count;
+            else {
+                count = target % topo.moleculeParam[i].switchCount; // sequence number of type in chain
+                target /= topo.moleculeParam[i].switchCount;          // sequence number of molecule
+                // target = first index of type (==offset) + target molecule index + particle sequence
+                target = first[i] + target*topo.moleculeParam[i].molSize() + topo.moleculeParam[i].switchTypeSeq(count);
+                seq = count;
+                break;
+            }
+        }
+        return target;
+    }
+
     void insertMolecule(std::vector<Particle>& molecule) {
         insert(begin()+first[molecule[0].molType+1], molecule.begin(), molecule.end());
 
@@ -178,7 +207,7 @@ public:
         assert(checkConsistency());
     }
 
-    void deleteMolecule(Molecule& mol) {
+    void removeMolecule(Molecule& mol) {
         for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++)
             first[i] -= topo.moleculeParam[ (*this)[mol[0]].molType ].molSize();
 

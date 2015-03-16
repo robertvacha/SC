@@ -321,29 +321,26 @@ void Inicializer::initClusterList() {
 }
 
 void Inicializer::initSwitchList() {
-    // get all the particles with switch type
-    long switchlist[conf->pvec.size()];
-    long n_switch_part = 0;
-    for(unsigned int i = 0; i < conf->pvec.size(); i++){
-        if(conf->pvec[i].type != conf->pvec[i].switchtype){
-            switchlist[n_switch_part] = i;
-            n_switch_part++;
+    // count switch types for all molecular types
+    int count;
+    bool switchPartExist = false;
+    for(int i=0; i<MAXMT; i++) {
+        if(topo.moleculeParam[i].particleTypes.empty())
+            break;
+        count =0;
+        for(unsigned int j=0; j<topo.moleculeParam[i].switchTypes.size(); j++) {
+            if(topo.moleculeParam[i].switchTypes[j] != -1) {
+                count++;
+                switchPartExist = true;
+            }
         }
+        topo.moleculeParam[i].switchCount = count;
     }
-    topo.n_switch_part = n_switch_part;
-    if (n_switch_part == 0 && sim->switchprob > 0){
+
+    if (!switchPartExist && sim->switchprob > 0){
         fprintf(stderr, "TOPOLOGY WARNING: No switchable particles found, but probability for a switch is not zero!\n");
         sim->switchprob = 0;
         fprintf(stderr, "TOPOLOGY WARNING: We changed Switch Probability to zero in this run!\n");
-    }
-    topo.switchlist=NULL;
-    if (n_switch_part > 0){
-        topo.switchlist = (long int*) malloc(sizeof(long) * n_switch_part);
-        for(long i = 0; i < n_switch_part; i++){
-            topo.switchlist[i] = switchlist[i];
-            //DEBUG
-            //printf("%ld is in switchlist\n", switchlist[i]);
-        }
     }
 
     //  Mark particles as not switched
@@ -976,7 +973,7 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6.\n\n", geotype);
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6, is %d.\n\n", geotype, fields);
         return 0;
     }
     if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
@@ -1191,11 +1188,13 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         assert(topo.moleculeParam[i].particleTypes[j] == molecules[i].type[j]);
 
         if (fields == 1){
-                (molecules[i].switchtype[j]) = (molecules[i].type[j]);
+                (molecules[i].switchtype[j]) = -1;//(molecules[i].type[j]);
                 (molecules[i].delta_mu[j]) = 0;
                 fields = 3;
         } else{
             fprintf(stdout, "(with switchtype: %ld and delta_mu: %lf)", molecules[i].switchtype[j], molecules[i].delta_mu[j]);
+            topo.moleculeParam[i].switchTypes.push_back(molecules[i].switchtype[j]);
+            topo.moleculeParam[i].deltaMu.push_back(molecules[i].delta_mu[j]);
         }
         if (fields != 3) {
             fprintf (stderr, "TOPOLOGY ERROR: could not read a pacticle.\n\n");

@@ -101,6 +101,8 @@ public:
      */
     double chainInner(vector<Particle >& chain, vector<ConList>& con);
 
+    double chainInner(Molecule& chain);
+
     /**
      * @brief extere2    Calculates interaction of target particle and external field version 2
                          calculate projection of spherocylinder in direction of patch and calculate

@@ -9,8 +9,6 @@
 class Topo
 {
 public:
-    long * switchlist;  ///< \brief List containing the number of all the particles with switchtypes
-    long n_switch_part; ///< \brief number of particles with switchtype
     double sqmaxcut;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
     double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
 
@@ -26,9 +24,6 @@ public:
     Topo():sqmaxcut(0) {}
     ~Topo() {
         printf ("Deallocating Topo...\n");
-
-        if(switchlist)
-            free(switchlist);
 
         for(int i=0; i<MAXMT; i++) {
             free(moleculeParam[i].name);

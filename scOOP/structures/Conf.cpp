@@ -42,7 +42,7 @@ void Conf::removeMolecule(Molecule &target) {
         }
     }
 
-    pvec.deleteMolecule(target); // delete from groupList
+    pvec.removeMolecule(target); // delete from groupList
 
 #ifndef NDEBUG
     assert(pvec.checkConsistency());

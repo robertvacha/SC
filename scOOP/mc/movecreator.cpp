@@ -255,16 +255,21 @@ double MoveCreator::partRotate(long target) {
 }
 
 double MoveCreator::switchTypeMove() {
-    double edriftchanges,energy,enermove,wlener;
+    double edriftchanges=0.0, energy,enermove,wlener=0.0;
     int reject=0,wli;
     long target;
     double radiusholemax_orig=0;
+    int switchType, sequence_num, delta_mu;
 
-    /*=== This is an attempt to switch a type ===*/
-    edriftchanges =0.0;
-    wlener = 0.0;
-    target = ran2() * topo.n_switch_part;
-    target = topo.switchlist[target];
+    /*=== This is an attempt to switch a type ===*/   
+    target = ran2() * conf->pvec.switchPartCount();
+    target = conf->pvec.getSwitchPart(target, sequence_num); // stores sequence number
+    delta_mu = topo.moleculeParam[conf->pvec[target].molType ].deltaMu[sequence_num];
+    if(conf->pvec[target].switched == 0)
+        switchType = topo.moleculeParam[conf->pvec[target].molType ].switchTypes[sequence_num];
+    else
+        switchType = topo.moleculeParam[conf->pvec[target].molType ].particleTypes[sequence_num];
+
     DEBUG_SIM("Switching the particle type");
     DEBUG_SIM("PARTICLE: %ld", target);
     energy = (*calcEnergy)(target, 1, 0);
@@ -274,8 +279,8 @@ double MoveCreator::switchTypeMove() {
     DEBUG_SIM("switched = %d", switched);
     DEBUG_SIM("pmone = %d", pmone);
     int tmp_type = conf->pvec[target].type;
-    conf->pvec[target].type = conf->pvec[target].switchtype;
-    conf->pvec[target].switchtype = tmp_type;
+    conf->pvec[target].type = switchType;//conf->pvec[target].switchtype;
+    /*conf->pvec[target].switchtype*/ switchType = tmp_type;
     conf->pvec[target].switched += pmone;
     conf->pvec[target].init(&(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type]));
     DEBUG_SIM("Particle %ld is %d switched", target, switched);
@@ -328,7 +333,7 @@ double MoveCreator::switchTypeMove() {
     }
 
     if (!reject) {
-        enermove = conf->pvec[target].delta_mu * pmone;
+        enermove = delta_mu * pmone;
         // DEBUG
         //double dmu = enermove;
         //pvec[target].switched += pmone;
@@ -339,7 +344,6 @@ double MoveCreator::switchTypeMove() {
     // If not accepted: switch back
     if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
         DEBUG_SIM("Did NOT switch it\n");
-        conf->pvec[target].switchtype = conf->pvec[target].type;
         conf->pvec[target].type = tmp_type;
         conf->pvec[target].switched -= pmone;
         conf->pvec[target].init(&(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type]));
@@ -348,7 +352,6 @@ double MoveCreator::switchTypeMove() {
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
     }
-
     return edriftchanges;
 }
 
@@ -1442,7 +1445,7 @@ double MoveCreator::muVTMove() {
             for(unsigned int i=0; i<molSize; i++) {
                 con.push_back(conf->pvec.getConlist(target[i], i));
             }
-            energy += calcEnergy->chainInner(insert, con);
+            energy += calcEnergy->chainInner(target);
 
             conf->removeMolecule(target);
 
