@@ -128,8 +128,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
-        if(sweep%(nsweeps/10) == 0)
-            cout << "sweep: " << sweep << " particles: " << conf->pvec.size() << endl;
+        if(nsweeps>10 && sweep%(nsweeps/10) == 0) {
+            volume = conf->geo.volume();
+            edriftend = calcEnergy.allToAll();
+            pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+            cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
+                 << " drift:" << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << endl;
+        }
 
         // Try replica exchange
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
