@@ -286,9 +286,11 @@ void Inicializer::initTop() {
 
     if(sim->nGrandCanon != 0) {
         bool existGrand = false;
-        for(int i=0; i<conf->pvec.molTypeCount; i++) {
-            if(topo.moleculeParam[i].chemPot != -1.0 )
+        int i=0;
+        while(topo.moleculeParam[i].name != NULL) {
+            if(topo.moleculeParam[i].activity != -1.0 )
                 existGrand = true;
+            i++;
         }
         if(!existGrand) {
             cout << "In options nGrandCanon != 0, but no activity set for any species in top.init" << endl;
@@ -636,20 +638,23 @@ void Inicializer::initGroupLists() {
     cout << "Generating GroupLists..." << endl;
 
     // setGroupList;
-    int newType = -1;
-    for(unsigned int i = 0; i < conf->pvec.size(); i++) {
-        // set simple grouplist
-        if(newType != conf->pvec[i].molType) {
-            newType = conf->pvec[i].molType;
-            conf->pvec.first[newType] = i;
+    int type=0;
+    while(topo.moleculeParam[type].name != NULL) { // get all types
+        for(unsigned int i = 0; i < conf->pvec.size(); i++) {
+            if(type < conf->pvec[i].molType) {
+                type = conf->pvec[i].molType;
+                conf->pvec.first[type] = i;
+                break;
+            }
         }
+        type++;
     }
-    conf->pvec.molTypeCount = newType+1;
-    conf->pvec.first[newType+1] = conf->pvec.size();
+    conf->pvec.molTypeCount = type;
+    conf->pvec.first[type] = conf->pvec.size();
 
     conf->pvec.calcChainCount();
 
-    newType = -1;
+    int newType = -1;
     for(unsigned int i = 0; i < conf->pool.size(); i++) {
         // set simple grouplist
         if(newType != conf->pool[i].molType) {
@@ -671,7 +676,7 @@ void Inicializer::initGroupLists() {
 
 
 
-void Inicializer::setParticlesParams(MolIO* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
+void Inicializer::setParticlesParamss(MolIO* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
     long i=0, j=0, mol, k, maxpart=0;
 
     while (sysnames[i]!=NULL) {
@@ -914,10 +919,10 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln, char*
         fprintf (stderr, "TOPOLOGY ERROR: failed reading system from (%s).\n\n", pline);
         return 0;
     }
-    if ((*sysmoln)[i] < 1) {
+    /*if ((*sysmoln)[i] < 1) {
         fprintf (stderr, "TOPOLOGY ERROR: cannot have %ld number of molecules.\n\n", (*sysmoln)[i]);
         return 0;
-    }
+    }*/
     fprintf (stdout, "%s %s %ld\n",name, sysnames[i],(*sysmoln)[i]);
     return 1;
 }

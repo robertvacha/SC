@@ -69,17 +69,9 @@ public:
     }
 
     void info() {
-        cout << "particles:";
+        cout << name << ", activity: " << activity << ", atoms:\n";
         for(unsigned int i=0; i<particleTypes.size(); i++)
-            cout << particleTypes[i] << " ";
-        cout << endl;
-        cout << "switchTypes:";
-        for(unsigned int i=0; i<switchTypes.size(); i++)
-            cout << switchTypes[i] << " ";
-        cout << endl;
-        cout << "deltaMu:";
-        for(unsigned int i=0; i<deltaMu.size(); i++)
-            cout << deltaMu[i] << " ";
+            cout << particleTypes[i] << ", ";
         cout << endl;
     }
 };

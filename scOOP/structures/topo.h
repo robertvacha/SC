@@ -37,6 +37,22 @@ public:
     void genParamPairs(bool (*exclusions)[MAXT][MAXT]);
 
     void genTopoParams();
+
+    void info() {
+        cout << "Topology:\n";
+        int i=0;
+        while(moleculeParam[i].name != NULL) {
+            cout << moleculeParam[i].name << ", activity:" << moleculeParam[i].activity << endl;
+            i++;
+        }
+
+        for(int q=0; q<5; q++) {
+            for(int w=0; w<5; w++) {
+                cout << ia_params[q][w].geotype[0] << " " << ia_params[q][w].geotype[1] <<" "<< ia_params[q][w].epsilon << " | ";
+            }
+            cout << endl;
+        }
+    }
 };
 
 #endif // TOPO_H

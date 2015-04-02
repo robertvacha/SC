@@ -1340,6 +1340,7 @@ double MoveCreator::muVTMove() {
                   exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
 
                 conf->insertMolecule(insert);
+
                 insert.clear();
                 conf->sysvolume += topo.ia_params[insert[0].type][insert[0].type].volume;
                 topo.moleculeParam[molType].insAcc++;
@@ -1466,11 +1467,11 @@ double MoveCreator::muVTMove() {
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
-        if(topo.moleculeParam[i].activity != -1) molType++;
+        if(topo.moleculeParam[i].activity != -1.0) molType++;
     }
     molType = (long) (ran2() * ((double)molType));
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
-        if(topo.moleculeParam[i].activity != -1) {
+        if(topo.moleculeParam[i].activity != -1.0) {
             if(molType == 0) {
                 molType = i;
                 break;

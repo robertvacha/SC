@@ -40,7 +40,7 @@ public:
 
     ParticleVector() {
         for(int i=0; i<MAXMT; i++) {
-            first[i] = -1; chainCount[i]=0;
+            first[i] = 0; chainCount[i]=0;
         }
     }
 
@@ -390,6 +390,13 @@ public:
      * @return  Returns 1 if overlap detected, 0 otherwise.
      */
     int checkall(Ia_param ia_params[MAXT][MAXT]);
+
+    void info() {
+        cout << "conf:\n";
+        for(unsigned int i=0; i< pvec.size(); i++)
+            cout << pvec[i].molType <<"=" << pvec[i].type << ",";
+        cout << endl;
+    }
 };
 
 
