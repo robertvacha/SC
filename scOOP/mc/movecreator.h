@@ -36,7 +36,7 @@ public:
      */
     double particleMove();
 
-    double trim();
+    double printClustersConf();
 
     /**
      * @brief switchtypemove This is an attempt to switch a type

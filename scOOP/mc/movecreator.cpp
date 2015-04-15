@@ -29,47 +29,62 @@ double MoveCreator::particleMove() {
     return edriftchanges;
 }
 
-double MoveCreator::trim() {
+double MoveCreator::printClustersConf() {
     // in cluster when dist < 3
     // Breadth-first search, BFS
-    double volume = conf->geo.volume();
-    double entrophy = log(volume)/sim->temper;
-    unsigned int size = conf->pvec.size();
-    double energyOld = calcEnergy->allToAll();
-    double dotrcm = 0.0;
-    Vector r_cm;
-    vector<unsigned int> cluster;
-    cluster.push_back(9);
+    double energy;
+    vector<vector<unsigned int> > cluster;
+
+
     bool push = true;
-    for(unsigned int i=0; i<cluster.size(); i++) {
-        for(unsigned int j=0; j<conf->pvec.size(); j++) {
-            push = true;
-            r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos); // explicit statement below for performance optimization*/
-            dotrcm = DOT(r_cm,r_cm);
-            if(dotrcm < 9) {
-                for(unsigned int q=0; q<cluster.size(); q++)
-                    if(j == cluster[q])
-                        push=false;
-                if(push)
-                    cluster.push_back(j);
+    for(unsigned int w=0; w<1; w++) {
+        cluster.push_back(vector<unsigned int>());
+        cluster.back().push_back(w);
+        for(unsigned int i=0; i<cluster.back().size(); i++) {
+            for(unsigned int j=0; j<conf->pvec.size(); j++) {
+                push = true;
+                energy = calcEnergy->p2p(i,j);
+                //cout << energy << " ";
+                if(energy < -7) {
+                    for(unsigned int q=0; q<cluster.back().size(); q++)
+                        if(j == cluster.back()[q])
+                            push=false;
+                    if(push)
+                        cluster.back().push_back(j);
+                }
             }
         }
+        cout << cluster.back().size() << " ";
     }
 
-    bool del=true;
-    for(unsigned int i=0; i<conf->pvec.size(); i++) {
-        del = true;
-        for(unsigned int q=0; q<cluster.size(); q++)
-            if(i == cluster[q])
-                del=false;
-        if(del) {
-            Molecule mol;
-            mol.push_back(i);
-            conf->removeMolecule(mol);
+    for(unsigned int i=0; i< cluster.back().size(); i++) {
+        cout << cluster.back()[i] << " ";
+    }
+
+    int q;
+    for(unsigned int i=0; i<1; i++) {
+        FILE* outfile;
+        outfile = fopen("cluster", "w");
+
+        cout << cluster[i].size() << endl;
+        fprintf (outfile, "%ld\n", (long)cluster[i].size());
+        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", 0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+
+        for(unsigned int j=0; j<cluster[i].size(); j++) {
+            q=cluster[i][j];
+            fprintf (outfile, "%15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e   %15.8e %15.8e %15.8e %d %d\n",
+                     conf->geo.box.x * ((conf->pvec[q].pos.x) - anInt(conf->pvec[q].pos.x)),
+                     conf->geo.box.y * ((conf->pvec[q].pos.y) - anInt(conf->pvec[q].pos.y)),
+                     conf->geo.box.z * ((conf->pvec[q].pos.z) - anInt(conf->pvec[q].pos.z)),
+                     conf->pvec[q].dir.x, conf->pvec[q].dir.y, conf->pvec[q].dir.z,
+                     conf->pvec[q].patchdir[0].x, conf->pvec[q].patchdir[0].y, conf->pvec[q].patchdir[0].z,
+                    conf->pvec[q].switched,
+                    conf->pvec[q].molType);
         }
+        fclose(outfile);
     }
 
-    return entrophy*(size-conf->pvec.size()) - calcEnergy->allToAll() + energyOld;
+    return 0.0;
 }
 
 double MoveCreator::partDisplace(long target) {
@@ -1330,6 +1345,8 @@ double MoveCreator::muVTMove() {
             // check overlap
             if(conf->overlapAll(&insert[0], topo.ia_params)) {
                 insert.clear();
+                topo.moleculeParam[molType].insRej++;
+                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
                 return 0; // overlap detected, move rejected
             }
 
@@ -1374,6 +1391,8 @@ double MoveCreator::muVTMove() {
             for(unsigned int i=0; i<insert.size(); i++) {
                 if(conf->overlapAll(&insert[i], topo.ia_params)) {
                     insert.clear();
+                    topo.moleculeParam[molType].insRej++;
+                    topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
                     return 0; // overlap detected, move rejected
                 }
             }

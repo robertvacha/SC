@@ -128,7 +128,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
-        if(nsweeps>10 && sweep%(nsweeps/10) == 0) {
+        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
@@ -151,11 +151,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             if(sim->pairlist_update)
                 genPairList();
         }
-#ifdef TRIM
-        if(sweep%1000000 ==0) {
-            edriftchanges += move.trim();
-        }
-#endif
 
         if( (sim->pairlist_update) && // pair_list allowed
                 (
