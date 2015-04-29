@@ -659,19 +659,15 @@ void Inicializer::initGroupLists() {
     conf->pvec.calcChainCount();
 
     //test grouplist consistency
-    int size=0;
+    /*int size=0;
     for(int i=0; i < type; i++) {
         size = 0;
         for(unsigned int j=0; j<conf->pvec.size(); j++) {
             if(i == conf->pvec[j].molType)
                 size++;
         }
-        if( conf->pvec.molCountOfType(i)!=size) {
-            cout << size << "==" << conf->pvec.molCountOfType(i) << endl;
-            cout << "GroupList inconsistent, aborting" << endl;
-            exit(1);
-        }
-    }
+        cout << size << "==" << conf->pvec.molCountOfType(i) << endl;
+    }*/
 
     int newType = -1;
     for(unsigned int i = 0; i < conf->pool.size(); i++) {
