@@ -641,18 +641,37 @@ void Inicializer::initGroupLists() {
     int type=0;
     while(topo.moleculeParam[type].name != NULL) { // get all types
         for(unsigned int i = 0; i < conf->pvec.size(); i++) {
-            if(type < conf->pvec[i].molType) {
+            if(type < conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
                 type = conf->pvec[i].molType;
                 conf->pvec.first[type] = i;
                 break;
             }
+            // FIX for situation
+            // A X>0
+            // B 0
+            if(type !=0 && (i+1) == conf->pvec.size())
+                conf->pvec.first[type] = conf->pvec.size();
         }
         type++;
     }
     conf->pvec.molTypeCount = type;
     conf->pvec.first[type] = conf->pvec.size();
-
     conf->pvec.calcChainCount();
+
+    //test grouplist consistency
+    int size=0;
+    for(int i=0; i < type; i++) {
+        size = 0;
+        for(unsigned int j=0; j<conf->pvec.size(); j++) {
+            if(i == conf->pvec[j].molType)
+                size++;
+        }
+        if( conf->pvec.molCountOfType(i)!=size) {
+            cout << size << "==" << conf->pvec.molCountOfType(i) << endl;
+            cout << "GroupList inconsistent, aborting" << endl;
+            exit(1);
+        }
+    }
 
     int newType = -1;
     for(unsigned int i = 0; i < conf->pool.size(); i++) {
