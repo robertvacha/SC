@@ -25,6 +25,7 @@ double MoveCreator::particleMove() {
         edriftchanges = partRotate(target);
     }
     /*=== End particle move step ===*/
+    return edriftchanges;
 }
 
 double MoveCreator::printClustersConf() {
