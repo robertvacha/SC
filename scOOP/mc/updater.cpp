@@ -99,12 +99,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double moveprobab;      // random number selecting the move
 
     openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
-
     //=== Initialise counters etc. ===//
     sim->shprob = sim->shave/(double)conf->pvec.size();
 
     initValues(next_adjust, next_calc, next_dump, next_frame);
-
     if (sim->movie > 0) {
         mf = fopen(files->moviefile, "a");
     } else {
@@ -112,7 +110,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     }
 
     sim->wl.init(files->wlinfile);
-
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
         genPairList(); // Does that solve the problem?
@@ -126,15 +123,17 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
     edriftchanges = 0.0;
 
+    /********************************************************/
+    /*                 Simulation Loop                      */
+    /********************************************************/
     for (sweep=1; sweep <= nsweeps; sweep++) {
-
-        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
-            volume = conf->geo.volume();
-            edriftend = calcEnergy.allToAll();
-            pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-            cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
-                 << " drift:" << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << endl;
-        }
+//        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
+//            volume = conf->geo.volume();
+//            edriftend = calcEnergy.allToAll();
+//            pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+//            cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
+//                 << " drift:" << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << endl;
+//        }
 
         // Try replica exchange
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
@@ -143,25 +142,30 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             if(sim->pairlist_update)
                 genPairList();
         }
-
-        // Try muVT insert delete moves
+        /*____________GrandCanonical Move____________*/
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
             edriftchanges += move.muVTMove();
 
             if(sim->pairlist_update)
                 genPairList();
         }
+        /*____________Cluster Move____________*/
+        if(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) {
+            edriftchanges += move.clusterMove();
 
+            if(sim->pairlist_update)
+                genPairList();
+        }
         if( (sim->pairlist_update) && // pair_list allowed
                 (
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep
                     !(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) && // not on grandCanon sweep
+                    !(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) &&
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
                 )
                 ) {
             genPairList();
         }
-
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
             moveprobab = ran2();
@@ -181,11 +185,26 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 // single particle moves
                 edriftchanges += move.particleMove();
             }
-
+            //TEST OVERLAPS
+            if(conf->checkall(topo.ia_params)){
+                cout<<"OVERLAP DETECTED"<<endl;
+            }
         } // End of step loop for this sweep
+//        if(sweep%1 == 0){
+//            cout<<"EnergyChange "<<edriftchanges<<endl;
+//        }
+//        double energydiff;
+//        for (i=0; i< (long)conf->pvec.size()-1; i++) {
+//            for (j=i+1; j< (long)conf->pvec.size(); j++) {
+//                energydiff = calcEnergy.p2p(i, j);
+//                if(energydiff > 1.0){
+//                    cout<<"Energy between("<<i<<") and ("<<j<<") = "<<energydiff<<endl;
+//                }
+//            }
+//        }
+
 
         //=== Start of end-of-sweep housekeeping ===
-
         // Adjustment of maximum step sizes during equilibration
         if (sweep == next_adjust) {
             for (i = 0; i < MAXT ;i++) {
@@ -309,8 +328,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         // Writing of movie frame
         if (sweep == next_frame) {
-            fprintf (mf, "%ld\n", (long)conf->pvec.size());
-            fprintf (mf, "sweep %ld; box %.10f %.10f %.10f\n", sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+            //fprintf (mf, "> box %.10f %.10f %.10f ; num_part %ld ; sweep %ld <\n", conf->geo.box.x, conf->geo.box.y, conf->geo.box.z, (long)conf->pvec.size(), sweep);
+            fprintf (mf, "%ld\nsweep %ld; box %.10f %.10f %.10f\n",(long)conf->pvec.size(), sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
             conf->draw(mf);
             fflush (mf);
             next_frame += sim->movie;
@@ -329,7 +348,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     edriftend = calcEnergy.allToAll();
     pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
     printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
-    //printf("EdriftChanges: %.5e\n", edriftchanges);
+//    printf("EdriftChanges: %.5e\n", edriftchanges);
+//    printf("PVChanges: %.5e\n", pvdriftend -pvdriftstart);
     printf("Starting energy: %.8f \n",edriftstart);
     printf("Ending energy: %.8f \n",edriftend);
     printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
@@ -477,11 +497,12 @@ void Updater::genSimplePairList() {
     double max_dist;
     // Set the pairlist to zero
     //DEBUG_INIT("Gen Pairlist")
-
     for(unsigned int i = 0; i < conf->neighborList.size(); i++){
         //DEBUG_INIT("%ld", i);
         conf->neighborList[i].neighborCount = 0;
     }
+    if(conf->pvec.size() <= 0)
+        return ;
     for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
         for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
             assert(conf->pvec.size() == conf->neighborList.size());

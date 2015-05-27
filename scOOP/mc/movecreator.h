@@ -36,6 +36,22 @@ public:
      */
     double particleMove();
 
+    /**
+     * @brief Function to select clusters and move/rotate whole cluster
+     * @param
+     * @return
+     */
+    double clusterMove();
+
+
+    /**
+     * @brief Function to produce one geometrical cluster move ()
+     * @param
+     * @return
+     */
+    double clusterMoveGeom(long target);
+
+
     double printClustersConf();
 
     /**
@@ -193,8 +209,6 @@ private:
      * @return
      */
     long meshOrderMoveChain(Molecule chain, Mesh* mesh, long npart, Particle chorig[MAXCHL], int wli);
-
-
 
 
 
