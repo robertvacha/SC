@@ -190,19 +190,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 cout<<"OVERLAP DETECTED"<<endl;
             }
         } // End of step loop for this sweep
-//        if(sweep%1 == 0){
-//            cout<<"EnergyChange "<<edriftchanges<<endl;
-//        }
-//        double energydiff;
-//        for (i=0; i< (long)conf->pvec.size()-1; i++) {
-//            for (j=i+1; j< (long)conf->pvec.size(); j++) {
-//                energydiff = calcEnergy.p2p(i, j);
-//                if(energydiff > 1.0){
-//                    cout<<"Energy between("<<i<<") and ("<<j<<") = "<<energydiff<<endl;
-//                }
-//            }
-//        }
-
 
         //=== Start of end-of-sweep housekeeping ===
         // Adjustment of maximum step sizes during equilibration
