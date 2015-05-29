@@ -13,7 +13,7 @@ class Particle {
 public:    
     Vector pos;             ///< \brief Position vector
     Vector dir;             ///< \brief Unit direction vector of axis
-    Vector patchdir[2];     ///< \brief Vector defining orientation of patch
+    Vector patchdir[2];     ///< \brief Vector defining orientation of patches
     Vector patchsides[4];   ///< \brief Vector defining sides of patch
     Vector chdir[2];        ///< \brief Direction for chirality - keep in memory to increase speed
 
@@ -59,7 +59,7 @@ public:
 
     string info() {
         std::ostringstream o;
-        o << "pos:" << pos.info() << "\ndir:" << dir.info() << "\npatchdir:" << patchdir[0].info();
+        o << "pos:" << pos.info() << "\ndir:" << dir.info() << "\npatchdir1:" << patchdir[0].info() << "\npatchdir2:" << patchdir[1].info()<<endl;
         return o.str();
 
     }
