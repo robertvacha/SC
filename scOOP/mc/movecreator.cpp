@@ -25,7 +25,6 @@ double MoveCreator::particleMove() {
         edriftchanges = partRotate(target);
     }
     /*=== End particle move step ===*/
-
     return edriftchanges;
 }
 
@@ -68,7 +67,7 @@ double MoveCreator::printClustersConf() {
 
         cout << cluster[i].size() << endl;
         fprintf (outfile, "%ld\n", (long)cluster[i].size());
-        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", 0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", (long)0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
 
         for(unsigned int j=0; j<cluster[i].size(); j++) {
             q=cluster[i][j];
@@ -220,7 +219,7 @@ double MoveCreator::partRotate(long target) {
 
     origpart = conf->pvec[target];
 
-    //pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+//    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
     conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     /*should be normalised and ortogonal but we do for safety*/
@@ -1332,16 +1331,12 @@ double MoveCreator::muVTMove() {
     molSize = topo.moleculeParam[molType].molSize();
 
     topo.moleculeParam[molType].muVtSteps++;
-
     if(ran2() > 0.5) { //  insert move
-
         if(topo.moleculeParam[molType].isAtomic()) {
-
             // create particle           
             insert.push_back(Particle(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
                                       , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(&topo.ia_params[insert[0].type][insert[0].type]);
-
             // check overlap
             if(conf->overlapAll(&insert[0], topo.ia_params)) {
                 insert.clear();
@@ -1349,7 +1344,6 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
                 return 0; // overlap detected, move rejected
             }
-
             energy = calcEnergy->oneToAll(&insert[0], NULL, NULL);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
@@ -1373,7 +1367,6 @@ double MoveCreator::muVTMove() {
             }
 
         } else { // this is chain insert
-
             displace.randomUnitCube();
 
             // get configuration
@@ -1446,21 +1439,15 @@ double MoveCreator::muVTMove() {
         }
 
     } else { // delete move
-
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
-
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
-
         energy += calcEnergy->mol2others(target);
-
         factor *= (conf->pvec.molCountOfType(molType))/volume;
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
         if( ( factor * exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
-
             for(unsigned int i=0; i<molSize; i++)
                 conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
-
             vector<ConList> con;
             for(unsigned int i=0; i<molSize; i++) {
                 con.push_back(conf->pvec.getConlist(target[i], i));
@@ -1468,10 +1455,8 @@ double MoveCreator::muVTMove() {
             energy += calcEnergy->chainInner(target);
 
             conf->removeMolecule(target);
-
             topo.moleculeParam[molType].delAcc++;
             topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
-
             return -energy + molSize*entrophy;
         } else {
             topo.moleculeParam[molType].delRej++;
@@ -1509,7 +1494,6 @@ int MoveCreator::getRandomMuVTType() {
 int MoveCreator::moveTry(double energyold, double energynew, double temperature) {
     /*DEBUG   printf ("   Move trial:    %13.8f %13.8f %13.8f %13.8f\n",
       energynew, energyold, temperature, ran2(&seed));*/
-
     if (energynew <= energyold ) {
         return 0;
     } else {
@@ -1521,6 +1505,88 @@ int MoveCreator::moveTry(double energyold, double energynew, double temperature)
     }
 }
 
+double MoveCreator::clusterMove() {
+    double edriftchanges = 0.0;
+    long target;
 
+    target = ran2() * (long)conf->pvec.size();// Select random particle from config
+    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
+    return edriftchanges;
+}
 
+int isInCluster(double *list, int size, double value){
+    for(int i=0; i< size; i++){
+        if(list[i] == value){
+            return 1;
+        }
+    }
+    return 0;
+}
 
+double MoveCreator::clusterMoveGeom(long target) {
+    /*
+     * For reference to this move see:
+     * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
+     * DOI: 10.1103/PhysRevLett.92.035504
+    */
+
+    double edriftchanges = calcEnergy->allToAll(), cluster[MAXN];
+    Vector r_center;
+
+    /*=============================================*/
+    /*            Set reflection center            */
+    /*=============================================*/
+    /*
+     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement must be set.
+     * From test simulations on rather small systems it seems Global relection have faster convergence
+    */
+
+    /*____________Global____________*/
+    r_center.x=ran2()*conf->geo.box.x;
+    r_center.y=ran2()*conf->geo.box.y;
+    r_center.z=ran2()*conf->geo.box.z;
+
+    /*____________Local (displacement like)____________*/
+//    double max_displacement= 1.5;
+//    r_center.randomUnitSphere();// create unit random vector
+//    r_center *= ran2() * max_displacement;// set displacement from range [0:max_displacement]
+//    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
+
+    Particle reflection;
+    int counter= 0, num_particles=1;
+    double energy_old, energy_new;
+
+    cluster[0]= target;// first particle allways move so its set to be first in cluster
+
+    /*=============================================*/
+    /*            Cluster Creation Loop            */
+    /*=============================================*/
+    do{
+        reflection = conf->pvec[cluster[counter]];// copy old particle into reflected particle
+        //Reflect particle cluster[counter] by point reflection by center r_center point
+        reflection.pos           = 2.0*r_center - reflection.pos;// reflect center of particle around r_center
+        reflection.dir          *=-1.0;// reflect orientation of particle
+        reflection.patchdir[0]  *=-1.0;// reflect orientation of patch1
+        reflection.patchdir[1]  *=-1.0;// reflect orientation of patch2
+        reflection.patchsides[0]*=-1.0;// reflect all sides of patch
+        reflection.patchsides[1]*=-1.0;
+        reflection.patchsides[2]*=-1.0;
+        reflection.patchsides[3]*=-1.0;
+        conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+
+        //Iterate through reflection "Neighbours"
+        for (unsigned int i = 0; i < conf->pvec.size(); i++){
+            if (!isInCluster(cluster, num_particles, i)){
+                energy_old = calcEnergy->p2p(cluster[counter], i);
+                energy_new = calcEnergy->p2p(&reflection, i);
+                if (ran2() < (1-exp((energy_old-energy_new)/sim->temper))){//ran2() < (1-exp(-1.0*((energy_new-energy_old)/sim->temper))) acceptance criteria vis. Reference
+                    cluster[num_particles] = i;
+                    num_particles++;
+                }
+            }
+        }
+        conf->pvec[cluster[counter]] = reflection;// here old particle is chnged for its reflection
+        counter++;
+    }while(counter < num_particles);
+    return calcEnergy->allToAll()-edriftchanges;
+}

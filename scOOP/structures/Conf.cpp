@@ -242,8 +242,6 @@ bool Conf::overlapAll(Particle* target, Ia_param ia_params[][MAXT]) {
 }
 
 
-
-
 int Conf::checkall(Ia_param ia_params[][MAXT]) {
     unsigned long i, j;
 
