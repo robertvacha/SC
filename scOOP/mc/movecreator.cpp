@@ -226,11 +226,9 @@ double MoveCreator::partRotate(long target) {
     conf->pvec[target].dir.normalise();
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
 
-
     reject = 0;
     edriftchanges =0.0;
     wlener = 0.0;
-
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
         for (wli=0;wli<sim->wl.wlmdim;wli++) {
             switch (sim->wl.wlm[wli]) {

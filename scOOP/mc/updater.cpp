@@ -127,7 +127,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /*                 Simulation Loop                      */
     /********************************************************/
     for (sweep=1; sweep <= nsweeps; sweep++) {
-        if(nsweeps>=10 && sweep%(nsweeps/1000) == 0) {
+        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
