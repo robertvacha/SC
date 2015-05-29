@@ -63,11 +63,12 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 
 double TotalEnergyCalculator::mol2others(vector<Particle>& mol) {
     double energy=0.0;
+    unsigned int i=0;
 
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-    for(unsigned int i=0; i<mol.size(); i++) {
+    for(i=0; i<mol.size(); i++) {
         if (topo.exter.exist)
             energy += exterE[getThreadNum()].extere2(&mol[i]);
 
@@ -81,12 +82,13 @@ double TotalEnergyCalculator::mol2others(vector<Particle>& mol) {
 
 double TotalEnergyCalculator::mol2others(Molecule& mol) {
     double energy=0.0;
+    long i = 0;
 
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
     for(unsigned int j=0; j<mol.size(); j++) {
-        for (long i = 0; i < mol[0]; i++)
+        for (i = 0; i < mol[0]; i++)
             energy+= pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
 
         for (long i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
@@ -105,12 +107,14 @@ double TotalEnergyCalculator::oneToAll(int target) {
     double energy=0.0;
     long i;
     ConList conlist = conf->pvec.getConlist(target);
+
+
     if (sim->pairlist_update) {
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
-           energy += (pairE[getThreadNum()])(&conf->pvec[target],
+           energy +=  (pairE[getThreadNum()])(&conf->pvec[target],
                              &conf->pvec[ conf->neighborList[target].neighborID[i] ],
                              &conlist);
         }
@@ -124,6 +128,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
             }
         }
     }
+
     //add interaction with external potential
     if (topo.exter.exist)
         energy += extere2(target);
@@ -150,10 +155,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
             if(*target != conf->pvec[i]) {
                 energy += pairE[getThreadNum()](target, &conf->pvec[i], conlist);
                 /*std::cout.precision(15);
-                cout << pairE[getThreadNum()](target, conlist, &conf->pvec[i], &conf->conlist[i])
-                        <<" == "<< pairE[getThreadNum()](&conf->pvec[i], &conf->conlist[i], target, conlist) << endl;
-                assert((float)pairE[getThreadNum()](target, conlist, &conf->pvec[i], &conf->conlist[i])
-                        == (float)pairE[getThreadNum()](&conf->pvec[i], &conf->conlist[i], target, conlist) );*/
+                cout << pairE[getThreadNum()](target, &conf->pvec[i], conlist) << endl;*/
             }
         }
     }
@@ -209,7 +211,7 @@ double TotalEnergyCalculator::chainInner(Molecule &chain) {
 double TotalEnergyCalculator::allToAll() {
     if(conf->pvec.empty()) return 0.0;
     double energy=0.0;
-    unsigned long i;
+    unsigned long i=0;
     ConList conlist;
 
 #ifdef OMP1
@@ -225,6 +227,7 @@ double TotalEnergyCalculator::allToAll() {
         if (topo.exter.exist)
             energy += extere2(i);
     }
+
     //add interaction of last particle with external potential
     if (topo.exter.exist && !conf->pvec.empty())
         exterE[getThreadNum()].extere2(&conf->pvec.back());

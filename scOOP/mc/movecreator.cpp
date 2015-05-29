@@ -68,7 +68,7 @@ double MoveCreator::printClustersConf() {
 
         cout << cluster[i].size() << endl;
         fprintf (outfile, "%ld\n", (long)cluster[i].size());
-        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", 0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+        fprintf (outfile, "sweep %d; box %.10f %.10f %.10f\n", 0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
 
         for(unsigned int j=0; j<cluster[i].size(); j++) {
             q=cluster[i][j];

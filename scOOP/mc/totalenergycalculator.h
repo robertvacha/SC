@@ -15,7 +15,7 @@ private:
     vector<PairEnergyCalculator> pairE;
     vector<ExternalEnergyCalculator> exterE;
 
-#ifdef OMP
+#ifdef OMP1
     inline int getThreadNum() {
         return omp_get_thread_num();
     }
@@ -29,12 +29,11 @@ private:
 public:
     TotalEnergyCalculator(Sim * sim, Conf * conf): sim(sim), conf(conf) {
         int threadCount = 1;
-#ifdef OMP
-        threadCount = 8;
-        omp_set_num_threads(threadCount);
-        cout << "Number of threads: " << threadCount << endl;
+#ifdef OMP1
+        threadCount = 32;
 #endif
 
+        printf ("\nInitializing energy functions...\n");
         for(int i=0; i < threadCount; i++) {
             pairE.push_back(PairEnergyCalculator(&conf->geo));
             exterE.push_back(ExternalEnergyCalculator(&conf->geo.box));

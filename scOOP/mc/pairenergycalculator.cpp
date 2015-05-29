@@ -13,8 +13,17 @@ extern Topo topo;
 double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConList* conlist) {
 
     double energy=0.0;
+
+#ifdef OMP1 // switching of particles data occurs durin energy calc -> cant use with openMP
+    Particle par1 = *part1;
+    Particle par2 = *part2;
+    this->part1 = &par1;
+    this->part2 = &par2;
+#else // advantageous performace wise for single core simulation
     this->part1 = part1;
     this->part2 = part2;
+#endif
+
     this->conlist = conlist;
 
     /*Placing interactin particle in unit pbc->box and finding vector connecting CM*/
@@ -40,6 +49,10 @@ double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConLi
 
     dotrcm = DOT(r_cm,r_cm);
 
+    // HARDSPHERE
+    //if(dotrcm >= 1.0) return 0.0;
+    //if(dotrcm < 1.0) return INFINITY;
+
     if (dotrcm > topo.sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     contt = 0;
@@ -64,7 +77,6 @@ double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConLi
 }
 
 void PairEnergyCalculator::initIntFCE() {
-    printf ("\nInitializing energy functions...\n");
     // NB
     // Fill in the names of the functions for calculating the
     // interaction energy
@@ -1170,9 +1182,10 @@ double PairEnergyCalculator::eattractiveCpscSpa(int patchnum1) {
 }
 
 double PairEnergyCalculator::e2ScaOr2Spa() {
-    double repenergy, atrenergy;
+    double repenergy=0.0, atrenergy=0.0;
 
     closestDist();
+
     repenergy = eRepulsive();
     if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
         atrenergy = 0.0;
@@ -1184,6 +1197,12 @@ double PairEnergyCalculator::e2ScaOr2Spa() {
             atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
         }
     }
+
+#ifdef LJ    // LJ
+    double en6 = pow((topo.ia_params[part1->type][part2->type].sigma / dist),6);
+    repenergy = 4*en6*(en6-1);
+    atrenergy = 0.0;
+#endif
 
     return repenergy+atrenergy;
 }
@@ -1275,7 +1294,7 @@ double PairEnergyCalculator::eRepulsive() {
             en6 = pow((topo.ia_params[part1->type][part2->type].sigma / dist),6);
             repenergy = 4*en6*(en6-1) + 1.0;
     }
-    //printf("repenergy: %f dist: %f\n",repenergy, interact->dist);
+    //printf("repenergy: %f dist: %f\n",repenergy, dist);
 
     return repenergy;
 }

@@ -22,7 +22,10 @@ public:
 
     Cuboid(){}
     Cuboid(Vector box) {
-        this->box = box;
+        this->box = box;       
+    }
+
+    void info() {
         cout << "Box: " << this->box.info() << endl;
     }
 
@@ -34,7 +37,7 @@ public:
      * @brief use of periodic boundary conditions
      * @param pos
      * @param pbc
-     */
+     */ 
     void usePBC(Particle *part) {
         do {
             part->pos.x += box.x;
@@ -42,14 +45,12 @@ public:
         do {
             part->pos.x -= box.x;
         } while (part->pos.x > box.x);
-
         do {
             part->pos.y += box.y;
         } while (part->pos.y < 0.0);
         do {
             part->pos.y -= box.y;
         } while (part->pos.y > box.y);
-
         do {
             part->pos.z += box.z;
         } while (part->pos.z < 0.0);

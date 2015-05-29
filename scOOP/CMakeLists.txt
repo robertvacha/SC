@@ -6,7 +6,7 @@ SET(sampleName SC)
 #   User options
 # -----------------
 
-#option(ENABLE_OPENMP   "Try to use OpenMP parallization" off)
+option(ENABLE_OPENMP   "Try to use OpenMP parallization" off)
 option(ENABLE_MPI      "Enable MPI code" off)
 
 # ------------------
@@ -20,6 +20,18 @@ set (CMAKE_CXX_FLAGS " -O3 -msse2 -mfpmath=sse ")
 # ----=--------------------------------
 if(ENABLE_TWISTER)
     add_definitions(-DMERSENNETWISTER)
+endif()
+
+# -------------------------------------
+#   OPEN_MP PARALELLIZATION
+# ----=--------------------------------
+if(ENABLE_OPENMP)
+    add_definitions(-DOMP1)
+    find_package(OpenMP)
+    if (OPENMP_FOUND)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
 endif()
 
 # -------------------------------------

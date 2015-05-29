@@ -482,6 +482,7 @@ void Updater::genSimplePairList() {
         //DEBUG_INIT("%ld", i);
         conf->neighborList[i].neighborCount = 0;
     }
+    if(conf->pvec.size() == 0) return;
     for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
         for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
             assert(conf->pvec.size() == conf->neighborList.size());

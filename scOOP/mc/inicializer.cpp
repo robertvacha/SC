@@ -351,11 +351,10 @@ void Inicializer::initSwitchList() {
     }
 }
 
-void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
+void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     int err,fields,tmp_type;
     long i,j,current,first;
-    FILE * infile;
     char * line, line2[STRLEN];
     size_t line_size = (STRLEN + 1) * sizeof(char);
     line = (char *) malloc(line_size);
@@ -367,13 +366,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             maxlength = topo.ia_params[i][i].len[0];
     }
 
-    infile = fopen(fileName, "r");
-    if (infile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n", fileName);
-        exit (1);
-    }
-
-    if(myGetLine(&line, &line_size, infile) == -1){
+    if(myGetLine(&line, &line_size, *infile) == -1){
         fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
         exit (1);
     }
@@ -401,7 +394,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     Vector box;
 
     if (sscanf(line, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
-        if(myGetLine(&line, &line_size, infile) == -1){
+        if(myGetLine(&line, &line_size, *infile) == -1){
             fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
             exit (1);
         }
@@ -428,7 +421,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
     DEBUG_INIT("Position of the particle");
     for (i=0; i < (long)pvec.size(); i++) {
-        if(myGetLine(&line, &line_size, infile) == -1){
+        if(myGetLine(&line, &line_size, *infile) == -1){
             break;
         }
         strip_comment(line);
@@ -547,9 +540,6 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         printf ("\n");
         exit (1);
     }
-
-    fclose (infile);
-
     fflush (stdout);
 }
 

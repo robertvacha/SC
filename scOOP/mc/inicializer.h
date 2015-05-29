@@ -83,7 +83,7 @@ public:
        The direction vector is normalised
        after being read in.  The configuration is checked for particle overlaps.
      */
-    void initConfig(char* fileName, std::vector<Particle > &pvec);
+    void initConfig(FILE** infile, std::vector<Particle > &pvec);
 
     /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();
