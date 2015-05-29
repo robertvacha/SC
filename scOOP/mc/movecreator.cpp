@@ -67,7 +67,7 @@ double MoveCreator::printClustersConf() {
 
         cout << cluster[i].size() << endl;
         fprintf (outfile, "%ld\n", (long)cluster[i].size());
-        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", 0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
+        fprintf (outfile, "sweep %ld; box %.10f %.10f %.10f\n", (long)0, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
 
         for(unsigned int j=0; j<cluster[i].size(); j++) {
             q=cluster[i][j];
@@ -220,7 +220,7 @@ double MoveCreator::partRotate(long target) {
     origpart = conf->pvec[target];
 
 //    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
-    conf->pvec[target].rotateRandom(3, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+    conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     /*should be normalised and ortogonal but we do for safety*/
     conf->pvec[target].dir.normalise();
@@ -1526,15 +1526,23 @@ int isInCluster(double *list, int size, double value){
 }
 
 double MoveCreator::clusterMoveGeom(long target) {
-    /*Move Created based on Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504. */
+    /*
+     * For reference to this move see:
+     * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
+     * DOI: 10.1103/PhysRevLett.92.035504
+    */
 
     double edriftchanges = calcEnergy->allToAll(), cluster[MAXN];
-    int counter= 0;
     Vector r_center;
 
     /*=============================================*/
     /*            Set reflection center            */
     /*=============================================*/
+    /*
+     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement must be set.
+     * From test simulations on rather small systems it seems Global relection have faster convergence
+    */
+
     /*____________Global____________*/
     r_center.x=ran2()*conf->geo.box.x;
     r_center.y=ran2()*conf->geo.box.y;
@@ -1547,10 +1555,10 @@ double MoveCreator::clusterMoveGeom(long target) {
 //    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
 
     Particle reflection;
-    int num_particles=1;
+    int counter= 0, num_particles=1;
     double energy_old, energy_new;
 
-    cluster[counter]= target;// first particle allways move so its set to be first in cluster
+    cluster[0]= target;// first particle allways move so its set to be first in cluster
 
     /*=============================================*/
     /*            Cluster Creation Loop            */
