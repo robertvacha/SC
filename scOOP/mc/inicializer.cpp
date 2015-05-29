@@ -33,6 +33,7 @@ void Inicializer::readOptions() {
         {"nsweeps",             Long,   false, &sim->nsweeps},
         {"nrepchange",          Long,   false, &sim->nrepchange},
         {"nGrandCanon",         Long,   false, &sim->nGrandCanon},
+        {"nClustMove",          Long,   false, &sim->nClustMove},
         {"paramfrq",            Long,   false, &sim->paramfrq},
         {"report",              Long,   false, &sim->report},
         {"seed",                Long,   false, &seed},
@@ -160,6 +161,7 @@ void Inicializer::readOptions() {
     printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
     printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
     printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
+    printf (" Sweeps between Cluster moves:                       %ld\n", sim->nClustMove);
     printf (" Wang-Landau method:                                 %d %d\n", sim->wl.wlm[0],sim->wl.wlm[1]);
     printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
     printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);

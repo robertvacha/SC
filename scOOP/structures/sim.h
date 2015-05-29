@@ -32,6 +32,7 @@ public:
     //long terms;                 ///< \brief Number of Fourier terms as smectic order parameters
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
+    long nClustMove;            ///< \brief Number of sweeps between cluster moves
 
     Disp edge;                  ///< \brief Maximum box length change and statistics
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
@@ -109,6 +110,7 @@ public:
         printf (" Parallel tempering temperature in kT/e:             %.8f\n", paraltemper);
         printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
         printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
+        printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
         printf (" Wang-Landau method:                                 %d %d\n", wl.wlm[0],wl.wlm[1]);
         printf (" Calculate the Wang-Landau method for atom type:     %d\n", wl.wlmtype);
         printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
