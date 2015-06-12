@@ -125,6 +125,23 @@ public:
         return ret;
     }
 
+    Molecule getMolOfPart(int index) {
+        int i=0;
+        while(index >= first[i]) {
+            i++;
+        }
+        i--; // i is now the molecule type
+        index -= first[i];//index sequnce number of particle in moltype
+        index /= topo.moleculeParam[i].molSize(); // index sequnce number of molecule in type
+        return getMolecule(index, i);
+    }
+
+    /**
+     * @brief getMolecule
+     * @param chainN - sequence number of molecule in given moltype
+     * @param molType
+     * @return
+     */
     Molecule getMolecule(int chainN, int molType) {
         Molecule ret;
         chainN *= topo.moleculeParam[molType].molSize();
