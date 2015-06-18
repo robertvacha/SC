@@ -79,16 +79,6 @@ public:
         return pairE[getThreadNum()](part1, &conf->pvec[part2], &conlist);
     }
 
-    /**
-     * @brief p2p
-     * @param part1
-     * @param part2
-     * @return
-     */
-    double p2p(Particle* target, int part2) {
-        return pairE[getThreadNum()](&conf->pvec[part2], target);
-    }
-
 
     /**
      * @brief Calculates energy between particle "target" and the rest skipping particles from the given chain
