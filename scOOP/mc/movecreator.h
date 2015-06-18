@@ -43,14 +43,12 @@ public:
      */
     double clusterMove();
 
-
     /**
      * @brief Function to produce one geometrical cluster move ()
      * @param
      * @return
      */
     double clusterMoveGeom(long target);
-
 
     double printClustersConf();
 

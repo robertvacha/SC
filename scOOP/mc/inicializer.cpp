@@ -1091,29 +1091,34 @@ int Inicializer::fillTypes(char **pline) {
 
 
 int Inicializer::convertGeotype(char *geotype) {
-    if (strcmp(geotype, "CPSC") == 0)
-        return CPSC;
-    if (strcmp(geotype, "CHCPSC") == 0)
-        return CHCPSC;
+//    if (strcmp(geotype, "SC") == 0)
+//        return SC;
+    if (strcmp(geotype, "SCN") == 0)
+        return SCN;
     if (strcmp(geotype, "SCA") == 0)
         return SCA;
     if (strcmp(geotype, "PSC") == 0)
         return PSC;
+    if (strcmp(geotype, "CPSC") == 0)
+        return CPSC;
     if (strcmp(geotype, "CHPSC") == 0)
         return CHPSC;
-    if (strcmp(geotype, "TCPSC") == 0)
-        return TCPSC;
-    if (strcmp(geotype, "TCHCPSC") == 0)
-        return TCHCPSC;
+    if (strcmp(geotype, "CHCPSC") == 0)
+        return CHCPSC;
     if (strcmp(geotype, "TPSC") == 0)
         return TPSC;
+    if (strcmp(geotype, "TCPSC") == 0)
+        return TCPSC;
     if (strcmp(geotype, "TCHPSC") == 0)
         return TCHPSC;
+    if (strcmp(geotype, "TCHCPSC") == 0)
+        return TCHCPSC;
+    if (strcmp(geotype, "SP") == 0)
+        return SP;
     if (strcmp(geotype, "SPN") == 0)
         return SPN;
     if (strcmp(geotype, "SPA") == 0)
         return SPA;
-
     return 0;
 }
 

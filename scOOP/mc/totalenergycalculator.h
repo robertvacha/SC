@@ -74,14 +74,9 @@ public:
         return pairE[getThreadNum()](&conf->pvec[part1], &conf->pvec[part2], &conlist);
     }
 
-    /**
-     * @brief p2p
-     * @param part1
-     * @param part2
-     * @return
-     */
-    double p2p(Particle* target, int part2) {
-        return pairE[getThreadNum()](&conf->pvec[part2], target);
+    double p2p(Particle* part1, int part2) {
+        ConList conlist = conf->pvec.getConlist(part2);
+        return pairE[getThreadNum()](part1, &conf->pvec[part2], &conlist);
     }
 
 
