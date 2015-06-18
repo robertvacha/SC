@@ -23,6 +23,7 @@ public:
     }
 };
 
+
 class ParticleVector : public std::vector<Particle > {
 public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
@@ -39,7 +40,7 @@ public:
 
     ParticleVector() {
         for(int i=0; i<MAXMT; i++) {
-            first[i] = -1; chainCount[i]=0;
+            first[i] = 0; chainCount[i]=0;
         }
     }
 
@@ -124,6 +125,23 @@ public:
         return ret;
     }
 
+    Molecule getMolOfPart(int index) {
+        int i=0;
+        while(index >= first[i]) {
+            i++;
+        }
+        i--; // i is now the molecule type
+        index -= first[i];//index sequnce number of particle in moltype
+        index /= topo.moleculeParam[i].molSize(); // index sequnce number of molecule in type
+        return getMolecule(index, i);
+    }
+
+    /**
+     * @brief getMolecule
+     * @param chainN - sequence number of molecule in given moltype
+     * @param molType
+     * @return
+     */
     Molecule getMolecule(int chainN, int molType) {
         Molecule ret;
         chainN *= topo.moleculeParam[molType].molSize();
@@ -165,6 +183,35 @@ public:
         return ( first[molType+1] - first[molType]) / topo.moleculeParam[molType].molSize();
     }
 
+
+
+    long switchPartCount() {
+        int size=0;
+        for(int i=0; i<molTypeCount; i++) {
+            // size += number of swichtypes per molType * number of molecules of moltype
+            size += topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize();
+        }
+        return size;
+    }
+
+    int getSwitchPart(int target, int& seq) {
+        int count;
+        for(int i=0; i<molTypeCount; i++) {
+            count = topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize();
+            if(target > count)
+                target -= count;
+            else {
+                count = target % topo.moleculeParam[i].switchCount; // sequence number of type in chain
+                target /= topo.moleculeParam[i].switchCount;          // sequence number of molecule
+                // target = first index of type (==offset) + target molecule index + particle sequence
+                target = first[i] + target*topo.moleculeParam[i].molSize() + topo.moleculeParam[i].switchTypeSeq(count);
+                seq = count;
+                break;
+            }
+        }
+        return target;
+    }
+
     void insertMolecule(std::vector<Particle>& molecule) {
         insert(begin()+first[molecule[0].molType+1], molecule.begin(), molecule.end());
 
@@ -177,7 +224,7 @@ public:
         assert(checkConsistency());
     }
 
-    void deleteMolecule(Molecule& mol) {
+    void removeMolecule(Molecule& mol) {
         for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++)
             first[i] -= topo.moleculeParam[ (*this)[mol[0]].molType ].molSize();
 
@@ -360,6 +407,13 @@ public:
      * @return  Returns 1 if overlap detected, 0 otherwise.
      */
     int checkall(Ia_param ia_params[MAXT][MAXT]);
+
+    void info() {
+        cout << "conf:\n";
+        for(unsigned int i=0; i< pvec.size(); i++)
+            cout << pvec[i].molType <<"=" << pvec[i].type << ",";
+        cout << endl;
+    }
 };
 
 

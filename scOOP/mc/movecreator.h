@@ -16,7 +16,7 @@ public:
         try{
             insert.reserve(MAXCHL);
         } catch(std::bad_alloc& bad) {
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for insert or conlist, see MoveCreator::constructor\n");
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for insert, see MoveCreator::constructor\n");
             exit(1);
         }
     }
@@ -37,16 +37,20 @@ public:
     double particleMove();
 
     /**
-     * @brief clustermove
+     * @brief Function to select clusters and move/rotate whole cluster
+     * @param
      * @return
      */
     double clusterMove();
 
     /**
-     * @brief clustermovegeometric
+     * @brief Function to produce one geometrical cluster move ()
+     * @param
      * @return
      */
     double clusterMoveGeom(long target);
+
+    double printClustersConf();
 
     /**
      * @brief switchtypemove This is an attempt to switch a type
@@ -203,8 +207,6 @@ private:
      * @return
      */
     long meshOrderMoveChain(Molecule chain, Mesh* mesh, long npart, Particle chorig[MAXCHL], int wli);
-
-
 
 
 

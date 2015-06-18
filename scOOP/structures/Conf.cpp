@@ -27,7 +27,6 @@ void Conf::insertMolecule(std::vector<Particle>& molecule) {
 }
 
 void Conf::removeMolecule(Molecule &target) {
-
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
     assert((int)pvec.size() == pvec.vecSize());
@@ -43,7 +42,7 @@ void Conf::removeMolecule(Molecule &target) {
         }
     }
 
-    pvec.deleteMolecule(target); // delete from groupList
+    pvec.removeMolecule(target); // delete from groupList
 
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
@@ -241,8 +240,6 @@ bool Conf::overlapAll(Particle* target, Ia_param ia_params[][MAXT]) {
     }
     return false;
 }
-
-
 
 
 int Conf::checkall(Ia_param ia_params[][MAXT]) {

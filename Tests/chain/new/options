@@ -17,6 +17,7 @@ paramfrq = 0      #  Number of sweeps between order parameter samples
 report   = 0      #  Number of sweeps between statistics reports
 nrepchange = 0          #  Number of sweeps between replica exchanges
 nGrandCanon = 0
+nClustMove = 0
 movie    = 0       #  Number of sweeps between movie frames (0 = no movie)
 chainprob = 0.125         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
 transmx = 0.212         #  Initial maximum displacement

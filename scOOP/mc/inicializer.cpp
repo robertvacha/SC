@@ -33,6 +33,7 @@ void Inicializer::readOptions() {
         {"nsweeps",             Long,   false, &sim->nsweeps},
         {"nrepchange",          Long,   false, &sim->nrepchange},
         {"nGrandCanon",         Long,   false, &sim->nGrandCanon},
+        {"nClustMove",          Long,   false, &sim->nClustMove},
         {"paramfrq",            Long,   false, &sim->paramfrq},
         {"report",              Long,   false, &sim->report},
         {"seed",                Long,   false, &seed},
@@ -160,6 +161,7 @@ void Inicializer::readOptions() {
     printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
     printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
     printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
+    printf (" Sweeps between Cluster moves:                       %ld\n", sim->nClustMove);
     printf (" Wang-Landau method:                                 %d %d\n", sim->wl.wlm[0],sim->wl.wlm[1]);
     printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
     printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);
@@ -286,9 +288,11 @@ void Inicializer::initTop() {
 
     if(sim->nGrandCanon != 0) {
         bool existGrand = false;
-        for(int i=0; i<conf->pvec.molTypeCount; i++) {
-            if(topo.moleculeParam[i].chemPot != -1.0 )
+        int i=0;
+        while(topo.moleculeParam[i].name != NULL) {
+            if(topo.moleculeParam[i].activity != -1.0 )
                 existGrand = true;
+            i++;
         }
         if(!existGrand) {
             cout << "In options nGrandCanon != 0, but no activity set for any species in top.init" << endl;
@@ -321,29 +325,26 @@ void Inicializer::initClusterList() {
 }
 
 void Inicializer::initSwitchList() {
-    // get all the particles with switch type
-    long switchlist[conf->pvec.size()];
-    long n_switch_part = 0;
-    for(unsigned int i = 0; i < conf->pvec.size(); i++){
-        if(conf->pvec[i].type != conf->pvec[i].switchtype){
-            switchlist[n_switch_part] = i;
-            n_switch_part++;
+    // count switch types for all molecular types
+    int count;
+    bool switchPartExist = false;
+    for(int i=0; i<MAXMT; i++) {
+        if(topo.moleculeParam[i].particleTypes.empty())
+            break;
+        count =0;
+        for(unsigned int j=0; j<topo.moleculeParam[i].switchTypes.size(); j++) {
+            if(topo.moleculeParam[i].switchTypes[j] != -1) {
+                count++;
+                switchPartExist = true;
+            }
         }
+        topo.moleculeParam[i].switchCount = count;
     }
-    topo.n_switch_part = n_switch_part;
-    if (n_switch_part == 0 && sim->switchprob > 0){
+
+    if (!switchPartExist && sim->switchprob > 0){
         fprintf(stderr, "TOPOLOGY WARNING: No switchable particles found, but probability for a switch is not zero!\n");
         sim->switchprob = 0;
         fprintf(stderr, "TOPOLOGY WARNING: We changed Switch Probability to zero in this run!\n");
-    }
-    topo.switchlist=NULL;
-    if (n_switch_part > 0){
-        topo.switchlist = (long int*) malloc(sizeof(long) * n_switch_part);
-        for(long i = 0; i < n_switch_part; i++){
-            topo.switchlist[i] = switchlist[i];
-            //DEBUG
-            //printf("%ld is in switchlist\n", switchlist[i]);
-        }
     }
 
     //  Mark particles as not switched
@@ -352,11 +353,10 @@ void Inicializer::initSwitchList() {
     }
 }
 
-void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
+void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     int err,fields,tmp_type;
     long i,j,current,first;
-    FILE * infile;
     char * line, line2[STRLEN];
     size_t line_size = (STRLEN + 1) * sizeof(char);
     line = (char *) malloc(line_size);
@@ -368,13 +368,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
             maxlength = topo.ia_params[i][i].len[0];
     }
 
-    infile = fopen(fileName, "r");
-    if (infile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n", fileName);
-        exit (1);
-    }
-
-    if(myGetLine(&line, &line_size, infile) == -1){
+    if(myGetLine(&line, &line_size, *infile) == -1){
         fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
         exit (1);
     }
@@ -402,7 +396,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
     Vector box;
 
     if (sscanf(line, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
-        if(myGetLine(&line, &line_size, infile) == -1){
+        if(myGetLine(&line, &line_size, *infile) == -1){
             fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
             exit (1);
         }
@@ -429,7 +423,7 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
 
     DEBUG_INIT("Position of the particle");
     for (i=0; i < (long)pvec.size(); i++) {
-        if(myGetLine(&line, &line_size, infile) == -1){
+        if(myGetLine(&line, &line_size, *infile) == -1){
             break;
         }
         strip_comment(line);
@@ -548,9 +542,6 @@ void Inicializer::initConfig(char *fileName, std::vector<Particle > &pvec) {
         printf ("\n");
         exit (1);
     }
-
-    fclose (infile);
-
     fflush (stdout);
 }
 
@@ -639,20 +630,38 @@ void Inicializer::initGroupLists() {
     cout << "Generating GroupLists..." << endl;
 
     // setGroupList;
-    int newType = -1;
-    for(unsigned int i = 0; i < conf->pvec.size(); i++) {
-        // set simple grouplist
-        if(newType != conf->pvec[i].molType) {
-            newType = conf->pvec[i].molType;
-            conf->pvec.first[newType] = i;
+    int type=0;
+    while(topo.moleculeParam[type].name != NULL) { // get all types
+        for(unsigned int i = 0; i < conf->pvec.size(); i++) {
+            if(type < conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
+                type = conf->pvec[i].molType;
+                conf->pvec.first[type] = i;
+                break;
+            }
+            // FIX for situation
+            // A X>0
+            // B 0
+            if(type !=0 && (i+1) == conf->pvec.size())
+                conf->pvec.first[type] = conf->pvec.size();
         }
+        type++;
     }
-    conf->pvec.molTypeCount = newType+1;
-    conf->pvec.first[newType+1] = conf->pvec.size();
-
+    conf->pvec.molTypeCount = type;
+    conf->pvec.first[type] = conf->pvec.size();
     conf->pvec.calcChainCount();
 
-    newType = -1;
+    //test grouplist consistency
+    /*int size=0;
+    for(int i=0; i < type; i++) {
+        size = 0;
+        for(unsigned int j=0; j<conf->pvec.size(); j++) {
+            if(i == conf->pvec[j].molType)
+                size++;
+        }
+        cout << size << "==" << conf->pvec.molCountOfType(i) << endl;
+    }*/
+
+    int newType = -1;
     for(unsigned int i = 0; i < conf->pool.size(); i++) {
         // set simple grouplist
         if(newType != conf->pool[i].molType) {
@@ -674,7 +683,7 @@ void Inicializer::initGroupLists() {
 
 
 
-void Inicializer::setParticlesParams(MolIO* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
+void Inicializer::setParticlesParamss(MolIO* molecules, long *sysmoln, char **sysnames, std::vector<Particle> *pvec) {
     long i=0, j=0, mol, k, maxpart=0;
 
     while (sysnames[i]!=NULL) {
@@ -917,10 +926,10 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln, char*
         fprintf (stderr, "TOPOLOGY ERROR: failed reading system from (%s).\n\n", pline);
         return 0;
     }
-    if ((*sysmoln)[i] < 1) {
+    /*if ((*sysmoln)[i] < 1) {
         fprintf (stderr, "TOPOLOGY ERROR: cannot have %ld number of molecules.\n\n", (*sysmoln)[i]);
         return 0;
-    }
+    }*/
     fprintf (stdout, "%s %s %ld\n",name, sysnames[i],(*sysmoln)[i]);
     return 1;
 }
@@ -976,7 +985,7 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6.\n\n", geotype);
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6, is %d.\n\n", geotype, fields);
         return 0;
     }
     if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
@@ -1191,11 +1200,13 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         assert(topo.moleculeParam[i].particleTypes[j] == molecules[i].type[j]);
 
         if (fields == 1){
-                (molecules[i].switchtype[j]) = (molecules[i].type[j]);
+                (molecules[i].switchtype[j]) = -1;//(molecules[i].type[j]);
                 (molecules[i].delta_mu[j]) = 0;
                 fields = 3;
         } else{
             fprintf(stdout, "(with switchtype: %ld and delta_mu: %lf)", molecules[i].switchtype[j], molecules[i].delta_mu[j]);
+            topo.moleculeParam[i].switchTypes.push_back(molecules[i].switchtype[j]);
+            topo.moleculeParam[i].deltaMu.push_back(molecules[i].delta_mu[j]);
         }
         if (fields != 3) {
             fprintf (stderr, "TOPOLOGY ERROR: could not read a pacticle.\n\n");

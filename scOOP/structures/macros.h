@@ -8,6 +8,7 @@
 #endif
 
 //#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
+//#define TRIM
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled
@@ -20,13 +21,15 @@
 
 //#define TESTING
 
+// Default in e2ScaOr2Spa() - WEEK-CHANDLER-ANDERSEN
+//#define LJ
+
 #ifdef ENABLE_MPI
 # include <mpi.h>
 #endif
 
 #include "omp.h"
 //#define OMP1 // energy functions openMP - ~25% speed increase with two cores
-//#define OMP
 
 
 #ifdef DEBUGGING_INIT

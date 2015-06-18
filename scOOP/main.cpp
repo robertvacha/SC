@@ -2,14 +2,25 @@
 
 #include "mc/inicializer.h"
 #include "mc/updater.h"
+#include "mc/mygetline.h"
 
 using namespace std;
 
 Topo topo; // Global instance of topology
 
+void analyzeCur(double& r1, double& r2, double& fi, Conf* conf, int &mid, int &mid2);
+
 int main(int argc, char** argv) {
 
-    FILE *outfile,*mov;       // Handle for writing configuration
+#ifdef OMP1
+    cout << "OPENMP SIMULATION" << endl;
+#endif
+
+#ifdef ENABLE_MPI
+    cout << "MPI SIMULATION" << endl;
+#endif
+
+    FILE *infile,*outfile,*mov;       // Handle for writing configuration
 
     Sim sim;                  // Should contain the simulation options.
     Conf conf;                // Should contain fast changing particle and box(?) information
@@ -40,9 +51,23 @@ int main(int argc, char** argv) {
     init.testChains(); // if no chains -> move probability of chains 0
 
     cout << "\nReading configuration...\n";
-    if(init.poolConfig)
-        init.initConfig(files.configurationPool, conf.pool);
-    init.initConfig(files.configurationInFile, conf.pvec);
+    if(init.poolConfig) {
+        infile = fopen(files.configurationPool, "r");
+        if (infile == NULL) {
+            fprintf (stderr, "\nERROR: Could not open %s file.\n\n", files.configurationPool);
+            exit (1);
+        }
+        init.initConfig(&infile, conf.pool);
+        fclose (infile);
+    }
+    infile = fopen(files.configurationInFile, "r");
+    if (infile == NULL) {
+        fprintf (stderr, "\nERROR: Could not open %s file.\n\n", files.configurationInFile);
+        exit (1);
+    }
+    init.initConfig(&infile, conf.pvec);
+    conf.geo.info();
+    fclose (infile);
 
     cout << "Equilibration of maximum step sizes: " << sim.nequil/2 << " sweeps" << endl;
 
@@ -67,6 +92,57 @@ int main(int argc, char** argv) {
 
     updater = new Updater(&sim, &conf, &files);
 
+    /********************************************************/
+    /*                  ANALYZE                             */
+    /********************************************************/
+
+    /*double r1, r2, fi, a=0.0, b=0.0, c=0.0;
+    double aver1=0.0, aver2=0.0;
+    vector<double> array1;
+    vector<double> array2;
+    double s1=0.0, s2=0.0;
+    int N = 0, mid=0, mid2=0;
+
+    infile = fopen("movieAll4", "r");
+    if (infile == NULL) {
+        fprintf (stderr, "\nERROR: Could not open %s file.\n\n", "movieAll");
+        exit (1);
+    }
+    char * line;
+    size_t line_size = (STRLEN + 1) * sizeof(char);
+    for(int i=0; i<200; i++) {
+        init.initConfig(&infile, conf.pvec);
+        analyzeCur(r1, r2, fi, &conf, mid, mid2);
+        if(r1 > r2-0.1 && r1 < r2+0.1) {
+            cout << r1 << " " << r2 << " " << fi << endl;
+            aver1 += r1;
+            aver2 += r2;
+            N++;
+            array1.push_back(r1);
+            array2.push_back(r2);
+            cout << mid <<" "<< mid2 << endl;
+        }
+
+        a += r1;
+        b += r2;
+        c += fi;
+    }
+    aver1 /= N;
+    aver2 /= N;
+    for(unsigned int w=0; w<array1.size(); w++) {
+        s1 += (aver1 - array1[w])*(aver1 - array1[w]);
+        s2 += (aver2 - array2[w])*(aver2 - array2[w]);
+
+    }
+    s1 /= N; s1 = sqrt(s1);
+    s2 /= N; s2 = sqrt(s2);
+
+    cout << "N= " << N << endl;
+    cout << "r1="<< aver1 << ", s1= " << s1 << ", r2= " << aver2 << ", s2= " << s2 << endl;
+    cout << "H= " << 1/aver1 - 1/aver2 << ", s= " << s1*s1/(aver1*aver1) + s2*s2/(aver2*aver2) << endl;
+    cout << "K= " << 1/aver1 * 1/aver2 * (-1.0) << ", s= " << 1/(aver1*aver2) * (s1*s1/aver1 + s2*s2/aver2) << endl;
+    fclose (infile);
+    exit(1);*/
 
     /********************************************************/
     /*                  EQUILIBRATION                       */
@@ -160,4 +236,112 @@ int main(int argc, char** argv) {
     printf ("\nDone\n\n");
 
     return 0;
+}
+
+void analyzeCur(double &r1, double &r2, double &fi, Conf* conf, int& mid, int& mid2) {
+    int result = 0;
+    int size = 19;
+    Vector dist, dist1, dist2;
+    Vector offset;
+    Vector min;
+    Vector a,b;
+    double minimum=999.9;
+    int index_fi_max,index_fi_max2;
+    double fi_max=0.0, r_min=999, fi_max2=0.0, r_min2=999;
+    int index;
+    double sinFi;
+    double r;
+    int indexBase = 1026, indexBase2=18;
+    for(int i=size; i< size+size-1; i++) { // 0 - 495 with 1026
+        result += i;
+
+        dist = conf->pvec[result].pos;
+        dist-= conf->pvec[indexBase].pos;
+
+        offset = conf->pvec[indexBase].pos;
+        dist.scale(0.5);
+        offset += dist;
+        dist.scale(2.0);
+
+        minimum=999.9;
+        for(unsigned int q=0; q<conf->pvec.size(); q++) {
+            min = offset;
+            min -= conf->pvec[q].pos;
+            if(sqrt(min.dot(min)) < minimum) {
+                index = q;
+                minimum = sqrt(min.dot(min));
+            }
+        }
+        a = conf->pvec[result].pos - conf->pvec[index].pos;
+        b = conf->pvec[indexBase].pos - conf->pvec[index].pos;
+
+
+
+        sinFi = (a.cross(b)).size() / (a.size() * b.size());
+
+        dist *= 30.0;
+        r = dist.size() / (2*sinFi);
+
+        if(r < r_min) {
+            dist1 = dist;
+            r_min = r;
+            fi_max=sinFi;
+            index_fi_max = result;
+            mid = index;
+        }
+
+    }
+
+    //cout << index_fi_max << " " << indexBase << endl;
+    //cout << "dist=" <<dist1.size() << " r=" <<r_min << " Fi: " << 180- asin(fi_max)*57.2957795 << "\n" << endl;
+
+    for(int i=size+size-1; i> size; i--) { // 495 - 1008 with 18
+        result += i;
+
+        dist = conf->pvec[result].pos;
+        dist-= conf->pvec[indexBase2].pos;
+
+        offset = conf->pvec[indexBase2].pos;
+        dist.scale(0.5);
+        offset += dist;
+        dist.scale(2.0);
+
+        minimum=999.9;
+        for(unsigned int q=0; q<conf->pvec.size(); q++) {
+            min = offset;
+            min -= conf->pvec[q].pos;
+            if(sqrt(min.dot(min)) < minimum) {
+                index = q;
+                minimum = sqrt(min.dot(min));
+            }
+        }
+        a = conf->pvec[result].pos - conf->pvec[index].pos;
+        b = conf->pvec[indexBase2].pos - conf->pvec[index].pos;
+
+
+
+        sinFi = (a.cross(b)).size() / (a.size() * b.size());
+
+        dist *= 30.0;
+        r = dist.size() / (2*sinFi);
+
+        if(r < r_min2) {
+            dist2 = dist;
+            r_min2 = r;
+            fi_max2=sinFi;
+            index_fi_max2 = result;
+            mid2 = index;
+        }
+    }
+
+
+
+    //cout << index_fi_max2 << " " << indexBase2 << endl;
+    //cout << "dist=" << dist2.size() << " r=" <<r_min2 << " Fi: " << 180- asin(fi_max2)*57.2957795 << "\n" << endl;
+
+    //cout << "angle dist1, dist2 = " << asin((dist1.cross(dist2)).size() / (dist1.size() * dist2.size()))*57.2957795 << endl;
+
+    r1 = r_min;
+    r2 = r_min2;
+    fi = asin((dist1.cross(dist2)).size() / (dist1.size() * dist2.size()))*57.2957795;
 }

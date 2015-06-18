@@ -15,9 +15,18 @@ executable SC will be created.
 
 Parallel tempering (enabling MPI) compile with:
 
-    $ cmake . -DENABLE_MPI=ON
+    $ cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
     $ make          ($ module add openmpi)
     $ mpirun -np x SC
+
+, where x is the number of threads
+
+Parallel acceleration (enabling OPENMP) compile with:
+
+    $ cmake . -DENABLE_OPENMP=ON -DENABLE_MPI=OFF
+    $ make          ($ module add openmpi)
+    $ export OMP_NUM_THREADS=x
+    $ ./SC
 
 , where x is the number of threads
 

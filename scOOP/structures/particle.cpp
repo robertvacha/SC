@@ -6,6 +6,7 @@ void Particle::init(Ia_param * ia_parami) {
         /*SCA and SCN are isotropic... nothing to initialize*/
         return;
     }
+
     dir.normalise();
     patchdir[0].ortogonalise(dir);
 

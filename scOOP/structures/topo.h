@@ -9,8 +9,6 @@
 class Topo
 {
 public:
-    long * switchlist;  ///< \brief List containing the number of all the particles with switchtypes
-    long n_switch_part; ///< \brief number of particles with switchtype
     double sqmaxcut;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
     double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
 
@@ -27,9 +25,6 @@ public:
     ~Topo() {
         printf ("Deallocating Topo...\n");
 
-        if(switchlist)
-            free(switchlist);
-
         for(int i=0; i<MAXMT; i++) {
             free(moleculeParam[i].name);
         }
@@ -42,6 +37,22 @@ public:
     void genParamPairs(bool (*exclusions)[MAXT][MAXT]);
 
     void genTopoParams();
+
+    void info() {
+        cout << "Topology:\n";
+        int i=0;
+        while(moleculeParam[i].name != NULL) {
+            cout << moleculeParam[i].name << ", activity:" << moleculeParam[i].activity << endl;
+            i++;
+        }
+
+        for(int q=0; q<5; q++) {
+            for(int w=0; w<5; w++) {
+                cout << ia_params[q][w].geotype[0] << " " << ia_params[q][w].geotype[1] <<" "<< ia_params[q][w].epsilon << " | ";
+            }
+            cout << endl;
+        }
+    }
 };
 
 #endif // TOPO_H

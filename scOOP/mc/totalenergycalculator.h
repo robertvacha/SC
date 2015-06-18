@@ -15,7 +15,7 @@ private:
     vector<PairEnergyCalculator> pairE;
     vector<ExternalEnergyCalculator> exterE;
 
-#ifdef OMP
+#ifdef OMP1
     inline int getThreadNum() {
         return omp_get_thread_num();
     }
@@ -29,12 +29,11 @@ private:
 public:
     TotalEnergyCalculator(Sim * sim, Conf * conf): sim(sim), conf(conf) {
         int threadCount = 1;
-#ifdef OMP
-        threadCount = 8;
-        omp_set_num_threads(threadCount);
-        cout << "Number of threads: " << threadCount << endl;
+#ifdef OMP1
+        threadCount = 32;
 #endif
 
+        printf ("\nInitializing energy functions...\n");
         for(int i=0; i < threadCount; i++) {
             pairE.push_back(PairEnergyCalculator(&conf->geo));
             exterE.push_back(ExternalEnergyCalculator(&conf->geo.box));
@@ -81,6 +80,17 @@ public:
     }
 
     /**
+     * @brief p2p
+     * @param part1
+     * @param part2
+     * @return
+     */
+    double p2p(Particle* target, int part2) {
+        return pairE[getThreadNum()](&conf->pvec[part2], target);
+    }
+
+
+    /**
      * @brief Calculates energy between particle "target" and the rest skipping particles from the given chain
               -particles has to be sorted in chain!!
               similar to oneToAll, but with chain exception
@@ -102,9 +112,11 @@ public:
     double oneToAll(Particle* target, ConList* conlist, Neighbors* neighborList);
 
     /**
-     * @brief Calculates energy between particle "target" and the rest
+     * @brief Calculates inner chain energy
      */
-    double chainInner(vector<Particle >::iterator chain, int size, vector<ConList>::iterator con);
+    double chainInner(vector<Particle >& chain, vector<ConList>& con);
+
+    double chainInner(Molecule& chain);
 
     /**
      * @brief extere2    Calculates interaction of target particle and external field version 2

@@ -207,6 +207,7 @@ typedef struct { /* extra type for mpi communication*/
 class Neighbors {
 public:
     Neighbors() : neighborCount(0), neighborID(NULL) {}
+
     long neighborCount; ///< \brief The number of neighbors (pairs eq. num_pairs)
     long * neighborID;  ///< \brief The particle indexes of the neighbors
 };

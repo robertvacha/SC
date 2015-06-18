@@ -93,7 +93,7 @@ public:
 
     friend inline Vector operator* (double,Vector&);
 
-    inline Vector vecCrossProduct(Vector& B) {
+    inline Vector cross(Vector& B) {
         return Vector(this->y*B.z - this->z*B.y, -this->x*B.z + this->z*B.x, this->x*B.y - this->y*B.x);
     }
 

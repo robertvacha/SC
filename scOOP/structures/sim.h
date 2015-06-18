@@ -32,6 +32,7 @@ public:
     //long terms;                 ///< \brief Number of Fourier terms as smectic order parameters
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
+    long nClustMove;            ///< \brief Number of sweeps between cluster moves
 
     Disp edge;                  ///< \brief Maximum box length change and statistics
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
@@ -91,6 +92,30 @@ public:
             if (RATIO(dat[i]) > 0)
                 printf ("   TYPE %d           %.6f  /  %.6f\n", i, dat[i].mx/scale,RATIO(dat[i]));
         }
+    }
+
+    void info() {
+        printf (" Pressure coupling type:                             %d\n", ptype);
+        printf (" Pressure:                                           %.8f\n", press);
+        printf (" Replica exchange pressure:                          %.8f\n", paralpress);
+        printf (" Average volume change attempts per sweep:           %.8f\n", shave);
+        printf (" Equilibration sweeps:                               %ld\n", nequil);
+        printf (" Sweeps between step size adjustments:               %ld\n", adjust);
+        printf (" Production sweeps:                                  %ld\n", nsweeps);
+        printf (" Sweeps between statistics samples:                  %ld\n", paramfrq);
+        printf (" Sweeps between statistics reports:                  %ld\n", report);
+        printf (" Average chain move attempts per sweep:              %.8f\n", chainprob);
+        printf (" Inititial maximum box edge change:                  %.8f\n", edge.mx);
+        printf (" Temperature in kT/e:                                %.8f\n", temper);
+        printf (" Parallel tempering temperature in kT/e:             %.8f\n", paraltemper);
+        printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
+        printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
+        printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
+        printf (" Wang-Landau method:                                 %d %d\n", wl.wlm[0],wl.wlm[1]);
+        printf (" Calculate the Wang-Landau method for atom type:     %d\n", wl.wlmtype);
+        printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
+        printf (" Number of Sweeps per pairlist update:               %d\n", pairlist_update);
+        printf (" Number of sweeps per writing out cluster info:      %ld\n", write_cluster);
     }
 
 private:

@@ -83,7 +83,7 @@ public:
        The direction vector is normalised
        after being read in.  The configuration is checked for particle overlaps.
      */
-    void initConfig(char* fileName, std::vector<Particle > &pvec);
+    void initConfig(FILE** infile, std::vector<Particle > &pvec);
 
     /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();
@@ -126,13 +126,13 @@ private:
     void initSwitchList();
 
     void setParticlesParams() {
-        setParticlesParams(molecules, sysmoln, sysnames, &conf->pvec);
-        setParticlesParams(molecules, poolMolNum, poolNames, &conf->pool);
+        setParticlesParamss(molecules, sysmoln, sysnames, &conf->pvec);
+        setParticlesParamss(molecules, poolMolNum, poolNames, &conf->pool);
     }
 
     void readTopoFile(bool exclusions[][MAXT]);
 
-    void setParticlesParams(MolIO *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
+    void setParticlesParamss(MolIO *molecules, long  *sysmoln, char **sysnames, std::vector<Particle >* pvec);
 
     /**
      * @brief xmalloc nice malloc, which does the error checking for us
