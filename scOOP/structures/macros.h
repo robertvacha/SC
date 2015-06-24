@@ -28,8 +28,11 @@
 # include <mpi.h>
 #endif
 
+//#define OMP1 // energy functions openMP
+#ifdef OMP1
 #include "omp.h"
-//#define OMP1 // energy functions openMP - ~25% speed increase with two cores
+#endif
+
 
 
 #ifdef DEBUGGING_INIT

@@ -21,7 +21,7 @@ cd ../scOOP/
 rm -f CMakeCache.txt
 rm -rf CMakeFiles/
 
-cmake . -DTESTING=ON -DENABLE_MPI=OFF -DENABLE_OPENMP=OFF
+cmake . -DTESTING=ON -DENABLE_MPI=OFF -DENABLE_OPENMP=ON
 
 make
 mv SC ../Tests/
