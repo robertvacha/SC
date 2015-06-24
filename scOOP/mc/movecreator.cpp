@@ -1490,7 +1490,15 @@ int MoveCreator::getRandomMuVTType() {
     return molType;
 }
 
+double MoveCreator::clusterMove() {
 
+    double edriftchanges =0.0;
+    long target;
+
+    target = ran2() * (long)conf->pvec.size();// Select random particle from config
+    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
+    return edriftchanges;
+}
 
 int MoveCreator::moveTry(double energyold, double energynew, double temperature) {
     /*DEBUG   printf ("   Move trial:    %13.8f %13.8f %13.8f %13.8f\n",
@@ -1504,15 +1512,6 @@ int MoveCreator::moveTry(double energyold, double energynew, double temperature)
             return 1;
         }
     }
-}
-
-double MoveCreator::clusterMove() {
-    double edriftchanges = 0.0;
-    long target;
-
-    target = ran2() * (long)conf->pvec.size();// Select random particle from config
-    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
-    return edriftchanges;
 }
 
 int isInCluster(double *list, int size, double value){
