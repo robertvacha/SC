@@ -24,11 +24,14 @@ public:
 };
 
 
+/**
+ * @brief The ParticleVector class
+ */
 class ParticleVector : public std::vector<Particle > {
 public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
     /// on [molTypeCount] == size of vector
-    int first[MAXMT+1]; ///<
+    int first[MAXMT+1];
 
     /// \brief chainIndex of first chain of molType
     /// on [molTypeCount] == number of all chains
@@ -60,6 +63,12 @@ public:
         }
     }
 
+    /**
+     * @brief Get the global vector index of a particle based on chainN of a molecule and the pos position in this molecule
+     * @param chainN - sequential number of all molecules bigger than 1 particle
+     * @param pos - the sequential number of a particle within this molecule
+     * @return index of this particle in the global vector
+     */
     inline int getChainPart(int chainN, int pos) {
         for(int type=0; type<=molTypeCount; type++) {
             if(chainCount[type] > chainN) {

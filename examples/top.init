@@ -1,0 +1,33 @@
+[Types]
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
+A 1 SPN 1.0 1.0
+A 1 SPN 1.0 1.0
+A 1 SPN 1.0 1.0
+[Molecules]
+# Molecules letter
+#  bond1 - harmonic bond between nearest neighbours
+#  bond2 - harmonic bond between second nearest neighbours
+#  angle1 - angle between two spherocylinders -nearest neighbours
+#  angle2 - angle between two spherocylinder patches -nearest neighbours
+#  particles - types as they go in chain in molecule
+#  activity - set activity of molecule in [mol/l]
+A: {
+#what:       TYPE     SWITCHTYPE  DELTA_MU
+particles:   1
+activity: 0.05
+}
+B: {
+particles:   1
+particles:   1
+activity: 0.05
+}
+C: {
+particles:   1
+particles:   1
+particles:   1
+activity: 0.05
+}
+[System] # any number will do for grandcanonical provided enaugh lines of coordinates are set in config.init
+A 0
+B 0
+C 0 

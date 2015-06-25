@@ -1,0 +1,3 @@
+[ Types ] # Consider all distances in nanometers
+#NAME   GEOTYPE EPSILON SIGMA ATTRACTION_DIST ATTRACTION_SWITCH
+Example SPA     1.0     1.0   1.122           0.878
