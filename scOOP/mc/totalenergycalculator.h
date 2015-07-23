@@ -87,8 +87,18 @@ public:
      */
     double chainToAll(int target, int chainnum);
 
+    /**
+     * @brief mol2others - used on vector of particles which arent inserted into main pvec
+     * @param mol
+     * @return
+     */
     double mol2others(vector<Particle> &mol);
 
+    /**
+     * @brief mol2others - molecule is inserted into main pvecne
+     * @param mol
+     * @return
+     */
     double mol2others(Molecule &mol);
 
     /**
