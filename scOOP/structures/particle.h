@@ -64,6 +64,16 @@ public:
 
     }
 
+    /**
+     * @brief testInit - dir, patchdir and chdir must be unit vectors
+     * @return
+     */
+    bool testInit() {
+        if(dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999)
+            return false;
+        return true;
+    }
+
     inline void rotateRandom(double max_angle, int geotype) {
         pscRotate(max_angle * ran2() , geotype, Vector::getRandomUnitSphere());
     }

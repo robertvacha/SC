@@ -387,7 +387,6 @@ double MoveCreator::chainMove() {
     } else {
         /*=== Rotation step of cluster/chain ===*/
         edriftchanges = chainRotate(target);
-
     } /* ==== END OF CHAIN MOVES ===== */
     return edriftchanges;
 }
@@ -1319,6 +1318,10 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
 double MoveCreator::muVTMove() {
 
+#ifndef NDEBUG
+            double e = calcEnergy->allToAll();
+#endif
+
     Molecule target;
     double volume = conf->geo.volume();
     double entrophy = log(volume)/sim->temper;
@@ -1338,6 +1341,8 @@ double MoveCreator::muVTMove() {
             insert.push_back(Particle(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
                                       , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(&topo.ia_params[insert[0].type][insert[0].type]);
+            assert(insert[0].testInit());
+
             // check overlap
             if(conf->overlapAll(&insert[0], topo.ia_params)) {
                 insert.clear();
@@ -1345,11 +1350,12 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
                 return 0; // overlap detected, move rejected
             }
+
             energy = calcEnergy->oneToAll(&insert[0], NULL, NULL);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
             if( ( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
-                  exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
+                  exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) > ran2()) {
 
                 conf->insertMolecule(insert);
 
@@ -1358,11 +1364,15 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].insAcc++;
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
+                assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 );
+
                 return energy - entrophy;
             } else { // rejected
                 insert.clear();
                 topo.moleculeParam[molType].insRej++;
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+
+                assert(e == calcEnergy->allToAll());
 
                 return 0;
             }
@@ -1415,7 +1425,7 @@ double MoveCreator::muVTMove() {
             factor *= volume / (conf->pvec.molCountOfType(molType) + 1.0);
 
             // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-24))  -U(new)/kT)
-            if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy)/sim->temper) ) > ran2()) {
+            if( ( factor * exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) > ran2()) {
                 // add internal energy(with external)
                 energy += calcEnergy->chainInner(insert, con);
 
@@ -1434,6 +1444,8 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].insRej++;
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
+                assert(e == calcEnergy->allToAll());
+
                 insert.clear();
                 return 0;
             }
@@ -1443,10 +1455,10 @@ double MoveCreator::muVTMove() {
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
-        energy += calcEnergy->mol2others(target);
+        energy = calcEnergy->mol2others(target);
         factor *= (conf->pvec.molCountOfType(molType))/volume;
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-        if( ( factor * exp( (energy)/sim->temper - topo.moleculeParam[molType].chemPot)) > ran2()) {
+        if( ( factor * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot)) > ran2()) {
             for(unsigned int i=0; i<molSize; i++)
                 conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
             vector<ConList> con;
@@ -1458,10 +1470,16 @@ double MoveCreator::muVTMove() {
             conf->removeMolecule(target);
             topo.moleculeParam[molType].delAcc++;
             topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
+
+            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 );
+
             return -energy + molSize*entrophy;
         } else {
             topo.moleculeParam[molType].delRej++;
             topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+
+            assert(e == calcEnergy->allToAll());
+
             return 0;
         }
     }
