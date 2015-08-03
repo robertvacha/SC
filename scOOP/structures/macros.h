@@ -7,7 +7,7 @@
 # define _GNU_SOURCE
 #endif
 
-#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc, all CPSC
+//#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc, all CPSC
 #define E_ISO 4
 
 //
