@@ -550,7 +550,7 @@ void Inicializer::testChains() {
     if (conf->pvec.getChainCount() == 0) {    // no chain -> make the probability of moving them 0
         if (sim->chainprob > 0)
             printf ("No chains... chain move probability set to 0.\n");
-        sim->chainprob = 0;
+        sim->chainprob = 0.0;
     } else {
         for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(topo.moleculeParam[i].isGrandCanonical() && !topo.moleculeParam[i].isAtomic()) {
@@ -981,7 +981,7 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     if (( (geotype_i == SCA) || (geotype_i == SPA)) && (fields != 2)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 3.\n\n", geotype);
+        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 2, is %d.\n\n", geotype, fields);
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {

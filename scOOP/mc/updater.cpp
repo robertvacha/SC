@@ -100,7 +100,11 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
     //=== Initialise counters etc. ===//
-    sim->shprob = sim->shave/(double)conf->pvec.size();
+    if(!conf->pvec.empty()) {
+        sim->shprob = sim->shave/(double)conf->pvec.size();
+    } else {
+        sim->shprob = 0.0;
+    }
 
     initValues(next_adjust, next_calc, next_dump, next_frame);
     if (sim->movie > 0) {

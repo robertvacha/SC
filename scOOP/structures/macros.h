@@ -7,8 +7,8 @@
 # define _GNU_SOURCE
 #endif
 
-//#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc
-//#define TRIM
+#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc, all CPSC
+#define E_ISO 4
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled
@@ -55,7 +55,7 @@
 /* End of DEBUG macros */
 
 #define MAXN 14000           /* Maximum number of particles */
-#define MAXCHL 10          /* Maximum length of chain */
+#define MAXCHL 20          /* Maximum length of chain */
 #define ZEROTOL 1.0e-12     /* Dot products below ZEROTOL are deemed zero */
 #define ZEROTOL2 1.0e-8     /* numbers below ZEROTOL are deemed zero */
 #define PI 3.141592653589793238462643383279  /* pi */

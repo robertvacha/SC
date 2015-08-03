@@ -611,7 +611,7 @@ double PairEnergyCalculator::eCpscCpsc() {
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
         double extraAttr = 0;
-        double extraEpsilon = -4.0; //  -> isotropic hydrophobic interaction Epsilon
+        double extraEpsilon = -1.0 * E_ISO; //  -> isotropic hydrophobic interaction Epsilon
 
         double extraInteractionSwitch = 0.2; //  -> isotropic hydrophobic interaction Switch
 
