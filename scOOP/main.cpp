@@ -3,10 +3,17 @@
 #include "mc/inicializer.h"
 #include "mc/updater.h"
 #include "mc/mygetline.h"
+#include "mc/randomGenerator.h"
 
 using namespace std;
 
 Topo topo; // Global instance of topology
+
+#ifdef RAN2
+    Ran2 ran2;
+#else
+    Dsfmt ran2;
+#endif
 
 void analyzeCur(double& r1, double& r2, double& fi, Conf* conf, int &mid, int &mid2);
 
@@ -147,6 +154,8 @@ int main(int argc, char** argv) {
     /********************************************************/
     /*                  EQUILIBRATION                       */
     /********************************************************/
+
+    assert(conf.pvec.size() == conf.pvec.first[conf.pvec.molTypeCount]);
 
     if (sim.nequil) {
         printf("\nStart equilibration...\n");

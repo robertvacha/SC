@@ -8,6 +8,12 @@
 #include <sstream>
 #include "../mc/randomGenerator.h"
 
+#ifdef RAN2
+    extern Ran2 ran2;
+#else
+    extern Dsfmt ran2;
+#endif
+
 class Quat;
 
 class Vector {

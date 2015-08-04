@@ -65,5 +65,3 @@ double Ran2::operator ()() {
 #undef NDIV
 #undef EPS
 #undef RNMX
-
-Ran2 ran2;

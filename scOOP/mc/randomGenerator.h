@@ -3,15 +3,13 @@
 #ifndef RANDOMGENERATOR_H
 #define RANDOMGENERATOR_H
 
-extern long int test[30];
-extern bool cond;
+#include "dSFMT-src-2.2.3/dSFMT.h"
 
 class randomBase {
 public:
     randomBase() {}
 
     virtual void setSeed(long int seed) =0;
-    virtual int getSeed() =0;
 
     /**
      * @return random number in close-open range [0,1)
@@ -38,8 +36,24 @@ private:
     long int seed;
 };
 
+class Dsfmt : public randomBase
+{
+public:
+    Dsfmt() {
+        setSeed(13);
+    }
 
-extern Ran2 ran2;
+    void setSeed(long int num) {
+        dsfmt_init_gen_rand(&seed, num);
+    }
+
+    double operator()() {
+        return dsfmt_genrand_close1_open2(&seed) - 1.0;
+    }
+
+private:
+    dsfmt_t seed;
+};
 
 
 #endif // RANDOMGENERATOR_H
