@@ -91,7 +91,11 @@ mc/inicializer.h mc/inicializer.cpp                           # INICIALIZER
 mc/mesh.h mc/mesh.cpp                                         # MESH
 mc/simlib.h mc/simlib.cpp                                     # SIMLIB
 mc/randomGenerator.h mc/randomGenerator.cpp                   # RANDOM GENERATOR
-mc/printStat.h mc/printStat.cpp)                              # PRINTSTAT
+mc/printStat.h mc/printStat.cpp
+mc/dSFMT-src-2.2.3/dSFMT.c
+mc/dSFMT-src-2.2.3/dSFMT.h
+mc/dSFMT-src-2.2.3/dSFMT-params.h
+)                              # PRINTSTAT
 
 #target_link_libraries(SC ${MPI_C_LIBRARIES}) 
 
