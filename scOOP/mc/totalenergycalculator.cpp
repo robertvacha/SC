@@ -87,8 +87,9 @@ double TotalEnergyCalculator::mol2others(Molecule& mol) {
 #ifdef OMP1
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
-    for(unsigned int j=0; j<mol.size(); j++) {
-        for (i = 0; i < mol[0]; i++)
+    for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
+        // for cycles => pair potential with all particles except those in molecule
+        for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
             energy+= pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
 
         for (long i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)

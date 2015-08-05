@@ -1454,7 +1454,15 @@ double MoveCreator::muVTMove() {
     } else { // delete move
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
+
+        assert(conf->pvec.molCountOfType(molType) == conf->pvec.size() && "should be true for one atom type simulation");
+
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
+
+#ifndef NDEBUG
+        Particle temp = conf->pvec[target[0]];
+#endif
+
         energy = calcEnergy->mol2others(target);
         factor *= (conf->pvec.molCountOfType(molType))/volume;
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
@@ -1472,6 +1480,11 @@ double MoveCreator::muVTMove() {
             topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
 
             assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 );
+
+#ifndef NDEBUG
+            for(unsigned int i=0; i< conf->pvec.size(); i++)
+                assert(temp != conf->pvec[i] && "Wrong particle deleted");
+#endif
 
             return -energy + molSize*entrophy;
         } else {

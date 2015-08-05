@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     mc/printStat.cpp \
     structures/topo.cpp \
     mc/randomGenerator.cpp \
-    mc/externalenergycalculator.cpp
+    mc/externalenergycalculator.cpp \
+    mc/dSFMT-src-2.2.3/dSFMT.c
 
 HEADERS += \
     mc/wanglandau.h \
@@ -49,5 +50,24 @@ HEADERS += \
     structures/topo.h \
     mc/randomGenerator.h \
     mc/externalenergycalculator.h \
-    structures/geometry.h
+    structures/geometry.h \
+    mc/dSFMT-src-2.2.3/dSFMT.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params521.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params1279.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params2203.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params4253.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params11213.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params19937.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params44497.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params86243.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params132049.h \
+    mc/dSFMT-src-2.2.3/dSFMT-params216091.h \
+    mc/dSFMT-src-2.2.3/dSFMT-common.h
+
+OTHER_FILES += \
+    mc/dSFMT-src-2.2.3/FILES.txt \
+    mc/dSFMT-src-2.2.3/LICENSE.txt \
+    mc/dSFMT-src-2.2.3/README.jp.txt \
+    mc/dSFMT-src-2.2.3/README.txt
 
