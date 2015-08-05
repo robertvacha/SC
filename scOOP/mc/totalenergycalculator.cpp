@@ -171,18 +171,9 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
 double TotalEnergyCalculator::chainInner(vector<Particle >& chain, vector<ConList>& con) {
     double energy = 0.0;
 
-    for (unsigned int i=0; i<chain.size(); i++) {
+    for (unsigned int i=0; i<chain.size(); i++)
         for (unsigned int j=i+1; j<chain.size(); j++)
-            energy += (pairE[getThreadNum()])(&chain[i], &chain[j],  &con[i]);
-
-        //for every particle add interaction with external potential
-        if (topo.exter.exist)
-            energy += exterE[getThreadNum()].extere2(&chain[i]);
-    }
-
-    //add interaction of last particle with external potential
-    if (topo.exter.exist)
-        energy+= exterE[getThreadNum()].extere2(&chain.back());
+            energy += (pairE[getThreadNum()])(&chain[i], &chain[j],  &con[i]);   
 
     return energy;
 }
@@ -196,15 +187,7 @@ double TotalEnergyCalculator::chainInner(Molecule &chain) {
             conlist = conf->pvec.getConlist(chain[i]);
             energy += (pairE[getThreadNum()])(&conf->pvec[chain[i]], &conf->pvec[chain[j]],  &conlist);
         }
-
-        //for every particle add interaction with external potential
-        if (topo.exter.exist)
-            energy += exterE[getThreadNum()].extere2(&conf->pvec[chain[i]]);
     }
-
-    //add interaction of last particle with external potential
-    if (topo.exter.exist)
-        energy+= exterE[getThreadNum()].extere2(&conf->pvec[ chain.back() ]);
 
     return energy;
 }

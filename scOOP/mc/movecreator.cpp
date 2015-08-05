@@ -1334,6 +1334,8 @@ double MoveCreator::muVTMove() {
     int molType = getRandomMuVTType();
     molSize = topo.moleculeParam[molType].molSize();
 
+    assert(conf->pvec.molCountOfType(molType) == conf->pvec.size() && "should be true for one atom type simulation");
+
     topo.moleculeParam[molType].muVtSteps++;
     if(ran2() > 0.5) { //  insert move
         if(topo.moleculeParam[molType].isAtomic()) {
@@ -1454,8 +1456,6 @@ double MoveCreator::muVTMove() {
     } else { // delete move
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
-
-        assert(conf->pvec.molCountOfType(molType) == conf->pvec.size() && "should be true for one atom type simulation");
 
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
 
