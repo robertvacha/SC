@@ -145,6 +145,8 @@ public:
     double chiral_cos[2];       ///< \brief Coctains the cosinus for the chiral rotation of the patch
     double chiral_sin[2];       ///< \brief Contains the sinus for the chiral rotation of the patch
     double parallel;            ///< \brief additional epsilon directional interactions parallel(>0), isotpropic(0), or antiparallel(<0)
+
+    bool exclude;
     
     Ia_param() {
         for(int k = 0; k < 2; k++){
@@ -172,7 +174,8 @@ public:
         rcut = 0.0;
         volume = 0.0;
         pvolscale = 0.0;
-	parallel = 0.0;
+        parallel = 0.0;
+        exclude = false;
     }
 };
 

@@ -121,8 +121,7 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
     }
     for (int i=0;i<MAXT;i++) {
         for (int j=0;j<MAXT;j++) {
-            if ( exclusions[i][j] )
-                ia_params[i][j].epsilon = 0.0;
+            ia_params[i][j].exclude = exclusions[i][j];
         }
     }
 }

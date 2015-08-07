@@ -387,9 +387,11 @@ double PairEnergyCalculator::ePscPsc() {
 
     closestDist();
     repenergy = eRepulsive();
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
@@ -512,7 +514,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     //atrenergy = -1.0;
     else {
         atrenergy = cos(PIH*(ndist-topo.ia_params[part1->type][part2->type].pdis)/topo.ia_params[part1->type][part2->type].pswitch);
-        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
+        atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon;
     }
     /*5- scaling function2: angular dependence of patch1*/
     vec1 = 1.0 * vec_intrs;
@@ -551,9 +553,11 @@ double PairEnergyCalculator::eCpscCpsc() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist > topo.ia_params[part1->type][part2->type].rcut ) || ( topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist > topo.ia_params[part1->type][part2->type].rcut ) ||
+         ( topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
@@ -733,9 +737,11 @@ double PairEnergyCalculator::ePscCpsc() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
@@ -916,9 +922,11 @@ double PairEnergyCalculator::eSpaSca() {
     closestDist();
     repenergy = eRepulsive();
 
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         /*calculate closest distance attractive energy*/
         if (dist <topo.ia_params[part1->type][part2->type].pdis)
             atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
@@ -959,9 +967,11 @@ double PairEnergyCalculator::ePscSpa() {
     closestDist();
     repenergy = eRepulsive();
     //DEBUG_SIM("got the rep. energy");
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         bool firstCH=false, secondCH=false;
         Vector olddir1 = part1->dir;
         Vector olddir2 = part2->dir;
@@ -1075,8 +1085,12 @@ double PairEnergyCalculator::eCpscSpa() {
     } else {
         halfl=topo.ia_params[part1->type][part2->type].half_len[1];
     }
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) || ( dist >topo.ia_params[part1->type][part2->type].rcut )
-      || (contt > halfl) || (contt < -halfl) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ||
+         ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (contt > halfl) ||
+         (contt < -halfl) )
         atrenergy = 0.0;
     else {
         bool firstCH=false, secondCH=false;
@@ -1187,9 +1201,11 @@ double PairEnergyCalculator::e2ScaOr2Spa() {
     closestDist();
 
     repenergy = eRepulsive();
-    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) || (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) )
+    if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
+         (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+         topo.ia_params[part1->type][part2->type].exclude ) {
         atrenergy = 0.0;
-    else {
+    } else {
         if (dist <topo.ia_params[part1->type][part2->type].pdis)
             atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
         else  {
