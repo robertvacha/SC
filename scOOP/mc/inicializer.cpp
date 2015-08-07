@@ -269,12 +269,18 @@ void Inicializer::initTop() {
 
     bool exclusions[MAXT][MAXT] = {false};
 
-    readTopoFile(exclusions);
+    readTopoFile(exclusions); // EXCLUDE LOADED CORRECTLY 7.8. 2015
 
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
+    /*for(int i=0; i<4; i++) {
+        for(int j=0; j<4; j++)
+            cout << std::boolalpha<< exclusions[i][j] << " ";
+        cout << endl;
+    }*/
+
     //fill ia_params combinations and topology parameters
-    topo.genParamPairs(&exclusions);
+    topo.genParamPairs(exclusions);
     topo.genTopoParams();
 
     setParticlesParams();
@@ -1045,7 +1051,7 @@ int Inicializer::fillTypes(char **pline) {
         for(i = 0; i < 2; i++){
             topo.ia_params[type][type].chiral_cos[i] = cos(param[8] / 360 * PI);
             topo.ia_params[type][type].chiral_sin[i] = sqrt(1 - topo.ia_params[type][type].chiral_cos[i] * topo.ia_params[type][type].chiral_cos[i]);
-            fprintf(stdout, "| %g ", param[8]);
+            fprintf(stdout, "| chirality %g ", param[8]);
         }
     }
     if ((fields == 9)||(fields == 10)) {

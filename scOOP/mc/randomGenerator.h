@@ -4,6 +4,9 @@
 #define RANDOMGENERATOR_H
 
 #include "dSFMT-src-2.2.3/dSFMT.h"
+#include <iostream>
+
+using namespace std;
 
 class randomBase {
 public:
@@ -20,7 +23,9 @@ public:
 class Ran2 : public randomBase
 {
 public:
-    Ran2() : seed(13) {}
+    Ran2() : seed(13) {
+        cout << "Using RAN2 random generator" << endl;
+    }
 
     void setSeed(long int seed) {this->seed=seed;}
     int getSeed() {return seed;}
@@ -40,6 +45,7 @@ class Dsfmt : public randomBase
 {
 public:
     Dsfmt() {
+        cout << "Using double precision Mersenne twister" << endl;
         setSeed(13);
     }
 

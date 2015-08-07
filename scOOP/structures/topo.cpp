@@ -2,7 +2,8 @@
 
 #include <cstring>
 
-void Topo::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
+void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
+
     int a[2];
     int len;
     double length = 0; // The length of a PSC, currently only one is allow, ie implemented
@@ -103,9 +104,6 @@ void Topo::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
                 } // (ia_params[j][j].geotype[0] != 0) && (ia_params[i][i].geotype[0] != 0)
             }
 
-            if ( (*exclusions)[i][j] )
-                ia_params[i][j].epsilon = 0.0;
-
         } // end of for cycle j
 
         /*filling interaction with external potential*/
@@ -123,7 +121,7 @@ void Topo::genParamPairs(bool (*exclusions)[MAXT][MAXT]) {
     }
     for (int i=0;i<MAXT;i++) {
         for (int j=0;j<MAXT;j++) {
-            if ( (*exclusions)[i][j] )
+            if ( exclusions[i][j] )
                 ia_params[i][j].epsilon = 0.0;
         }
     }

@@ -34,7 +34,7 @@ public:
      * @brief generate interations pairs
      * @param (*exlusions)[][]
      */
-    void genParamPairs(bool (*exclusions)[MAXT][MAXT]);
+    void genParamPairs(bool exclusions[MAXT][MAXT]);
 
     void genTopoParams();
 
