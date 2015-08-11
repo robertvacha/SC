@@ -14,7 +14,10 @@
  */
 inline double anInt(double arg)  {
     arg+=6755399441055744.0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     return static_cast<double>(reinterpret_cast<int&>(arg) );
+#pragma GCC diagnostic pop
     /*if (arg < 0) {
         return (double)( (long)(arg-0.5) );
     } else {

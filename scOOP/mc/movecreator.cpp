@@ -274,7 +274,7 @@ double MoveCreator::switchTypeMove() {
     int reject=0,wli;
     long target;
     double radiusholemax_orig=0;
-    int switchType, sequence_num, delta_mu;
+    int switchType, sequence_num=0, delta_mu;
 
     /*=== This is an attempt to switch a type ===*/   
     target = ran2() * conf->pvec.switchPartCount();
@@ -1319,7 +1319,11 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 double MoveCreator::muVTMove() {
 
 #ifndef NDEBUG
-            double e = calcEnergy->allToAll();
+    double e = calcEnergy->allToAll();
+    vector<Particle> pTemp;
+    for(unsigned int i=0; i<conf->pvec.size(); i++) {
+        pTemp.push_back(conf->pvec[i]);
+    }
 #endif
 
     Molecule target;
@@ -1334,7 +1338,7 @@ double MoveCreator::muVTMove() {
     int molType = getRandomMuVTType();
     molSize = topo.moleculeParam[molType].molSize();
 
-    assert(conf->pvec.molCountOfType(molType) == conf->pvec.size() && "should be true for one atom type simulation");
+    assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");
 
     topo.moleculeParam[molType].muVtSteps++;
     if(ran2() > 0.5) { //  insert move
@@ -1367,6 +1371,12 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 );
+#ifndef NDEBUG
+                for(unsigned int i=0; i<pTemp.size(); i++) {
+                    assert(pTemp[i] == conf->pvec[i]);
+                }
+                assert(conf->pvec.size() == pTemp.size()+1);
+#endif
 
                 return energy - entrophy;
             } else { // rejected
@@ -1375,6 +1385,11 @@ double MoveCreator::muVTMove() {
                 topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
                 assert(e == calcEnergy->allToAll());
+#ifndef NDEBUG
+                for(unsigned int i=0; i<conf->pvec.size(); i++) {
+                    assert(pTemp[i] == conf->pvec[i]);
+                }
+#endif
 
                 return 0;
             }
@@ -1457,22 +1472,19 @@ double MoveCreator::muVTMove() {
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
 
-        target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType); // get random molecule of molType
+        target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType, topo.moleculeParam[molType].molSize()); // get random molecule of molType
 
 #ifndef NDEBUG
         Particle temp = conf->pvec[target[0]];
 #endif
 
         energy = calcEnergy->mol2others(target);
-        factor *= (conf->pvec.molCountOfType(molType))/volume;
+
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-        if( ( factor * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot)) > ran2()) {
+        if( ( (conf->pvec.molCountOfType(molType)/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot)) > ran2()) {
             for(unsigned int i=0; i<molSize; i++)
                 conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
-            vector<ConList> con;
-            for(unsigned int i=0; i<molSize; i++) {
-                con.push_back(conf->pvec.getConlist(target[i], i));
-            }
+
             energy += calcEnergy->chainInner(target);
 
             conf->removeMolecule(target);

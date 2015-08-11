@@ -11,8 +11,10 @@ public:
 
     virtual void usePBC(Particle *pos) = 0;
     virtual Vector image(Vector* r1, Vector* r2) = 0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     virtual bool boundaryOverlap(Vector *pos) {return false;}       // all - for insertion because of uniformity
-
+#pragma GCC diagnostic pop
     virtual Vector randomPos() =0;
     virtual double volume() = 0;
 };
@@ -72,10 +74,12 @@ public:
 
         Vector temp(r_cm.x + 6755399441055744.0, r_cm.y + 6755399441055744.0, r_cm.z + 6755399441055744.0);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
         r_cm.x = box.x * (r_cm.x - static_cast<double>(reinterpret_cast<int&>(temp.x) ) );
         r_cm.y = box.y * (r_cm.y - static_cast<double>(reinterpret_cast<int&>(temp.y) ) );
         r_cm.z = box.z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp.z) ) );
-
+#pragma GCC diagnostic pop
         return r_cm;
     }
 
@@ -185,8 +189,10 @@ public:
         r_cm.z = r1->z - r2->z;
 
         double temp =  r_cm.z + 6755399441055744.0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
         r_cm.z = box.z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp) ) );
-
+#pragma GCC diagnostic pop
         if(atan2(r_cm2.x, r_cm2.y) < angleRad*0.5)
             rotateClockWise(&r_cm2);
         else rotateCounterClock(&r_cm2);
@@ -196,8 +202,10 @@ public:
         r_cm2.z = r_cm2.z - r2->z;
 
         temp =  r_cm2.z + 6755399441055744.0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
         r_cm2.z = box.z * (r_cm2.z - static_cast<double>(reinterpret_cast<int&>(temp) ) );
-
+#pragma GCC diagnostic pop
         if(r_cm.dot(r_cm) < r_cm2.dot(r_cm2) )
             return r_cm;
         else return r_cm2;

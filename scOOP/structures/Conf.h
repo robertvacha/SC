@@ -49,7 +49,10 @@ public:
 
     inline int getChainCount() {return chainCount[molTypeCount];}
 
-    int vecSize() {return first[molTypeCount];}
+    int vecSize() {
+        assert(first[molTypeCount] == (int)size());
+        return first[molTypeCount];
+    }
 
     void calcChainCount() {
         chainCount[molTypeCount]=0;
@@ -142,22 +145,24 @@ public:
         i--; // i is now the molecule type
         index -= first[i];//index sequnce number of particle in moltype
         index /= topo.moleculeParam[i].molSize(); // index sequnce number of molecule in type
-        return getMolecule(index, i);
+        return getMolecule(index, i, topo.moleculeParam[i].molSize());
     }
 
     /**
      * @brief getMolecule
-     * @param chainN - sequence number of molecule in given moltype
-     * @param molType
+     * @param molN - sequence number of molecule in given moltype
+     * @param molType - molecular type
+     * @param molSize - number of particles in 1 molecule
      * @return
      */
-    Molecule getMolecule(int chainN, int molType) {
+    Molecule getMolecule(int molN, int molType, int molSize) {
         Molecule ret;
-        chainN *= topo.moleculeParam[molType].molSize();
-        chainN += first[molType];
+        molN *= molSize;
+        molN += first[molType];
 
-        for(int i=0; i < topo.moleculeParam[molType].molSize(); i++)
-            ret.push_back(chainN + i);
+        for(int i=0; i < molSize; i++)
+            ret.push_back(molN + i);
+
         assert(this->operator [](ret[0]).molType == molType); // did we pick correct molType
         return ret;
     }
@@ -172,11 +177,12 @@ public:
 
     /**
      * @brief Converts molID of molType to pvec Index
-     * molID -> starts from 0 for each molType
+     * @param molType
+     * @param molN - sequence number of molecule in given moltype
      * @return Index of first particle of molecule
      */
-    inline int getStoreIndex(int molType, int molID) const {
-        return first[molType] + topo.moleculeParam[molType].molSize()*molID;
+    inline int getStoreIndex(int molType, int molN) const {
+        return first[molType] + topo.moleculeParam[molType].molSize()*molN;
     }
 
     inline int getInsertIndex(int molType) const {
@@ -203,18 +209,23 @@ public:
         return size;
     }
 
+    /**
+     * @brief getSwitchPart
+     * @param target - sequnce number of chosen particle with switchtype from all particles with switchtypes
+     * @param seq - sequence number of type in chain
+     * @return
+     */
     int getSwitchPart(int target, int& seq) {
         int count;
         for(int i=0; i<molTypeCount; i++) {
-            count = topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize();
+            count = topo.moleculeParam[i].switchCount*( first[i+1] - first[i]) / topo.moleculeParam[i].molSize(); // number of particles with switchtype per molType
             if(target > count)
                 target -= count;
             else {
-                count = target % topo.moleculeParam[i].switchCount; // sequence number of type in chain
+                seq = target % topo.moleculeParam[i].switchCount; // sequence number of type in chain
                 target /= topo.moleculeParam[i].switchCount;          // sequence number of molecule
                 // target = first index of type (==offset) + target molecule index + particle sequence
-                target = first[i] + target*topo.moleculeParam[i].molSize() + topo.moleculeParam[i].switchTypeSeq(count);
-                seq = count;
+                target = first[i] + target*topo.moleculeParam[i].molSize() + topo.moleculeParam[i].switchTypeSeq(seq);
                 break;
             }
         }
