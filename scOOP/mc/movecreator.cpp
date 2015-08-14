@@ -1644,19 +1644,14 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection.patchsides[1]*=-1.0;
         reflection.patchsides[2]*=-1.0;
         reflection.patchsides[3]*=-1.0;
-        cout<<"Moltype: "<<reflection.molType<<endl;
-        cout<<"Moltypex: "<<conf->pvec[cluster[counter]].molType<<endl;
         conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
 
         //Iterate through reflection "Neighbours"
         for (unsigned int i = 0; i < conf->pvec.size(); i++){
-            cout<<"Particle_comparison: "<<i<<endl;
             if (!isInCluster(cluster, num_particles, i)){
-                cout<<"Energy compa: "<<i<<endl;
                 energy_old = calcEnergy->p2p(cluster[counter], i);
                 energy_new = calcEnergy->p2p(&reflection, i);
                 if (ran2() < (1-exp((energy_old-energy_new)/sim->temper))){//ran2() < (1-exp(-1.0*((energy_new-energy_old)/sim->temper))) acceptance criteria vis. Reference
-                    cout<<"Particle acepted"<<endl;
                     //Addition of chain into cluster
                     //-----------------------------------------------------
                     molecule_size = topo.moleculeParam[conf->pvec[i].molType].particleTypes.size();
@@ -1673,9 +1668,6 @@ double MoveCreator::clusterMoveGeom(long target) {
                     //-----------------------------------------------------
                 }
             }
-        }
-        for(int i=0; i < num_particles; i++){
-            cout<<i<<"- "<<cluster[i]<<endl;
         }
         conf->pvec[cluster[counter]] = reflection;// here old particle is chnged for its reflection
         counter++;
