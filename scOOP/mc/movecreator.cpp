@@ -1343,19 +1343,11 @@ double MoveCreator::muVTMove() {
     topo.moleculeParam[molType].muVtSteps++;
     if(ran2() > 0.5) { //  insert move
         if(topo.moleculeParam[molType].isAtomic()) {
-            // create particle           
+            // create particle
             insert.push_back(Particle(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
                                       , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(&topo.ia_params[insert[0].type][insert[0].type]);
             assert(insert[0].testInit());
-
-            // check overlap
-            if(conf->overlapAll(&insert[0], topo.ia_params)) {
-                insert.clear();
-                topo.moleculeParam[molType].insRej++;
-                topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
-                return 0; // overlap detected, move rejected
-            }
 
             energy = calcEnergy->oneToAll(&insert[0], NULL, NULL);
 
