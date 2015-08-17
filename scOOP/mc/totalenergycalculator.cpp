@@ -153,7 +153,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
 #pragma omp parallel for private(i) reduction (+:energy) schedule (dynamic)
 #endif
         for (i = 0; i < conf->pvec.size(); i++) {
-            if(*target != conf->pvec[i]) {
+            if(target != &conf->pvec[i]) {
                 energy += pairE[getThreadNum()](target, &conf->pvec[i], conlist);
                 /*std::cout.precision(15);
                 cout << pairE[getThreadNum()](target, &conf->pvec[i], conlist) << endl;*/

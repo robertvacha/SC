@@ -47,13 +47,13 @@ public:
      */
     void init(Ia_param * ia_parami);
 
-    inline bool operator== (Particle& other) {
-        if(pos == other.pos) return true;
+    inline bool operator== (Particle* other) {
+        if(this == other) return true;
         else return false;
     }
 
-    inline bool operator!= (Particle& other) {
-        if(pos != other.pos) return true;
+    inline bool operator!= (Particle* other) {
+        if(this != other) return true;
         else return false;
     }
 
