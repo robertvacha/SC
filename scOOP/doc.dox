@@ -22,23 +22,26 @@ Compiling
 
 in scOOP/ directory:
 
-    $ cmake .       ($ module add cmake)
+    $ module add cmake
+    $ cmake .
     $ make
 
 executable SC will be created.
 
 Parallel tempering (enabling MPI) compile with:
 
+    $ module add mpich
     $ cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
-    $ make          ($ module add openmpi)
+    $ make
     $ mpirun -np x SC
 
 , where x is the number of threads
 
 Parallel acceleration (enabling OPENMP) compile with:
 
+    $ module add openmpi
     $ cmake . -DENABLE_OPENMP=ON -DENABLE_MPI=OFF
-    $ make          ($ module add openmpi)
+    $ make
     $ export OMP_NUM_THREADS=x
     $ ./SC
 
@@ -87,10 +90,19 @@ The following is an excerpt from a topology file and the energy function which t
 \section grand GrandCanonical usage
 - Grandcanonical ensemble in MoveCreator::muVTMove()
   - insertion and deletion moves
+  - set activity in topology and nGrandCanon in options
+  - activity is set in mols per liter [mol/l]
   - example topology:
-@include top.init
+@include topGrand.init
   - example options:
-@include options
+@include optionsGrand
+
+\section NPT NPT ensemble usage
+- NPT ensemble in MoveCreator::pressureMove()
+  - Volume exchange move
+  - set edge_mx, shave and press in options
+  - example options:
+@include optionsNPT
 */
 
 //-----------------------------------------------------------
