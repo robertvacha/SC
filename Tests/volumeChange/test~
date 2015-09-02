@@ -1,0 +1,52 @@
+#!/bin/bash
+
+function print {
+    if [ $? -eq 0 ]
+    then
+        echo -e $1 " \e[1;32mOK\e[0m."
+    else 
+        echo -e $1 " \e[1;31mNOK\e[0m."
+    fi
+}
+
+function clean {
+    rm -f config.last SC
+    cd ../old/
+    rm -f  a.out config.last
+    cd ../..
+}
+
+cd ../../scOOP/
+
+rm -f CMakeCache.txt
+rm -rf CMakeFiles/
+
+cmake . -DTESTING=ON
+
+make
+mv SC ../Tests/
+
+cd ../Tests/
+
+echo ""
+echo "Building comparison version..."
+gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm -DTESTING
+
+echo ""
+echo "testing..."
+
+#
+# TEST chain
+#
+cp SC volumeChange/new/
+cp a.out volumeChange/old/
+cd volumeChange/old
+./a.out
+cd ../new/
+./SC
+diff config.last ../old/config.last > /dev/null
+print "2) volumeChange Test, monomers"
+clean
+
+echo ""
+echo -e "\e[0mdone"

@@ -1,0 +1,35 @@
+# Template for the "options" file. Options start with an '#'.
+# Pressure couplings:
+#   0 = anisotropic coupling, 1 = isotropic coupling, 2 = isotropic in xy z=const, 3 = isotropic 
+#   xy and keep Volume constant
+# Wang-Landau method: (with constant decrease of bias addition by factor of 2, until less than WL_ALPHATOL)
+#   O = none, 1 = z-direction of 1st paticle, 2 = hole in xyplane, 3 = z-orientation of 0th particle 
+#   4 = distance of first two particles, 5 = pore around z axis and above CM, 6 = pore around z axis and above 0th particle
+#   7 = number of particles in contact (within distance sqrt(WL_CONTACTS))
+ptype = 2               #  Pressure coupling type (0-anisotropic xyz, 1-isotropic xyz, 2 - isotropic in xy z=const, 3 - isotropic in xy and V=const)
+press = 100               #  Pressure
+paralpress = 0          #  Parallel pressure for replica exchange
+shave = 1               #  Average number of volume change attempts per sweep (usually 1)
+nequil = 0              #  Number of equilibration sweeps
+adjust = 0              #  Number of equilibration sweeps between step size adjustments
+nsweeps  = 10000      #  Number of production sweeps
+paramfrq = 0      #  Number of sweeps between order parameter samples
+report   = 0      #  Number of sweeps between statistics reports
+nrepchange = 0          #  Number of sweeps between replica exchanges
+nGrandCanon = 0
+nClustMove = 0
+movie    = 0       #  Number of sweeps between movie frames (0 = no movie)
+chainprob = 0.125         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
+transmx = 0.212         #  Initial maximum displacement
+rotmx = 7.5             #  Initial maximum orientation change (degrees)
+edge_mx = 0.01           #  Initial maximum box length change
+chainmmx = 0.0          #  Initial maximum chain displacement
+chainrmx = 0.0          #  Initial maximum chain rotation change (degrees)
+temper = 0.1       #  Temperature in units kT/e
+paraltemper = 0.1 #  Temperature for parallel tempering in kT/e 
+wlm = 0                 #  Wang-Landau method
+wlmtype = 0             #  For which atomic type (from top.init) should the Wang-Landau method be calculated?
+switchprob = 0.00       #  Probability of type switch attempts per sweep
+pairlist_update = 0     #  Number of sweeps after which the pairlist should be updated
+seed = 145658           #  Random number seed
+write_cluster = 0	#  Number of sweeps per writing out cluster info
