@@ -20,6 +20,9 @@
 //#define WEDGE
 
 //#define TESTING
+#ifdef TESTING
+    #define RAN2
+#endif
 
 // Default in e2ScaOr2Spa() - WEEK-CHANDLER-ANDERSEN
 //#define LJ

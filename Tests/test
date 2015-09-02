@@ -10,9 +10,7 @@ function print {
 }
 
 function clean {
-    rm -f config.last SC
-    cd ../old/
-    rm -f  a.out config.last
+    rm -f config.last config.last2 a.out SC
     cd ../..
 }
 
@@ -32,7 +30,16 @@ cd ../Tests/
 
 echo ""
 echo "Building comparison version..."
-gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm -DTESTING
+cd scOOP/
+
+rm -f CMakeCache.txt
+rm -rf CMakeFiles/
+
+cmake . -DTESTING=ON > /dev/null
+
+make -j4 > /dev/null
+mv SC ../a.out
+cd ..
 
 echo ""
 echo "testing..., warning: this could take up to 10 minutes"
@@ -41,12 +48,12 @@ echo "testing..., warning: this could take up to 10 minutes"
 # TEST normal
 #
 cp SC normal/new/
-cp a.out normal/old/
-cd normal/old
+cp a.out normal/new/
+cd normal/new
 ./a.out >/dev/null
-cd ../new/
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "1) Basic Test, TCPSC"
 clean
 
@@ -54,12 +61,12 @@ clean
 # TEST chain
 #
 cp SC chain/new/
-cp a.out chain/old/
-cd chain/old
-./a.out > /dev/null
-cd ../new/
+cp a.out chain/new/
+cd chain/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "2) Chain Test, 5 TCPSC"
 clean
 
@@ -67,12 +74,12 @@ clean
 # TEST mempore
 #
 cp SC mempore/new/
-cp a.out mempore/old/
-cd mempore/old
-./a.out > /dev/null
-cd ../new/
+cp a.out mempore/new/
+cd mempore/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "3) Mempore Test, pressure xy, wanglandau pore, chainmove, SPN-SPA-SPA"
 clean
 
@@ -80,12 +87,12 @@ clean
 # TEST wallfibril
 #
 cp SC wallfibril/new/
-cp a.out wallfibril/old/
-cd wallfibril/old
-./a.out > /dev/null
-cd ../new/
+cp a.out wallfibril/new/
+cd wallfibril/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "4) WallFibril Test, external wall, switchmove, CPSC"
 clean
 
@@ -93,12 +100,12 @@ clean
 # TEST pscthrough
 #
 cp SC pscthrough/new/
-cp a.out pscthrough/old/
-cd pscthrough/old
-./a.out > /dev/null
-cd ../new/
+cp a.out pscthrough/new/
+cd pscthrough/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "5) PSC-through Test, pressure xy, wanglandau z-direct, chainmove, SPN-SPA-SPA, CPSC"
 clean
 
@@ -106,45 +113,45 @@ clean
 # TEST volume change, high pressure, all options
 #
 cp SC volumeChange/0h/new/
-cp a.out volumeChange/0h/old/
-cd volumeChange/0h/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/0h/new/
+cd volumeChange/0h/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "6) volumeChange Test, anisotropic xyz, high pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/1h/new/
-cp a.out volumeChange/1h/old/
-cd volumeChange/1h/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/1h/new/
+cd volumeChange/1h/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "7) volumeChange Test, isotropic xyz, high pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/2h/new/
-cp a.out volumeChange/2h/old/
-cd volumeChange/2h/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/2h/new/
+cd volumeChange/2h/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "8) volumeChange Test, isotropic in xy z=const, high pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/3h/new/
-cp a.out volumeChange/3h/old/
-cd volumeChange/3h/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/3h/new/
+cd volumeChange/3h/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "9) volumeChange Test, isotropic in xy and V=const, high pressure, monomers"
 clean
 cd ..
@@ -153,45 +160,45 @@ cd ..
 # TEST volume change, low pressure, all options
 #
 cp SC volumeChange/0l/new/
-cp a.out volumeChange/0l/old/
-cd volumeChange/0l/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/0l/new/
+cd volumeChange/0l/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "10) volumeChange Test, anisotropic xyz, low pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/1l/new/
-cp a.out volumeChange/1l/old/
-cd volumeChange/1l/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/1l/new/
+cd volumeChange/1l/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "11) volumeChange Test, isotropic xyz, low pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/2l/new/
-cp a.out volumeChange/2l/old/
-cd volumeChange/2l/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/2l/new/
+cd volumeChange/2l/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "12) volumeChange Test, isotropic in xy z=const, low pressure, monomers"
 clean
 cd ..
 
 cp SC volumeChange/3l/new/
-cp a.out volumeChange/3l/old/
-cd volumeChange/3l/old
-./a.out > /dev/null
-cd ../new/
+cp a.out volumeChange/3l/new/
+cd volumeChange/3l/new
+./a.out >/dev/null
+mv config.last config.last2
 ./SC > /dev/null
-diff config.last ../old/config.last > /dev/null
+diff config.last config.last2 > /dev/null
 print "13) volumeChange Test, isotropic in xy and V=const, low pressure, monomers"
 clean
 cd ..
