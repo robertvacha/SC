@@ -1,0 +1,72 @@
+#!/bin/bash
+
+function print {
+    if [ $? -eq 0 ]
+    then
+        echo -e $1 " \e[1;32mOK\e[0m."
+    else 
+        echo -e $1 " \e[1;31mNOK\e[0m."
+    fi
+}
+
+function clean {
+    rm -f *config.last *stat.dat *energy.dat SC
+    cd ../old/
+    rm -f  a.out *config.last *stat.dat *energy.dat
+    cd ../..
+}
+
+module add mpich
+cd ../scOOP/
+
+rm -f CMakeCache.txt
+rm -rf CMakeFiles/
+
+echo "Building MPI..."
+
+cmake . -DTESTING=ON -DENABLE_MPI=ON -DENABLE_OPENMP=OFF  > /dev/null
+
+make -j4  > /dev/null
+mv SC ../Tests/
+
+cd ../Tests/
+
+echo ""
+echo "Building comparison version for MPI..."
+mpicc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm -DTESTING -DMPI
+
+echo ""
+echo "testing..., Warning will take cca 10 minutes"
+
+#
+# TEST normal
+#
+cp SC mpiTest/normal/new/
+cp a.out mpiTest/normal/old/
+cd mpiTest/normal/old
+mpirun -np 8 ./a.out > /dev/null
+cd ../new/
+mpirun -np 8 ./SC > /dev/null
+diff 0config.last ../old/0config.last > /dev/null
+print "1) MPI Test, TCPSC, 0config.last"
+diff 1config.last ../old/1config.last > /dev/null
+print "1) MPI Test, TCPSC, 1config.last"
+diff 2config.last ../old/2config.last > /dev/null
+print "1) MPI Test, TCPSC, 2config.last"
+diff 3config.last ../old/3config.last > /dev/null
+print "1) MPI Test, TCPSC, 3config.last"
+diff 4config.last ../old/4config.last > /dev/null
+print "1) MPI Test, TCPSC, 4config.last"
+diff 5config.last ../old/5config.last > /dev/null
+print "1) MPI Test, TCPSC, 5config.last"
+diff 6config.last ../old/6config.last > /dev/null
+print "1) MPI Test, TCPSC, 6config.last"
+diff 7config.last ../old/7config.last > /dev/null
+print "1) MPI Test, TCPSC, 7config.last"
+clean
+cd ..
+
+rm -f a.out SC
+
+echo ""
+echo -e "\e[0mdone"
