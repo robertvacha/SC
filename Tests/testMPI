@@ -68,7 +68,6 @@ diff 2config.last 22config.last > /dev/null
 print "1) MPI Test, TCPSC, 2config.last"
 diff 3config.last 33config.last > /dev/null
 print "1) MPI Test, TCPSC, 3config.last"
-diff 4config.last 44config.last > /dev/null
 clean
 cd ..
 
