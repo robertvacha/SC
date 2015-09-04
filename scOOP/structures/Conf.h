@@ -49,11 +49,6 @@ public:
 
     inline int getChainCount() {return chainCount[molTypeCount];}
 
-    int vecSize() {
-        assert(first[molTypeCount] == (int)size());
-        return first[molTypeCount];
-    }
-
     void calcChainCount() {
         chainCount[molTypeCount]=0;
         for(int molType=0; molType<=molTypeCount; molType++) {
@@ -233,39 +228,38 @@ public:
     }
 
     void insertMolecule(std::vector<Particle>& molecule) {
-        insert(begin()+first[molecule[0].molType+1], molecule.begin(), molecule.end());
+        insert(begin()+first[molecule[0].molType+1], molecule.begin(), molecule.end()); // insert actual data at the end of moltype (== begining of next type)
 
-        for(int i= molecule[0].molType+1; i<=molTypeCount; i++)
+        for(int i= molecule[0].molType+1; i<=molTypeCount; i++)     // move next molTypes, molSize() == number of particles in molecule
             first[i] += topo.moleculeParam[molecule[0].molType].molSize();
 
-        if(topo.moleculeParam[molecule[0].molType].molSize() > 1)
+        if(topo.moleculeParam[molecule[0].molType].molSize() > 1) // recalculate Particle vector, TODO do this nicer
             calcChainCount();
-
-        assert(checkConsistency());
     }
 
     void removeMolecule(Molecule& mol) {
-        for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++)
+        for(int i=this->operator [](mol[0]).molType+1; i<=molTypeCount; i++) // move next molTypes, molSize() == number of particles in molecule
             first[i] -= topo.moleculeParam[ (*this)[mol[0]].molType ].molSize();
 
         // mol[0] - index of first particle of molecule
         // (*this)[ mol[0] ] - access Particle
         // (*this)[mol[0]].molType - moltype
         // topo.moleculeParam[molType].molSize() ...
-        if(topo.moleculeParam[ (*this)[mol[0]].molType ].molSize() > 1)
+        if(topo.moleculeParam[ (*this)[mol[0]].molType ].molSize() > 1) // recalculate Particle vector, TODO do this nicer
             calcChainCount();
 
-        assert(checkConsistency());
         erase(begin()+mol[0], begin()+mol[0]+mol.size()); // delete actual data
     }
 
 
 #ifndef NDEBUG
-    int checkConsistency() {
+    bool checkConsistency() {
         for(int i=0; i<molTypeCount; i++) {
-            if(first[i+1] >= first[i])return 1;
+
+            if(first[i] > first[i+1]) // current entry of first cant be larger than the next one
+                return false;
         }
-        return 0;
+        return true;
     }
 #endif
 };

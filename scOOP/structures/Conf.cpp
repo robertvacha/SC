@@ -4,9 +4,13 @@ extern Topo topo;
 
 void Conf::insertMolecule(std::vector<Particle>& molecule) {
 #ifndef NDEBUG
-    assert(pvec.checkConsistency());
+    assert(pvec.checkConsistency() && "ParticleVector::first has invalid values, before the insertion itself");
     int size = pvec.size();
     int molTypeSize = pvec.molCountOfType(molecule[0].molType);
+    vector<Particle> pTemp;
+    for(unsigned int i=0; i<pvec.size(); i++) {
+        pTemp.push_back(pvec[i]);
+    }
 #endif
 
     // add neighbors to neighborList
@@ -20,19 +24,23 @@ void Conf::insertMolecule(std::vector<Particle>& molecule) {
     pvec.insertMolecule(molecule);
 
 #ifndef NDEBUG
-    assert(pvec.checkConsistency());
-    assert(pvec.size() == molecule.size() + size);
-    assert(pvec.molCountOfType(molecule[0].molType) == molTypeSize + 1);
+    assert(pvec.checkConsistency() && "ParticleVector::first has invalid values, after the insertion");
+    assert(pvec.size() == molecule.size() + size && "ParticleVector did not change correctly");
+    assert(pvec.molCountOfType(molecule[0].molType) == molTypeSize + 1 && "Molecule didnt insert correctly");
+    for(unsigned int i=0; i<pTemp.size(); i++) {
+        assert(pTemp[i].pos == pvec[i].pos && "GrandCanonical, Insertion, other than planned changes to paticle vector occured, ONLY TRUE FOR SINGLE MOLECULAR TYPE SIMULATIONS");
+    }
+    assert(pvec[pTemp.size()].pos == molecule[0].pos && "GrandCanonical, Insertion, last particle isnt correct, ONLY TRUE FOR SINGLE MOLECULAR TYPE SIMULATIONS");
 #endif
 }
 
 void Conf::removeMolecule(Molecule &target) {
 #ifndef NDEBUG
     assert(pvec.checkConsistency());
-    assert((int)pvec.size() == pvec.vecSize());
     unsigned int pSize = pvec.size();
     int molTypeSize = pvec.molCountOfType(pvec[target[0]].molType);
     int molType = pvec[target[0]].molType;
+    Particle temp = pvec[target[0]];
 #endif
 
     if(pairlist_update) {
@@ -48,6 +56,8 @@ void Conf::removeMolecule(Molecule &target) {
     assert(pvec.checkConsistency());
     assert(pvec.size() == pSize - target.size());
     assert(pvec.molCountOfType(molType) == molTypeSize - 1);
+    for(unsigned int i=0; i< pvec.size(); i++)
+        assert(temp.pos != pvec[i].pos && "Wrong particle deleted");
 #endif
 }
 

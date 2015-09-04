@@ -1318,12 +1318,8 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
 double MoveCreator::muVTMove() {
 
-#ifndef NDEBUG
+#ifndef NDEBUG // For tests of energy
     double e = calcEnergy->allToAll();
-    vector<Particle> pTemp;
-    for(unsigned int i=0; i<conf->pvec.size(); i++) {
-        pTemp.push_back(conf->pvec[i]);
-    }
 #endif
 
     Molecule target;
@@ -1338,16 +1334,22 @@ double MoveCreator::muVTMove() {
     molSize = topo.moleculeParam[molType].molSize();
 
     assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");
+    assert(insert.empty() && "Insert vector must be empty at the begining of grand canonical move");
 
     topo.moleculeParam[molType].muVtSteps++;
-    if(ran2() > 0.5) { //  insert move
-        if(topo.moleculeParam[molType].isAtomic()) {
+
+    //////////////////////////////////////////////////////////////
+    //                      INSERT MOVE                         //
+    //////////////////////////////////////////////////////////////
+    if(ran2() > 0.5) {
+        if(topo.moleculeParam[molType].isAtomic()) { // RANDOM PARTICLE
             // create particle
             insert.push_back(Particle(conf->geo.randomPos(), Vector::getRandomUnitSphere(), Vector::getRandomUnitSphere()
                                       , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(&topo.ia_params[insert[0].type][insert[0].type]);
-            assert(insert[0].testInit());
-        } else {
+
+            assert(insert[0].testInit() && "GrandCanonical, insertion, Particle initialized incorectly");
+        } else { // RANDOM CHAIN FROM POOL + RANDOMIZE POSITION AND ROTATION
             displace.randomUnitCube();
 
             // get configuration
@@ -1363,11 +1365,11 @@ double MoveCreator::muVTMove() {
         }
 
         // calc energ
-        energy += calcEnergy->mol2others(insert);
+        energy = calcEnergy->mol2others(insert);
 
         // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT)
         if( ( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
-              exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) > ran2()) {
+              (exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) ) > ran2() ) {
 
             if(topo.moleculeParam[molType].isAtomic())
                 energy += calcEnergy->chainInner(insert);
@@ -1382,13 +1384,7 @@ double MoveCreator::muVTMove() {
             topo.moleculeParam[molType].insAcc++;
             topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 );
-#ifndef NDEBUG
-            for(unsigned int i=0; i<pTemp.size(); i++) {
-                assert(pTemp[i].pos == conf->pvec[i].pos);
-            }
-            assert(conf->pvec.size() == pTemp.size()+1);
-#endif
+            assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
 
             return energy - molSize*entrophy;
         } else { // rejected
@@ -1396,27 +1392,19 @@ double MoveCreator::muVTMove() {
             topo.moleculeParam[molType].insRej++;
             topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAll());
-#ifndef NDEBUG
-            for(unsigned int i=0; i<conf->pvec.size(); i++) {
-                assert(pTemp[i].pos == conf->pvec[i].pos);
-            }
-#endif
+            assert(e == calcEnergy->allToAll() && "GrandCanonical, insertion rejected but energy of system changed");
 
             return 0;
         }
-        //
-        //  DELETE MOVE
-        //
-    } else { // delete move
+
+        //////////////////////////////////////////////////////////////
+        //                      DELETE MOVE                         //
+        //////////////////////////////////////////////////////////////
+    } else {
         if(conf->pvec.molCountOfType(molType) == 0) // check if there are molecules of certain type
             return 0;
 
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType, topo.moleculeParam[molType].molSize()); // get random molecule of molType
-
-#ifndef NDEBUG
-        Particle temp = conf->pvec[target[0]];
-#endif
 
         energy = calcEnergy->mol2others(target);
 
@@ -1428,22 +1416,18 @@ double MoveCreator::muVTMove() {
             energy += calcEnergy->chainInner(target);
 
             conf->removeMolecule(target);
+
             topo.moleculeParam[molType].delAcc++;
             topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
 
-            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 );
-
-#ifndef NDEBUG
-            for(unsigned int i=0; i< conf->pvec.size(); i++)
-                assert(temp.pos != conf->pvec[i].pos && "Wrong particle deleted");
-#endif
+            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
 
             return -energy + molSize*entrophy;
         } else {
             topo.moleculeParam[molType].delRej++;
             topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAll());
+            assert(e == calcEnergy->allToAll() && "GrandCanonical, deletion rejected but energy of system changed");
 
             return 0;
         }
@@ -1457,7 +1441,7 @@ int MoveCreator::getRandomMuVTType() {
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
         if(topo.moleculeParam[i].activity != -1.0) molType++;
     }
-    molType = (long) (ran2() * ((double)molType));
+    molType = ran2() * molType;
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
         if(topo.moleculeParam[i].activity != -1.0) {
             if(molType == 0) {
@@ -1469,6 +1453,7 @@ int MoveCreator::getRandomMuVTType() {
     }
 
     assert(topo.moleculeParam[molType].chemPot != -1.0);
+    assert(molType >= 0);
 
     return molType;
 }
