@@ -273,12 +273,6 @@ void Inicializer::initTop() {
 
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
-    /*for(int i=0; i<4; i++) {
-        for(int j=0; j<4; j++)
-            cout << std::boolalpha<< exclusions[i][j] << " ";
-        cout << endl;
-    }*/
-
     //fill ia_params combinations and topology parameters
     topo.genParamPairs(exclusions);
     topo.genTopoParams();
@@ -983,27 +977,33 @@ int Inicializer::fillTypes(char **pline) {
     }
     DEBUG_INIT("geotype_i: %d; fields = %d", geotype_i, fields);
     if (( (geotype_i == SCN) || (geotype_i == SPN) ) && (fields != 0)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 1.\n\n", geotype);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA" << endl;
         return 0;
     }
     if (( (geotype_i == SCA) || (geotype_i == SPA)) && (fields != 2)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 2, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH" << endl;
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS" << endl;
         return 0;
     }
     if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 7.\n\n", geotype);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS CHIRAL_ANGLE" << endl;
         return 0;
     }
     if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 9)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 9, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH" << endl;
         return 0;
     }
     if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 10, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH CHIRAL_ANGLE" << endl;
         return 0;
     }
 

@@ -1396,7 +1396,6 @@ double MoveCreator::muVTMove() {
 
             return 0;
         }
-
         //////////////////////////////////////////////////////////////
         //                      DELETE MOVE                         //
         //////////////////////////////////////////////////////////////
@@ -1432,6 +1431,7 @@ double MoveCreator::muVTMove() {
             return 0;
         }
     }
+    assert(false && "IMPOSIBRU!!!");
     return 0;
 }
 
