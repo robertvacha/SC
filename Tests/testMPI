@@ -52,14 +52,14 @@ echo "testing..., Warning will take cca 10 minutes"
 cp SC mpiTest/normal/new/
 cp a.out mpiTest/normal/new/
 cd mpiTest/normal/new
-mpirun -np 4 ./a.out 
+mpirun -np 4 ./a.out  > /dev/null
 
 mv 0config.last 00config.last
 mv 1config.last 11config.last
 mv 2config.last 22config.last
 mv 3config.last 33config.last
 
-mpirun -np 4 ./SC 
+mpirun -np 4 ./SC  > /dev/null
 diff 0config.last 00config.last > /dev/null
 print "1) MPI Test, TCPSC, 0config.last"
 diff 1config.last 11config.last > /dev/null
