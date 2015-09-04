@@ -114,7 +114,7 @@ public:
     /**
      * @brief Calculates inner chain energy
      */
-    double chainInner(vector<Particle >& chain, vector<ConList>& con);
+    double chainInner(vector<Particle >& chain);
 
     double chainInner(Molecule& chain);
 

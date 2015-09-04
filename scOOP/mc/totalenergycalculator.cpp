@@ -168,8 +168,26 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
     return energy;
 }
 
-double TotalEnergyCalculator::chainInner(vector<Particle >& chain, vector<ConList>& con) {
+double TotalEnergyCalculator::chainInner(vector<Particle >& chain) {
     double energy = 0.0;
+
+    //generate conlists
+    vector<ConList> con;
+    for(unsigned int j=0; j<chain.size(); j++) {
+        con.push_back(ConList() );
+
+        if (j > 0) //if this is not first particle fill tail bond
+            con[j].conlist[0] = &chain[j-1];
+
+        if ( j+1 < chain.size() ) //if there is a next particle fill it to head bond
+            con[j].conlist[1] = &chain[j+1];
+
+        if (j > 1) //if this is not second or first particle fill second tail bond
+            con[j].conlist[2] = &chain[j-2];
+
+        if ( j+2 < chain.size() ) //if there is a second next particle fill it second neighbour
+            con[j].conlist[3] = &chain[j+2];
+    }
 
     for (unsigned int i=0; i<chain.size(); i++)
         for (unsigned int j=i+1; j<chain.size(); j++)

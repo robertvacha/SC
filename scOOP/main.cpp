@@ -26,13 +26,6 @@ int main(int argc, char** argv) {
     cout << "MPI SIMULATION" << endl;
 #endif
 
-#ifndef NDEBUG
-    pVecTester pTest;
-    assert(pTest.test());
-#endif
-
-    cout << "465456" << endl;
-
     FILE *infile,*outfile,*mov;       // Handle for writing configuration
 
     Sim sim;                  // Should contain the simulation options.
@@ -104,6 +97,15 @@ int main(int argc, char** argv) {
     }
 
     updater = new Updater(&sim, &conf, &files);
+
+    /********************************************************/
+    /*                  SOME TESTS                          */
+    /********************************************************/
+
+#ifndef NDEBUG
+    pVecTester pTest;
+    assert(pTest.test());
+#endif
 
     /********************************************************/
     /*                  EQUILIBRATION                       */
