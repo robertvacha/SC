@@ -5,7 +5,10 @@
 
 #include "dSFMT-src-2.2.3/dSFMT.h"
 #include <iostream>
+
+#ifdef C11
 #include <random>
+#endif
 
 using namespace std;
 
@@ -62,6 +65,7 @@ private:
     dsfmt_t seed;
 };
 
+#ifdef C11
 class MersenneTwister : public RandomBase
 {
     std::mt19937 mt;
@@ -82,5 +86,6 @@ public:
     }
 
 };
+#endif
 
 #endif // RANDOMGENERATOR_H
