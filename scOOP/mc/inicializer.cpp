@@ -441,11 +441,11 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         DEBUG_INIT("Line: %s\nNumber of Fields: %d", line, fields);
         if (fields == 9){
             pvec[i].switched = 0;
-            fprintf(stdout, "WARNING: Particle %ld is assumed to be not switched!\n", i+1);
+            fprintf(stdout, "WARNING: Particle %u is assumed to be not switched!\n", i+1);
             fields++;
         }
         if (fields != 10) {
-            fprintf (stderr, "ERROR: Could not read coordinates for particle %ld.\n \
+            fprintf (stderr, "ERROR: Could not read coordinates for particle %u.\n \
                     Did you specify box size at the begining?\n\n", i+1);
             free(line);
             exit (1);
@@ -469,7 +469,7 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
             fprintf (stderr,
-                    "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
+                    "ERROR: Null direction vector supplied for particle %u.\n\n", i+1);
             free(line);
             return false;
         } else {
@@ -478,7 +478,7 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
-                    "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
+                    "ERROR: Null patch vector supplied for particle %u.\n\n", i+1);
             free(line);
             return false;
         } else {
@@ -488,7 +488,7 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         // Switch the type
         if(pvec[i].switched){
             if(pvec[i].switchtype == 0){
-                fprintf(stderr, "ERROR: Particle %ld switched even though it has no switchtype", i);
+                fprintf(stderr, "ERROR: Particle %u switched even though it has no switchtype", i);
                 free(line);
                 exit(1);
             }
