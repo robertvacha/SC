@@ -71,6 +71,12 @@ public:
     bool testInit() {
         if(dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999)
             return false;
+        if(pos.x < 0.0 || pos.x > 1.0)
+            return false;
+        if(pos.y < 0.0 || pos.y > 1.0)
+            return false;
+        if(pos.z < 0.0 || pos.z > 1.0)
+            return false;
         return true;
     }
 

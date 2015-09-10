@@ -8,10 +8,16 @@
 #include <sstream>
 #include "../mc/randomGenerator.h"
 
+
+
 #ifdef RAN2
     extern Ran2 ran2;
 #else
+  #ifdef DSFMT
     extern Dsfmt ran2;
+  #else
+    extern MersenneTwister ran2;
+  #endif
 #endif
 
 class Quat;
@@ -176,6 +182,20 @@ public:
         z = 1.0 - 2.0*a;
     }
 
+    /**
+     * @brief ranUnitSphereFaunus for comparison of grandcanonical with faunus
+     */
+    inline void ranUnitSphereFaunus() {
+      double r2;
+      do {
+        this->x = 2*ran2()-1;
+        this->y = 2*ran2()-1;
+        this->z = 2*ran2()-1;
+        r2 = this->dot(*this);
+      } while (r2>1);
+      this->scale(1/sqrt(r2));
+    }
+
     inline void randomUnitCube() {
         x = ran2();
         y = ran2();
@@ -189,6 +209,12 @@ public:
     static inline Vector getRandomUnitSphere() {
         Vector vec;
         vec.randomUnitSphere();
+        return vec;
+    }
+
+    static inline Vector getRandomUnitSphereFaunus() {
+        Vector vec;
+        vec.ranUnitSphereFaunus();
         return vec;
     }
 };

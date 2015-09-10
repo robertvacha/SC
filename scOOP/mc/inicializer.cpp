@@ -353,24 +353,24 @@ void Inicializer::initSwitchList() {
     }
 }
 
-void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
+bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     int err,fields,tmp_type;
-    long i,j,current,first;
+    long j,current,first;
     char * line, line2[STRLEN];
     size_t line_size = (STRLEN + 1) * sizeof(char);
     line = (char *) malloc(line_size);
     Particle chorig[MAXCHL];
 
-    double maxlength = 0;
-    for(i = 0; i < MAXT; i++){
+    double maxlength = 0.0;
+    for(int i = 0; i < MAXT; i++){
         if(maxlength < topo.ia_params[i][i].len[0])
             maxlength = topo.ia_params[i][i].len[0];
     }
 
     if(myGetLine(&line, &line_size, *infile) == -1){
-        fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-        exit (1);
+        fprintf (stderr, "ERROR: Could not read box size1.\n\n");
+        return false;
     }
     strip_comment(line);
     trim(line);
@@ -379,15 +379,15 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     Vector box;
     if (sscanf(line, "%le %le %le %le", &outerR, &innerR, &box.z, &angle) != 4) {
         if(myGetLine(&line, &line_size, infile) == -1){
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size.\n\n");
+            return false;
         }
         aftercommand(line2,line,BOXSEP);
         strip_comment(line2);
         trim(line2);
         if (sscanf(line2, "%le %le %le %le", &box.z, &angle, &outerR, &innerR) != 4) {
             fprintf (stderr, "ERROR: Could not read box size.\n\n");
-            exit (1);
+            return false;
         }
     }
 
@@ -397,15 +397,15 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     if (sscanf(line, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
         if(myGetLine(&line, &line_size, *infile) == -1){
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size2.\n\n");
+            return false;
         }
         aftercommand(line2,line,BOXSEP);
         strip_comment(line2);
         trim(line2);
         if (sscanf(line2, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size3.\n\n");
+            return false;
         }
     }
 
@@ -422,7 +422,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
 
     DEBUG_INIT("Position of the particle");
-    for (i=0; i < (long)pvec.size(); i++) {
+    for(unsigned int i=0; i < pvec.size(); i++) {
         if(myGetLine(&line, &line_size, *infile) == -1){
             break;
         }
@@ -446,7 +446,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         }
         if (fields != 10) {
             fprintf (stderr, "ERROR: Could not read coordinates for particle %ld.\n \
-                    Did you specify geo.box size at the begining?\n\n", i+1);
+                    Did you specify box size at the begining?\n\n", i+1);
             free(line);
             exit (1);
         }
@@ -471,7 +471,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
             fprintf (stderr,
                     "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
             free(line);
-            exit (1);
+            return false;
         } else {
             pvec[i].dir.normalise();
         }
@@ -480,7 +480,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
             fprintf (stderr,
                     "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
             free(line);
-            exit (1);
+            return false;
         } else {
             ortogonalise(&pvec[i].patchdir[0],&pvec[i].dir);
             pvec[i].patchdir[0].normalise();
@@ -502,7 +502,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (i=0;i<conf->pvec.getChainCount();i++){
+    for (int i=0; i<conf->pvec.getChainCount(); i++){
         j=0;
         current = conf->pvec.getChainPart(i,0);
         first = current;
@@ -540,9 +540,11 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     //}
     if (err) {
         printf ("\n");
-        exit (1);
+        return false;
     }
     fflush (stdout);
+
+    return true;
 }
 
 

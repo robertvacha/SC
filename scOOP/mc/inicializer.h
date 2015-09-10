@@ -82,8 +82,10 @@ public:
        the direction vector and three components of patch direction for a spherocylinder.
        The direction vector is normalised
        after being read in.  The configuration is checked for particle overlaps.
+
+       @return True - successful, False - unsuccessful
      */
-    void initConfig(FILE** infile, std::vector<Particle > &pvec);
+    bool initConfig(FILE** infile, std::vector<Particle > &pvec);
 
     /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();

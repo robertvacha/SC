@@ -53,6 +53,10 @@ public:
 
     bool isGrandCanonical() {return chemPot!=-1.0;}
 
+    /**
+     * @brief molSize
+     * @return Number of particles in molecule
+     */
     inline int molSize() {
         return particleTypes.size();
     }

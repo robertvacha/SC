@@ -94,7 +94,7 @@ void Conf::massCenter() {
 }
 
 void Conf::partVecInit() {
-    for(int i = 0; i < (long)pvec.size(); i++){
+    for(unsigned int i = 0; i < pvec.size(); i++){
         if ( topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]  < SP)
             pvec[i].init(&(topo.ia_params[pvec[i].type][pvec[i].type]));
     }

@@ -11,6 +11,7 @@ class Topo
 public:
     double sqmaxcut;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
     double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
+    int gcSpecies;
 
     MoleculeParams moleculeParam[MAXMT];   ///< \brief parameters for Molecules
 
@@ -21,7 +22,7 @@ public:
     //  METHODS
     //
 
-    Topo():sqmaxcut(0) {}
+    Topo():sqmaxcut(0), gcSpecies(0) {}
     ~Topo() {
         printf ("Deallocating Topo...\n");
 
