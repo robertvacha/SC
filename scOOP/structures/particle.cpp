@@ -9,6 +9,7 @@ void Particle::init(Ia_param * ia_parami) {
 
     dir.normalise();
     patchdir[0].ortogonalise(dir);
+    patchdir[0].normalise();
 
     // calculate patch sides
     if ( (ia_parami->geotype[0] == PSC) || (ia_parami->geotype[0] == CPSC)
