@@ -31,6 +31,7 @@ void Particle::init(Ia_param * ia_parami) {
         patchdir[1] = patchdir[0];
         patchdir[1].rotate(dir, ia_parami->csecpatchrot[0], ia_parami->ssecpatchrot[0]);
         patchdir[1].ortogonalise(dir);
+        patchdir[1].normalise();
     }
 
     // calculate second patch sides
