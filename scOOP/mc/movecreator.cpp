@@ -413,6 +413,8 @@ double MoveCreator::chainDisplace(long target)
     dr.y *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
     dr.z *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
 
+    double inter_energy=calcEnergy->chainInner(chain);
+
     if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
         dr.z = 0;
         dr.y = 0;
@@ -532,6 +534,8 @@ double MoveCreator::chainRotate(long target) {
          */
     }
 
+
+
     energy += calcEnergy->mol2others(chain);
 
     //do actual rotations around geometrical center
@@ -588,6 +592,8 @@ double MoveCreator::chainRotate(long target) {
             energy += wlener;
         }
     }
+    assert(reject==0);
+
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         enermove += calcEnergy->mol2others(chain);
     }
@@ -597,10 +603,12 @@ double MoveCreator::chainRotate(long target) {
 
         sim->chainr[conf->pvec[chain[0]].molType].rej++;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
+//        cout<<"REJ-Drift Change: "<<edriftchanges<<endl;
     } else { // move was accepted
         sim->chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
+//        cout<<"ACC-Drift Change: "<<edriftchanges<<endl;
     }
 
     return edriftchanges;
@@ -1623,6 +1631,7 @@ double MoveCreator::clusterMoveGeom(long target) {
         cluster[num_particles] = target;
         num_particles++;
     }else{
+//        cout <<"Nooo"<<endl;
         selected_chain = conf->pvec.getMolOfPart(target);
         for(unsigned int i=0; i < selected_chain.size(); i++){
             cluster[num_particles] = selected_chain[i];
@@ -1659,6 +1668,7 @@ double MoveCreator::clusterMoveGeom(long target) {
                         cluster[num_particles] = i;
                         num_particles++;
                     }else{
+//                        cout <<"Nooo"<<endl;
                         selected_chain = conf->pvec.getMolOfPart(i);
                         for(unsigned int t=0; t < selected_chain.size(); t++){
                             cluster[num_particles] = selected_chain[t];

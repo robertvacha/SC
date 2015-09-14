@@ -160,6 +160,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             if(sim->pairlist_update)
                 genPairList();
         }
+        assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         if( (sim->pairlist_update) && // pair_list allowed
                 (
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep
@@ -170,6 +171,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 ) {
             genPairList();
         }
+        assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
             moveprobab = ran2();
@@ -180,8 +182,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             }
             if (moveprobab < sim->shprob + sim->chainprob) {
                 edriftchanges += move.chainMove();
+                double k=calcEnergy.allToAll();
+                if(fabs(k - edriftstart - edriftchanges) >= 1.0){
+                    cout<<"sweep: "<<sweep<<"step: "<<step<<endl;
+                }
                 continue;
             }
+            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
             if (moveprobab < sim->shprob + sim->chainprob + sim->switchprob){
                 //=== This is an attempt to switch a type ===
                 edriftchanges += move.switchTypeMove();
@@ -189,6 +196,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 // single particle moves
                 edriftchanges += move.particleMove();
             }
+            assert(1>0);
+            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
             //TEST OVERLAPS
             /*if(conf->checkall(topo.ia_params)){
                 cout<<"OVERLAP DETECTED"<<endl;
