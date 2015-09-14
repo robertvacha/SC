@@ -212,6 +212,20 @@ public:
         return vec;
     }
 
+    static inline Vector getRandomUnitCone(Vector axis, const double maxangle){
+        Vector  vec     = axis,    //returned vector in cone
+                axis2   = getRandomUnitSphere();      //orthogonal vector to vec
+
+        double angle = maxangle*ran2(); // get random number in interval [0, maxangle]
+
+        axis2.ortogonalise(axis); // now make vector orthogonal to cone axis
+        axis2.normalise(); // now normalise vector
+
+        vec.rotate(axis, cos(angle), sin(angle)); // roatate vector pointing in axis of cone by random angle in interval
+
+        return vec;
+    }
+
     static inline Vector getRandomUnitSphereFaunus() {
         Vector vec;
         vec.ranUnitSphereFaunus();

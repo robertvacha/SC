@@ -51,6 +51,7 @@ void Inicializer::readOptions() {
         {"paraltemper",         Double, false, &sim->paraltemper},
         {"transmx",             Double, false, &transmx},
         {"rotmx",               Double, false, &rotmx},
+        {"coneAngle",           Double, false, &sim->coneAngle},
         {"chainmmx",            Double, false, &chainmmx},
         {"chainrmx",            Double, false, &chainrmx},
         {"last",                Int,    false, NULL}

@@ -20,10 +20,15 @@ double MoveCreator::particleMove() {
         //target = 1;
         //printf ("displacement\n\n");
         edriftchanges = partDisplace(target);
-
     } else {
         /*=== Rotation step ===*/
-        edriftchanges = partRotate(target);
+        if(sim->coneAngle == 0.0){
+            edriftchanges = partRotate(target);
+        } else {
+            edriftchanges += partRotate(target);
+            edriftchanges += partAxialRotate(target);
+        }
+
     }
     /*=== End particle move step ===*/
     return edriftchanges;
@@ -220,7 +225,6 @@ double MoveCreator::partRotate(long target) {
     energy = (*calcEnergy)(target, 1, 0);
 
     origpart = conf->pvec[target];
-
 //    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
     conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
@@ -269,6 +273,35 @@ double MoveCreator::partRotate(long target) {
 
     return edriftchanges;
 }
+
+double MoveCreator::partAxialRotate(long target){
+    double   edriftchanges   =   0.0,
+             energyold       =   (*calcEnergy)(target, 1, 0),
+             energynew       =   0.0;
+
+    Vector   rotaxis;
+
+    Particle origpart        =   conf->pvec[target];
+
+    rotaxis.getRandomUnitCone(      conf->pvec[target].dir,\
+                                    sim->coneAngle); // now we get vector for rotation of particle in defined cone from direction of particle
+
+    conf->pvec[target].pscRotate(   sim->rot[conf->pvec[target].type].angle*ran2(),\
+                                    topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0],\
+                                    rotaxis); // Rotate particle
+
+    energynew = (*calcEnergy)(target, 1, 0); // Calculate energy change of target with rest of system
+
+    if (moveTry(energyold, energynew, sim->temper)){
+        // move was rejected
+        conf->pvec[target] = origpart; // return to old configuration
+    } else {
+        // move was accepted
+        edriftchanges = energynew - energyold;
+    }
+    return edriftchanges;
+}
+
 
 double MoveCreator::switchTypeMove() {
     double edriftchanges=0.0, energy,enermove,wlener=0.0;
