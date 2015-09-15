@@ -34,6 +34,12 @@ public:
         return o.str();
     }
 
+    std::string infoRaw() {
+        std::ostringstream o;
+        o <<x << " " << y << " " << z;
+        return o.str();
+    }
+
     /**
      * @brief Return a norm of Vector
      * @return
@@ -213,15 +219,31 @@ public:
     }
 
     static inline Vector getRandomUnitCone(Vector axis, const double maxangle){
-        Vector  vec     = axis,    //returned vector in cone
-                axis2   = getRandomUnitSphere();      //orthogonal vector to vec
+        Vector  vec     = axis,                             //returned vector in cone
+                axis2   = getRandomUnitSphere();            //orthogonal vector to vec
 
-        double angle = maxangle*ran2(); // get random number in interval [0, maxangle]
+        double  cosAngle = cos(maxangle*ran2()),            // get cosinus of random number in interval [0, maxangle]
+                sinAngle = sqrt(1 - cosAngle*cosAngle);     // get sinus of same angle
 
-        axis2.ortogonalise(axis); // now make vector orthogonal to cone axis
-        axis2.normalise(); // now normalise vector
+        axis2.ortogonalise(axis);                           // now make vector orthogonal to cone axis
+        axis2.normalise();                                  // just normalise vector
 
-        vec.rotate(axis, cos(angle), sin(angle)); // roatate vector pointing in axis of cone by random angle in interval
+        vec.rotate(axis2, cosAngle, sinAngle);              // roatate vector pointing in axis of cone by random angle in interval
+
+        return vec;
+    }
+
+    static inline Vector getRandomUnitConeUniform(Vector axis, const double maxangle){
+        Vector  vec     = axis,                             //returned vector in cone
+                axis2   = getRandomUnitSphere();            //orthogonal vector to vec
+
+        double  multiplaier = sin(maxangle);                // multiplaier = (r*sin(angle))*rand[0, 1] ==> [r*sin(angle), 0] ==> get multiplaier to get vectors to project on angle arch
+
+        axis2.ortogonalise(axis);                           // now make vector orthogonal to cone axis
+        axis2.normalise();                                  // just normalise vector
+
+        vec = multiplaier*axis2;
+        vec += (sqrt(1-multiplaier*multiplaier))*axis;
 
         return vec;
     }
