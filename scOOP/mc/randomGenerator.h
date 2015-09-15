@@ -6,11 +6,15 @@
 #include "dSFMT-src-2.2.3/dSFMT.h"
 #include <iostream>
 
+#ifdef C11
+#include <random>
+#endif
+
 using namespace std;
 
-class randomBase {
+class RandomBase {
 public:
-    randomBase() {}
+    RandomBase() {}
 
     virtual void setSeed(long int seed) =0;
 
@@ -20,7 +24,7 @@ public:
     virtual double operator()() =0;
 };
 
-class Ran2 : public randomBase
+class Ran2 : public RandomBase
 {
 public:
     Ran2() : seed(13) {
@@ -41,7 +45,7 @@ private:
     long int seed;
 };
 
-class Dsfmt : public randomBase
+class Dsfmt : public RandomBase
 {
 public:
     Dsfmt() {
@@ -61,5 +65,27 @@ private:
     dsfmt_t seed;
 };
 
+#ifdef C11
+class MersenneTwister : public RandomBase
+{
+    std::mt19937 mt;
+    std::uniform_real_distribution<double> dist;
+    long long int discard;
+
+public:
+    MersenneTwister() : dist(0,1) {
+        mt.seed(13);
+    }
+
+    void setSeed(long int num) {
+        mt.seed(num);
+    }
+
+    double operator()() {
+        return dist(mt);
+    }
+
+};
+#endif
 
 #endif // RANDOMGENERATOR_H

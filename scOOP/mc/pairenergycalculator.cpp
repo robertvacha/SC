@@ -1309,6 +1309,7 @@ double PairEnergyCalculator::eRepulsive() {
     else {
             en6 = pow((topo.ia_params[part1->type][part2->type].sigma / dist),6);
             repenergy = topo.ia_params[part1->type][part2->type].epsilon*(4*en6*(en6-1) + 1.0);
+            //repenergy = (4*en6*(en6-1) + 1.0);
     }
     //printf("repenergy: %f dist: %f\n",repenergy, dist);
 

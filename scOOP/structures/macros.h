@@ -8,7 +8,7 @@
 #endif
 
 //#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc, all CPSC
-#define E_ISO 4
+//#define E_ISO 5.87
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled
@@ -20,6 +20,11 @@
 //#define WEDGE
 
 //#define TESTING
+#ifdef TESTING
+    #define RAN2
+#else
+    #define DSFMT
+#endif
 
 // Default in e2ScaOr2Spa() - WEEK-CHANDLER-ANDERSEN
 //#define LJ

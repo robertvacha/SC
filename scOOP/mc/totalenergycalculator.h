@@ -107,14 +107,14 @@ public:
     double oneToAll(int target);
 
     /**
-     * @brief Calculates energy between particle "target" and the rest
+     * @brief Calculates energy between particle "target" and the rest, conlist and neighbor list can be null
      */
-    double oneToAll(Particle* target, ConList* conlist, Neighbors* neighborList);
+    double oneToAll(Particle* target, ConList* conlist=NULL, Neighbors* neighborList=NULL);
 
     /**
      * @brief Calculates inner chain energy
      */
-    double chainInner(vector<Particle >& chain, vector<ConList>& con);
+    double chainInner(vector<Particle >& chain);
 
     double chainInner(Molecule& chain);
 

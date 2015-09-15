@@ -8,15 +8,17 @@ Compiling
 
 in scOOP/ directory:
 
-    $ cmake .       ($ module add cmake)
+    $ module add cmake
+    $ cmake .       
     $ make
 
 executable SC will be created.
 
 Parallel tempering (enabling MPI) compile with:
 
+    $ module add mpich
     $ cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
-    $ make          ($ module add openmpi)
+    $ make
     $ mpirun -np x SC
 
 , where x is the number of threads

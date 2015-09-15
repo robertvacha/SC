@@ -273,12 +273,6 @@ void Inicializer::initTop() {
 
     fprintf (stdout, "\nTopology succesfully read. Generating pair interactions...\n");
 
-    /*for(int i=0; i<4; i++) {
-        for(int j=0; j<4; j++)
-            cout << std::boolalpha<< exclusions[i][j] << " ";
-        cout << endl;
-    }*/
-
     //fill ia_params combinations and topology parameters
     topo.genParamPairs(exclusions);
     topo.genTopoParams();
@@ -359,24 +353,24 @@ void Inicializer::initSwitchList() {
     }
 }
 
-void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
+bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     int err,fields,tmp_type;
-    long i,j,current,first;
+    long j,current,first;
     char * line, line2[STRLEN];
     size_t line_size = (STRLEN + 1) * sizeof(char);
     line = (char *) malloc(line_size);
     Particle chorig[MAXCHL];
 
-    double maxlength = 0;
-    for(i = 0; i < MAXT; i++){
+    double maxlength = 0.0;
+    for(int i = 0; i < MAXT; i++){
         if(maxlength < topo.ia_params[i][i].len[0])
             maxlength = topo.ia_params[i][i].len[0];
     }
 
     if(myGetLine(&line, &line_size, *infile) == -1){
-        fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-        exit (1);
+        fprintf (stderr, "ERROR: Could not read box size1.\n\n");
+        return false;
     }
     strip_comment(line);
     trim(line);
@@ -385,15 +379,15 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     Vector box;
     if (sscanf(line, "%le %le %le %le", &outerR, &innerR, &box.z, &angle) != 4) {
         if(myGetLine(&line, &line_size, infile) == -1){
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size.\n\n");
+            return false;
         }
         aftercommand(line2,line,BOXSEP);
         strip_comment(line2);
         trim(line2);
         if (sscanf(line2, "%le %le %le %le", &box.z, &angle, &outerR, &innerR) != 4) {
             fprintf (stderr, "ERROR: Could not read box size.\n\n");
-            exit (1);
+            return false;
         }
     }
 
@@ -403,15 +397,15 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
     if (sscanf(line, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
         if(myGetLine(&line, &line_size, *infile) == -1){
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size2.\n\n");
+            return false;
         }
         aftercommand(line2,line,BOXSEP);
         strip_comment(line2);
         trim(line2);
         if (sscanf(line2, "%le %le %le", &(box.x), &(box.y), &(box.z) ) != 3) {
-            fprintf (stderr, "ERROR: Could not read geo.box size.\n\n");
-            exit (1);
+            fprintf (stderr, "ERROR: Could not read box size3.\n\n");
+            return false;
         }
     }
 
@@ -428,7 +422,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
 
     DEBUG_INIT("Position of the particle");
-    for (i=0; i < (long)pvec.size(); i++) {
+    for(unsigned int i=0; i < pvec.size(); i++) {
         if(myGetLine(&line, &line_size, *infile) == -1){
             break;
         }
@@ -447,12 +441,12 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         DEBUG_INIT("Line: %s\nNumber of Fields: %d", line, fields);
         if (fields == 9){
             pvec[i].switched = 0;
-            fprintf(stdout, "WARNING: Particle %ld is assumed to be not switched!\n", i+1);
+            fprintf(stdout, "WARNING: Particle %u is assumed to be not switched!\n", i+1);
             fields++;
         }
         if (fields != 10) {
-            fprintf (stderr, "ERROR: Could not read coordinates for particle %ld.\n \
-                    Did you specify geo.box size at the begining?\n\n", i+1);
+            fprintf (stderr, "ERROR: Could not read coordinates for particle %u.\n \
+                    Did you specify box size at the begining?\n\n", i+1);
             free(line);
             exit (1);
         }
@@ -475,18 +469,18 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
             //DEBUG_INIT("Geotype = %d < %d", conf->pvec[i].geotype,SP);
             fprintf (stderr,
-                    "ERROR: Null direction vector supplied for particle %ld.\n\n", i+1);
+                    "ERROR: Null direction vector supplied for particle %u.\n\n", i+1);
             free(line);
-            exit (1);
+            return false;
         } else {
             pvec[i].dir.normalise();
         }
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
-                    "ERROR: Null patch vector supplied for particle %ld.\n\n", i+1);
+                    "ERROR: Null patch vector supplied for particle %u.\n\n", i+1);
             free(line);
-            exit (1);
+            return false;
         } else {
             ortogonalise(&pvec[i].patchdir[0],&pvec[i].dir);
             pvec[i].patchdir[0].normalise();
@@ -494,7 +488,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         // Switch the type
         if(pvec[i].switched){
             if(pvec[i].switchtype == 0){
-                fprintf(stderr, "ERROR: Particle %ld switched even though it has no switchtype", i);
+                fprintf(stderr, "ERROR: Particle %u switched even though it has no switchtype", i);
                 free(line);
                 exit(1);
             }
@@ -508,7 +502,7 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (i=0;i<conf->pvec.getChainCount();i++){
+    for (int i=0; i<conf->pvec.getChainCount(); i++){
         j=0;
         current = conf->pvec.getChainPart(i,0);
         first = current;
@@ -546,9 +540,11 @@ void Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     //}
     if (err) {
         printf ("\n");
-        exit (1);
+        return false;
     }
     fflush (stdout);
+
+    return true;
 }
 
 
@@ -983,27 +979,33 @@ int Inicializer::fillTypes(char **pline) {
     }
     DEBUG_INIT("geotype_i: %d; fields = %d", geotype_i, fields);
     if (( (geotype_i == SCN) || (geotype_i == SPN) ) && (fields != 0)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 1.\n\n", geotype);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA" << endl;
         return 0;
     }
     if (( (geotype_i == SCA) || (geotype_i == SPA)) && (fields != 2)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 2, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH" << endl;
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 6, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS" << endl;
         return 0;
     }
     if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 7.\n\n", geotype);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS CHIRAL_ANGLE" << endl;
         return 0;
     }
     if (( (geotype_i == TPSC) || (geotype_i == TCPSC) ) && (fields != 9)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 9, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH" << endl;
         return 0;
     }
     if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
-        fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for %s geotype, should be 10, is %d.\n\n", geotype, fields);
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH CHIRAL_ANGLE" << endl;
         return 0;
     }
 

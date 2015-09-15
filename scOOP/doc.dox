@@ -7,6 +7,7 @@ Some general info.
 This manual is divided in the following sections:
 - \subpage Intro
 - \subpage Usage
+- \subpage Scripts
 - \subpage Versions
 - \subpage Todo
 - \subpage theory "Theory behind energy functions"
@@ -22,23 +23,26 @@ Compiling
 
 in scOOP/ directory:
 
-    $ cmake .       ($ module add cmake)
+    $ module add cmake
+    $ cmake .
     $ make
 
 executable SC will be created.
 
 Parallel tempering (enabling MPI) compile with:
 
+    $ module add mpich
     $ cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
-    $ make          ($ module add openmpi)
+    $ make
     $ mpirun -np x SC
 
 , where x is the number of threads
 
 Parallel acceleration (enabling OPENMP) compile with:
 
+    $ module add openmpi
     $ cmake . -DENABLE_OPENMP=ON -DENABLE_MPI=OFF
-    $ make          ($ module add openmpi)
+    $ make
     $ export OMP_NUM_THREADS=x
     $ ./SC
 
@@ -84,13 +88,69 @@ The following is an excerpt from a topology file and the energy function which t
 //-----------------------------------------------------------
 
 /*! \page Usage Usage
-\section grand GrandCanonical usage
+- \subpage Config
+- \subpage Types
+- \subpage Grand
+- \subpage NPT
+*/
+
+/*! \page Config Config.init format
+- first three are simulation box dimensions
+- next 11 variables are required by the SC program to define a particle:
+- x y z dirX dirY dirZ patchX patchY patchZ switched moltype
+- meaning:
+- [position vector]   [orientation of particle]   [orientation of patch]   [0 or 1 indicating switched particle]   [molecular type]
+- Example file:
+@include config.init
+- NOTE: The older SC program required only 10 variables and this is still suported, the 11th variable is only required for the correct visualization of grand canonical simulation
+- NOTE: You are not required to specify the molType(11th variable), the information about molecular types is loaded from top.init
+*/
+
+/*! \page Types [Types] parametrization
+\section SPN SPN sphere non-attractive, example topology:
+@include top.spn
+
+\section SPA SPA spherocylinder isotropicaly attractive, example topology:
+@include top.spa
+
+\section SCN SCN spherocylinder non-attractive - BUGGED, DONT USE
+
+\section SCA SCA spherocylinder isotropicaly attractive - BUGGED, DONT USE
+
+\section PSC PSC spherocylinder with patchy attraction and CPSC spherocylinder with cylindrical patchy attraction
+@include top.psc
+
+\section CHPSC CHPSC chiral psc and CHCPSC chiral cpsc
+@include top.chpsc
+
+\section TPSC TPSC spherocylinder with two patches and TCPSC spherocylinder with two cylindrical patches
+@include top.tpsc
+
+\section TCHPSC TCHPSC chiral tpsc and TCHCPSC chiral tcpsc
+@include top.tchpsc
+*/
+
+/*! \page Grand Grandcanonical ensemble
 - Grandcanonical ensemble in MoveCreator::muVTMove()
   - insertion and deletion moves
+  - set activity in topology and nGrandCanon in options
+  - activity is set in mols per liter [mol/l]
   - example topology:
-@include top.init
+@include topGrand.init
   - example options:
-@include options
+@include optionsGrand
+*/
+
+/*! \page NPT NPT ensemble
+- NPT ensemble in MoveCreator::pressureMove()
+  - Volume exchange move
+  - set edge_mx, shave and press in options
+  - example options:
+@include optionsNPT
+*/
+
+/*! \page Scripts Useful scripts (thanks Mirek)
+- go to mirek git, in construction
 */
 
 //-----------------------------------------------------------

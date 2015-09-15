@@ -83,6 +83,8 @@ public:
      */
     double muVTMove();
 
+    double muVTMove2();
+
 private:
 
     int getRandomMuVTType();
@@ -174,12 +176,21 @@ private:
      * @param energyold
      * @param energynew
      * @param temperature
-     * @return
+     * @return false - move accepted, True - move rejected
      */
-    int moveTry(double energyold, double energynew, double temperature);
-
-
-
+    inline bool moveTry(double energyold, double energynew, double temperature) {
+        /*DEBUG   printf ("   Move trial:    %13.8f %13.8f %13.8f %13.8f\n",
+      energynew, energyold, temperature, ran2(&seed));*/
+        if (energynew <= energyold ) {
+            return false;
+        } else {
+            if (exp(-1.0*(energynew-energyold)/temperature) > ran2()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
 
     /*
      *  MESH METHODS

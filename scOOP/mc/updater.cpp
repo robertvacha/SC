@@ -67,6 +67,12 @@ void Updater::initValues(long& next_adjust, long& next_calc, long& next_dump, lo
 
 
 void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
+
+    //cout << (calcEnergy.allToAll()/sim->temper) / (4.0 / 1.38064852 / 6.02214086 *1e3) / 7.5 *300  << " kJ/mol" << endl;
+    //cout << calcEnergy.allToAll()/(4*sim->temper) * 1.38064852 * 6.02214086 /1000 / 7.5   << " kJ/mol" << endl;
+    //cout << calcEnergy.allToAll()/(4*sim->temper) << " kT" << endl;
+    //cout << calcEnergy.allToAll()/sim->temper << endl;
+    //cout << calcEnergy.allToAll() << endl;
     long i,j;
 
     this->nsweeps = nsweeps;
@@ -130,6 +136,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
+    long long int aver = 0;
     for (sweep=1; sweep <= nsweeps; sweep++) {
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
             volume = conf->geo.volume();
@@ -148,6 +155,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         }
         /*____________GrandCanonical Move____________*/
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
+            aver += conf->pvec.size();
             edriftchanges += move.muVTMove();
 
             if(sim->pairlist_update)
@@ -199,9 +207,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             assert(1>0);
             assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
             //TEST OVERLAPS
-            /*if(conf->checkall(topo.ia_params)){
-                cout<<"OVERLAP DETECTED"<<endl;
-            }*/
+            //if(conf->checkall(topo.ia_params)){
+            //    cout<<"OVERLAP DETECTED"<<endl;
+            //}
         } // End of step loop for this sweep
 
         //=== Start of end-of-sweep housekeeping ===
@@ -359,6 +367,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         printf("%s %d\n", topo.moleculeParam[i].name, conf->pvec.molCountOfType(i));
 
     if(sim->nGrandCanon != 0) {
+        cout << "AVERAGE PARTICLES: " << (double)aver / nsweeps << endl;
         cout << "Acceptance:\n";
         cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
         cout << std::setprecision(3) <<  std::fixed << std::left;
@@ -585,7 +594,7 @@ int Updater::writeCluster(FILE *cl_stat, FILE *cl, FILE *cl_list, bool decor, lo
     if(cl_list){
         if(decor == false){
             fprintf(cl_list, "Sweep: %ld | Number of particles: %ld\n",
-                    sweep, (long)(long)conf->pvec.size());
+                    sweep, (long)conf->pvec.size());
         }
         printStat::printClusterList(cl, decor, sim, conf);
     }
@@ -791,7 +800,7 @@ int Updater::sameCluster(long fst, long snd) {
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
 
-    if(calcEnergy.p2p(fst, snd) > -0.10 ){
+    if(calcEnergy.p2p(fst, snd) > -0.10 ) {
         return false;
     }
     else {
