@@ -20,10 +20,16 @@ double MoveCreator::particleMove() {
         //target = 1;
         //printf ("displacement\n\n");
         edriftchanges = partDisplace(target);
-
     } else {
         /*=== Rotation step ===*/
-        edriftchanges = partRotate(target);
+        // TODO: v pripade Isotropnich kouli nema pohyb ucinost ... mozna dat vyjimku pro koule
+        // BTW: partAcialRotate pro uhel 180.0 a pouziti Vector::getRandomUnitConeUniform by se mel chovat stejne jako normalni partRotate ....
+        if(sim->coneAngle == 0.0){
+            edriftchanges = partRotate(target);
+        } else {
+            edriftchanges = partAxialRotate(target);
+        }
+
     }
     /*=== End particle move step ===*/
     return edriftchanges;
@@ -220,7 +226,6 @@ double MoveCreator::partRotate(long target) {
     energy = (*calcEnergy)(target, 1, 0);
 
     origpart = conf->pvec[target];
-
 //    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
     conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
@@ -269,6 +274,46 @@ double MoveCreator::partRotate(long target) {
 
     return edriftchanges;
 }
+
+double MoveCreator::partAxialRotate(long target){
+    double   edriftchanges   =   0.0,
+             energyold       =   (*calcEnergy)(target, 1, 0),
+             energynew       =   0.0;
+
+    Vector   rotaxis;
+
+    Particle origpart        =   conf->pvec[target];
+
+    //=============================================//
+    //            Get vector from cone             //
+    //=============================================//
+    // Get vector which is randomly distributed in cone around patch direction. Cone is specified by angle in radians in options coneAngle
+    rotaxis = Vector::getRandomUnitCone(    conf->pvec[target].dir,\
+                                                    sim->coneAngle);
+
+    //=============================================//
+    //              Rotate particle                //
+    //=============================================//
+    // Now rotate particle around rotaxis in specified cone around patch direction
+    conf->pvec[target].pscRotate(   sim->rot[conf->pvec[target].type].angle*ran2(),\
+                                    topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0],\
+                                    rotaxis);
+
+    //=============================================//
+    //                MC criterium                 //
+    //=============================================//
+    energynew = (*calcEnergy)(target, 1, 0); // Calculate energy change of target with rest of system
+
+    if (moveTry(energyold, energynew, sim->temper)){
+        // move was rejected
+        conf->pvec[target] = origpart; // return to old configuration
+    } else {
+        // move was accepted
+        edriftchanges = energynew - energyold;
+    }
+    return edriftchanges;
+}
+
 
 double MoveCreator::switchTypeMove() {
     double edriftchanges=0.0, energy,enermove,wlener=0.0;

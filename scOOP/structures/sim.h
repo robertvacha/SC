@@ -33,6 +33,7 @@ public:
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
     long nClustMove;            ///< \brief Number of sweeps between cluster moves
+    double coneAngle;             ///< \brief Prephere rotation around axis of spherocylinder in particular angle from axis
 
     Disp edge;                  ///< \brief Maximum box length change and statistics
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics

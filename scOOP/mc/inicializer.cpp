@@ -51,6 +51,7 @@ void Inicializer::readOptions() {
         {"paraltemper",         Double, false, &sim->paraltemper},
         {"transmx",             Double, false, &transmx},
         {"rotmx",               Double, false, &rotmx},
+        {"coneAngle",           Double, false, &sim->coneAngle},
         {"chainmmx",            Double, false, &chainmmx},
         {"chainrmx",            Double, false, &chainrmx},
         {"last",                Int,    false, NULL}
@@ -154,7 +155,8 @@ void Inicializer::readOptions() {
     printf (" Average chain move attempts per sweep:              %.8f\n", sim->chainprob);
     printf (" Initial maximum displacement:                       %.8f\n", transmx);
     printf (" Inititial maximum angular change (degrees):         %.8f\n", rotmx);
-    printf (" Inititial maximum geo.box edge change:                  %.8f\n", sim->edge.mx);
+    printf (" Inititial maximum angular cone angle (degrees):     %.8f\n", sim->coneAngle);
+    printf (" Inititial maximum geo.box edge change:              %.8f\n", sim->edge.mx);
     printf (" Initial maximum chain displacement:                 %.8f\n", chainmmx);
     printf (" Inititial maximum chain angular change (degrees):   %.8f\n", chainrmx);
     printf (" Temperature in kT/e:                                %.8f\n", sim->temper);
@@ -231,6 +233,7 @@ void Inicializer::readOptions() {
     sim->edge.mx *= 2.0;   // The full range is -maxl to +maxl, i.e. spanning 2*maxl
     transmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
     chainmmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
+    sim->coneAngle *= DEGTORAD; // Now transfer angle in degrees into radians
 
     for (int i=0;i<MAXT;i++) {
         sim->trans[i].mx = transmx;
