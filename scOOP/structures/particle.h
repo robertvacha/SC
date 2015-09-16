@@ -71,6 +71,15 @@ public:
     bool testInit() {
         if(dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999)
             return false;
+        if(patchdir[0].dot(patchdir[0]) > 1.000001 || patchdir[0].dot(patchdir[0]) < 0.999999)
+            return false;
+        if(patchdir[1].dot(patchdir[1]) > 1.000001 || patchdir[1].dot(patchdir[1]) < 0.999999)
+            return false;
+        if(chdir[0].dot(chdir[0]) > 1.000001 || chdir[0].dot(chdir[0]) < 0.999999)
+            return false;
+        if(chdir[1].dot(chdir[1]) > 1.000001 || chdir[1].dot(chdir[1]) < 0.999999)
+            return false;
+
         if(pos.x < 0.0 || pos.x > 1.0)
             return false;
         if(pos.y < 0.0 || pos.y > 1.0)

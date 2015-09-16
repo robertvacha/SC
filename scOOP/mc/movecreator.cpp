@@ -1406,12 +1406,14 @@ double MoveCreator::muVTMove() {
             insert = conf->getRandomPoolConf(molType);
 
             // randomize position
-            displace -= insert[0].pos;
             for(unsigned int i=0; i<insert.size(); i++)
                 insert[i].pos += displace;
 
             // randomize - rotate chain
             clusterRotate(insert, (double)PIH);
+
+            for(unsigned int i=0; i<insert.size(); i++)
+                insert[i].init(&(topo.ia_params[insert[i].type][insert[i].type]));
         }
 
         assert(!insert.empty());

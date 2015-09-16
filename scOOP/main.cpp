@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
          << "-------------------------------------" << endl;
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
-    cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added\n" << endl;
+    cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added, strenght: " << E_ISO << endl;
 #endif
 
 
