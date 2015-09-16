@@ -981,14 +981,24 @@ int Inicializer::fillTypes(char **pline) {
         return 0;
     }
     DEBUG_INIT("geotype_i: %d; fields = %d", geotype_i, fields);
-    if (( (geotype_i == SCN) || (geotype_i == SPN) ) && (fields != 0)) {
+    if (( (geotype_i == SPN) ) && (fields != 0)) {
         cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA" << endl;
         return 0;
     }
-    if (( (geotype_i == SCA) || (geotype_i == SPA)) && (fields != 2)) {
+    if (( (geotype_i == SCN) ) && (fields != 1)) {
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA SC_LENGTH" << endl;
+        return 0;
+    }
+    if (( (geotype_i == SPA)) && (fields != 2)) {
         cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH" << endl;
+        return 0;
+    }
+    if (( (geotype_i == SCA) ) && (fields != 3)) {
+        cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
+        cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH SC_LENGTH" << endl;
         return 0;
     }
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
@@ -1027,13 +1037,25 @@ int Inicializer::fillTypes(char **pline) {
 
     fprintf(stdout, "Topology read of %d: %8s (geotype: %s, %d) with parameters %g %g", type, name, geotype, geotype_i, topo.ia_params[type][type].epsilon, topo.ia_params[type][type].sigma);
 
-    if (fields > 0) {
+    if (fields > 0 && fields != 1 && fields != 3) { // all except SCN and SCA
         topo.ia_params[type][type].pdis = param[2];
         topo.ia_params[type][type].pswitch = param[3];
         topo.ia_params[type][type].rcut = topo.ia_params[type][type].pswitch+topo.ia_params[type][type].pdis;
         fprintf(stdout, " | %g %g",topo.ia_params[type][type].pdis,topo.ia_params[type][type].pswitch);
     }
-    if (fields > 2) {
+    if(fields == 1) { // SCN
+        for(int i = 0; i < 2; i++){
+            topo.ia_params[type][type].len[i] = param[2];
+            topo.ia_params[type][type].half_len[i] = param[2] / 2;
+        }
+    }
+    if(fields == 3) { // SCA
+        for(int i = 0; i < 2; i++){
+            topo.ia_params[type][type].len[i] = param[4];
+            topo.ia_params[type][type].half_len[i] = param[4] / 2;
+        }
+    }
+    if (fields > 2 && fields != 3) { // except SCA
         int i;
         for(i = 0; i < 2; i++){
             topo.ia_params[type][type].len[i] = param[6];

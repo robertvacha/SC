@@ -237,7 +237,7 @@ public:
         Vector  vec     = axis,                             //returned vector in cone
                 axis2   = getRandomUnitSphere();            //orthogonal vector to vec
 
-        double  multiplaier = sin(maxangle);                // multiplaier = (r*sin(angle))*rand[0, 1] ==> [r*sin(angle), 0] ==> get multiplaier to get vectors to project on angle arch
+        double  multiplaier = ran2()*sin(maxangle);                // multiplaier = (r*sin(angle))*rand[0, 1] ==> [r*sin(angle), 0] ==> get multiplaier to get vectors to project on angle arch
 
         axis2.ortogonalise(axis);                           // now make vector orthogonal to cone axis
         axis2.normalise();                                  // just normalise vector

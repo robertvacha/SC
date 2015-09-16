@@ -64,7 +64,8 @@ HEADERS += \
     mc/dSFMT-src-2.2.3/dSFMT-params132049.h \
     mc/dSFMT-src-2.2.3/dSFMT-params216091.h \
     mc/dSFMT-src-2.2.3/dSFMT-common.h \
-    unitTests/pvectester.h
+    unitTests/pvectester.h \
+    unitTests/vectortester.h
 
 OTHER_FILES += \
     mc/dSFMT-src-2.2.3/FILES.txt \
