@@ -51,7 +51,7 @@ void Inicializer::readOptions() {
         {"paraltemper",         Double, false, &sim->paraltemper},
         {"transmx",             Double, false, &transmx},
         {"rotmx",               Double, false, &rotmx},
-        {"coneAngle",           Double, false, &sim->coneAngle},
+        {"coneAngle",           Double, true, &sim->coneAngle}, // default value given in constructor of sim
         {"chainmmx",            Double, false, &chainmmx},
         {"chainrmx",            Double, false, &chainrmx},
         {"last",                Int,    false, NULL}

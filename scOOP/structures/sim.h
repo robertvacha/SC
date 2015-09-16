@@ -52,7 +52,10 @@ public:
     int mpirank;                ///< \brief MPI number for given process
     int mpinprocs;              ///< \brief MPI number of processes
 
-    Sim() {}
+    Sim(): press(0.0), paralpress(0.0), dpress(0.0), shave(0.0), shprob(0.0), chainprob(0.0), switchprob(0.0), pairlist_update(0),
+        temper(0.0), paraltemper(0.0), dtemp(0.0), ptype(0), adjust(0), movie(0), nequil(0), nsweeps(0),paramfrq(0), report(0),
+        nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0) {}
+
     ~Sim() {
         printf ("Deallocating Sim...\n");
 
