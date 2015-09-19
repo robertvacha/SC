@@ -99,6 +99,7 @@ double MoveCreator::partDisplace(long target) {
     Vector orig, dr, origsyscm;
     int reject=0,wli;
     double radiusholemax_orig=0;
+    size_t temp;
 
     /*=== Displacement step ===*/
     edriftchanges =0.0;
@@ -106,7 +107,9 @@ double MoveCreator::partDisplace(long target) {
     origsyscm.y = 0;
     origsyscm.z = 0;
 
+    temp = clock();
     energy = (*calcEnergy)(target, 1, 0);
+    sim->energyCalc += clock() - temp;
 
     orig = conf->pvec[target].pos;
 
@@ -195,7 +198,9 @@ double MoveCreator::partDisplace(long target) {
 #endif
 
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
+        temp = clock();
         enermove =  (*calcEnergy)(target, 1, 0);
+        sim->energyCalc += clock() - temp;
     }
     if ( reject || moveTry(energy, enermove, sim->temper) ) {  /* probability acceptance */
         conf->pvec[target].pos = orig;
@@ -220,10 +225,13 @@ double MoveCreator::partRotate(long target) {
     double edriftchanges,energy,enermove,wlener;
     Particle origpart;
     int reject=0,wli;
+    size_t temp;
 
     /*=== Rotation step ===*/
     //printf ("rotation %ld npart %ld\n\n",target,npart);
+    temp = clock();
     energy = (*calcEnergy)(target, 1, 0);
+    sim->energyCalc += clock() - temp;
 
     origpart = conf->pvec[target];
 //    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
@@ -257,7 +265,9 @@ double MoveCreator::partRotate(long target) {
     }
 
     if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
+        temp = clock();
         enermove =  (*calcEnergy)(target, 1, 0);
+        sim->energyCalc += clock() - temp;
     }
     if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
         conf->pvec[target] = origpart;

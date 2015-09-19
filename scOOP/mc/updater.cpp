@@ -75,6 +75,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //cout << calcEnergy.allToAll() << endl;
     long i,j;
 
+    size_t time = 0;
+    size_t temp = 0;
+
     this->nsweeps = nsweeps;
     this->adjust = adjust;
     this->paramfrq = paramfrq;
@@ -122,7 +125,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     sim->wl.init(files->wlinfile);
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
-        genPairList(); // Does that solve the problem?
+        temp = clock();
+        genPairList();
+        sim->pairList += clock() - temp;
     }
 
     //do energy drift check - start calculation
@@ -136,37 +141,49 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
-    long long int aver = 0;
+    time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+            time = clock()-time;
             cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
-                 << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart <<" InteractionEnergy: "<<calcEnergy.allToAll()<< endl;
+                 << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
+            cout <<"\nInteractionEnergy: "<<calcEnergy.allToAll();
+            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
+            time = clock();
         }
 
         /*____________Replica Exchange Move____________*/
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
             edriftchanges += move.replicaExchangeMove(sweep);
 
-            if(sim->pairlist_update)
+            if(sim->pairlist_update) {
+                temp = clock();
                 genPairList();
+                sim->pairList += clock() - temp;
+            }
         }
         /*____________GrandCanonical Move____________*/
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
-            aver += conf->pvec.size();
             edriftchanges += move.muVTMove();
 
-            if(sim->pairlist_update)
+            if(sim->pairlist_update) {
+                temp = clock();
                 genPairList();
+                sim->pairList += clock() - temp;
+            }
         }
         /*____________Cluster Move____________*/
         if(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) {
             edriftchanges += move.clusterMove();
 
-            if(sim->pairlist_update)
+            if(sim->pairlist_update) {
+                temp = clock();
                 genPairList();
+                sim->pairList += clock() - temp;
+            }
         }
         if( (sim->pairlist_update) && // pair_list allowed
                 (
@@ -176,7 +193,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
                 )
                 ) {
+            temp = clock();
             genPairList();
+            sim->pairList += clock() - temp;
         }
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
@@ -358,7 +377,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         printf("%s %d\n", topo.moleculeParam[i].name, conf->pvec.molCountOfType(i));
 
     if(sim->nGrandCanon != 0) {
-        cout << "AVERAGE PARTICLES: " << (double)aver / nsweeps << endl;
         cout << "Acceptance:\n";
         cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
         cout << std::setprecision(3) <<  std::fixed << std::left;
@@ -494,7 +512,6 @@ void Updater::genPairList() {
 void Updater::genSimplePairList() {
     Vector r_cm;
     double r_cm2;
-    double max_dist;
     // Set the pairlist to zero
     //DEBUG_INIT("Gen Pairlist")
     for(unsigned int i = 0; i < conf->neighborList.size(); i++){
@@ -513,38 +530,24 @@ void Updater::genSimplePairList() {
 
             r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
 
-            /*r_cm.x = conf->pvec[i].pos.x - conf->pvec[j].pos.x;
-            r_cm.y = conf->pvec[i].pos.y - conf->pvec[j].pos.y;
-            r_cm.z = conf->pvec[i].pos.z - conf->pvec[j].pos.z;
-            if ( r_cm.x < 0  )
-                r_cm.x = conf->geo.box.x * (r_cm.x - (double)( (long)(r_cm.x-0.5) ) );
-            else
-                r_cm.x = conf->geo.box.x * (r_cm.x - (double)( (long)(r_cm.x+0.5) ) );
-            if ( r_cm.y < 0  )
-                r_cm.y = conf->geo.box.y * (r_cm.y - (double)( (long)(r_cm.y-0.5) ) );
-            else
-                r_cm.y = conf->geo.box.y * (r_cm.y - (double)( (long)(r_cm.y+0.5) ) );
-            if ( r_cm.z < 0  )
-                r_cm.z = conf->geo.box.z * (r_cm.z - (double)( (long)(r_cm.z-0.5) ) );
-            else
-                r_cm.z = conf->geo.box.z * (r_cm.z - (double)( (long)(r_cm.z+0.5) ) );*/
-
             r_cm2 = DOT(r_cm,r_cm);
+#ifndef NDEBUG
+            double max_dist;
             max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \
                     sim->trans[conf->pvec[j].type].mx);
             max_dist *= (1 + sim->pairlist_update) * 2;
             max_dist += topo.maxcut;
             max_dist *= max_dist; /* squared */
+#endif
 
-            if (r_cm2 <= max_dist){
+            assert(max_dist == sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]);
+
+            if (r_cm2 <= sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]){
                 conf->neighborList[i].neighborID[conf->neighborList[i].neighborCount] = j;
                 conf->neighborList[j].neighborID[conf->neighborList[j].neighborCount] = i;
 
                 conf->neighborList[i].neighborCount++;
                 conf->neighborList[j].neighborCount++;
-
-                /*sim->pairlist[i].pairs[sim->pairlist[i].num_pairs++] = j; // DEL AFTER
-                sim->pairlist[j].pairs[sim->pairlist[j].num_pairs++] = i;*/
             }
         }
     }
