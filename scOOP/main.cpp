@@ -26,7 +26,6 @@ Topo topo; // Global instance of topology
     void analyzeCur(double& r1, double& r2, double& fi, Conf* conf, int &mid, int &mid2);
 
 int main(int argc, char** argv) {
-
 #ifdef OMP1
     cout << "OPENMP SIMULATION" << endl;
 #endif

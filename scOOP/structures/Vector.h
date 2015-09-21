@@ -7,6 +7,7 @@
 #include "quaternion.h"
 #include <sstream>
 #include "../mc/randomGenerator.h"
+#include "macros.h"
 
 
 
@@ -218,32 +219,50 @@ public:
         return vec;
     }
 
+    static inline Vector getOrthogonalVector(Vector input){
+        if (input.x == 0.0 && input.y == 0.0)                   // Theoreticaly if even input.z == 0 then input is zeroth vector ... form definition of orthogonalyty any vector is perpendicular to Vector(0, 0, 0)....
+            return Vector(0.0, 1.0, 0.0);
+        return Vector(-input.y, input.x, 0.0);
+    }
+
+    static inline Vector getRandomOrthogonalVector(Vector input){
+        Vector  vec = getOrthogonalVector(input);               // get orthogonal vector to input vector
+
+        double  cosRanfomAngle = cos(ran2()*2*PI),              // get random rotation around input vector
+                sinRandomAngle = sqrt(1 - cosRanfomAngle*cosRanfomAngle);
+
+        vec.rotate(input, cosRanfomAngle, sinRandomAngle);      // rotate vector around input vector
+
+        return vec;
+    }
+
     static inline Vector getRandomUnitCone(Vector axis, const double maxangle){
-        Vector  vec     = axis,                             //returned vector in cone
-                axis2   = getRandomUnitSphere();            //orthogonal vector to vec
+        Vector  vec     = axis,                                 //returned vector in cone
+                axis2   = getRandomUnitSphere();                //orthogonal vector to vec
 
-        double  cosAngle = cos(maxangle*ran2()),            // get cosinus of random number in interval [0, maxangle]
-                sinAngle = sqrt(1 - cosAngle*cosAngle);     // get sinus of same angle
+        double  cosAngle = cos(maxangle*ran2()),                // get cosinus of random number in interval [0, maxangle]
+                sinAngle = sqrt(1 - cosAngle*cosAngle);         // get sinus of same angle
 
-        axis2.ortogonalise(axis);                           // now make vector orthogonal to cone axis
-        axis2.normalise();                                  // just normalise vector
+        axis2.ortogonalise(axis);                               // now make vector orthogonal to cone axis
+        axis2.normalise();                                      // just normalise vector
 
-        vec.rotate(axis2, cosAngle, sinAngle);              // roatate vector pointing in axis of cone by random angle in interval
+        vec.rotate(axis2, cosAngle, sinAngle);                  // roatate vector pointing in axis of cone by random angle in interval
 
         return vec;
     }
 
     static inline Vector getRandomUnitConeUniform(Vector axis, const double maxangle){
-        Vector  vec     = axis,                             //returned vector in cone
-                axis2   = getRandomUnitSphere();            //orthogonal vector to vec
+        Vector  vec     = axis,                                 // Vector that will be returned, at first initialized as unit vector in direction of cone axis
+                axis2   = getRandomOrthogonalVector(axis);      // Randomly distributed vector in plane perpendicular to cone axis
 
-        double  multiplaier = ran2()*sin(maxangle);                // multiplaier = (r*sin(angle))*rand[0, 1] ==> [r*sin(angle), 0] ==> get multiplaier to get vectors to project on angle arch
+        double  cosAngle = cos(maxangle),                       // Calculate cos() of maxangle defined by angle of cone
+                multiplaier = ran2()*(1-cosAngle)+cosAngle;     // Get coordinate of output vector in direction of cone axis
 
-        axis2.ortogonalise(axis);                           // now make vector orthogonal to cone axis
-        axis2.normalise();                                  // just normalise vector
+        vec.normalise();                                        // Before we start working we want to normalise both axis
+        axis2.normalise();
 
-        vec = multiplaier*axis2;
-        vec += (sqrt(1-multiplaier*multiplaier))*axis;
+        vec *= multiplaier;
+        vec += (sqrt(1-multiplaier*multiplaier))*axis2;
 
         return vec;
     }

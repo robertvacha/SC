@@ -298,8 +298,8 @@ double MoveCreator::partAxialRotate(long target){
     //            Get vector from cone             //
     //=============================================//
     // Get vector which is randomly distributed in cone around patch direction. Cone is specified by angle in radians in options coneAngle
-    rotaxis = Vector::getRandomUnitConeUniform(    conf->pvec[target].dir,\
-                                                    sim->coneAngle);
+    rotaxis = Vector::getRandomUnitConeUniform( conf->pvec[target].dir,\
+                                                sim->coneAngle);
 
     //=============================================//
     //              Rotate particle                //
