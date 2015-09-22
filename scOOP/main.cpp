@@ -294,7 +294,6 @@ int main(int argc, char** argv) {
 #endif
 
     cout << "\nSimulation time:" << (double)sim.all / CLOCKS_PER_SEC << " s" << endl;
-    cout << "Energy calculation time:" << 100.0*(double)sim.energyCalc / sim.all << " %" << endl;
     cout << "PairList generation time:" << 100.0*(double)sim.pairList / sim.all << " %" << endl;
 
     cout << "\nDONE" << endl;

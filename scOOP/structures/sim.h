@@ -56,13 +56,13 @@ public:
     double max_dist_squared[MAXT][MAXT]; ///< \brief Stored cutoffs of all particle types for pairList
 
     size_t pairList;
-    size_t energyCalc;
-    size_t move;
+    //size_t energyCalc;
+    //size_t move;
     size_t all;
 
     Sim(): press(0.0), paralpress(0.0), dpress(0.0), shave(0.0), shprob(0.0), chainprob(0.0), switchprob(0.0), pairlist_update(0),
         temper(0.0), paraltemper(0.0), dtemp(0.0), ptype(0), adjust(0), movie(0), nequil(0), nsweeps(0),paramfrq(0), report(0),
-        nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), pairList(0), energyCalc(0), move(0), all(0), cell(0.0) {
+        nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), pairList(0), /*energyCalc(0), move(0),*/ all(0), cell(0.0) {
 
         for(int i=0; i<MAXT; i++) {
             trans[i].mx = 0.0;
