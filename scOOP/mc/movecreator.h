@@ -104,6 +104,13 @@ private:
     double partRotate(long target);
 
     /**
+     * @brief partAxialRotate(), take particle and rotate it (anti or clockwise) by random angle around particle axis
+     * @param target
+     * @return edriftchange
+     */
+    double partAxialRotate(long target);
+
+    /**
      * @brief chaindisplace
      * @param target
      * @return

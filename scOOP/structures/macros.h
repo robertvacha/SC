@@ -65,6 +65,8 @@
 #define ZEROTOL2 1.0e-8     /* numbers below ZEROTOL are deemed zero */
 #define PI 3.141592653589793238462643383279  /* pi */
 #define PIH 1.57079632679489661923132169163975  /* pi half*/
+#define DEGTORAD 0.017453292519943295769236907683 // multiplaier to transfrer angle in degrees to angle in radians
+#define RADTODEG 57.295779513082320876798154820296 // multiplaier to transfrer angle in radians to angle in degrees
 
 /*Particle types*/
 #define SC 10             /*spherocylinder*/

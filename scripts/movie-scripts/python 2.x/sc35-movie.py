@@ -436,6 +436,7 @@ def read_top(topfilename):
     types=[[]]
     geotypes=[[]]
     params=[]
+    molecules=[]
     for i in range(30):
 	params.append([])
 	geotypes.append([])
@@ -568,28 +569,37 @@ def read_top(topfilename):
 			    else:
 				mol[2].append(-1)
 			    #DEBUG
-			    #print("After")
-			    #print(after.split())
-			    #print(mol[1])
+                            #print("After")
+                            #print(after.split())
+                            #print(mol[1])
 			#closes mol
 			if (ind>-1):
 			    molname=""
 		    else:
-			if (keyword == "SYSTEM"):
-			    #read system
-			    linesplit=line.split()
-			    if (len(linesplit) != 2):
-				print "TOPOLOGY ERROR: invalid number of input in System"
-				return [[],[]]
-			    sys[0].append(linesplit[0])
-			    sys[1].append(long(linesplit[1]))
-			else:
-			    if ((keyword == "EXTER") or (keyword == "EXCLUDE")):
-				#we do not displaye external potential 
-				print ""
-			    else:
-				print "TOPOLOGY ERROR: invalid keyword %s on line %s"%(keyword,line)
-				return [[],[]]
+                        if (keyword == "POOL"):
+                            #read pool
+                            linesplit=line.split()
+                            if (len(linesplit) != 2):
+                                print "TOPOLOGY ERROR: invalid number of input in Pool"
+                                return [[],[]]
+                            #sys[0].append(linesplit[0])
+                            #sys[1].append(long(linesplit[1]))
+                        else:
+                            if (keyword == "SYSTEM"):
+                                #read system
+                                linesplit=line.split()
+                                if (len(linesplit) != 2):
+                                    print "TOPOLOGY ERROR: invalid number of input in System"
+                                    return [[],[]]
+                                sys[0].append(linesplit[0])
+                                sys[1].append(long(linesplit[1]))
+                            else:
+                                if ((keyword == "EXTER") or (keyword == "EXCLUDE")):
+                                    #we do not displaye external potential
+                                    print ""
+                                else:
+                                    print "TOPOLOGY ERROR: invalid keyword %s on line %s"%(keyword,line)
+                                    return [[],[]]
     particles=[]
     switchtype=[]
     for i in range(len(sys[0])):
@@ -598,6 +608,18 @@ def read_top(topfilename):
                 if sys[0][i] == mol[0][j]:
                     particles.append(int(mol[1][j]))
                     switchtype.append(int(mol[2][j]))
+
+
+    molName = mol[0][0]
+    molSize = 0
+    for i in range(0,len(mol[0])):
+        if(molName == mol[0][i]):
+            molSize = molSize + 1
+        else:
+            molName = mol[0][i]
+            molecules.append(molSize)
+            molSize = 1
+    molecules.append(molSize)
 
     #print("Particles")
     #print(particles)
@@ -614,10 +636,11 @@ def read_top(topfilename):
     #print(geotypes)
     #print(types)
     #print(particles)
+    #print(molecules)
     #return [types, geotypes, params]
-    return [particles, types, geotypes, params, switch, switchtype]
+    return [particles, molecules, types, geotypes, params, switch, switchtype]
 
-def gc_sim(infilename,topfilename,data,box, sweep):
+def gc_sim(infilename,topfilename,data,box, sweep, molecules):
     formated_line="{0:+.8e} {0:+.8e} {0:+.8e}   {1:+.8e} {0:+.8e} {0:+.8e}   {0:+.8e} {1:+.8e} {0:+.8e} 0 0\n".format(0.0, 1.0)
 
     ## find largest number of particles
@@ -654,17 +677,20 @@ def gc_sim(infilename,topfilename,data,box, sweep):
 
     check = 0
     for i in range(len(data)): # frames
+        check = 0
         current_moltype = 0
         num_written = 0
         infile_new.write(str(num_of_particles) + "\n" )
         infile_new.write("sweep "+str(sweep[i])+ ";  box "+ str(round(box[i][0],8))+ " "+ str(round(box[i][1],8))+ " "+ str(round(box[i][2],8))+"\n" )
         for j in range(len(data[i])): # particles
-            if(data[i][j][10] != current_moltype):
+            while(data[i][j][10] != current_moltype): # case: begining of middle molTypes have 0 particles
                 for q in range(num_written, max_num[current_moltype]):
                     infile_new.write(formated_line)
                     check = check+1
                 current_moltype = current_moltype +1
                 num_written = 0
+
+            # Write actual data
             x = "{:.8e}".format(data[i][j][0])
             y = "{:.8e}".format(data[i][j][1])
             z = "{:.8e}".format(data[i][j][2])
@@ -682,16 +708,13 @@ def gc_sim(infilename,topfilename,data,box, sweep):
 
             num_written = num_written+1
 
-        for q in range(num_written, max_num[current_moltype]): # case - current_moltype -> writting out 0.0 particles
-            infile_new.write(formated_line)
-            check = check+1
-
-        if(current_moltype != last_moltype): # case - last moltype defined had 0 particles -> current moltype++
-            current_moltype = last_moltype
-            num_written = 0
+        # case: ending molTypes have 0 particles, no data left to write out in frame
+        while(current_moltype <= last_moltype):
             for q in range(num_written, max_num[current_moltype]):
                 infile_new.write(formated_line)
                 check = check+1
+            current_moltype = current_moltype+1
+            num_written = 0
 
         if(check != num_of_particles):
             print "should be"
@@ -700,8 +723,7 @@ def gc_sim(infilename,topfilename,data,box, sweep):
             print check
             print "frame"
             print i
-            print "Wrong number of particles - implementation error, PM Lukas"
-        check = 0
+            print "Wrong number of particles - implementation error, PM Lukas"     
 
     infile_new.close()
 
@@ -716,7 +738,8 @@ def gc_sim(infilename,topfilename,data,box, sweep):
             topfile_new.write(line)
 	else:
             if(bool_system == 1):
-                topfile_new.write(line.split()[0]+" "+str(max_num[current_moltype]) + "\n")
+                #print(current_moltype)
+                topfile_new.write(line.split()[0]+" "+str(max_num[current_moltype]/molecules[current_moltype]) + "\n")
                 current_moltype = current_moltype +1
             else:
                 topfile_new.write(line)
@@ -729,7 +752,7 @@ def gc_sim(infilename,topfilename,data,box, sweep):
 def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
     print "Reading topology..."
 
-    [particles, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
+    [particles, molecules, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
 
 ##    #DEBUG
 ##    print ">>PARTICLES:",particles
@@ -752,7 +775,7 @@ def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
 	return 1
 
     if gc_switch == "1":
-       [infilename, topfilename] = gc_sim(infilename, topfilename, data, box, sweep)
+       [infilename, topfilename] = gc_sim(infilename, topfilename, data, box, sweep, molecules)
        del particles[:]
        del types[:]
        del geotypes[:]
@@ -763,7 +786,7 @@ def make(infilename,outfilename,outfilename2,topfilename,gc_switch):
        del data[:]
        del sweep[:]
        print "Re-reading topology, coordinates for grandcanonical"
-       [particles, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
+       [particles, molecules, types,geotypes, params, switch, switchtypes]=read_top(topfilename)
        [box,data,sweep]=read_input(infilename)
 
     if ( (len(data[0]) % len(particles)) != 0):

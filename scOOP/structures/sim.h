@@ -33,6 +33,7 @@ public:
     long nrepchange;            ///< \brief Number of sweeps between replica exchanges
     long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
     long nClustMove;            ///< \brief Number of sweeps between cluster moves
+    double coneAngle;             ///< \brief Prephere rotation around axis of spherocylinder in particular angle from axis
 
     Disp edge;                  ///< \brief Maximum box length change and statistics
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
@@ -51,7 +52,23 @@ public:
     int mpirank;                ///< \brief MPI number for given process
     int mpinprocs;              ///< \brief MPI number of processes
 
-    Sim() {}
+    double cell;                  ///< \brief Maximum translation of all types
+    double max_dist_squared[MAXT][MAXT]; ///< \brief Stored cutoffs of all particle types for pairList
+
+    size_t pairList;
+    //size_t energyCalc;
+    //size_t move;
+    size_t all;
+
+    Sim(): press(0.0), paralpress(0.0), dpress(0.0), shave(0.0), shprob(0.0), chainprob(0.0), switchprob(0.0), pairlist_update(0),
+        temper(0.0), paraltemper(0.0), dtemp(0.0), ptype(0), adjust(0), movie(0), nequil(0), nsweeps(0),paramfrq(0), report(0),
+        nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), pairList(0), /*energyCalc(0), move(0),*/ all(0), cell(0.0) {
+
+        for(int i=0; i<MAXT; i++) {
+            trans[i].mx = 0.0;
+        }
+    }
+
     ~Sim() {
         printf ("Deallocating Sim...\n");
 
