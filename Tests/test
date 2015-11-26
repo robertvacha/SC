@@ -205,5 +205,5 @@ cd ..
 
 rm -f a.out SC
 
-./testMPI
+#./testMPI
 
