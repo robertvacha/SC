@@ -2,37 +2,29 @@
 
 #include <iomanip>
 
-void Updater::openFilesClusterStatistics(FILE** cl_stat, FILE** cl, FILE** cl_list, FILE** ef, FILE** statf) {
+void Updater::emptyFiles() {
 
-    // Opening files for cluster statistics
-    *cl_stat = *cl = *cl_list = *ef = *statf = NULL;
+    FILE* file = NULL;
     if(sim->write_cluster){
         // Empty file
-        *cl_stat = fopen(files->clusterstatfile, "w");
-        fclose(*cl_stat);
-        *cl_stat = fopen(files->clusterstatfile, "a");
+        file = fopen(files->clusterstatfile, "w");
+        fclose(file);
         // Empty file
-        *cl = fopen(files->clusterfile, "w");
-        fclose(*cl);
-        *cl = fopen(files->clusterfile, "a");
+        file = fopen(files->clusterfile, "w");
+        fclose(file);
     }
-    // write energy
     if (report <= nsweeps){
-        // Empty file
-        *ef = fopen(files->energyfile, "w");
-        fclose(*ef);
-        *ef = fopen(files->energyfile, "a");
-        fprintf (*ef, "# sweep    energy\n");
-        *statf = fopen(files->statfile, "w");
-        fclose(*statf);
-        *statf = fopen(files->statfile, "a");
-        fprintf (*statf, "# sweep    volume\n");
+        file = fopen(files->energyfile, "w");
+        fclose(file);
+
+        file = fopen(files->statfile, "w");
+        fclose(file);
     }
 }
 
 
 
-void Updater::initValues(long& next_adjust, long& next_calc, long& next_dump, long& next_frame) {
+void Updater::initValues() {
 
     // Initialize some values at begining
     conf->partVecInit();
@@ -73,6 +65,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //cout << calcEnergy.allToAll()/(4*sim->temper) << " kT" << endl;
     //cout << calcEnergy.allToAll()/sim->temper << endl;
     //cout << calcEnergy.allToAll() << endl;
+    bool mpi = false;
+#ifdef ENABLE_MPI
+    mpi = true;
+#endif
     long i,j;
 
     size_t time = 0;
@@ -83,10 +79,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     this->paramfrq = paramfrq;
     this->report = report;
 
-    long next_adjust;  // Next sweep number for step size adjustment
-    long next_calc;    // Next sweep number for order parameter calculation
-    long next_dump;    // Next sweep number for reporting statistics
-    long next_frame;   // Next sweep number for dumping a movie fram
     long step;         // Step number within a given sweep
     long sweep;        // Current sweep number
 
@@ -95,19 +87,19 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //struct stat shapex, shapey, shapez;   // geo.box shape statistics
     //struct stat smec[MAXF];       // Smectic order parameters (Fourier coeeficients)
 
-    FILE *mf=NULL;                                  // Handle for movie file
-    FILE *cl_stat=NULL, *cl=NULL, *cl_list=NULL;    // Handle for cluster statistics
-    FILE *ef=NULL, *statf=NULL;                     // Handle for energy file and statistical file
+    emptyFiles();
 
-    double edriftstart;     // Energy drift calculation - start
-    double edriftchanges;   // Energy drift calculation - accumulate all changes through moves
-    double edriftend;       // Energy drift calculation - end
-    double pvdriftstart;    // PV drift calculation - start
-    double pvdriftend;      // PV drift calculation - end
-    double volume;          // volume of geo.box
-    double moveprobab;      // random number selecting the move
+    FILE* ef;
+    FILE* statf;
+    ef = fopen(files->energyfile, "a");
+    fprintf (ef, "# sweep    energy\n");
+    fclose(ef);
 
-    openFilesClusterStatistics(&cl_stat, &cl, &cl_list, &ef, &statf);
+    statf = fopen(files->statfile, "a");
+    fprintf (statf, "# sweep    volume\n");
+    fclose(statf);
+
+
     //=== Initialise counters etc. ===//
     if(!conf->pvec.empty()) {
         sim->shprob = sim->shave/(double)conf->pvec.size();
@@ -115,12 +107,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         sim->shprob = 0.0;
     }
 
-    initValues(next_adjust, next_calc, next_dump, next_frame);
-    if (sim->movie > 0) {
-        mf = fopen(files->moviefile, "a");
-    } else {
-        mf = NULL;
-    }
+    initValues();
 
     sim->wl.init(files->wlinfile);
     //do moves - START OF REAL MC
@@ -130,20 +117,24 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         sim->pairList += clock() - temp;
     }
 
-    //do energy drift check - start calculation
-    volume = conf->geo.volume();
-    edriftstart = calcEnergy(0, 0, 0);
-    pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+    double edriftchanges = 0.0;   // Energy drift calculation - accumulate all changes through move
+    double edriftend;       // Energy drift calculation - end
+    double pvdriftend;      // PV drift calculation - end
+    double moveprobab;      // random number selecting the move
+
+    const double edriftstart = calcEnergy(0, 0, 0);;     // Energy drift calculation - start
+    double volume = conf->geo.volume();          // volume of geo.box
+    const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
+
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
     //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
-    edriftchanges = 0.0;
 
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
     time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
-        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
+        if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
@@ -155,9 +146,15 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             time = clock();
         }
 
-        /*____________Replica Exchange Move____________*/
+#ifdef ENABLE_MPI
+    // receive MPI data
+#endif
+
+        //____________Replica Exchange Move____________
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
-            edriftchanges += move.replicaExchangeMove(sweep);
+
+            edriftchanges += move.replicaExchangeMove(sweep); // sending reference to pvdriftstart
+            files->initMPIRank(sim->pseudoRank);
 
             if(sim->pairlist_update) {
                 temp = clock();
@@ -165,7 +162,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 sim->pairList += clock() - temp;
             }
         }
-        /*____________GrandCanonical Move____________*/
+        //____________GrandCanonical Move____________
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
             edriftchanges += move.muVTMove();
 
@@ -175,7 +172,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 sim->pairList += clock() - temp;
             }
         }
-        /*____________Cluster Move____________*/
+        //____________Cluster Move____________
         if(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) {
             edriftchanges += move.clusterMove();
 
@@ -226,18 +223,18 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         // Adjustment of maximum step sizes during equilibration
         if (sweep == next_adjust) {
             for (i = 0; i < MAXT ;i++) {
-                if ((sim->trans[i].acc > 0)||(sim->trans[i].rej >0))
-                    optimizeStep (sim->trans + i, 1.5, 0.0);
-                if ((sim->rot[i].acc > 0)||(sim->rot[i].rej >0))
-                    optimizeRot (sim->rot + i, 5.0, 0.01);
+                if ((sim->stat.trans[i].acc > 0)||(sim->stat.trans[i].rej >0))
+                    optimizeStep (sim->stat.trans + i, 1.5, 0.0);
+                if ((sim->stat.rot[i].acc > 0)||(sim->stat.rot[i].rej >0))
+                    optimizeRot (sim->stat.rot + i, 5.0, 0.01);
             }
             for (i = 0; i < MAXMT; i++) {
-                if ((sim->chainm[i].acc > 0)||(sim->chainm[i].rej > 0))
-                    optimizeStep (sim->chainm + i, 1.5, 0.0);
-                if ((sim->chainr[i].acc > 0)||(sim->chainr[i].rej > 0))
-                    optimizeRot (sim->chainr + i, 5.0, 0.01);
+                if ((sim->stat.chainm[i].acc > 0)||(sim->stat.chainm[i].rej > 0))
+                    optimizeStep (sim->stat.chainm + i, 1.5, 0.0);
+                if ((sim->stat.chainr[i].acc > 0)||(sim->stat.chainr[i].rej > 0))
+                    optimizeRot (sim->stat.chainr + i, 5.0, 0.01);
             }
-            optimizeStep (&(sim->edge), 1.0, 0.0);
+            optimizeStep (&(sim->stat.edge), 1.0, 0.0);
             next_adjust += adjust;
         }
 
@@ -289,8 +286,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             }
         }
 
-        if (!(sweep % 100000)) {
-            //reinitialize patch vectors to avoid cummulation of errors
+        if (!(sweep % 100000)) { //reinitialize patch vectors to avoid cummulation of errors
             conf->partVecInit();
         }
 
@@ -311,6 +307,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               next_calc += paramfrq;
              */
         }
+
         /// Writing of statistics
         if (sweep == next_dump) {
             /*printf ("Statistics after %ld sweeps:\n", sweep);
@@ -334,6 +331,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
               fflush (stdout);
              */
 
+            ef = statf = NULL;
+            ef = fopen(files->energyfile, "a");
+            statf = fopen(files->statfile, "a");
+
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
             if (sim->wl.wlm[0] > 0) {
@@ -342,20 +343,20 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             //print mesh distribution
             //mesh_findholesdistrib(&sim->wl.mesh);
             next_dump += report;
+
+            fclose(ef);
+            fclose(statf);
+            ef = statf = NULL;
         }
 
         // Writing of movie frame
-        if (sweep == next_frame) {
-            //fprintf (mf, "> box %.10f %.10f %.10f ; num_part %ld ; sweep %ld <\n", conf->geo.box.x, conf->geo.box.y, conf->geo.box.z, (long)conf->pvec.size(), sweep);
-            fprintf (mf, "%ld\nsweep %ld; box %.10f %.10f %.10f\n",(long)conf->pvec.size(), sweep, conf->geo.box.x, conf->geo.box.y, conf->geo.box.z);
-            conf->draw(mf);
-            fflush (mf);
-            next_frame += sim->movie;
-        }
+        if (sweep == next_frame)
+            dumpMovie(sweep);
+
 
         // Writing out cluster statistics
         if(sim->write_cluster && (sweep % sim->write_cluster == 0)){
-            writeCluster(cl_stat, cl, cl_list, false, sweep);
+            writeCluster(false, sweep);
         }
         //=== End of housekeeping ===
 
@@ -365,12 +366,26 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     volume = conf->geo.volume();
     edriftend = calcEnergy.allToAll();
     pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-    printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
-//    printf("EdriftChanges: %.5e\n", edriftchanges);
+    if(sim->mpinprocs > 1) {
+        printf("%d Energy drift: %.5e \n", sim->pseudoRank, edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
+        /*printf("%d Starting energy: %.8f \n", sim->pseudoRank, edriftstart);
+        printf("%d Ending energy: %.8f \n", sim->pseudoRank, edriftend);
+        printf("%d EdriftChanges: %.5e\n", sim->pseudoRank, edriftchanges);
+        printf("%d Starting pV: %.8f \n", sim->pseudoRank, pvdriftstart);
+        printf("%d Ending pV: %.8f \n", sim->pseudoRank, pvdriftend);*/
+    }
+    else {
+        printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
+        printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
+        printf("Starting energy: %.8f \n",edriftstart);
+        printf("Ending energy: %.8f \n",edriftend);
+        //printf("EdriftChanges: %.5e\n", edriftchanges);
+    }
+
+
 //    printf("PVChanges: %.5e\n", pvdriftend -pvdriftstart);
-    printf("Starting energy: %.8f \n",edriftstart);
-    printf("Ending energy: %.8f \n",edriftend);
-    printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
+
+
     printf("System:\n");
 
     for(i=0; i < conf->pvec.molTypeCount; i++)
@@ -384,15 +399,15 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             if(topo.moleculeParam[i].activity != -1.0) {
                 cout << "  " << std::setw(6) <<topo.moleculeParam[i].name << " "
                      << std::setw(6)
-                     << (double)topo.moleculeParam[i].insAcc/(topo.moleculeParam[i].insAcc+topo.moleculeParam[i].insRej) << " "
+                     << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo.moleculeParam[i].insRej/(topo.moleculeParam[i].insAcc+topo.moleculeParam[i].insRej) << " "
+                     << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << " "
                      << std::setw(6)
-                     << (double)topo.moleculeParam[i].delAcc/(topo.moleculeParam[i].delAcc+topo.moleculeParam[i].delRej) << " "
+                     << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo.moleculeParam[i].delRej/(topo.moleculeParam[i].delAcc+topo.moleculeParam[i].delRej) << " "
+                     << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << " "
                      << std::setw(6)
-                     << (double)topo.moleculeParam[i].muVtAverageParticles / topo.moleculeParam[i].muVtSteps << endl;
+                     << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
             }
         }
         cout << std::setprecision(6);
@@ -400,19 +415,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     fflush(stdout);
 
     sim->wl.endWangLandau(files->wloutfile);
-
-    //end movie
-    if (sim->movie > 0)
-        fclose (mf);
-    //end cluster
-    if(sim->write_cluster){
-        fclose(cl_stat);
-        fclose(cl);
-    }
-    if (report < nsweeps) {
-        fclose(ef);
-        fclose(statf);
-    }
 }
 
 
@@ -533,13 +535,12 @@ void Updater::genSimplePairList() {
             r_cm2 = DOT(r_cm,r_cm);
 #ifndef NDEBUG
             double max_dist;
-            max_dist = AVER(sim->trans[conf->pvec[i].type].mx, \
-                    sim->trans[conf->pvec[j].type].mx);
+            max_dist = AVER(sim->stat.trans[conf->pvec[i].type].mx, \
+                    sim->stat.trans[conf->pvec[j].type].mx);
             max_dist *= (1 + sim->pairlist_update) * 2;
             max_dist += topo.maxcut;
             max_dist *= max_dist; /* squared */
 #endif
-
             assert(max_dist == sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]);
 
             if (r_cm2 <= sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]){
@@ -562,7 +563,14 @@ void Updater::genSimplePairList() {
 }
 
 
-int Updater::writeCluster(FILE *cl_stat, FILE *cl, FILE *cl_list, bool decor, long sweep) {
+int Updater::writeCluster(bool decor, long sweep) {
+
+    FILE *cl_stat = NULL;
+    FILE *cl = NULL;
+
+    cl_stat = fopen(files->clusterstatfile, "a");
+    cl = fopen(files->clusterfile, "a");
+
     genClusterList();
     sortClusterList();
     calcClusterEnergies();
@@ -570,8 +578,7 @@ int Updater::writeCluster(FILE *cl_stat, FILE *cl, FILE *cl_list, bool decor, lo
         if(decor == false){
             // if no decor, this means usually into a file. Hence print info
             // about number of line per frame
-            fprintf(cl_stat, "Sweep: %ld | Maximal size: %ld\n",
-                    sweep, sim->max_clust);
+            fprintf(cl_stat, "Sweep: %ld | Maximal size: %ld\n", sweep, sim->max_clust);
         }
         printStat::printClusterStat(cl_stat, decor, sim);
         /*
@@ -585,13 +592,18 @@ int Updater::writeCluster(FILE *cl_stat, FILE *cl, FILE *cl_list, bool decor, lo
         }
         printStat::printClusters(cl, decor, sim);
     }
+    FILE *cl_list = NULL; // CL_LIST NEVER USED
     if(cl_list){
         if(decor == false){
-            fprintf(cl_list, "Sweep: %ld | Number of particles: %ld\n",
-                    sweep, (long)conf->pvec.size());
+            fprintf(cl_list, "Sweep: %ld | Number of particles: %ld\n", sweep, (long)conf->pvec.size());
         }
         printStat::printClusterList(cl, decor, sim, conf);
     }
+
+    fclose(cl_stat);
+    fclose(cl);
+    //fclose(cl_list);
+
     return 0;
 }
 
@@ -724,7 +736,8 @@ int Updater::sortClusterList() {
         }
     }
     /* Set the statistics to zero */
-    sim->clusterstat = (long int*) malloc(sizeof(long) * sim->max_clust);
+    //sim->clusterstat = (long int*) malloc(sizeof(long) * sim->max_clust); // OLD, MISTAKE? memmory dont have to be 0, no free
+    memset(sim->clusterstat, 0, sizeof(long) * sim->max_clust);
 
     if (!sim->clusterstat){
         fprintf(stderr, "Couldn't allocate any memory!\n");

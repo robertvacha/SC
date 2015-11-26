@@ -71,7 +71,20 @@ public:
     double pressureMove();
 
     /**
-     * @brief replicaexchangemove
+     * @brief replicaexchangemove for canocnical, grandcanonical and isobaric-isotermal ensembles
+     *
+     * We are switching statistics and Hamiltonians. Configurations remains the same
+     *
+     * Data to switch:
+     *
+     * Statistics, pressure, temperature, Wang-Landau data
+     *
+     * Data to stay:
+     *
+     * Conf, Geometry, MoleculeParams, Ia_param
+     *
+     *
+     *
      * @param sweep
      * @return
      */

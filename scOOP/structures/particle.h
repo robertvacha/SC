@@ -68,24 +68,53 @@ public:
      * @brief testInit - dir, patchdir and chdir must be unit vectors
      * @return
      */
-    bool testInit() {
-        if(dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999)
-            return false;
-        if(patchdir[0].dot(patchdir[0]) > 1.000001 || patchdir[0].dot(patchdir[0]) < 0.999999)
-            return false;
-        if(patchdir[1].dot(patchdir[1]) > 1.000001 || patchdir[1].dot(patchdir[1]) < 0.999999)
-            return false;
-        if(chdir[0].dot(chdir[0]) > 1.000001 || chdir[0].dot(chdir[0]) < 0.999999)
-            return false;
-        if(chdir[1].dot(chdir[1]) > 1.000001 || chdir[1].dot(chdir[1]) < 0.999999)
-            return false;
+    bool testInit(int geotype) {
 
-        if(pos.x < 0.0 || pos.x > 1.0)
+        if( ( dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999 ) && !((geotype == SCA) || (geotype == SCN)) ) {
+            cout << "Vector dir is not an unit Vector" << endl;
+            return false;
+        }
+
+        if(patchdir[0].dot(patchdir[0]) > 1.000001 || patchdir[0].dot(patchdir[0]) < 0.999999 ) {
+            cout << "Vector patchdir[0] is not an unit Vector" << endl;
+            return false;
+        }
+
+        // calculate second patchdir
+        if ( (geotype == TPSC) || (geotype == TCPSC) ||
+          (geotype == TCHPSC) || (geotype == TCHCPSC)) {
+
+            if(patchdir[1].dot(patchdir[1]) > 1.000001 || patchdir[1].dot(patchdir[1]) < 0.999999 ) {
+                cout << "Vector patchdir[1] is not an unit Vector" << endl;
+                return false;
+            }
+        }
+
+        // calculate chdir vector
+        if ( (geotype == CHPSC) || (geotype == CHCPSC)
+          || (geotype == TCHPSC) || (geotype == TCHCPSC)) {
+
+            if(chdir[0].dot(chdir[0]) > 1.000001 || chdir[0].dot(chdir[0]) < 0.999999) {
+                cout << "Vector chdir[0] is not an unit Vector" << endl;
+                return false;
+            }
+        }
+
+        // calculate chdir vector for seond patch
+        if ( (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
+
+            if(chdir[1].dot(chdir[1]) > 1.000001 || chdir[1].dot(chdir[1]) < 0.999999) {
+                cout << "Vector chdir[1] is not an unit Vector" << endl;
+                return false;
+            }
+        }
+
+        /*if(pos.x < 0.0 || pos.x > 1.0)
             return false;
         if(pos.y < 0.0 || pos.y > 1.0)
             return false;
         if(pos.z < 0.0 || pos.z > 1.0)
-            return false;
+            return false;*/
         return true;
     }
 

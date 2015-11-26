@@ -14,6 +14,7 @@ namespace printStat {
      * @param decor
      * @param sim
      * @param conf
+     * @deprecated
      * @return
      */
     int printClusterList(FILE * stream, bool decor, Sim * sim, Conf * conf);

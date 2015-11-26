@@ -15,7 +15,8 @@ extern Topo topo;
 
 void Inicializer::readOptions() {
 
-    cout << "Reading options..." << endl;
+    if(sim->mpirank == 0)
+        cout << "Reading options..." << endl;
 
     int num_options = -1;
     double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
@@ -43,7 +44,7 @@ void Inicializer::readOptions() {
         {"wlmtype",             Int,    false, &sim->wl.wlmtype},
         {"press",               Double, false, &sim->press},
         {"paralpress",          Double, false, &sim->paralpress},
-        {"edge_mx",             Double, false, &sim->edge.mx},
+        {"edge_mx",             Double, false, &sim->stat.edge.mx},
         {"shave",               Double, false, &sim->shave},
         {"chainprob",           Double, false, &sim->chainprob},
         {"switchprob",          Double, false, &sim->switchprob},
@@ -143,50 +144,47 @@ void Inicializer::readOptions() {
     // Density of close-packed spherocylinders
     //   rho_cp = 2.0/(sqrt(2.0) + *length * sqrt(3.0));
 
-    printf (" Pressure coupling type:                             %d\n", sim->ptype);
-    printf (" Pressure:                                           %.8f\n", sim->press);
-    printf (" Replica exchange pressure:                          %.8f\n", sim->paralpress);
-    printf (" Average volume change attempts per sweep:           %.8f\n", sim->shave);
-    printf (" Equilibration sweeps:                               %ld\n", sim->nequil);
-    printf (" Sweeps between step size adjustments:               %ld\n", sim->adjust);
-    printf (" Production sweeps:                                  %ld\n", sim->nsweeps);
-    printf (" Sweeps between statistics samples:                  %ld\n", sim->paramfrq);
-    printf (" Sweeps between statistics reports:                  %ld\n", sim->report);
-    printf (" Average chain move attempts per sweep:              %.8f\n", sim->chainprob);
-    printf (" Initial maximum displacement:                       %.8f\n", transmx);
-    printf (" Inititial maximum angular change (degrees):         %.8f\n", rotmx);
-    printf (" Inititial maximum angular cone angle (degrees):     %.8f\n", sim->coneAngle);
-    printf (" Inititial maximum geo.box edge change:              %.8f\n", sim->edge.mx);
-    printf (" Initial maximum chain displacement:                 %.8f\n", chainmmx);
-    printf (" Inititial maximum chain angular change (degrees):   %.8f\n", chainrmx);
-    printf (" Temperature in kT/e:                                %.8f\n", sim->temper);
-    printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
-    printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
-    printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
-    printf (" Sweeps between Cluster moves:                       %ld\n", sim->nClustMove);
-    printf (" Wang-Landau method:                                 %d %d\n", sim->wl.wlm[0],sim->wl.wlm[1]);
-    printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
-    printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);
-    printf (" Number of Sweeps per pairlist update:               %d\n", sim->pairlist_update);
-    printf (" Random number seed:                                 %ld\n", seed);
-    printf (" Number of sweeps per writing out cluster info:      %ld\n", sim->write_cluster);
+    if(sim->mpirank == 0 && SILENT == 1) {
+        printf (" Pressure coupling type:                             %d\n", sim->ptype);
+        printf (" Pressure:                                           %.8f\n", sim->press);
+        printf (" Replica exchange pressure:                          %.8f\n", sim->paralpress);
+        printf (" Average volume change attempts per sweep:           %.8f\n", sim->shave);
+        printf (" Equilibration sweeps:                               %ld\n", sim->nequil);
+        printf (" Sweeps between step size adjustments:               %ld\n", sim->adjust);
+        printf (" Production sweeps:                                  %ld\n", sim->nsweeps);
+        printf (" Sweeps between statistics samples:                  %ld\n", sim->paramfrq);
+        printf (" Sweeps between statistics reports:                  %ld\n", sim->report);
+        printf (" Average chain move attempts per sweep:              %.8f\n", sim->chainprob);
+        printf (" Initial maximum displacement:                       %.8f\n", transmx);
+        printf (" Inititial maximum angular change (degrees):         %.8f\n", rotmx);
+        printf (" Inititial maximum angular cone angle (degrees):     %.8f\n", sim->coneAngle);
+        printf (" Inititial maximum geo.box edge change:              %.8f\n", sim->stat.edge.mx);
+        printf (" Initial maximum chain displacement:                 %.8f\n", chainmmx);
+        printf (" Inititial maximum chain angular change (degrees):   %.8f\n", chainrmx);
+        printf (" Temperature in kT/e:                                %.8f\n", sim->temper);
+        printf (" Parallel tempering temperature in kT/e:             %.8f\n", sim->paraltemper);
+        printf (" Sweeps between replica exchange:                    %ld\n", sim->nrepchange);
+        printf (" Sweeps between Grand-Canonical move:                %ld\n", sim->nGrandCanon);
+        printf (" Sweeps between Cluster moves:                       %ld\n", sim->nClustMove);
+        printf (" Wang-Landau method:                                 %d %d\n", sim->wl.wlm[0],sim->wl.wlm[1]);
+        printf (" Calculate the Wang-Landau method for atom type:     %d\n", sim->wl.wlmtype);
+        printf (" Average type switch attempts per sweep:             %.8f\n", sim->switchprob);
+        printf (" Number of Sweeps per pairlist update:               %d\n", sim->pairlist_update);
+        printf (" Random number seed:                                 %ld\n", seed);
+        printf (" Number of sweeps per writing out cluster info:      %ld\n", sim->write_cluster);
 
-    if(sim->nGrandCanon > 0 && sim->nrepchange > 0) {
-        cout << "\nGrandCanonical and Replica exchange cannot be enabled at once!!!" << endl;
-        exit(1);
-    }
+        if (sim->movie > 0) {
+            printf (" Sweeps between movie frames:                      %ld\n", sim->movie);
+        } else {
+            printf (" No movie\n");
+        }
+        printf ("\n");
 
-    if (sim->movie > 0) {
-        printf (" Sweeps between movie frames:                      %ld\n", sim->movie);
-    } else {
-        printf (" No movie\n");
-    }
-    printf ("\n");
-
-    if(sim->pairlist_update){
-        printf(" A pairlist will be generated every %d steps. This is a greedy"
-                " algorithm; make sure you don't have big chains etc.!\n",
-                sim->pairlist_update);
+        if(sim->pairlist_update){
+            printf(" A pairlist will be generated every %d steps. This is a greedy"
+                   " algorithm; make sure you don't have big chains etc.!\n",
+                   sim->pairlist_update);
+        }
     }
 
     //--- 3. Validity checks ---
@@ -230,20 +228,20 @@ void Inicializer::readOptions() {
     rotmx = cos((rotmx)/180.0*PIH);
     chain_angle = chainrmx / 180.0 * PIH;
     chainrmx = cos((chainrmx)/180.0*PIH);
-    sim->edge.mx *= 2.0;   // The full range is -maxl to +maxl, i.e. spanning 2*maxl
+    sim->stat.edge.mx *= 2.0;   // The full range is -maxl to +maxl, i.e. spanning 2*maxl
     transmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
     chainmmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
     sim->coneAngle *= DEGTORAD; // Now transfer angle in degrees into radians
 
     for (int i=0;i<MAXT;i++) {
-        sim->trans[i].mx = transmx;
-        sim->rot[i].mx = rotmx;
-        sim->rot[i].angle = angle;
+        sim->stat.trans[i].mx = transmx;
+        sim->stat.rot[i].mx = rotmx;
+        sim->stat.rot[i].angle = angle;
     }
     for (int i=0;i<MAXMT;i++) {
-        sim->chainm[i].mx = chainmmx;
-        sim->chainr[i].mx = chainrmx;
-        sim->chainr[i].angle = chain_angle;
+        sim->stat.chainm[i].mx = chainmmx;
+        sim->stat.chainr[i].mx = chainrmx;
+        sim->stat.chainr[i].angle = chain_angle;
     }
 
     //parallel tempering
@@ -253,6 +251,9 @@ void Inicializer::readOptions() {
         exit(1);
     }
     sim->dtemp = (sim->paraltemper - sim->temper )/(sim->mpinprocs-1);
+    for(int i=0; i<sim->mpinprocs; i++) {
+        sim->pTemp.push_back(sim->temper + (sim->dtemp * i));
+    }
     sim->temper += sim->dtemp * sim->mpirank;
     if ( (sim->press != sim->paralpress) && (sim->mpinprocs <2) ) {
         printf("ERROR: Pressure replica exchange at single core does not work.\n\n");
@@ -261,8 +262,8 @@ void Inicializer::readOptions() {
     sim->dpress = (sim->paralpress - sim->press )/(sim->mpinprocs-1);
     sim->press += sim->dpress * sim->mpirank;
     seed += sim->mpirank;
-    sim->mpiexch.mx = sim->dtemp;
-    sim->mpiexch.angle = sim->dpress;
+    sim->stat.mpiexch.mx = sim->dtemp;
+    sim->stat.mpiexch.angle = sim->dpress;
 #endif
 
     ran2.setSeed(seed);
@@ -604,25 +605,20 @@ void Inicializer::initMPI(int argc, char** argv) {
         MPI_Init(&argc,&argv);
         MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
         MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
+        sim->pseudoRank = sim->mpirank;
 
         // MPI out files
-        sprintf(files->configurationoutfile, "%dconfig.last", sim->mpirank);
-        sprintf(files->moviefile, "%dmovie", sim->mpirank);
-        sprintf(files->wloutfile, "%dwl-new.dat", sim->mpirank);
-        sprintf(files->clusterfile, "%dcluster.dat", sim->mpirank);
-        sprintf(files->clusterstatfile, "%dcluster_stat.dat", sim->mpirank);
-        sprintf(files->energyfile, "%denergy.dat", sim->mpirank);
-        sprintf(files->statfile, "%dstat.dat", sim->mpirank);
+        files->initMPIRank(sim->mpirank);
 
         //test if there is a specific input configuration for mpi run
-        sprintf(files->configurationInFile, "%dconfig.init", sim->mpirank);
+
         infile = fopen(files->configurationInFile, "r");
         if (infile != NULL)
             fclose (infile);
         else  sprintf(files->configurationInFile, "config.init");
 
         //test if there is a specific input wang-landau for mpi run
-        sprintf(files->wlinfile, "%dwl.dat", sim->mpirank);
+
         infile = fopen(files->wlinfile, "r");
         if (infile != NULL)
             fclose (infile);
@@ -632,7 +628,8 @@ void Inicializer::initMPI(int argc, char** argv) {
 
 void Inicializer::initGroupLists() {
 
-    cout << "Generating GroupLists..." << endl;
+    if(SILENT == 1)
+        cout << "Generating GroupLists..." << endl;
 
     // setGroupList;
     int type=0;
@@ -745,8 +742,9 @@ void Inicializer::readTopoFile(bool exclusions[][MAXT]) {
         exit (1);
     }
 
-    cout << "Reading topology...\n"
-         << "Species:" << endl;
+    if(SILENT == 1)
+        cout << "Reading topology...\n"
+             << "Species:" << endl;
 
     molname[0] = ' ';
 

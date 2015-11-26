@@ -29,20 +29,10 @@ public:
     std::vector<double> deltaMu;
     int switchCount;        ///< \brief count of particles with defined switchtype
 
-    int delAcc;
-    int delRej;
-    int insAcc;
-    int insRej;
-
-    unsigned long long int muVtAverageParticles;
-    unsigned int muVtSteps;
-
 public:
     MoleculeParams() : name(NULL), bond1eq(-1.0), bond1c(-1.0), bond2eq(-1.0), bond2c(-1.0), /*bonddeq(-1),*/ bonddc(-1.0),
                        angle1eq(-1.0), angle1c(-1.0), angle2eq(-1.0), angle2c(-1.0),
-                       activity(-1.0), chemPot(-1.0),
-                       delAcc(0), delRej(0), insAcc(0), insRej(0),
-                       muVtAverageParticles(0), muVtSteps(0) {
+                       activity(-1.0), chemPot(-1.0) {
         particleTypes.reserve(MAXCHL);
     }
 

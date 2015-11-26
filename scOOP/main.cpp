@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_MPI
     cout << "MPI SIMULATION" << endl;
+
 #endif
 
     FILE *infile,*outfile,*mov;       // Handle for writing configuration
@@ -44,8 +45,11 @@ int main(int argc, char** argv) {
 
     sim.wl.setConf(&conf);
 
-    cout << "\nPatchy Spherocylinders version 3.6\n"
-         << "-------------------------------------" << endl;
+
+    if(SILENT == 1)
+        cout << "\nPatchy Spherocylinders version 3.6\n"
+             << "-------------------------------------" << endl;
+
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
     cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added, strenght: " << E_ISO << endl;
@@ -64,7 +68,8 @@ int main(int argc, char** argv) {
     init.initTop(); // here particleStore filled in setParticleParams
     init.testChains(); // if no chains -> move probability of chains 0
 
-    cout << "\nReading configuration...\n";
+    if(SILENT == 1)
+        cout << "\nReading configuration...\n";
     if(init.poolConfig) {
         infile = fopen(files.configurationPool, "r");
         if (infile == NULL) {
@@ -117,7 +122,7 @@ int main(int argc, char** argv) {
     //
     for(int i=0; i< MAXT; i++) {
         for(int j=0; j<MAXT; j++) {
-            sim.max_dist_squared[i][j] = AVER(sim.trans[i].mx, sim.trans[j].mx);
+            sim.max_dist_squared[i][j] = AVER(sim.stat.trans[i].mx, sim.stat.trans[j].mx);
             sim.max_dist_squared[i][j] *= (1 + sim.pairlist_update) * 2;
             sim.max_dist_squared[i][j] += topo.maxcut;
             sim.max_dist_squared[i][j] *= sim.max_dist_squared[i][j]; /* squared */
@@ -127,6 +132,10 @@ int main(int argc, char** argv) {
     }
 
     //cout << "CellList cell size: " << sqrt(sim.cell) << endl;
+
+    /*if(sim.pseudoRank != 0) {
+        sim.nsweeps = 2147483647; // max long integer (2^31 -1)
+    }*/
 
     updater = new Updater(&sim, &conf, &files);
 
@@ -236,7 +245,8 @@ int main(int argc, char** argv) {
     sim.all = clock() - sim.all;
 
 #ifdef ENABLE_MPI
-        printf ("   MPI replica changeT / changeP / acceptance ratio: \t %.6f   /   %.6f  /  %.6f\n\n", sim.mpiexch.mx,sim.mpiexch.angle,RATIO(sim.mpiexch));
+    cout << sim.pseudoRank << "p, MPI replica changeT / changeP / acceptance ratio: " << sim.stat.mpiexch.mx << ", " << sim.stat.mpiexch.angle << ", " << sim.stat.mpiexch.ratio() << endl;
+    //cout << sim.pseudoRank << "p, rej: " << sim.mpiexch.rej << ", acc: " << sim.mpiexch.acc << endl;
 #endif
 
     outfile = fopen(files.configurationoutfile, "w");

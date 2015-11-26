@@ -58,6 +58,7 @@ void Conf::removeMolecule(Molecule &target) {
     assert(pvec.molCountOfType(molType) == molTypeSize - 1);
     for(unsigned int i=0; i< pvec.size(); i++)
         assert(temp.pos != pvec[i].pos && "Wrong particle deleted");
+
 #endif
 }
 
