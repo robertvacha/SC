@@ -14,7 +14,7 @@
 //  for assert() -> if NDEBUG defined assert not compiled
 //  #ifndef NDEBUG someting() #endif -> if NDEBUG defined -> not compiled
 //
-//#define NDEBUG
+#define NDEBUG
 
 // DEFAULT CUBOID
 //#define WEDGE
