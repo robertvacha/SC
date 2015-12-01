@@ -1704,7 +1704,7 @@ double MoveCreator::clusterMoveGeom(long target) {
     double molecule_size;
     //topo.moleculeParam[conf->pvec[target].molType].particleTypes.size() == number of particles in chain ... special case is single particle of length 1
     molecule_size = topo.moleculeParam[conf->pvec[target].molType].particleTypes.size();
-    if(molecule_size == 1){
+    if ( molecule_size == 1 ){
         cluster[num_particles] = target;
         num_particles++;
     }else{
