@@ -416,13 +416,16 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     conf->geo = Cuboid(box);
 #endif
     if (conf->geo.box.x < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: x geo.box length is less than two spherocylinders long.\n\n");
+        printf ("WARNING: x (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.x, maxlength * 2.0 + 2.0);
+        exit(1);
     }
     if (conf->geo.box.y < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: y geo.box length is less than two spherocylinders long.\n\n");
+        printf ("WARNING: y (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.y, maxlength * 2.0 + 2.0);
+        exit(1);
     }
     if (conf->geo.box.z < maxlength * 2.0 + 2.0) {
-        printf ("WARNING: z geo.box length is less than two spherocylinders long.\n\n");
+        printf ("WARNING: z (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.z, maxlength * 2.0 + 2.0);
+        exit(1);
     }
 
     DEBUG_INIT("Position of the particle");
