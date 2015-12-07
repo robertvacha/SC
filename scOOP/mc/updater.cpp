@@ -736,7 +736,7 @@ int Updater::sortClusterList() {
         }
     }
     /* Set the statistics to zero */
-    //sim->clusterstat = (long int*) malloc(sizeof(long) * sim->max_clust); // OLD, MISTAKE? memmory dont have to be 0, no free
+    sim->clusterstat = (long int*) realloc( sim->clusterstat, sizeof(long) * sim->max_clust); // OLD, MISTAKE? memmory dont have to be 0, no free
     memset(sim->clusterstat, 0, sizeof(long) * sim->max_clust);
 
     if (!sim->clusterstat){
