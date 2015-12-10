@@ -450,7 +450,7 @@ double PairEnergyCalculator::ePscPsc() {
     return repenergy+atrenergy;
 }
 
-double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
+double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) { //patchnum1/2 define if partice 1/2 have two patches
     int i, intrs;
     double atrenergy, ndist;
     double v1, v2, f0, f1, f2, T1, T2, S1, S2, a, paral;
@@ -467,7 +467,14 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at.
       cut distance C*/
     //DEBUG_SIM("first intersection");
-    intrs = pscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
+    intrs = pscIntersect(   part1,
+                            part2,
+                            topo.ia_params[part1->type][part2->type].half_len[0],
+                            topo.ia_params[part1->type][part2->type].half_len[1],
+                            r_cm,
+                            intersections,
+                            0,
+                            patchnum1);
     if (intrs <2){
         //DEBUG_SIM("No intersection :(");
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
@@ -481,7 +488,14 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) {
     //DEBUG_SIM("get vector");
     vec1 = -1.0*r_cm;
     //DEBUG_SIM("second intersection");
-    intrs = pscIntersect(part2, part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0], vec1, intersections, 1, patchnum2);
+    intrs = pscIntersect(   part2,
+                            part1,
+                            topo.ia_params[part1->type][part2->type].half_len[1],
+                            topo.ia_params[part1->type][part2->type].half_len[0],
+                            vec1,
+                            intersections,
+                            0,
+                            patchnum2);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
 
@@ -640,7 +654,7 @@ double PairEnergyCalculator::eCpscCpsc() {
     return repenergy+atrenergy;
 }
 
-double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
+double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) { //patchnum1/2 define if partice 1/2 have two patches
     int i, intrs;
     double atrenergy, v1, v2, f0, f1, f2, T1, T2, S1, S2, a, paral, ndist;
     double intersections[5];
@@ -653,8 +667,14 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
         intersections[i]=0;
     /*1- do intersections of spherocylinder2 with patch of spherocylinder1 at.
       cut distance C*/
-    intrs = cpscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],
-            topo.ia_params[part1->type][part2->type].half_len[1], r_cm, intersections, 0, patchnum1);
+    intrs = cpscIntersect(  part1,
+                            part2,
+                            topo.ia_params[part1->type][part2->type].half_len[0],
+                            topo.ia_params[part1->type][part2->type].half_len[1],
+                            r_cm,
+                            intersections,
+                            0,
+                            patchnum1);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
     T1 = intersections[0]; /*points on sc2*/
@@ -663,8 +683,14 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     for(i=0;i<5;i++)
         intersections[i]=0;
     vec1 = -1.0 * r_cm;
-    intrs = cpscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],
-            topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+    intrs = cpscIntersect(  part2,
+                            part1,
+                            topo.ia_params[part1->type][part2->type].half_len[1],
+                            topo.ia_params[part1->type][part2->type].half_len[0],
+                            vec1,
+                            intersections,
+                            0,
+                            patchnum2);
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
     S1=intersections[0]; /*points on sc1*/
@@ -807,7 +833,7 @@ double PairEnergyCalculator::ePscCpsc() {
     return repenergy+atrenergy;
 }
 
-double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
+double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) { //patchnum1/2 define if partice 1/2 have two patches
     int i, intrs;
     double atrenergy, ndist;
     double v1, v2, f0, f1, f2, T1, T2, S1, S2, a;
@@ -832,9 +858,23 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
       cut distance C*/
     //DEBUG_SIM("first intersection");
     if (first) {
-        intrs = pscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
+        intrs = pscIntersect(   part1,
+                                part2,
+                                topo.ia_params[part1->type][part2->type].half_len[0],
+                                topo.ia_params[part1->type][part2->type].half_len[1],
+                                r_cm,
+                                intersections,
+                                0,
+                                patchnum1);
     } else {
-        intrs = cpscIntersect(part1,part2,topo.ia_params[part1->type][part2->type].half_len[0],topo.ia_params[part1->type][part2->type].half_len[1],r_cm, intersections, 0, patchnum1);
+        intrs = cpscIntersect(  part1,
+                                part2,
+                                topo.ia_params[part1->type][part2->type].half_len[0],
+                                topo.ia_params[part1->type][part2->type].half_len[1],
+                                r_cm,
+                                intersections,
+                                0,
+                                patchnum1);
     }
     //DEBUG_SIM("first intersection: done");
     if (intrs <2){
@@ -851,9 +891,23 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) {
     vec1 = -1.0 * r_cm;
     //DEBUG_SIM("second intersection");
     if (first) {
-        intrs = cpscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+        intrs = cpscIntersect(  part2,
+                                part1,
+                                topo.ia_params[part1->type][part2->type].half_len[1],
+                                topo.ia_params[part1->type][part2->type].half_len[0],
+                                vec1,
+                                intersections,
+                                0,
+                                patchnum2);
     } else {
-        intrs = pscIntersect(part2,part1,topo.ia_params[part1->type][part2->type].half_len[1],topo.ia_params[part1->type][part2->type].half_len[0],vec1, intersections, 1, patchnum2);
+        intrs = pscIntersect(   part2,
+                                part1,
+                                topo.ia_params[part1->type][part2->type].half_len[1],
+                                topo.ia_params[part1->type][part2->type].half_len[0],
+                                vec1,
+                                intersections,
+                                0,
+                                patchnum2);
     }
     if (intrs <2)
         return 0.0; /*sc is all outside patch, attractive energy is 0*/
