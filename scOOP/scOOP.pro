@@ -5,8 +5,8 @@ CONFIG -= qt
 
 QMAKE_CXXFLAGS += -O3 -msse2 -mfpmath=sse  #-g -fno-inline
 
-QMAKE_CXXFLAGS+= -fopenmp
-QMAKE_LFLAGS +=  -fopenmp
+#QMAKE_CXXFLAGS+= -fopenmp
+#QMAKE_LFLAGS +=  -fopenmp
 
 QMAKE_CXXFLAGS += -DENABLE_MPI
 
