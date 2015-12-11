@@ -39,6 +39,10 @@
 #endif
 
 
+// For debugging MPI, silent some prints, 0 silenced, 1 printed out
+#define SILENT 1
+
+
 
 #ifdef DEBUGGING_INIT
 #define DEBUG_INIT(...) fprintf(stderr, "DB in INIT: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr);
@@ -115,6 +119,7 @@
 
 /* Acceptance ratio */
 #define RATIO(a) ( ((a).acc+(a).rej) > 0 ? 1.0*(a).acc/((a).acc+(a).rej) : 0.0 )
+
 
 #define INBOX(a,b) ( a > 0 ? modf(a,&b) : modf(a,&b)+1 )
 

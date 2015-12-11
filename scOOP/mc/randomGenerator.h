@@ -5,6 +5,7 @@
 
 #include "dSFMT-src-2.2.3/dSFMT.h"
 #include <iostream>
+#include "../structures/macros.h"
 
 #ifdef C11
 #include <random>
@@ -49,7 +50,9 @@ class Dsfmt : public RandomBase
 {
 public:
     Dsfmt() {
+#ifndef SILENT
         cout << "Using double precision Mersenne twister" << endl;
+#endif
         setSeed(13);
     }
 

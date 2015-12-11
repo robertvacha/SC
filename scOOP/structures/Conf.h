@@ -132,6 +132,11 @@ public:
         return ret;
     }
 
+    /**
+     * @brief getMolOfPart - Get Molecule of Particle
+     * @param index
+     * @return Molecule
+     */
     Molecule getMolOfPart(int index) {
         int i=0;
         while(index >= first[i]) {

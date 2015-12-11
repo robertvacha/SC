@@ -115,9 +115,9 @@ double MoveCreator::partDisplace(long target) {
 
     dr.randomUnitSphere();
 
-    dr.x *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.x;
-    dr.y *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.y;
-    dr.z *= sim->trans[conf->pvec[target].type].mx/conf->geo.box.z;
+    dr.x *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.x;
+    dr.y *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.y;
+    dr.z *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.z;
     if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
         dr.z = 0;
         dr.y = 0;
@@ -188,7 +188,7 @@ double MoveCreator::partDisplace(long target) {
 #ifdef WEDGE
     if(conf->geo.boundaryOverlap(&conf->pvec[target].pos)) { // reject solid overlap, soft already handled by usePBC()
         conf->pvec[target].pos = orig;
-        sim->trans[conf->pvec[target].type].rej++;
+        sim->stat.trans[conf->pvec[target].type].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
@@ -204,12 +204,12 @@ double MoveCreator::partDisplace(long target) {
     }
     if ( reject || moveTry(energy, enermove, sim->temper) ) {  /* probability acceptance */
         conf->pvec[target].pos = orig;
-        sim->trans[conf->pvec[target].type].rej++;
+        sim->stat.trans[conf->pvec[target].type].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
     } else { /* move was accepted */
-        sim->trans[conf->pvec[target].type].acc++;
+        sim->stat.trans[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
 
         edriftchanges = enermove - energy + wlener;
@@ -234,8 +234,8 @@ double MoveCreator::partRotate(long target) {
     //sim->energyCalc += clock() - temp;
 
     origpart = conf->pvec[target];
-//    pscRotate(&conf->pvec[target], sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
-    conf->pvec[target].rotateRandom(sim->rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+//    pscRotate(&conf->pvec[target], sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+    conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     /*should be normalised and ortogonal but we do for safety*/
     conf->pvec[target].dir.normalise();
@@ -271,12 +271,12 @@ double MoveCreator::partRotate(long target) {
     }
     if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
         conf->pvec[target] = origpart;
-        sim->rot[conf->pvec[target].type].rej++;
+        sim->stat.rot[conf->pvec[target].type].rej++;
         sim->wl.reject(sim->wl.radiusholemax, sim->wl.wlm);
     } else { /* move was accepted */
         // DEBUG
         //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
-        sim->rot[conf->pvec[target].type].acc++;
+        sim->stat.rot[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
         //printf("%f\t%f\n", conf->pvec[0].patchdir[0].z, enermove);
@@ -305,7 +305,7 @@ double MoveCreator::partAxialRotate(long target){
     //              Rotate particle                //
     //=============================================//
     // Now rotate particle around rotaxis in specified cone around patch direction
-    conf->pvec[target].pscRotate(   sim->rot[conf->pvec[target].type].angle*ran2(),\
+    conf->pvec[target].pscRotate(   sim->stat.rot[conf->pvec[target].type].angle*ran2(),\
                                     topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0],\
                                     rotaxis);
 
@@ -465,9 +465,9 @@ double MoveCreator::chainDisplace(long target)
     energy += calcEnergy->mol2others(chain); // Inner energy indiferent to displacement of chain
 
     dr.randomUnitSphere();
-    dr.x *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
-    dr.y *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
-    dr.z *= sim->chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
+    dr.x *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
+    dr.y *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
+    dr.z *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
 
     double inter_energy=calcEnergy->chainInner(chain);
 
@@ -547,12 +547,12 @@ double MoveCreator::chainDisplace(long target)
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]].pos = chorig[j].pos;
 
-        sim->chainm[conf->pvec[chain[0]].molType].rej++;
+        sim->stat.chainm[conf->pvec[chain[0]].molType].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
     } else { /* move was accepted */
-        sim->chainm[conf->pvec[chain[0]].molType].acc++;
+        sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
     }
@@ -595,7 +595,7 @@ double MoveCreator::chainRotate(long target) {
     energy += calcEnergy->mol2others(chain);
 
     //do actual rotations around geometrical center
-    clusterRotate(chain, sim->chainr[conf->pvec[chain[0]].molType].angle);
+    clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
 
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
         for (int wli=0;wli<sim->wl.wlmdim;wli++) {
@@ -657,11 +657,11 @@ double MoveCreator::chainRotate(long target) {
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]] = chorig[j];
 
-        sim->chainr[conf->pvec[chain[0]].molType].rej++;
+        sim->stat.chainr[conf->pvec[chain[0]].molType].rej++;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
 //        cout<<"REJ-Drift Change: "<<edriftchanges<<endl;
     } else { // move was accepted
-        sim->chainr[conf->pvec[chain[0]].molType].acc++;
+        sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
 //        cout<<"ACC-Drift Change: "<<edriftchanges<<endl;
@@ -703,7 +703,7 @@ double MoveCreator::pressureMove() {
                 area = conf->geo.box.x * conf->geo.box.y;
             }
             old_side = *side;
-            *side += sim->edge.mx * (ran2() - 0.5);
+            *side += sim->stat.edge.mx * (ran2() - 0.5);
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -754,17 +754,17 @@ double MoveCreator::pressureMove() {
             }
             if ( reject || *side <= 0.0 || ( moveTry(energy,enermove,sim->temper) ) ) { /* probability acceptance */
                 *side = old_side;
-                sim->edge.rej++;
+                sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else {  /* move was accepted */
-                sim->edge.acc++;
+                sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 edriftchanges = enermove - energy + wlener;
             }
             break;
         case 1:
             /* Isotropic pressure coupling */
-            psch = sim->edge.mx * (ran2() - 0.5);
+            psch = sim->stat.edge.mx * (ran2() - 0.5);
             pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
             conf->geo.box.x += psch;
             conf->geo.box.y += psch;
@@ -820,17 +820,17 @@ double MoveCreator::pressureMove() {
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 conf->geo.box.z -= psch;
-                sim->edge.rej++;
+                sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
-                sim->edge.acc++;
+                sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 edriftchanges = enermove - energy + wlener;
             }
             break;
         case 2:
             /* Isotropic pressure coupling in xy, z constant */
-            psch = sim->edge.mx * (ran2() - 0.5);
+            psch = sim->stat.edge.mx * (ran2() - 0.5);
             pvol = conf->geo.box.x * conf->geo.box.y;
             conf->geo.box.x += psch;
             conf->geo.box.y += psch;
@@ -883,17 +883,17 @@ double MoveCreator::pressureMove() {
             if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
-                sim->edge.rej++;
+                sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
-                sim->edge.acc++;
+                sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 edriftchanges = enermove - energy + wlener;
             }
             break;
         case 3:
             /* Isotropic pressure coupling in xy, z coupled to have fixed volume */
-            psch = sim->edge.mx * (ran2() - 0.5);
+            psch = sim->stat.edge.mx * (ran2() - 0.5);
             pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
             conf->geo.box.x += psch;
             conf->geo.box.y += psch;
@@ -947,10 +947,10 @@ double MoveCreator::pressureMove() {
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
-                sim->edge.rej++;
+                sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
             } else { /* move was accepted */
-                sim->edge.acc++;
+                sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 edriftchanges = enermove - energy + wlener;
             }
@@ -1072,311 +1072,277 @@ void MoveCreator::clusterRotate(vector<Particle> &cluster, double max_angle) {
 double MoveCreator::replicaExchangeMove(long sweep) {
     double edriftchanges=0.0;
 #ifdef ENABLE_MPI
-        double change, *recwlweights;
-        MPI_Status status;
-        int oddoreven,count,wli,sizewl = 0;
-        MpiExchangeData localmpi,receivedmpi;
-        bool reject;
-        long localwl,receivedwl;
+    double change; // energy
+    double *recwlweights;
+    double volume = conf->geo.volume();
+    double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
 
-        //int mpi_newdatatypes();
+    int corr=0;  // correction for sended and receiving processes when clearing all messages
+    int sizewl = 0, receiverRank = -1, receivedRank = -1;
 
-        //mpi_newdatatypes();
-        int i;
-        Vector vec;
-        Particle part;
-        MpiExchangeData exch;
-        MPI_Aint     dispstart;
+    //
+    // TAGS for mpi communications
+    //
+    int tagExchangeMPI = 1001, tagDouble = 2022, tagInt = 3333, tagStat = 654654;
 
-        MPI_Datatype MPI_vector2;
-        MPI_Datatype type[3] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
-        int          blocklen[3] = {1, 1, 1};
-        MPI_Aint     disp[3];
-        MPI_Address( &vec, &dispstart);
-        MPI_Address( &(vec.x), &disp[0]);
-        MPI_Address( &(vec.y), &disp[1]);
-        MPI_Address( &(vec.z), &disp[2]);
-        for (i=0; i <3; i++) disp[i] -= dispstart;
-        MPI_Type_struct( 3, blocklen, disp, type, &MPI_vector2);
-        MPI_Type_commit( &MPI_vector2);
+    long localwl,receivedwl;
+    bool reject=true;
 
-        MPI_Datatype MPI_Particle;
+    MpiExchangeData localmpi, receivedmpi, exch;
 
-        //MPI_Datatype type2[11] = {MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,
-        //MPI_LONG, MPI_LONG, MPI_INT,MPI_INT,MPI_DOUBLE, MPI_INT};
+    Statistics localStat, recStat;
+    localStat = sim->stat;
 
-        MPI_Datatype type2[10] = {MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,MPI_vector2,
-                                  MPI_LONG, MPI_INT,MPI_INT,MPI_DOUBLE, MPI_INT};
+    if (sim->wl.length[1] > 0) {
+        sizewl = sim->wl.length[1] * sim->wl.length[0];
+    } else {
+        sizewl = sim->wl.length[0];
+    }
 
-        //int          blocklen2[11] = {1, 1, 2,4,2,1,1,1,1,1,1,};
-        int          blocklen2[10] = {1,1,2,4,2,  1,1,1,1,1,};
+    recwlweights = (double*) malloc( sizeof(double) * sizewl  );
 
-        //MPI_Aint     disp2[11];
-        MPI_Aint     disp2[10];
+    MPI_Status status; // int count, int cancelled, int MPI_SOURCE, int MPI_TAG, int MPI_ERROR
+    MPI_Request myRequest[sim->mpinprocs];
+    MPI_Datatype MPI_exchange;
+    MPI_Datatype MPI_vector2;
+    MPI_Datatype MPI_stat;
 
-        MPI_Address( &part, &dispstart);
-        MPI_Address( &(part.pos), &disp2[0]);
-        MPI_Address( &(part.dir), &disp2[1]);
-        MPI_Address( &(part.patchdir), &disp2[2]);
-        MPI_Address( &(part.patchsides), &disp2[3]);
-        MPI_Address( &(part.chdir), &disp2[4]);
-        MPI_Address( &(part.molType), &disp2[5]);
-        //MPI_Address( &(part.chainIndex), &disp2[6]);
-        MPI_Address( &(part.type), &disp2[6]);
-        MPI_Address( &(part.switchtype), &disp2[7]);
-        MPI_Address( &(part.delta_mu), &disp2[8]);
-        MPI_Address( &(part.switched), &disp2[9]);
+    exch.defDataType(&MPI_exchange, &MPI_vector2);
+    localStat.defDataType(&MPI_stat);
 
-        //for (i=0; i <11; i++) disp2[i] -= dispstart;
-        for (i=0; i <10; i++) disp2[i] -= dispstart;
+    //
+    // Init local mpi data
+    //
+    localmpi.box = conf->geo.box;
+    localmpi.energy = calcEnergy->allToAll();
+    localmpi.volume = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+    localmpi.accepted = 0;
+    localmpi.syscm = conf->syscm;
+    localmpi.radiusholemax = sim->wl.radiusholemax;
+    localmpi.mpiRank = sim->mpirank;
+    for(int i=0; i<conf->pvec.molTypeCount; i++) {
+        localmpi.partNum[i] = conf->pvec.molCountOfType(i);
+    }
+    localmpi.pseudoMpiRank = sim->pseudoRank;
+    localmpi.temperature = sim->temper;
 
-        //MPI_Type_struct( 11, blocklen2, disp2, type2, &MPI_Particle);
-        MPI_Type_struct( 10, blocklen2, disp2, type2, &MPI_Particle);
+    for (int wli=0;wli<sim->wl.wlmdim;wli++) {
+        localmpi.wl_order[wli] = sim->wl.currorder[wli];
+        //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], sim->wl.currorder[wli] );
+    }
 
-        MPI_Type_commit( &MPI_Particle);
+    //
+    //=== This is an attempt to switch replicas ===
+    //
 
-        if (sim->wl.length[1] > 0) {
-            sizewl = sim->wl.length[1] * sim->wl.length[0];
-        } else {
-            sizewl = sim->wl.length[0];
-        }
-        MPI_Datatype MPI_exchange;
-        MPI_Datatype type3[7] = {MPI_vector2, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_vector2, MPI_LONG, MPI_LONG};
-        int          blocklen3[7] = {1, 1, 1, 1, 1, 1, 2};
-        MPI_Aint     disp3[7];
-        MPI_Address( &exch, &dispstart);
-        MPI_Address( &(exch.box), &disp3[0]);
-        MPI_Address( &(exch.energy), &disp3[1]);
-        MPI_Address( &(exch.volume), &disp3[2]);
-        MPI_Address( &(exch.accepted), &disp3[3]);
-        MPI_Address( &(exch.syscm), &disp3[4]);
-        MPI_Address( &(exch.radiusholemax), &disp3[5]);
-        MPI_Address( &(exch.wl_order), &disp3[6]);
-        for (i=0; i <7; i++) disp3[i] -= dispstart;
-        MPI_Type_struct(7, blocklen3, disp3, type3, &MPI_exchange);
-        MPI_Type_commit( &MPI_exchange);
-        //=== This is an attempt to switch replicas ===
+    int oddoreven;
 
-        localmpi.box = conf->geo.box;
-        localmpi.energy = (*calcEnergy)(0, 0, 0);
-        localmpi.volume = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
-        localmpi.accepted = 0;
-        localmpi.syscm = conf->syscm;
-        localmpi.radiusholemax = sim->wl.radiusholemax;
-        recwlweights = (double*) malloc( sizeof(double) * sizewl  );
-        for (wli=0;wli<2;wli++) {
-            localmpi.wl_order[wli] = 0;
-            receivedmpi.wl_order[wli] = 0;
-        }
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-            localmpi.wl_order[wli] = sim->wl.currorder[wli];
-            //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], sim->wl.currorder[wli] );
-        }
+    if ( (sweep % (2*sim->nrepchange)) == 0)
+        // exchange odd ones with even ones
+        oddoreven=1;
+    else
+        // exchange even ones with odd ones
+        oddoreven=0;
+    if (sim->mpinprocs == 2)
+        oddoreven=1;
 
-        if ( (sweep % (2*sim->nrepchange)) == 0)
-            // exchange odd ones with even ones
-            oddoreven=1;
-        else
-            // exchange even ones with odd ones
-            oddoreven=0;
-        if (sim->mpinprocs == 2)
-            oddoreven=1;
-        count = 1;
 
-        if (sim->mpirank % 2 == oddoreven) {
-            if (sim->mpirank > 0) {
-                MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank-1, count, MPI_COMM_WORLD);
-                MPI_Send(sim->wl.weights, sizewl, MPI_DOUBLE, sim->mpirank-1, count, MPI_COMM_WORLD);
-                //printf("send data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,localmpi.energy,localmpi.volume,localmpi.pressure);
+    MPI_Barrier(MPI_COMM_WORLD);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &(rank) );
+    if(rank != sim->mpirank) {
+        cout << "THIS CAN NEVER HAPPEN!!!" << endl;
+        exit(0);
+    }
 
-                MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                //decision of accepting or rejecting the exchange was done on other process
-                //here we took received configuration (if move was accepted))
-                //printf("received data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume,receivedmpi.pressure);
+    //
+    // SEND, OTHER_PROCESS_EVALUATES, WAIT, RECEIVE, END
+    //
+    // Processes are sending on rank mod 2 == 0 or mod 2 == 1, which is periodically switched based on sweep value, sending to higher temp
+    //
+    if (sim->pseudoRank % 2 == oddoreven) {
+        if(sim->pseudoRank > 0 )  { // all except for 0
 
-                if (receivedmpi.accepted == 1) {
-                    sim->mpiexch.acc++;
-                    Particle *temppart;
-                    temppart = (Particle*) malloc(conf->pvec.size()*sizeof(Particle));
-                    MPI_Recv(temppart, conf->pvec.size(), MPI_Particle, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
-                    //printf("received data: rank: %d\n", sim->mpirank);
-                    //printf("part0  x %f y %f z %f\n",temppart[0].pos.x, temppart[0].pos.y, temppart[0].pos.z);
-                    //printf("part1  x %f y %f z %f\n",temppart[1].pos.x, temppart[1].pos.y, temppart[1].pos.z);
-                    //printf("part0  molType %ld chainn %ld type %d\n",temppart[0].molType,temppart[0].chainn,temppart[0].type);
+            localmpi.wantedTemp = sim->pTemp[sim->pseudoRank-1];
 
-                    MPI_Send(&conf->pvec[0], conf->pvec.size(), MPI_Particle, sim->mpirank-1, count, MPI_COMM_WORLD);
-                    //printf("send data: rank: %d\n",sim->mpirank);
-                    //printf("part0  x %f y %f z %f\n",conf->pvec[0].pos.x,conf->pvec[0].pos.y,conf->pvec[0].pos.z);
-                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                    //printf("part0  molType %ld chainn %ld type %d\n",conf->pvec[0].molType,conf->pvec[0].chainn,conf->pvec[0].type);
-
-                    localmpi.accepted = receivedmpi.accepted;
-                    conf->geo.box = receivedmpi.box;
-                    conf->syscm = receivedmpi.syscm;
-                    memcpy(&conf->pvec[0],temppart,conf->pvec.size()*sizeof(Particle));
-                    edriftchanges = receivedmpi.energy - localmpi.energy;
-                    edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
-                    if ( sim->wl.wlm[0] >0 ) {
-                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                            sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
-                        }
-                        sim->wl.accept(sim->wl.wlm[0]);
-                        //exchange wl data mesh size and radius hole s
-                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                            switch (sim->wl.wlm[wli]) {
-                                case 2:
-                                    //it is complicated to send because of different sizes
-                                     //we would have to send sizes first and realocate corrrect mesh size and then send data
-                                    // it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize,conf->pvec.size(),sim->wl.wlmtype,
-                                                          conf->geo.box, &conf->pvec);
-                                    break;
-                                case 5:
-                                    //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
-                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                    break;
-                                case 6:
-                                    //radiushole_all(topo,conf,sim,wli,&(conf->pvec[0].pos));
-                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                    break;
-                                case 7:
-                                    //contparticles_all(topo,conf,sim,wli);
-                                    MPI_Recv(&(sim->wl.partincontactold),1, MPI_LONG, sim->mpirank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank-1, count, MPI_COMM_WORLD);
-                                    sim->wl.partincontact=sim->wl.partincontactold;
-                                    break;
-                            }
-                        }
-                    }
-
-                    free(temppart);
-                } else {
-                    sim->mpiexch.rej++;
-                    if ( sim->wl.wlm[0] > 0 ) {
-                        sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
-                        sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
-                    }
+            // sending NON-blocking, to all processes, only target process will respond based on tag, others just receive but do nothing
+            for(int j=0; j<sim->mpinprocs; j++) {
+                if(j != sim->mpirank) {
+                    MPI_Isend(&localmpi, 1, MPI_exchange, j, sim->pseudoRank-1, MPI_COMM_WORLD, &myRequest[j]);
                 }
-
             }
-        } else {
-            if (sim->mpirank+1 < sim->mpinprocs) {
-                //there is above process
-                MPI_Recv(&receivedmpi, 1, MPI_exchange, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                MPI_Recv(recwlweights, sizewl, MPI_DOUBLE, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                //we got new configuration
-                //printf("received data: rank: %d energy: %f volume: %f \n",sim->mpirank,receivedmpi.energy,receivedmpi.volume);
+            corr=1;
 
-                //valuate if accepte or reject the configuration
-                //acc = exp( (1/sim->temper - 1/(sim->temper + sim.dtemp)) * (E_here - E_received) +
-                //(sim->press /sim->temper - pressure_received /(sim.temper + sim->dtemp)) * (V_here - V_received)
-                //if pressure the same it it simplier
-                reject = false;
-                change = (1/sim->temper - 1/(sim->temper + sim->dtemp)) * (localmpi.energy - receivedmpi.energy);
-                //printf("acceptance decision: change: %f localE: %f receivedE: %f tempf: %f \n",change,localmpi.energy,receivedmpi.energy,(1/sim->temper - 1/(sim->temper + sim->dtemp)));
-                change += (sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)) * (localmpi.volume - receivedmpi.volume);
-                //printf("pressf: %f  \n",(sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)));
-                if (sim->wl.wlm[0] > 0) {
-                    localwl = sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0];
-                    receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*sim->wl.length[0];
-                    //fprintf(stdout,"decide wl   %ld %ld %ld energychange: %f \n", receivedmpi.wl_order[0],  receivedmpi.wl_order[1], receivedwl, change );
-                    //fprintf(stdout,"local weights %ld %f %ld %f \n",localwl,sim->wl.weights[localwl],receivedwl,sim->wl.weights[receivedwl]);
-                    change += (-sim->wl.weights[localwl] + sim->wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
-                    //fprintf(stdout,"wlchange %f \n\n",change);
-                }
-                if (  (!(reject)) && ( (change > 0) || (ran2() < exp(change))  )  ) {
-                    // Exchange ACCEPTED send local stuff
-                    //printf("exchange accepted \n");
-                    sim->mpiexch.acc++;
-                    localmpi.accepted = 1;
-                    conf->geo.box = receivedmpi.box;
-                    conf->syscm = receivedmpi.syscm;
-                    edriftchanges = receivedmpi.energy - localmpi.energy;
-                    edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
-                    //printf("edrift %f\n",edriftchanges);
-                    if ( sim->wl.wlm[0] > 0 ) {
-                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                            sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
-                        }
-                        sim->wl.accept(sim->wl.wlm[0]);
-                    }
-                    MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
-                    //printf("send data: rank: %d energy: %f volume: %f pressure: %f \n",sim->mpirank,localmpi.energy,localmpi.volume,localmpi.pressure);
-                    //send and receive configuration
-                    MPI_Send(&conf->pvec[0], conf->pvec.size(), MPI_Particle, sim->mpirank+1, count, MPI_COMM_WORLD);
-                    //printf("send data: rank: %d\n",sim->mpirank);
-                    //printf("part0  x %f y %f z %f\n",conf->pvec[0].pos.x,conf->pvec[0].pos.y,conf->pvec[0].pos.z);
-                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                    //printf("part0  molType %ld chainn %ld type %d\n",conf->pvec[0].molType,conf->pvec[0].chainn,conf->pvec[0].type);
+            // WAITING for response
+            MPI_Recv(&receiverRank, 1, MPI_INT, MPI_ANY_SOURCE, sim->pseudoRank-1+tagInt, MPI_COMM_WORLD, &status); // receive from all processes, ONLY ONE RESPONDS
+            MPI_Send(sim->wl.weights, sizewl, MPI_DOUBLE, receiverRank, tagDouble, MPI_COMM_WORLD);
+            MPI_Recv(&receivedmpi, 1, MPI_exchange, receiverRank, tagExchangeMPI, MPI_COMM_WORLD, &status);
 
-                    MPI_Recv(&conf->pvec[0], conf->pvec.size(), MPI_Particle, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD,&status);
-                    //printf("recieved data: rank: %d\n",sim->mpirank);
-                    //printf("part0  x %f y %f z %f\n",conf->pvec[0].pos.x,conf->pvec[0].pos.y,conf->pvec[0].pos.z);
-                    //printf("part1  x %f y %f z %f\n",conf->particle[1].pos.x,conf->particle[1].pos.y,conf->particle[1].pos.z);
-                    //printf("part0  molType %ld chainn %ld type %d\n",conf->pvec[0].molType,conf->pvec[0].chainn,conf->pvec[0].type);
+            if (receivedmpi.accepted == 1) { //decision of accepting or rejecting the exchange was done on other process
+                //
+                // exchange statistics
+                //
+                MPI_Recv(&recStat, 1, MPI_stat, receiverRank, tagStat, MPI_COMM_WORLD, &status);
+                MPI_Send(&localStat, 1, MPI_stat, receiverRank, tagStat, MPI_COMM_WORLD);
 
-                    if ( sim->wl.wlm[0] > 0 ) {
-                        //exchange wl data mesh size and radius hole s
-                        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                            switch (sim->wl.wlm[wli]) {
-                                case 2:
-                                    //it is complicated to send because of different sizes
-                                    //  we would have to send sizes first and realocate corrrect mesh size and then send data
-                                    //  it is better to recalculate (a bit slower though)
-                                    sim->wl.mesh.meshInit(sim->wl.wl_meshsize, conf->pvec.size(), sim->wl.wlmtype,
-                                                          conf->geo.box, &conf->pvec);
-                                    break;
-                                case 5:
-                                    //radiushole_all(topo,conf,sim,wli,&(conf->syscm));
-                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                    break;
-                                case 6:
-                                    //radiushole_all(topo,conf,sim,wli,&(conf->pvec[0].pos));
-                                    sim->wl.radiusholeold = (long*) realloc(sim->wl.radiusholeold,sizeof(long)*receivedmpi.radiusholemax);
-                                    MPI_Send(sim->wl.radiushole,sim->wl.radiusholemax, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                    MPI_Recv(sim->wl.radiusholeold,receivedmpi.radiusholemax, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    longarrayCpy(&sim->wl.radiushole,&sim->wl.radiusholeold,sim->wl.radiusholemax,receivedmpi.radiusholemax);
-                                    sim->wl.radiusholemax=receivedmpi.radiusholemax;
-                                    break;
-                                case 7:
-                                    //contparticles_all(topo,conf,sim,wli);
-                                    MPI_Send(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, count, MPI_COMM_WORLD);
-                                    MPI_Recv(&(sim->wl.partincontact),1, MPI_LONG, sim->mpirank+1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    break;
-                            }
-                        }
-                    }
-                } else {
-                    //if exchange rejected send back info
-                    //printf("exchange rejected\n");
-                    sim->mpiexch.rej++;
-                    MPI_Send(&localmpi, 1, MPI_exchange, sim->mpirank+1, count, MPI_COMM_WORLD);
-                    if ( sim->wl.wlm[0] > 0 ) {
-                        sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
-                        sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
-                    }
+                sim->stat = recStat;
+
+                sim->stat.mpiexch.acc++;
+
+                localmpi.accepted = receivedmpi.accepted;
+                conf->geo.box = receivedmpi.box;
+                conf->syscm = receivedmpi.syscm;
+
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+
+                sim->temper = receivedmpi.temperature;
+                sim->pseudoRank = receivedmpi.pseudoMpiRank;
+
+                volume = conf->geo.volume();
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+
+            } else {
+                sim->stat.mpiexch.rej++;
+                if ( sim->wl.wlm[0] > 0 ) {
+                    sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
+                    sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
                 }
             }
         }
-        //if ( (localmpi.accepted) && (sim->pairlist_update) ) gen pair list
+    } else {
 
-        MPI_Type_free(&MPI_exchange);
-        MPI_Type_free(&MPI_Particle);
-        MPI_Type_free(&MPI_vector2);
-        free(recwlweights);
+        //
+        // WAIT, RECEIVE, EVALUATE, SEND_BACK, END
+        //
+        if (sim->pseudoRank+1 < sim->mpinprocs ) { // all except MAX
+            //there is above process
+
+            MPI_Recv(&receivedmpi, 1, MPI_exchange, MPI_ANY_SOURCE, sim->pseudoRank, MPI_COMM_WORLD, &status);
+            corr = 1;
+
+            assert(sim->temper == receivedmpi.wantedTemp && "Wrong message received in MPI");
+
+            receivedRank = receivedmpi.mpiRank;
+
+            MPI_Send(&sim->mpirank, 1, MPI_INT, receivedRank, sim->pseudoRank+tagInt, MPI_COMM_WORLD); // respond to correct process so that it knows who is the correct receiver
+            MPI_Recv(recwlweights, sizewl, MPI_DOUBLE, receivedRank, tagDouble, MPI_COMM_WORLD, &status);
+
+            //valuate if accepte or reject the configuration
+            //
+            // i = here, j = received
+            //
+            // Canonical: P(1, exp( (E_i - E_j) * (1/kT_i - 1/kT_j) ))
+            //
+            // Isobaric-Isotermal:
+            // acc = exp( (1/T_here - 1/T_received) * (E_here - E_received) + (press /T_here - press_received /(T_received)) * (V_here - V_received) )
+            //
+            // GrandCanonical
+            // P(1, exp( (1/T_here - 1/T_received) * (mu * (N_here - N_received) + (E_here - E_received)) )
+            //
+            reject = false;
+            double temp = (1/sim->temper - 1/(sim->temper + sim->dtemp));
+
+            // Canonical
+            change = temp * ( (localmpi.energy - receivedmpi.energy) );
+            //printf("acceptance decision: change: %f localE: %f receivedE: %f tempf: %f \n",change,localmpi.energy,receivedmpi.energy,(1/sim->temper - 1/(sim->temper + sim->dtemp)));
+
+            // ISOBARIC-ISOTERMAL
+            change += (sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)) * (localmpi.volume - receivedmpi.volume);
+
+            // GrandCanonical, chempot stored as mu/kT
+            for(int i=0; i< conf->pvec.molTypeCount; i++) {
+                if(topo.moleculeParam[i].activity != -1)
+                    change += temp * topo.moleculeParam[i].chemPot * sim->temper * (localmpi.partNum[i] - receivedmpi.partNum[i]);
+            }
+
+            if (sim->wl.wlm[0] > 0) {
+                localwl = sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0];
+                receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*sim->wl.length[0];
+                //fprintf(stdout,"decide wl   %ld %ld %ld energychange: %f \n", receivedmpi.wl_order[0],  receivedmpi.wl_order[1], receivedwl, change );
+                //fprintf(stdout,"local weights %ld %f %ld %f \n",localwl,sim->wl.weights[localwl],receivedwl,sim->wl.weights[receivedwl]);
+                change += (-sim->wl.weights[localwl] + sim->wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
+                //fprintf(stdout,"wlchange %f \n\n",change);
+            }
+
+            //
+            // CRITERION FOR REPLICA EXCHANGE
+            //
+            if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  ) ) {
+                // Exchange ACCEPTED send local stuff
+                //printf("exchange accepted \n");
+
+                localmpi.accepted = 1;
+                conf->geo.box = receivedmpi.box;
+                conf->syscm = receivedmpi.syscm;
+
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+
+                // change temperature and pseudorank
+                sim->temper = receivedmpi.temperature;
+                sim->pseudoRank = receivedmpi.pseudoMpiRank;
+
+                volume = conf->geo.volume();
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+
+                if ( sim->wl.wlm[0] > 0 ) {
+                    for (int wli=0;wli<sim->wl.wlmdim;wli++) {
+                        sim->wl.neworder[wli] = receivedmpi.wl_order[wli];
+                    }
+                    sim->wl.accept(sim->wl.wlm[0]);
+                }
+                MPI_Send(&localmpi, 1, MPI_exchange, receivedRank, tagExchangeMPI, MPI_COMM_WORLD);
+
+                // exchange statistics
+                MPI_Send(&localStat, 1, MPI_stat, receivedRank, tagStat, MPI_COMM_WORLD);
+                MPI_Recv(&recStat, 1, MPI_stat, receivedRank, tagStat, MPI_COMM_WORLD, &status);
+
+                sim->stat = recStat;
+
+                sim->stat.mpiexch.acc++;
+
+            } else {
+                //if exchange rejected send back info
+                //printf("exchange rejected\n");
+                sim->stat.mpiexch.rej++;
+                MPI_Send(&localmpi, 1, MPI_exchange, receivedRank, tagExchangeMPI, MPI_COMM_WORLD);
+                if ( sim->wl.wlm[0] > 0 ) {
+                    sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]] -= sim->wl.alpha;
+                    sim->wl.hist[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]]++;
+                }
+            }
+        }
+    }
+
+    //
+    // CLEAN MESSAGES SENDED NON-BLOCKING WAY
+    //
+
+    // Receive all generated messages, MPI_cancel doesnt guarantee succesful cancel... (even with MPI_WAIT, MPI_request_free)
+    MPI_Barrier(MPI_COMM_WORLD); // to ensure we dont read a message that was neccesary for replica exchange
+
+    int size = 0;
+    for(int i=0; i<sim->mpinprocs; i++) {
+        if (i % 2 == oddoreven) {
+            if( i > 0)  { // all except for MAX
+                size++;
+            }
+        }
+    }  // size is now how many processors sended messages
+
+    // determine if this process sended messages or received them;
+    if(size > 0)
+        size = size - corr; // we already received 1 message for odd/even processes and even/odd processes send 1 message
+    for(int i=0; i<size; i++) {
+        MPI_Recv(&receivedmpi, 1, MPI_exchange, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // i for tag, message from
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    MPI_Type_free(&MPI_exchange);
+    MPI_Type_free(&MPI_vector2);
+
+    free(recwlweights);
 #endif
+
     return edriftchanges;
 }
 
@@ -1403,7 +1369,7 @@ double MoveCreator::muVTMove() {
     assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");
     assert(insert.empty() && "Insert vector must be empty at the begining of grand canonical move");
 
-    topo.moleculeParam[molType].muVtSteps++;
+    sim->stat.grand[molType].muVtSteps++;
 
     //////////////////////////////////////////////////////////////
     //                      INSERT MOVE                         //
@@ -1415,7 +1381,7 @@ double MoveCreator::muVTMove() {
                                       , molType, topo.moleculeParam[molType].particleTypes[0]));
             insert[0].init(&(topo.ia_params[insert[0].type][insert[0].type]));
 
-            assert(insert[0].testInit() && "GrandCanonical, insertion, Particle initialized incorectly");
+            assert(insert[0].testInit( topo.ia_params[insert[0].type][insert[0].type].geotype[0] ) && "GrandCanonical, insertion, Particle initialized incorectly");
             assert(insert.size() == 1);
         } else { // RANDOM CHAIN FROM POOL + RANDOMIZE POSITION AND ROTATION
             displace.randomUnitCube();
@@ -1453,16 +1419,16 @@ double MoveCreator::muVTMove() {
 
             insert.clear();
 
-            topo.moleculeParam[molType].insAcc++;
-            topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            sim->stat.grand[molType].insAcc++;
+            sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
             assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
 
             return energy - molSize*entrophy;
         } else { // rejected
             insert.clear();
-            topo.moleculeParam[molType].insRej++;
-            topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            sim->stat.grand[molType].insRej++;
+            sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
             assert(e == calcEnergy->allToAll() && "GrandCanonical, insertion rejected but energy of system changed");
 
@@ -1473,8 +1439,8 @@ double MoveCreator::muVTMove() {
         //////////////////////////////////////////////////////////////
     } else {
         if(conf->pvec.molCountOfType(molType) == 0) { // check if there are molecules of certain type
-            topo.moleculeParam[molType].delRej++;
-            topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            sim->stat.grand[molType].delRej++;
+            sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
             return 0;
         }
 
@@ -1484,7 +1450,7 @@ double MoveCreator::muVTMove() {
 
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
 
-        if( ( ((double)conf->pvec.molCountOfType(molType)/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot)) > ran2()) {
+        if( ( ((double)conf->pvec.molCountOfType(molType)/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot) ) > ran2()) {
             for(unsigned int i=0; i<molSize; i++)
                 conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
 
@@ -1493,15 +1459,15 @@ double MoveCreator::muVTMove() {
 
             conf->removeMolecule(target);
 
-            topo.moleculeParam[molType].delAcc++;
-            topo.moleculeParam[molType].muVtAverageParticles += conf->pvec.molCountOfType(molType);
+            sim->stat.grand[molType].delAcc++;
+            sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
             assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
 
             return -energy + molSize*entrophy;
         } else {
-            topo.moleculeParam[molType].delRej++;
-            topo.moleculeParam[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            sim->stat.grand[molType].delRej++;
+            sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
             assert(e == calcEnergy->allToAll() && "GrandCanonical, deletion rejected but energy of system changed");
 
@@ -1674,9 +1640,7 @@ double MoveCreator::clusterMoveGeom(long target) {
     */
 
     /*____________Global____________*/
-    r_center.x=ran2()*conf->geo.box.x;
-    r_center.y=ran2()*conf->geo.box.y;
-    r_center.z=ran2()*conf->geo.box.z;
+    r_center = conf->geo.randomPos();
 
     /*____________Local (displacement like)____________*/
 //    double max_displacement= 1.5;

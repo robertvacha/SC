@@ -1230,7 +1230,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     change += (-sim->wl.weights[localwl] + sim->wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
                     //fprintf(stdout,"wlchange %f \n\n",change);
                 }
-                if (  (!(reject)) && ( (change > 0) || (ran2() < exp(change))  )  ) {
+                if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  )  ) {
                     // Exchange ACCEPTED send local stuff
                     //printf("exchange accepted \n");
                     sim->mpiexch.acc++;
