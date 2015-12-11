@@ -431,6 +431,9 @@ double MoveCreator::chainMove() {
     double edriftchanges =0.0;
     long target;
 
+    volatile double energyPred, energyPo;
+
+    energyPred = calcEnergy->allToAll();
     if(conf->pvec.getChainCount() == 0) // no chains to displace - muVTmove deleted all
         return 0.0;
 
@@ -444,6 +447,8 @@ double MoveCreator::chainMove() {
         /*=== Rotation step of cluster/chain ===*/
         edriftchanges = chainRotate(target);
     } /* ==== END OF CHAIN MOVES ===== */
+    energyPo = calcEnergy->allToAll();
+    cout << "WTF e pred: " << energyPred << " WTF e po: " << energyPo  << " Edif: " << edriftchanges << endl;
     return edriftchanges;
 }
 
@@ -567,10 +572,12 @@ double MoveCreator::chainRotate(long target) {
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0;
 
+
     /*=== Rotation step of cluster/chain ===*/
     //printf ("rotation of chain\n\n");
     for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
         chorig[j] = conf->pvec[chain[j]];
+//        cout << chain[j] << endl;
         /*We have chains whole! don't have to do PBC*/
         /*r_cm.x = conf->pvec[current].pos.x - conf->particle[first].pos.x;
          r_cm.y = conf->pvec[current].pos.y - conf->particle[first].pos.y;
@@ -591,11 +598,18 @@ double MoveCreator::chainRotate(long target) {
     }
 
 
-
     energy += calcEnergy->mol2others(chain);
 
+
+    volatile double energyPred, energyPo;
+    energyPred = calcEnergy->allToAll();
+    cout << "Inter Energy before: " << calcEnergy->chainInner(chain) << endl;
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
+    cout << "Inter Energy after: " << calcEnergy->chainInner(chain) << endl;
+    energyPo   = calcEnergy->allToAll();
+    cout << "e pred: " << energyPred << " e po: " << energyPo << endl;
+
 
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
         for (int wli=0;wli<sim->wl.wlmdim;wli++) {
@@ -653,6 +667,7 @@ double MoveCreator::chainRotate(long target) {
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         enermove += calcEnergy->mol2others(chain);
     }
+    cout << "Energy mol2others: " << energy << " Energy move: " << enermove << endl;
     if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]] = chorig[j];
@@ -974,16 +989,21 @@ void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
 
     cluscm = clusterCM(cluster);
 
+//    cout << "CM: " << cluscm.info()<< endl;
     // create rotation quaternion
     newaxis.randomUnitSphere(); /*random axes for rotation*/
     vc = cos(max_angle * ran2() );
     if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
     else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
 
+
     Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
 
     //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
 
+    cout << "Before rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
+    cout << conf->pvec[cluster[0]].info() << endl;
+    cout << conf->pvec[cluster[1]].info() << endl;
     //shift position to geometrical center
     for(unsigned int i=0; i<cluster.size(); i++) {
         //shift position to geometrical center
@@ -1014,6 +1034,9 @@ void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
         conf->pvec[cluster[i]].pos.y += cluscm.y;
         conf->pvec[cluster[i]].pos.z += cluscm.z;
     }
+    cout << conf->pvec[cluster[0]].info() << endl;
+    cout << conf->pvec[cluster[1]].info() << endl;
+    cout << "After rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
 }
 
 
@@ -1694,7 +1717,9 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection.patchsides[1]*=-1.0;
         reflection.patchsides[2]*=-1.0;
         reflection.patchsides[3]*=-1.0;
-        conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+        reflection.chdir[0]     *=-1.0;
+        reflection.chdir[1]     *=-1.0;
+//        conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
 
         //Iterate through reflection "Neighbours"
         for (unsigned int i = 0; i < conf->pvec.size(); i++){
@@ -1720,7 +1745,17 @@ double MoveCreator::clusterMoveGeom(long target) {
                 }
             }
         }
-        conf->pvec[cluster[counter]] = reflection;// here old particle is chnged for its reflection
+        conf->pvec[cluster[counter]].pos = reflection.pos;// here old particle is chnged for its reflection
+        conf->pvec[cluster[counter]].dir = reflection.dir;
+        conf->pvec[cluster[counter]].patchdir[0] = reflection.patchdir[0];
+        conf->pvec[cluster[counter]].patchdir[1] = reflection.patchdir[1];
+        conf->pvec[cluster[counter]].patchsides[0] = reflection.patchsides[0];
+        conf->pvec[cluster[counter]].patchsides[1] = reflection.patchsides[1];
+        conf->pvec[cluster[counter]].patchsides[2] = reflection.patchsides[2];
+        conf->pvec[cluster[counter]].patchsides[3] = reflection.patchsides[3];
+        conf->pvec[cluster[counter]].chdir[0] = reflection.chdir[0];
+        conf->pvec[cluster[counter]].chdir[1] = reflection.chdir[1];
+//        conf->pvec[cluster[counter]] = reflection;
         counter++;
     }while(counter < num_particles);
     return calcEnergy->allToAll()-edriftchanges;

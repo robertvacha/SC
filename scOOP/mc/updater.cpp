@@ -128,7 +128,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
     //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
-
+    volatile double energyPred, energyPo, energyMove;
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
@@ -174,7 +174,15 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         }
         //____________Cluster Move____________
         if(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) {
-            edriftchanges += move.clusterMove();
+            energyPred = calcEnergy.allToAll();
+            energyMove = move.clusterMove();
+            energyPo   = calcEnergy.allToAll();
+            cout    << "--------- CM ------------"      << "\n"
+                    << "Energy pred:    " << energyPred << "\n"
+                    << "Energy po:      " << energyPo   << "\n"
+                    << "Energy of Move: " << energyMove << endl;
+            edriftchanges += energyMove;
+
 
             if(sim->pairlist_update) {
                 temp = clock();
@@ -197,7 +205,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         }
 //        assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         //normal moves
+        cout << " SWEEP:  "<<sweep <<endl;
         for (step=1; step <= (long)conf->pvec.size(); step++) {
+            cout << "EEEE : " << calcEnergy.allToAll()  << " | " << step << endl;
             moveprobab = ran2();
 
             if ( moveprobab < sim->shprob) {
@@ -205,11 +215,14 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 continue;
             }
             if (moveprobab < sim->shprob + sim->chainprob) {
-                edriftchanges += move.chainMove();
-                double k=calcEnergy.allToAll();
-                if(fabs(k - edriftstart - edriftchanges) >= 1.0){
-                    cout<<"sweep: "<<sweep<<"step: "<<step<<endl;
-                }
+                energyPred = calcEnergy.allToAll();
+                energyMove = move.chainMove();
+                energyPo   = calcEnergy.allToAll();
+                cout    << "--------- ChM ------------"     << endl
+                        << "Energy pred:    " << energyPred << endl
+                        << "Energy po:      " << energyPo   << endl
+                        << "Energy of Move: " << energyMove << endl;
+                edriftchanges += energyMove;
                 continue;
             }
 //            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
