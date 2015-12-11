@@ -465,12 +465,12 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
         conf->geo.usePBC(&pvec[i]);
 #else
-        // for compatibility unfortunately
-        conf->geo.usePBC(&pvec[i]);
-
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
         pvec[i].pos.z /= conf->geo.box.z;
+
+        // for compatibility unfortunately
+        conf->geo.usePBC(&pvec[i]);
 #endif
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {

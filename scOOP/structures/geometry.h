@@ -46,19 +46,19 @@ public:
         } while (part->pos.x < 0.0);
         do {
             part->pos.x -= box.x;
-        } while (part->pos.x > box.x);
+        } while (part->pos.x > 1.0);
         do {
             part->pos.y += box.y;
         } while (part->pos.y < 0.0);
         do {
             part->pos.y -= box.y;
-        } while (part->pos.y > box.y);
+        } while (part->pos.y > 1.0);
         do {
             part->pos.z += box.z;
         } while (part->pos.z < 0.0);
         do {
             part->pos.z -= box.z;
-        } while (part->pos.z > box.z);
+        } while (part->pos.z > 1.0);
     }
 
     /**
