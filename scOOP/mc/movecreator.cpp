@@ -1628,9 +1628,7 @@ double MoveCreator::clusterMoveGeom(long target) {
     */
 
     /*____________Global____________*/
-    r_center.x=ran2()*conf->geo.box.x;
-    r_center.y=ran2()*conf->geo.box.y;
-    r_center.z=ran2()*conf->geo.box.z;
+    r_center = conf->geo.randomPos();
 
     /*____________Local (displacement like)____________*/
 //    double max_displacement= 1.5;
