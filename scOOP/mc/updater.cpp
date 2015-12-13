@@ -112,9 +112,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     sim->wl.init(files->wlinfile);
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
-        temp = clock();
+//        temp = clock();
         genPairList();
-        sim->pairList += clock() - temp;
+//        sim->pairList += clock() - temp;
     }
 
     double edriftchanges = 0.0;   // Energy drift calculation - accumulate all changes through move
@@ -128,22 +128,22 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
     //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
-    volatile double energyPred, energyPo, energyMove;
+//    volatile double energyPred, energyPo, energyMove;
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
-    time = clock();
+//    time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-            time = clock()-time;
+//            time = clock()-time;
             cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
                  << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
             cout <<"\nInteractionEnergy: "<<calcEnergy.allToAll();
-            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
-            time = clock();
+//            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
+//            time = clock();
         }
 
 #ifdef ENABLE_MPI
@@ -157,9 +157,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             files->initMPIRank(sim->pseudoRank);
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         //____________GrandCanonical Move____________
@@ -167,27 +167,27 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftchanges += move.muVTMove();
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         //____________Cluster Move____________
         if(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) {
-            energyPred = calcEnergy.allToAll();
-            energyMove = move.clusterMove();
-            energyPo   = calcEnergy.allToAll();
-            cout    << "--------- CM ------------"      << "\n"
-                    << "Energy pred:    " << energyPred << "\n"
-                    << "Energy po:      " << energyPo   << "\n"
-                    << "Energy of Move: " << energyMove << endl;
-            edriftchanges += energyMove;
+//            energyPred = calcEnergy.allToAll();
+            edriftchanges += move.clusterMove();
+//            energyPo   = calcEnergy.allToAll();
+//            cout    << "--------- CM ------------"      << "\n"
+//                    << "Energy pred:    " << energyPred << "\n"
+//                    << "Energy po:      " << energyPo   << "\n"
+//                    << "Energy of Move: " << energyMove << endl;
+//            edriftchanges += energyMove;
 
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         //assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
@@ -199,15 +199,15 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
                 )
                 ) {
-            temp = clock();
+//            temp = clock();
             genPairList();
-            sim->pairList += clock() - temp;
+//            sim->pairList += clock() - temp;
         }
 //        assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         //normal moves
-        cout << " SWEEP:  "<<sweep <<endl;
+//        cout << " SWEEP:  "<<sweep <<endl;
         for (step=1; step <= (long)conf->pvec.size(); step++) {
-            cout << "EEEE : " << calcEnergy.allToAll()  << " | " << step << endl;
+//            cout << "EEEE : " << calcEnergy.allToAll()  << " | " << step << endl;
             moveprobab = ran2();
 
             if ( moveprobab < sim->shprob) {
@@ -215,14 +215,14 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 continue;
             }
             if (moveprobab < sim->shprob + sim->chainprob) {
-                energyPred = calcEnergy.allToAll();
-                energyMove = move.chainMove();
-                energyPo   = calcEnergy.allToAll();
-                cout    << "--------- ChM ------------"     << endl
-                        << "Energy pred:    " << energyPred << endl
-                        << "Energy po:      " << energyPo   << endl
-                        << "Energy of Move: " << energyMove << endl;
-                edriftchanges += energyMove;
+//                energyPred = calcEnergy.allToAll();
+                edriftchanges += move.chainMove();
+//                energyPo   = calcEnergy.allToAll();
+//                cout    << "--------- ChM ------------"     << endl
+//                        << "Energy pred:    " << energyPred << endl
+//                        << "Energy po:      " << energyPo   << endl
+//                        << "Energy of Move: " << energyMove << endl;
+//                edriftchanges += energyMove;
                 continue;
             }
 //            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);

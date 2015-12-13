@@ -431,9 +431,9 @@ double MoveCreator::chainMove() {
     double edriftchanges =0.0;
     long target;
 
-    volatile double energyPred, energyPo;
+//    volatile double energyPred, energyPo;
 
-    energyPred = calcEnergy->allToAll();
+//    energyPred = calcEnergy->allToAll();
     if(conf->pvec.getChainCount() == 0) // no chains to displace - muVTmove deleted all
         return 0.0;
 
@@ -447,8 +447,8 @@ double MoveCreator::chainMove() {
         /*=== Rotation step of cluster/chain ===*/
         edriftchanges = chainRotate(target);
     } /* ==== END OF CHAIN MOVES ===== */
-    energyPo = calcEnergy->allToAll();
-    cout << "WTF e pred: " << energyPred << " WTF e po: " << energyPo  << " Edif: " << edriftchanges << endl;
+//    energyPo = calcEnergy->allToAll();
+//    cout << "WTF e pred: " << energyPred << " WTF e po: " << energyPo  << " Edif: " << edriftchanges << endl;
     return edriftchanges;
 }
 
@@ -601,14 +601,14 @@ double MoveCreator::chainRotate(long target) {
     energy += calcEnergy->mol2others(chain);
 
 
-    volatile double energyPred, energyPo;
-    energyPred = calcEnergy->allToAll();
-    cout << "Inter Energy before: " << calcEnergy->chainInner(chain) << endl;
+//    volatile double energyPred, energyPo;
+//    energyPred = calcEnergy->allToAll();
+//    cout << "Inter Energy before: " << calcEnergy->chainInner(chain) << endl;
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
-    cout << "Inter Energy after: " << calcEnergy->chainInner(chain) << endl;
-    energyPo   = calcEnergy->allToAll();
-    cout << "e pred: " << energyPred << " e po: " << energyPo << endl;
+//    cout << "Inter Energy after: " << calcEnergy->chainInner(chain) << endl;
+//    energyPo   = calcEnergy->allToAll();
+//    cout << "e pred: " << energyPred << " e po: " << energyPo << endl;
 
 
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
@@ -662,12 +662,11 @@ double MoveCreator::chainRotate(long target) {
             energy += wlener;
         }
     }
-    assert(reject==0);
 
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         enermove += calcEnergy->mol2others(chain);
     }
-    cout << "Energy mol2others: " << energy << " Energy move: " << enermove << endl;
+//    cout << "Energy mol2others: " << energy << " Energy move: " << enermove << endl;
     if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]] = chorig[j];
@@ -1001,9 +1000,9 @@ void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
 
     //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
 
-    cout << "Before rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
-    cout << conf->pvec[cluster[0]].info() << endl;
-    cout << conf->pvec[cluster[1]].info() << endl;
+//    cout << "Before rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
+//    cout << conf->pvec[cluster[0]].info() << endl;
+//    cout << conf->pvec[cluster[1]].info() << endl;
     //shift position to geometrical center
     for(unsigned int i=0; i<cluster.size(); i++) {
         //shift position to geometrical center
@@ -1034,9 +1033,9 @@ void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
         conf->pvec[cluster[i]].pos.y += cluscm.y;
         conf->pvec[cluster[i]].pos.z += cluscm.z;
     }
-    cout << conf->pvec[cluster[0]].info() << endl;
-    cout << conf->pvec[cluster[1]].info() << endl;
-    cout << "After rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
+//    cout << conf->pvec[cluster[0]].info() << endl;
+//    cout << conf->pvec[cluster[1]].info() << endl;
+//    cout << "After rotation: " << calcEnergy->p2p(cluster[0], cluster[1]) << endl;
 }
 
 
