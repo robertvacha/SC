@@ -128,6 +128,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
     //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
+
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
@@ -148,7 +149,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 #ifdef ENABLE_MPI
     // receive MPI data
 #endif
-//TEST
+
         //____________Replica Exchange Move____________
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
 
@@ -181,7 +182,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 sim->pairList += clock() - temp;
             }
         }
-        //assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         if( (sim->pairlist_update) && // pair_list allowed
                 (
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep
@@ -194,7 +194,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             genPairList();
             sim->pairList += clock() - temp;
         }
-//        assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
             moveprobab = ran2();
@@ -207,7 +206,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 edriftchanges += move.chainMove();
                 continue;
             }
-//            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
             if (moveprobab < sim->shprob + sim->chainprob + sim->switchprob){
                 //=== This is an attempt to switch a type ===
                 edriftchanges += move.switchTypeMove();
@@ -215,8 +213,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 // single particle moves
                 edriftchanges += move.particleMove();
             }
-//            assert(1>0);
-//            assert(fabs(calcEnergy.allToAll() - edriftstart - edriftchanges) <= 1.0);
             //TEST OVERLAPS
             //if(conf->checkall(topo.ia_params)){
             //    cout<<"OVERLAP DETECTED"<<endl;
