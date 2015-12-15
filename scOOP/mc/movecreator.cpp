@@ -1622,8 +1622,12 @@ double MoveCreator::clusterMoveGeom(long target) {
     /*=============================================*/
     /*            Set reflection center            */
     /*=============================================*/
-    /*
-     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement must be set.
+    /*There exists two ways how to select reflection center, Global and Local.
+     * Global ---- select random point in simulation box as reflection center
+     * Local  ---- select vector from selected particle of random length in interval (0; max_len>
+     *
+     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement (max_len) must be set.
+     *
      * From test simulations on rather small systems it seems Global relection have faster convergence
     */
 
@@ -1637,10 +1641,35 @@ double MoveCreator::clusterMoveGeom(long target) {
 //    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
 
     Particle reflection;
-    int counter= 0, num_particles=1;
+    Molecule selected_chain;
+    int counter= 0, num_particles=0;
     double energy_old, energy_new;
 
-    cluster[0]= target;// first particle allways move so its set to be first in cluster
+    /*=============================================*/
+    /*     Addition of particles into cluster      */
+    /*=============================================*/
+    /*
+     * Here we chose to add whole chain into cluster if one particle of chain is includedtarget in cluster
+     * This make move slightly faster but
+     * !!!!SIMULATION OF CHAINS WITHOUT SINGLE PARTICLE MOVES CANT CONVERGE!!!!
+     *
+     * TODO:    change it in way that intra chain energy is used to determine if other particles from chain should be added
+     *          into cluster
+    */
+
+    double molecule_size;
+    //topo.moleculeParam[conf->pvec[target].molType].particleTypes.size() == number of particles in chain ... special case is single particle of length 1
+    molecule_size = topo.moleculeParam[conf->pvec[target].molType].particleTypes.size();
+    if ( molecule_size == 1 ){
+        cluster[num_particles] = target;
+        num_particles++;
+    }else{
+        selected_chain = conf->pvec.getMolOfPart(target);
+        for(unsigned int i=0; i < selected_chain.size(); i++){
+            cluster[num_particles] = selected_chain[i];
+            num_particles++;
+        }
+    }
 
     /*=============================================*/
     /*            Cluster Creation Loop            */
@@ -1656,7 +1685,17 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection.patchsides[1]*=-1.0;
         reflection.patchsides[2]*=-1.0;
         reflection.patchsides[3]*=-1.0;
-        conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+        reflection.chdir[0]     *=-1.0;
+        reflection.chdir[1]     *=-1.0;
+//        conf->geo.usePBC(&reflection);
+        // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+        //
+        // well usePBC cant be used directly now since in cluster rotete calculation of center of mass of particle assume that particles are nex to each other
+        // and does not take PBC condition into account ... use of PBC would lead to splliting particles on sides of box and then to wrong calculation of CM of cluster
+        // leading to wrong rotation changing distances between particles in cluster and creating large drift....
+        //
+        // I have tested that drift comming out of not using PBC in clusterMove is not that large however particles with larger difusivity might cause problems so
+        // it would be better to make chains whole after reflection or change CM calculation
 
         //Iterate through reflection "Neighbours"
         for (unsigned int i = 0; i < conf->pvec.size(); i++){
@@ -1664,12 +1703,24 @@ double MoveCreator::clusterMoveGeom(long target) {
                 energy_old = calcEnergy->p2p(cluster[counter], i);
                 energy_new = calcEnergy->p2p(&reflection, i);
                 if (ran2() < (1-exp((energy_old-energy_new)/sim->temper))){//ran2() < (1-exp(-1.0*((energy_new-energy_old)/sim->temper))) acceptance criteria vis. Reference
-                    cluster[num_particles] = i;
-                    num_particles++;
+                    //Addition of chain into cluster
+                    //-----------------------------------------------------
+                    molecule_size = topo.moleculeParam[conf->pvec[i].molType].particleTypes.size();
+                    if(molecule_size == 1){
+                        cluster[num_particles] = i;
+                        num_particles++;
+                    }else{
+                        selected_chain = conf->pvec.getMolOfPart(i);
+                        for(unsigned int t=0; t < selected_chain.size(); t++){
+                            cluster[num_particles] = selected_chain[t];
+                            num_particles++;
+                        }
+                    }
+                    //-----------------------------------------------------
                 }
             }
         }
-        conf->pvec[cluster[counter]] = reflection;// here old particle is chnged for its reflection
+        conf->pvec[cluster[counter]] = reflection;
         counter++;
     }while(counter < num_particles);
     return calcEnergy->allToAll()-edriftchanges;
