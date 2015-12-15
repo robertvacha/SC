@@ -431,9 +431,7 @@ double MoveCreator::chainMove() {
     double edriftchanges =0.0;
     long target;
 
-//    volatile double energyPred, energyPo;
 
-//    energyPred = calcEnergy->allToAll();
     if(conf->pvec.getChainCount() == 0) // no chains to displace - muVTmove deleted all
         return 0.0;
 
@@ -447,8 +445,6 @@ double MoveCreator::chainMove() {
         /*=== Rotation step of cluster/chain ===*/
         edriftchanges = chainRotate(target);
     } /* ==== END OF CHAIN MOVES ===== */
-//    energyPo = calcEnergy->allToAll();
-//    cout << "WTF e pred: " << energyPred << " WTF e po: " << energyPo  << " Edif: " << edriftchanges << endl;
     return edriftchanges;
 }
 
@@ -600,16 +596,8 @@ double MoveCreator::chainRotate(long target) {
 
     energy += calcEnergy->mol2others(chain);
 
-
-//    volatile double energyPred, energyPo;
-//    energyPred = calcEnergy->allToAll();
-//    cout << "Inter Energy before: " << calcEnergy->chainInner(chain) << endl;
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
-//    cout << "Inter Energy after: " << calcEnergy->chainInner(chain) << endl;
-//    energyPo   = calcEnergy->allToAll();
-//    cout << "e pred: " << energyPred << " e po: " << energyPo << endl;
-
 
     if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
         for (int wli=0;wli<sim->wl.wlmdim;wli++) {
@@ -666,19 +654,16 @@ double MoveCreator::chainRotate(long target) {
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         enermove += calcEnergy->mol2others(chain);
     }
-//    cout << "Energy mol2others: " << energy << " Energy move: " << enermove << endl;
     if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]] = chorig[j];
 
         sim->stat.chainr[conf->pvec[chain[0]].molType].rej++;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-//        cout<<"REJ-Drift Change: "<<edriftchanges<<endl;
     } else { // move was accepted
         sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
-//        cout<<"ACC-Drift Change: "<<edriftchanges<<endl;
     }
 
     return edriftchanges;
@@ -1694,7 +1679,6 @@ double MoveCreator::clusterMoveGeom(long target) {
         cluster[num_particles] = target;
         num_particles++;
     }else{
-//        cout <<"Nooo"<<endl;
         selected_chain = conf->pvec.getMolOfPart(target);
         for(unsigned int i=0; i < selected_chain.size(); i++){
             cluster[num_particles] = selected_chain[i];
@@ -1718,7 +1702,15 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection.patchsides[3]*=-1.0;
         reflection.chdir[0]     *=-1.0;
         reflection.chdir[1]     *=-1.0;
-//        conf->geo.usePBC(&reflection); // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+//        conf->geo.usePBC(&reflection);
+        // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+        //
+        // well usePBC cant be used directly now since in cluster rotete calculation of center of mass of particle assume that particles are nex to each other
+        // and does not take PBC condition into account ... use of PBC would lead to splliting particles on sides of box and then to wrong calculation of CM of cluster
+        // leading to wrong rotation changing distances between particles in cluster and creating large drift....
+        //
+        // I have tested that drift comming out of not using PBC in clusterMove is not that large however particles with larger difusivity might cause problems so
+        // it would be better to make chains whole after reflection or change CM calculation
 
         //Iterate through reflection "Neighbours"
         for (unsigned int i = 0; i < conf->pvec.size(); i++){
@@ -1733,7 +1725,6 @@ double MoveCreator::clusterMoveGeom(long target) {
                         cluster[num_particles] = i;
                         num_particles++;
                     }else{
-//                        cout <<"Nooo"<<endl;
                         selected_chain = conf->pvec.getMolOfPart(i);
                         for(unsigned int t=0; t < selected_chain.size(); t++){
                             cluster[num_particles] = selected_chain[t];
@@ -1744,17 +1735,17 @@ double MoveCreator::clusterMoveGeom(long target) {
                 }
             }
         }
-        conf->pvec[cluster[counter]].pos = reflection.pos;// here old particle is chnged for its reflection
-        conf->pvec[cluster[counter]].dir = reflection.dir;
-        conf->pvec[cluster[counter]].patchdir[0] = reflection.patchdir[0];
-        conf->pvec[cluster[counter]].patchdir[1] = reflection.patchdir[1];
-        conf->pvec[cluster[counter]].patchsides[0] = reflection.patchsides[0];
-        conf->pvec[cluster[counter]].patchsides[1] = reflection.patchsides[1];
-        conf->pvec[cluster[counter]].patchsides[2] = reflection.patchsides[2];
-        conf->pvec[cluster[counter]].patchsides[3] = reflection.patchsides[3];
-        conf->pvec[cluster[counter]].chdir[0] = reflection.chdir[0];
-        conf->pvec[cluster[counter]].chdir[1] = reflection.chdir[1];
-//        conf->pvec[cluster[counter]] = reflection;
+//        conf->pvec[cluster[counter]].pos = reflection.pos;// here old particle is chnged for its reflection
+//        conf->pvec[cluster[counter]].dir = reflection.dir;
+//        conf->pvec[cluster[counter]].patchdir[0] = reflection.patchdir[0];
+//        conf->pvec[cluster[counter]].patchdir[1] = reflection.patchdir[1];
+//        conf->pvec[cluster[counter]].patchsides[0] = reflection.patchsides[0];
+//        conf->pvec[cluster[counter]].patchsides[1] = reflection.patchsides[1];
+//        conf->pvec[cluster[counter]].patchsides[2] = reflection.patchsides[2];
+//        conf->pvec[cluster[counter]].patchsides[3] = reflection.patchsides[3];
+//        conf->pvec[cluster[counter]].chdir[0] = reflection.chdir[0];
+//        conf->pvec[cluster[counter]].chdir[1] = reflection.chdir[1];
+        conf->pvec[cluster[counter]] = reflection;
         counter++;
     }while(counter < num_particles);
     return calcEnergy->allToAll()-edriftchanges;
