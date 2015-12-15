@@ -465,7 +465,6 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
         conf->geo.usePBC(&pvec[i]);
 #else
-
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
         pvec[i].pos.z /= conf->geo.box.z;
