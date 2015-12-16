@@ -335,8 +335,6 @@ public:
         for ( std::vector<int>::iterator it = first+1 ; it != mol->end() ; ++it ){
             r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*first)].pos );
             geo.usePBC( r_cm );
-//            cout << "pos of 0:" << pvec[(*first)].pos.info() << " | pos of second: " << pvec[(*it)].pos.info() << endl;
-//            cout << "r_cm: " << r_cm.info() << endl;
             pvec[(*it)].pos = pvec[(*first)].pos + r_cm;
         }
     }

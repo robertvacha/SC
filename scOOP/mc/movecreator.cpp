@@ -1692,13 +1692,6 @@ double MoveCreator::clusterMoveGeom(long target) {
         conf->geo.usePBC(&reflection);
 
         // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
-        //
-        // well usePBC cant be used directly now since in cluster rotete calculation of center of mass of particle assume that particles are nex to each other
-        // and does not take PBC condition into account ... use of PBC would lead to splliting particles on sides of box and then to wrong calculation of CM of cluster
-        // leading to wrong rotation changing distances between particles in cluster and creating large drift....
-        //
-        // I have tested that drift comming out of not using PBC in clusterMove is not that large however particles with larger difusivity might cause problems so
-        // it would be better to make chains whole after reflection or change CM calculation
 
         //Iterate through reflection "Neighbours"
         for (unsigned int i = 0; i < conf->pvec.size(); i++){
@@ -1728,7 +1721,6 @@ double MoveCreator::clusterMoveGeom(long target) {
         counter++;
     }while(counter < num_particles);
     for ( std::vector<Molecule>::iterator it = chainsToFix.begin(); it != chainsToFix.end(); ++it ){
-//        cout << it->info() << endl;
         conf->makeMoleculeWhole(&(*it));
     }
     return calcEnergy->allToAll()-edriftchanges;
