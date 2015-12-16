@@ -1642,6 +1642,7 @@ double MoveCreator::clusterMoveGeom(long target) {
 
     Particle reflection;
     Molecule selected_chain;
+    std::vector<Molecule> chainsToFix; // thse are all cahins that might be disturbed by application of PBC
     int counter= 0, num_particles=0;
     double energy_old, energy_new;
 
@@ -1665,6 +1666,7 @@ double MoveCreator::clusterMoveGeom(long target) {
         num_particles++;
     }else{
         selected_chain = conf->pvec.getMolOfPart(target);
+        chainsToFix.push_back(selected_chain);
         for(unsigned int i=0; i < selected_chain.size(); i++){
             cluster[num_particles] = selected_chain[i];
             num_particles++;
@@ -1687,7 +1689,8 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection.patchsides[3]*=-1.0;
         reflection.chdir[0]     *=-1.0;
         reflection.chdir[1]     *=-1.0;
-//        conf->geo.usePBC(&reflection);
+        conf->geo.usePBC(&reflection);
+
         // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
         //
         // well usePBC cant be used directly now since in cluster rotete calculation of center of mass of particle assume that particles are nex to each other
@@ -1711,6 +1714,7 @@ double MoveCreator::clusterMoveGeom(long target) {
                         num_particles++;
                     }else{
                         selected_chain = conf->pvec.getMolOfPart(i);
+                        chainsToFix.push_back(selected_chain);
                         for(unsigned int t=0; t < selected_chain.size(); t++){
                             cluster[num_particles] = selected_chain[t];
                             num_particles++;
@@ -1723,5 +1727,9 @@ double MoveCreator::clusterMoveGeom(long target) {
         conf->pvec[cluster[counter]] = reflection;
         counter++;
     }while(counter < num_particles);
+    for ( std::vector<Molecule>::iterator it = chainsToFix.begin(); it != chainsToFix.end(); ++it ){
+//        cout << it->info() << endl;
+        conf->makeMoleculeWhole(&(*it));
+    }
     return calcEnergy->allToAll()-edriftchanges;
 }
