@@ -329,6 +329,12 @@ public:
         return sqrt(distSq(part1,part2));
     }
 
+    /**
+     * @brief makeMoleculeWhole
+     * Function move all particles in Molecule (*mol) to be directly next to first particle in molecule.
+     * In other words function restore Molecule to be in one pice if molecule were broken by using PBC.
+     * @param *mol
+     */
     void makeMoleculeWhole( Molecule *mol ){
         Vector r_cm;
         std::vector<int>::iterator first = mol->begin();
