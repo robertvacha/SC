@@ -36,7 +36,7 @@ public:
     }
 
     /**
-     * @brief use of periodic boundary conditions
+     * @brief Use of periodic boundary conditions on Particle
      * @param pos
      * @param pbc
      */ 
@@ -62,8 +62,22 @@ public:
     }
 
     /**
+     * @brief usePBC
+     * Function normalise vector by box size to fit in range [0;1].
+     * In other words distnaces or positions in real coordinates are translated into internal coordinates which are normalised by box size.
+     * @param vec - pointer to vector in real coordinates
+     */
+    void usePBC( Vector &vec ){
+        vec.x /= box.x;
+        vec.y /= box.y;
+        vec.z /= box.z;
+    }
+
+    /**
      * @brief Returns the vector pointing from the centre of mass of particle 2 to the
        centre of mass of the closest image of particle 1.
+       BECAREFULL r_cm vector is in real values ... in other words when you use image finction
+       in code u have to normalize it by box size!!
      * @param r1
      * @param r2
      * @param box

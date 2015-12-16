@@ -19,7 +19,18 @@ typedef struct{
     long * particles;
 } Cluster;
 
-class Molecule : public vector<int > {};
+class Molecule : public vector<int > {
+public:
+    std::string info(){
+        std::ostringstream o;
+        o << "[";
+        for ( unsigned int i = 0; i < this->size()-1; i++ ){
+            o << this->operator [](i) << ", ";
+        }
+        o << this->operator [](this->size()-1) << "]";
+        return o.str();
+    }
+};
 
 /**
  * @brief This structure is for io only
