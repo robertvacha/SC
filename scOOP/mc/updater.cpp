@@ -112,9 +112,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     sim->wl.init(files->wlinfile);
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
-        temp = clock();
+//        temp = clock();
         genPairList();
-        sim->pairList += clock() - temp;
+//        sim->pairList += clock() - temp;
     }
 
     double edriftchanges = 0.0;   // Energy drift calculation - accumulate all changes through move
@@ -132,18 +132,18 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/
-    time = clock();
+//    time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-            time = clock()-time;
+//            time = clock()-time;
             cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
                  << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
             cout <<"\nInteractionEnergy: "<<calcEnergy.allToAll();
-            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
-            time = clock();
+//            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
+//            time = clock();
         }
 
 #ifdef ENABLE_MPI
@@ -157,9 +157,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             files->initMPIRank(sim->pseudoRank);
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         //____________GrandCanonical Move____________
@@ -167,9 +167,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftchanges += move.muVTMove();
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         //____________Cluster Move____________
@@ -177,9 +177,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftchanges += move.clusterMove();
 
             if(sim->pairlist_update) {
-                temp = clock();
+//                temp = clock();
                 genPairList();
-                sim->pairList += clock() - temp;
+//                sim->pairList += clock() - temp;
             }
         }
         if( (sim->pairlist_update) && // pair_list allowed
@@ -190,9 +190,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
                 )
                 ) {
-            temp = clock();
+//            temp = clock();
             genPairList();
-            sim->pairList += clock() - temp;
+//            sim->pairList += clock() - temp;
         }
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {

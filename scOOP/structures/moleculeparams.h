@@ -7,10 +7,27 @@
 /**
  * @brief Parameters for interactions of molecules(mainly inner interaction in chains), each molType has a MoleculeParams instance
  */
-class MoleculeParams
-{
+class MoleculeParams{
+    class Bond{
+        double bondEqDist;
+        double bondEqConst;
+    public:
+        Bond() :
+            bondEqDist( 0.0 ),
+            bondEqConst( 0.0 ) // for bondEqConst == 0.0 basicly mean there is no bond at all
+        {}
+
+        Bond( double bondEqDist, double bondEqConst /*type enabling use of bondd bond1 etc.*/ ) :
+            bondEqDist( bondEqDist ),
+            bondEqConst( bondEqConst )
+        {}
+
+    };
+
 public:
     char * name;        ///< \brief name of the molecule
+    double bondsEq[ MAXCHL-1 ];
+    double bondsEqConst[ MAXCHL-1 ];
     double bond1eq;     ///< \brief Equilibrium distance of harmonic bond between nearest neighbours
     double bond1c;      ///< \brief Spring constant for harmonic bond between nearest neighbours
     double bond2eq;     ///< \brief Equilibrium distance of harmonic bond between second nearest neighbours
