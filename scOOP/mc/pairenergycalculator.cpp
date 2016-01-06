@@ -129,6 +129,19 @@ void PairEnergyCalculator::initIntFCE() {
     }
 }
 
+double PairEnergyCalculator::angleEnergyAngle2(  Particle &p1,  Particle &p2 ){ //eqAngle must be in radians
+    Vector localAxis, localX1, localX2;
+    localAxis = p1.dir.cross(p2.dir);
+
+    localX1 = p1.dir.cross(localAxis);
+    localX2 = p2.dir.cross(localAxis);
+    double  v1x = localX1.dot(p1.patchdir[0]),
+            v1y = localAxis.dot(p1.patchdir[0]),
+            v2x = localX2.dot(p2.patchdir[0]),
+            v2y = localAxis.dot(p2.patchdir[0]);
+
+    return acos( (v1x * v2x + v1y * v2y) / ( sqrt( (v1x * v1x + v1y * v1y) * (v2x * v2x + v2y * v2y) )));//angle is in radians
+}
 
 double PairEnergyCalculator::angleEnergy() {
     double energy=0.0, currangle, halfl;
@@ -144,7 +157,7 @@ double PairEnergyCalculator::angleEnergy() {
                 energy += 0.0;
             else {
                 if (geotype[0] < SP)
-                    vec1 = part1->dir;
+                    vec1 = part1->dir;// vectors must be normalised
                 else {
                     halfl = topo.ia_params[part1->type][part2->type].half_len[1];
                     //sphere angle is defined versus the end of spherocylind.er
@@ -152,18 +165,18 @@ double PairEnergyCalculator::angleEnergy() {
                     vec1.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
                     vec1.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
                     vec1 = pbc->image(&vec1, &part1->pos);
+                    vec1.normalise();
                 }
                 if (geotype[1] < SP)
-                    vec2 = part2->dir;
+                    vec2 = part2->dir;// vectors must be normalised
                 else {
                     halfl = topo.ia_params[part1->type][part2->type].half_len[0];
                     vec2.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
                     vec2.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
                     vec2.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
                     vec2 = pbc->image(&vec2, &part2->pos);
+                    vec2.normalise();
                 }
-                vec1.normalise();
-                vec2.normalise();
                 currangle = acos(DOT(vec1,vec2));
                 energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
             }
@@ -175,7 +188,7 @@ double PairEnergyCalculator::angleEnergy() {
                     energy += 0.0;
                 else {
                     if (geotype[0] < SP)
-                        vec1 = part1->dir;
+                        vec1 = part1->dir;// vectors must be normalised
                     else {
                         halfl = topo.ia_params[part1->type][part2->type].half_len[1];
                         //sphere angle is defined versus the end of spherocylinder
@@ -183,18 +196,18 @@ double PairEnergyCalculator::angleEnergy() {
                         vec1.y = part2->pos.y + part2->dir.y * halfl / pbc->box.y;
                         vec1.z = part2->pos.z + part2->dir.z * halfl / pbc->box.z;
                         vec1 = pbc->image(&vec1, &part1->pos);
+                        vec1.normalise();
                     }
                     if (geotype[1] < SP)
-                        vec2 = part2->dir;
+                        vec2 = part2->dir;// vectors must be normalised
                     else {
                         halfl = topo.ia_params[part1->type][part2->type].half_len[0];
                         vec2.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
                         vec2.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
                         vec2.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
                         vec2 = pbc->image(&vec2, &part2->pos);
+                        vec2.normalise();
                     }
-                    vec1.normalise();
-                    vec2.normalise();
                     currangle = acos(DOT(vec1,vec2));
                     energy += harmonicPotential(currangle,topo.moleculeParam[part2->molType].angle1eq,topo.moleculeParam[part2->molType].angle1c);
                 }
@@ -207,7 +220,8 @@ double PairEnergyCalculator::angleEnergy() {
         if (part2 == conlist->conlist[0]) {
             /*num1 is connected to num2 by tail*/
             if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
-                currangle = acos(DOT(part1->patchdir[0],part2->patchdir[0]) - DOT(part1->dir,part2->patchdir[0])  );
+//                currangle = acos(DOT(part1->patchdir[0],part2->patchdir[0]) - DOT(part1->dir,part2->patchdir[0])  );
+                currangle = angleEnergyAngle2( *part2, *part1 );
                 energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle2eq,topo.moleculeParam[part1->molType].angle2c);
             } else {
                 energy += 0.0;
@@ -216,7 +230,8 @@ double PairEnergyCalculator::angleEnergy() {
             if (part2 == conlist->conlist[1]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
-                    currangle = acos(DOT(part2->patchdir[0],part1->patchdir[0]) - DOT(part2->dir,part1->patchdir[0])  );
+//                    currangle = acos(DOT(part2->patchdir[0],part1->patchdir[0]) - DOT(part2->dir,part1->patchdir[0])  );
+                    currangle = angleEnergyAngle2( *part1, *part2 );
                     energy += harmonicPotential(currangle,topo.moleculeParam[part2->molType].angle2eq,topo.moleculeParam[part2->molType].angle2c);
                 } else {
                     energy += 0.0;
@@ -224,6 +239,10 @@ double PairEnergyCalculator::angleEnergy() {
             }
         }
     }
+
+
+
+
     //    printf("angleener: %f\n",energy);
     return energy;
 }

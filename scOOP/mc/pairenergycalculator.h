@@ -279,6 +279,7 @@ private:
      * @return
      */
     Vector vecPerpProject(Vector *A,Vector *B);
+    double angleEnergyAngle2( Particle &p1,  Particle &p2);
 };
 
 
