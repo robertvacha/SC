@@ -11,14 +11,22 @@ class MoleculeParams
 {
 public:
     char * name;        ///< \brief name of the molecule
+
     double bond1eq;     ///< \brief Equilibrium distance of harmonic bond between nearest neighbours
     double bond1c;      ///< \brief Spring constant for harmonic bond between nearest neighbours
+
     double bond2eq;     ///< \brief Equilibrium distance of harmonic bond between second nearest neighbours
     double bond2c;      ///< \brief Spring constant for harmonic bond between second nearest neighbours
+
     double bonddeq;     ///< \brief Equilibrium distance of directional harmonic bond between the nearest neighbours
     double bonddc;      ///< \brief Spring constant for directional harmonic bond between the nearest neighbours
+
+    double bondheq;     ///< \brief Equilibrium distance of hinge like harmonic bond between the nearest neighbours
+    double bondhc;      ///< \brief Spring constant for hinge like harmonic bond between the nearest neighbours
+
     double angle1eq;    ///< \brief Equilibrium angle between two spherocylinders -neerest neighbours
     double angle1c;     ///< \brief Spring constant angle between two spherocylinders -nearest neighbours
+
     double angle2eq;    ///< \brief Equilibrium angle between two spherocylinder patches -nearest neighbours
     double angle2c;     ///< \brief Spring constant for angle between two spherocylinder patches -nearest neighbours
 

@@ -1309,6 +1309,22 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         return 1;
     }
 
+    if (!strcmp(molcommand,"BONDH")) {
+        fields = sscanf(molparams, "%le %le ", &bondk, &bonddist);
+        if (fields < 2) {
+            fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for bondh, should be 2.\n\n");
+            return 0;
+        }
+        if (bonddist < 0) {
+            fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
+            return 0;
+        }
+        topo.moleculeParam[i].bondhc = bondk;
+        topo.moleculeParam[i].bondheq = bonddist;
+        fprintf (stdout, "bondd: %f %f \n",topo.moleculeParam[i].bondhc,topo.moleculeParam[i].bondheq);
+        return 1;
+    }
+
     if (!strcmp(molcommand,"ANGLE1")) {
         fields = sscanf(molparams, "%le %le ", &bondk, &bonddist);
         if (fields < 2) {

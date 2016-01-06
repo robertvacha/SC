@@ -345,7 +345,7 @@ double PairEnergyCalculator::bondEnergy() {
             if (part2 == conlist->conlist[0]) {
                 /*num1 is connected to num2 by head*/
                 if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
-                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
+                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bonddeq,topo.moleculeParam[part1->molType].bonddc);
                 else {
                     if (geotype[0] < SP)
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
@@ -368,6 +368,60 @@ double PairEnergyCalculator::bondEnergy() {
             }
         }
     }
+
+    if ((topo.moleculeParam[part1->molType]).bondhc > 0) {
+
+        if (part2 == conlist->conlist[1]) {
+            /*num1 is connected to num2 by tail*/
+            if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
+                energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bondheq,topo.moleculeParam[part1->molType].bondhc);
+            else {
+                if (geotype[0] < SP)
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                else
+                    halfl = 0.0;
+                vec1.x = part1->pos.x - part1->dir.x * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.x );
+                vec1.y = part1->pos.y - part1->dir.y * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.y );
+                vec1.z = part1->pos.z - part1->dir.z * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.z );
+                if (geotype[1] < SP)
+                    halfl =topo.ia_params[part1->type][part2->type].half_len[1];
+                else
+                    halfl = 0.0;
+                vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ;
+                vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ;
+                vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ;
+                vecbond = pbc->image(&vec1, &vec2);
+                bondlength = sqrt(DOT(vecbond,vecbond));
+                energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bondhc);
+            }
+        } else {
+            if (part2 == conlist->conlist[0]) {
+                /*num1 is connected to num2 by head*/
+                if ( (geotype[0] >= SP) && (geotype[1] >= SP) )
+                    energy = harmonicPotential(distcm,topo.moleculeParam[part1->molType].bondheq,topo.moleculeParam[part1->molType].bondhc);
+                else {
+                    if (geotype[0] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    else
+                        halfl = 0.0;
+                    vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ;
+                    vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ;
+                    vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ;
+                    if (geotype[0] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    else
+                        halfl = 0.0;
+                    vec2.x = part2->pos.x - part2->dir.x * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ) ;
+                    vec2.y = part2->pos.y - part2->dir.y * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ) ;
+                    vec2.z = part2->pos.z - part2->dir.z * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ) ;
+                    vecbond = pbc->image(&vec1, &vec2);
+                    bondlength = sqrt(DOT(vecbond,vecbond));
+                    energy = harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bondhc);
+                }
+            }
+        }
+    }
+
     //printf("bondlength: %f\n",bondlength);
     //    printf("bondener: %f\n",energy);
     return energy;
