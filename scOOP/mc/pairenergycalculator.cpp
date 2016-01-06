@@ -143,14 +143,6 @@ double PairEnergyCalculator::angleEnergyAngle2(  Particle &p1,  Particle &p2 ){ 
     return acos( (v1x * v2x + v1y * v2y) / ( sqrt( (v1x * v1x + v1y * v1y) * (v2x * v2x + v2y * v2y) )));//angle is in radians
 }
 
-double PairEnergyCalculator::angleEnergyAngle3( Particle &p, Particle &pbend1, Particle &pbend2 ){
-    Vector vectorToCenterOfBend, bendVectorProjection;
-    vectorToCenterOfBend = pbend2.dir - pbend1.dir;
-    bendVectorProjection = Vector::getOrthogonalVector( vectorToCenterOfBend, p.dir );
-    bendVectorProjection.normalise();
-    return acos( bendVectorProjection.dot(p.patchdir[0]) );
-}
-
 double PairEnergyCalculator::angleEnergy() {
     double energy=0.0, currangle, halfl;
     Vector vec1, vec2;
