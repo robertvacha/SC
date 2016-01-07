@@ -509,29 +509,35 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (int i=0; i<conf->pvec.getChainCount(); i++){
-        j=0;
-        current = conf->pvec.getChainPart(i,0);
-        first = current;
-        chorig[0].pos = pvec[first].pos;
-        while (current >=0 ) {
-            /*shift the chain particle by first one*/
-            pvec[current].pos.x -= chorig[0].pos.x;
-            pvec[current].pos.y -= chorig[0].pos.y;
-            pvec[current].pos.z -= chorig[0].pos.z;
-            /*put it in orig geo.box*/
-            pvec[current].pos.x -=  anInt(pvec[current].pos.x);
-            pvec[current].pos.y -=  anInt(pvec[current].pos.y);
-            pvec[current].pos.z -=  anInt(pvec[current].pos.z);
-            //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
-            /*shot it back*/
-            pvec[current].pos.x += chorig[0].pos.x;
-            pvec[current].pos.y += chorig[0].pos.y;
-            pvec[current].pos.z += chorig[0].pos.z;
-            //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
-            j++;
-            current = conf->pvec.getChainPart(i,j);
-        }
+//    for (int i=0; i<conf->pvec.getChainCount(); i++){
+//        j=0;
+//        current = conf->pvec.getChainPart(i,0);
+//        first = current;
+//        chorig[0].pos = pvec[first].pos;
+//        while (current >=0 ) {
+//            /*shift the chain particle by first one*/
+//            pvec[current].pos.x -= chorig[0].pos.x;
+//            pvec[current].pos.y -= chorig[0].pos.y;
+//            pvec[current].pos.z -= chorig[0].pos.z;
+//            /*put it in orig geo.box*/
+//            pvec[current].pos.x -=  anInt(pvec[current].pos.x);
+//            pvec[current].pos.y -=  anInt(pvec[current].pos.y);
+//            pvec[current].pos.z -=  anInt(pvec[current].pos.z);
+//            //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
+//            /*shot it back*/
+//            pvec[current].pos.x += chorig[0].pos.x;
+//            pvec[current].pos.y += chorig[0].pos.y;
+//            pvec[current].pos.z += chorig[0].pos.z;
+//            //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
+//            j++;
+//            current = conf->pvec.getChainPart(i,j);
+//        }
+//    }
+
+    for( int i=0; i < conf->pvec.getChainCount(); i++ ){
+        double currentFirst = conf->pvec.first[i]; // curent first particle of each molecule
+        Molecule mol = conf->pvec.getMolOfPart(currentFirst);
+        conf->makeMoleculeWhole(&mol);
     }
 
     err = 0;

@@ -337,11 +337,10 @@ public:
      */
     void makeMoleculeWhole( Molecule *mol ){
         Vector r_cm;
-        std::vector<int>::iterator first = mol->begin();
-        for ( std::vector<int>::iterator it = first+1 ; it != mol->end() ; ++it ){
-            r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*first)].pos );
+        for ( std::vector<int>::iterator it = mol->begin()+1 ; it != mol->end() ; ++it ){
+            r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*(it-1))].pos );
             geo.usePBC( r_cm );
-            pvec[(*it)].pos = pvec[(*first)].pos + r_cm;
+            pvec[(*it)].pos = pvec[(*(it-1))].pos + r_cm;
         }
     }
 
