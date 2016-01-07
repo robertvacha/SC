@@ -534,11 +534,17 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 //        }
 //    }
 
-    for( int i=0; i < conf->pvec.getChainCount(); i++ ){
-        double currentFirst = conf->pvec.first[i]; // curent first particle of each molecule
-        Molecule mol = conf->pvec.getMolOfPart(currentFirst);
-        conf->makeMoleculeWhole(&mol);
-    }
+        for (int i=0; i<conf->pvec.getChainCount(); i++){
+            j=0;
+            Molecule mol;
+            current = conf->pvec.getChainPart(i,0);
+            while (current >=0 ) {
+                mol.push_back(current);
+                j++;
+                current = conf->pvec.getChainPart(i,j);
+            }
+            conf->makeMoleculeWhole(&mol);
+        }
 
     err = 0;
     //for (i=0; i < topo.npart-1; i++) {

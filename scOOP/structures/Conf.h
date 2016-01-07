@@ -335,7 +335,7 @@ public:
      * In other words function restore Molecule to be in one pice if molecule were broken by using PBC.
      * @param *mol
      */
-    void makeMoleculeWhole( Molecule *mol ){
+    void makeMoleculeWhole( Molecule *mol ){ // BACHA POKUD JE mol->size() == 0 TAK SE SAHA NA NEPLATNOU PAMET !!!
         Vector r_cm;
         for ( std::vector<int>::iterator it = mol->begin()+1 ; it != mol->end() ; ++it ){
             r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*(it-1))].pos );
