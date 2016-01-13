@@ -648,11 +648,13 @@ void Inicializer::initGroupLists() {
 
     // setGroupList;
     int type=0;
+
     while(topo.moleculeParam[type].name != NULL) { // get all types
         for(unsigned int i = 0; i < conf->pvec.size(); i++) {
-            if(type < conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
-                type = conf->pvec[i].molType;
-                conf->pvec.first[type] = i;
+//            if(type < conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
+            if(type == conf->pvec[i].molType) {
+//                type = conf->pvec[i].molType;
+                conf->pvec.first[conf->pvec[i].molType] = i;
                 break;
             }
             // FIX for situation
