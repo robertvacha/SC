@@ -1316,12 +1316,12 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
             return 0;
         }
         if (bonddist < 0) {
-            fprintf (stderr, "TOPOLOGY ERROR: bonddist cannot be negative: %f \n\n",bonddist);
+            fprintf (stderr, "TOPOLOGY ERROR: bondhdist cannot be negative: %f \n\n",bonddist);
             return 0;
         }
         topo.moleculeParam[i].bondhc = bondk;
         topo.moleculeParam[i].bondheq = bonddist;
-        fprintf (stdout, "bondd: %f %f \n",topo.moleculeParam[i].bondhc,topo.moleculeParam[i].bondheq);
+        fprintf (stdout, "bondh: %f %f \n",topo.moleculeParam[i].bondhc,topo.moleculeParam[i].bondheq);
         return 1;
     }
 
