@@ -2,12 +2,15 @@
 
 #include <fstream>
 #include <ctime>
+#include <iomanip>
 
 #include "mc/inicializer.h"
 #include "mc/updater.h"
 #include "mc/mygetline.h"
 #include "mc/randomGenerator.h"
 #include "unitTests/pvectester.h"
+
+#include "mc/analysis.h"
 
 using namespace std;
 
@@ -22,8 +25,6 @@ Topo topo; // Global instance of topology
     MersenneTwister ran2;
   #endif
 #endif
-
-    void analyzeCur(double& r1, double& r2, double& fi, Conf* conf, int &mid, int &mid2);
 
 int main(int argc, char** argv) {
 #ifdef OMP1
@@ -131,8 +132,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    //cout << "CellList cell size: " << sqrt(sim.cell) << endl;
-
     /*if(sim.pseudoRank != 0) {
         sim.nsweeps = 2147483647; // max long integer (2^31 -1)
     }*/
@@ -153,16 +152,22 @@ int main(int argc, char** argv) {
     /********************************************************/
 
     /*ofstream myfile;
-    myfile.open ("curvature");
+    myfile.open ("curvatureFull");
 
-    double r1, r2, fi, a=0.0, b=0.0, c=0.0;
-    double aver1=0.0, aver2=0.0;
-    vector<double> array1;
-    vector<double> array2;
-    double s1=0.0, s2=0.0;
-    int N = 0, mid=0, mid2=0;
+    ofstream myfileS;
+    myfileS.open ("curvatureSelect");
 
-    infile = fopen("movie", "r");
+    ofstream myfileF;
+    myfileF.open ("curvature");
+
+    //
+    // r1, r2 - principal curvatures
+    // fi - angle between principal planes
+    //
+    double r1, r2, fi;
+    int R1i, R1j, R2i, R2j, center;
+
+    infile = fopen("movieX", "r");
     if (infile == NULL) {
         fprintf (stderr, "\nERROR: Could not open %s file.\n\n", "movie");
         exit (1);
@@ -170,41 +175,65 @@ int main(int argc, char** argv) {
     fseek ( infile , 0 , SEEK_SET );
 
     char * line;
+    long pos;
     size_t line_size = (STRLEN + 1) * sizeof(char);
-    for(int i=0; i<200; i++) {
-        if(!init.initConfig(&infile, conf.pvec))
-            break;
-        analyzeCur(r1, r2, fi, &conf, mid, mid2);
-        //if(r1 > r2-1.0 && r1 < r2+1.0) {
-            cout << r1 << " " << r2 << " " << fi << endl;
-            aver1 += r1;
-            aver2 += r2;
-            N++;
-            array1.push_back(r1);
-            array2.push_back(r2);
-            cout << mid <<" "<< mid2 << endl;
-        //}
+    int i=0, ii=0, prev = 0, offset=0;
 
-        a += r1;
-        b += r2;
-        c += fi;
+    cout << "Start:" << endl;
+
+    pos = ftell(infile);
+    if(myGetLine(&line, &line_size, infile) == -1){ // number of part
+        fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
+        return false;
     }
-    aver1 /= N;
-    aver2 /= N;
-    for(unsigned int w=0; w<array1.size(); w++) {
-        s1 += (aver1 - array1[w])*(aver1 - array1[w]);
-        s2 += (aver2 - array2[w])*(aver2 - array2[w]);
-
+    if(myGetLine(&line, &line_size, infile) == -1){ // frame info
+        fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
+        return false;
     }
-    s1 /= N; s1 = sqrt(s1);
-    s2 /= N; s2 = sqrt(s2);
+    strip_comment(line);
+    trim(line);
 
-    cout << "N= " << N << endl;
-    cout << "r1="<< aver1 << ", s1= " << s1 << ", r2= " << aver2 << ", s2= " << s2 << endl;
-    cout << "H= " << 1/aver1 - 1/aver2 << ", s= " << s1*s1/(aver1*aver1) + s2*s2/(aver2*aver2) << endl;
-    cout << "K= " << 1/aver1 * 1/aver2 * (-1.0) << ", s= " << 1/(aver1*aver2) * (s1*s1/aver1 + s2*s2/aver2) << endl;
+    sscanf(line, "%*s %d", &i);
+    fseek(infile, pos, SEEK_SET);
+    while (init.initConfig(&infile, conf.pvec) ) {
+        analyzeCur(r1, r2, fi, R1i, R1j, R2i, R2j, center, &conf, &sim);
+        cout << std::setw(8) << std::setprecision(2) << std::fixed;
+        cout << i << " "<< std::setw(7) <<  r1 << " " << std::setw(7)<< r2 << " " << std::setw(5) <<fi
+             << " " << std::setw(4)<< R1i << " " << std::setw(4)<< R1j << " " << std::setw(4)<< R2i << " " << std::setw(4)<< R2j  << " " << center<< endl;
 
-    myfile << (aver1+aver2)/2;
+        myfileF << std::setw(8) << std::setprecision(2) << std::fixed;
+        myfileF << i << " "<< std::setw(7) <<  r1 << " " << std::setw(7)<< r2 << " " << std::setw(5) <<fi
+             << " " << std::setw(4)<< R1i << " " << std::setw(4)<< R1j << " " << std::setw(4)<< R2i << " " << std::setw(4)<< R2j  << " " << center<< endl;
+
+        if(R1i != -1 && R1j != -1 && R2i != -1 && R2j != -1) {
+            myfile << i << " " << r1 << " " << r2 << " " << fi << endl;
+            if(fi > 88) {
+                myfileS << i << " " << r1 << " " << r2 << " " << fi << endl;
+            }
+        }
+
+        pos = ftell(infile);
+        if(myGetLine(&line, &line_size, infile) == -1){ // number of part
+            fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
+            return false;
+        }
+        if(myGetLine(&line, &line_size, infile) == -1){ // frame info
+            fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
+            return false;
+        }
+        strip_comment(line);
+        trim(line);
+
+        prev = ii;
+        sscanf(line, "%*s %d", &ii);
+        i=ii;
+        if(prev > ii) {
+            offset += prev;
+        }
+        i += offset;
+        fseek(infile, pos, SEEK_SET);
+    }
+
     myfile.close();
     fclose (infile);
     exit(1);*/
@@ -309,115 +338,6 @@ int main(int argc, char** argv) {
     cout << "\nDONE" << endl;
 
     return 0;
-}
-
-
-void analyzeCur(double &r1, double &r2, double &fi, Conf* conf, int& mid, int& mid2) {
-    int result = 0;
-    int size = 19;
-    Vector dist, dist1, dist2;
-    Vector offset;
-    Vector min;
-    Vector a,b;
-    double minimum=999.9;
-    int index_fi_max,index_fi_max2;
-    double fi_max=0.0, r_min=999, fi_max2=0.0, r_min2=999;
-    int index;
-    double sinFi;
-    double r;
-    int indexBase = 1026, indexBase2=18;
-    for(int i=size; i< size+size-1; i++) { // 0 - 495 with 1026
-        result += i;
-
-        dist = conf->pvec[result].pos;
-        dist-= conf->pvec[indexBase].pos;
-
-        offset = conf->pvec[indexBase].pos;
-        dist.scale(0.5);
-        offset += dist;
-        dist.scale(2.0);
-
-        minimum=999.9;
-        for(unsigned int q=0; q<conf->pvec.size(); q++) {
-            min = offset;
-            min -= conf->pvec[q].pos;
-            if(sqrt(min.dot(min)) < minimum) {
-                index = q;
-                minimum = sqrt(min.dot(min));
-            }
-        }
-        a = conf->pvec[result].pos - conf->pvec[index].pos;
-        b = conf->pvec[indexBase].pos - conf->pvec[index].pos;
-
-
-
-        sinFi = (a.cross(b)).size() / (a.size() * b.size());
-
-        dist *= 30.0;
-        r = dist.size() / (2*sinFi);
-
-        if(r < r_min) {
-            dist1 = dist;
-            r_min = r;
-            fi_max=sinFi;
-            index_fi_max = result;
-            mid = index;
-        }
-
-    }
-
-    //cout << index_fi_max << " " << indexBase << endl;
-    //cout << "dist=" <<dist1.size() << " r=" <<r_min << " Fi: " << 180- asin(fi_max)*57.2957795 << "\n" << endl;
-
-    for(int i=size+size-1; i> size; i--) { // 495 - 1008 with 18
-        result += i;
-
-        dist = conf->pvec[result].pos;
-        dist-= conf->pvec[indexBase2].pos;
-
-        offset = conf->pvec[indexBase2].pos;
-        dist.scale(0.5);
-        offset += dist;
-        dist.scale(2.0);
-
-        minimum=999.9;
-        for(unsigned int q=0; q<conf->pvec.size(); q++) {
-            min = offset;
-            min -= conf->pvec[q].pos;
-            if(sqrt(min.dot(min)) < minimum) {
-                index = q;
-                minimum = sqrt(min.dot(min));
-            }
-        }
-        a = conf->pvec[result].pos - conf->pvec[index].pos;
-        b = conf->pvec[indexBase2].pos - conf->pvec[index].pos;
-
-
-
-        sinFi = (a.cross(b)).size() / (a.size() * b.size());
-
-        dist *= 30.0;
-        r = dist.size() / (2*sinFi);
-
-        if(r < r_min2) {
-            dist2 = dist;
-            r_min2 = r;
-            fi_max2=sinFi;
-            index_fi_max2 = result;
-            mid2 = index;
-        }
-    }
-
-
-
-    //cout << index_fi_max2 << " " << indexBase2 << endl;
-    //cout << "dist=" << dist2.size() << " r=" <<r_min2 << " Fi: " << 180- asin(fi_max2)*57.2957795 << "\n" << endl;
-
-    //cout << "angle dist1, dist2 = " << asin((dist1.cross(dist2)).size() / (dist1.size() * dist2.size()))*57.2957795 << endl;
-
-    r1 = r_min;
-    r2 = r_min2;
-    fi = asin((dist1.cross(dist2)).size() / (dist1.size() * dist2.size()))*57.2957795;
 }
 
 
