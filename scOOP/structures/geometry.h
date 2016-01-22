@@ -61,18 +61,6 @@ public:
     }
 
     /**
-     * @brief usePBC
-     * Function normalise vector by box size to fit in range [0;1].
-     * In other words distnaces or positions in real coordinates are translated into internal coordinates which are normalised by box size.
-     * @param vec - pointer to vector in real coordinates
-     */
-    void usePBC( Vector &vec ){
-        vec.x /= box.x;
-        vec.y /= box.y;
-        vec.z /= box.z;
-    }
-
-    /**
      * @brief use of periodic boundary conditions range 0 - box.particular
      * @param part
      */

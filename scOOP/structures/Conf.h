@@ -340,7 +340,11 @@ public:
         std::vector<int>::iterator first = mol->begin();
         for ( std::vector<int>::iterator it = first+1 ; it != mol->end() ; ++it ){
             r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*first)].pos );
-            geo.usePBC( r_cm );
+
+            r_cm.x /= geo.box.x;
+            r_cm.y /= geo.box.y;
+            r_cm.z /= geo.box.z;
+
             pvec[(*it)].pos = pvec[(*first)].pos + r_cm;
         }
     }
