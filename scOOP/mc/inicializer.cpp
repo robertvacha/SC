@@ -466,7 +466,8 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         conf->geo.usePBC(&pvec[i]);
 #else
         // for compatibility unfortunately
-        conf->geo.usePBC(&pvec[i]);
+        //conf->geo.usePBC2(&pvec[i]); // range 0 - 1
+        conf->geo.usePBC(&pvec[i]); // range -0.5 - 0.5
 
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
@@ -663,7 +664,7 @@ void Inicializer::initGroupLists() {
                 }
 
                 empty = false;
-                cout << type << "=" << i << endl;
+                //cout << type << "=" << i << endl;
                 break;
             }
             i++;
@@ -675,9 +676,9 @@ void Inicializer::initGroupLists() {
 
     conf->pvec.first[conf->pvec.molTypeCount] = conf->pvec.size();
 
-    for(int type=0; type<conf->pvec.molTypeCount; type++) {
+    /*for(int type=0; type<conf->pvec.molTypeCount; type++) {
         cout << conf->pvec.first[type] << " " << conf->pvec.molCountOfType(type) << endl;
-    }
+    }*/
     conf->pvec.calcChainCount();
 
     //test grouplist consistency

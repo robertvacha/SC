@@ -8,7 +8,7 @@
 #endif
 
 //#define EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION // eCpscCpsc, all CPSC
-//#define E_ISO 5.87
+//#define E_ISO 5.5
 
 //
 //  for assert() -> if NDEBUG defined assert not compiled

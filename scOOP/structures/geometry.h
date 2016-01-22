@@ -36,7 +36,7 @@ public:
     }
 
     /**
-     * @brief use of periodic boundary conditions
+     * @brief use of periodic boundary conditions range -0.5*box.particular - 0.5*box.particular
      * @param pos
      * @param pbc
      */ 
@@ -60,6 +60,32 @@ public:
             part->pos.z -= box.z;
         } while (part->pos.z > box.z);
     }
+
+    /**
+     * @brief use of periodic boundary conditions range 0 - box.particular
+     * @param part
+     */
+    void usePBC2(Particle *part) {
+        while (part->pos.x < 0.0) {
+            part->pos.x += box.x;
+        }
+        while (part->pos.x > box.x) {
+            part->pos.x -= box.x;
+        }
+        while (part->pos.y < 0.0) {
+            part->pos.y += box.y;
+        }
+        while (part->pos.y > box.y) {
+            part->pos.y -= box.y;
+        }
+        while (part->pos.z < 0.0) {
+            part->pos.z += box.z;
+        }
+        while (part->pos.z > box.z) {
+            part->pos.z -= box.z;
+        }
+    }
+
 
     /**
      * @brief Returns the vector pointing from the centre of mass of particle 2 to the

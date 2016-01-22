@@ -80,6 +80,10 @@ public:
         return Vector(x-o.x, y-o.y,z-o.z);
     }
 
+    inline Vector operator+ (const Vector& o) const {
+        return Vector(x+o.x, y+o.y,z+o.z);
+    }
+
     inline void operator-= (const Vector& o) {
         x-=o.x;
         y-=o.y;
