@@ -11,7 +11,7 @@ class MoleculeParams
 {
 public:
     char * name;        ///< \brief name of the molecule
-
+    int molType;
     double bond1eq;     ///< \brief Equilibrium distance of harmonic bond between nearest neighbours
     double bond1c;      ///< \brief Spring constant for harmonic bond between nearest neighbours
 

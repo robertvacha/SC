@@ -647,26 +647,46 @@ void Inicializer::initGroupLists() {
         cout << "Generating GroupLists..." << endl;
 
     // setGroupList;
-    int type=0;
+    conf->pvec.molTypeCount = 0;
+    while(topo.moleculeParam[conf->pvec.molTypeCount].name != NULL) { // get all types
+        //cout << topo.moleculeParam[conf->pvec.molTypeCount].name << " " << topo.moleculeParam[conf->pvec.molTypeCount].molType << endl;
+        conf->pvec.molTypeCount++;
+    }
 
-    while(topo.moleculeParam[type].name != NULL) { // get all types
-        for(unsigned int i = 0; i < conf->pvec.size(); i++) {
-//            if(type < conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
-            if(type == conf->pvec[i].molType) {
-//                type = conf->pvec[i].molType;
-                conf->pvec.first[conf->pvec[i].molType] = i;
+    // Set first of each type
+    int i=0;
+    bool empty = true;
+    int count=0;
+    conf->pvec.first[0] = 0;
+    for(int type=0; type < conf->pvec.molTypeCount; type++) {
+        empty = true;
+        count = 0;
+        while(i < conf->pvec.size()) {
+            if(type == conf->pvec[i].molType) { // note: we arent searching for molType of particle, could be 0 particles
+                conf->pvec.first[type] = i;
+
+                // FIX all others empty after this one
+                for(unsigned int j=i; j<conf->pvec.size(); j++) {
+                    if(type == conf->pvec[j].molType)
+                        count++;
+                }
+                for(int j = type+1; j < conf->pvec.molTypeCount; j++) {
+                    conf->pvec.first[j] = i+count;
+                }
+
+                empty = false;
+                //cout << type << "=" << i << endl;
                 break;
             }
-            // FIX for situation
-            // A X>0
-            // B 0
-            if(type !=0 && (i+1) == conf->pvec.size())
-                conf->pvec.first[type] = conf->pvec.size();
+            i++;
         }
-        type++;
+        if(empty) {
+            i=conf->pvec.first[type];
+        }
     }
-    conf->pvec.molTypeCount = type;
-    conf->pvec.first[type] = conf->pvec.size();
+
+    conf->pvec.first[conf->pvec.molTypeCount] = conf->pvec.size();
+
     conf->pvec.calcChainCount();
 
     //test grouplist consistency
