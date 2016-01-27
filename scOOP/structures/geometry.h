@@ -37,40 +37,37 @@ public:
 
     /**
      * @brief Use of periodic boundary conditions on Particle
-     * @param pos
-     * @param pbc
+     * Function return particle back in central box
+     * @param part
      */ 
     void usePBC(Particle *part) {
-        while ( part->pos.x < 0.0 ) {
-            part->pos.x += 1.0;
-        }
-        while ( part->pos.x > 1.0 ) {
-            part->pos.x -= 1.0;
-        }
-        while ( part->pos.y < 0.0 ) {
-            part->pos.y += 1.0;
-        }
-        while ( part->pos.y > 1.0 ) {
-            part->pos.y -= 1.0;
-        }
-        while ( part->pos.z < 0.0 ) {
-            part->pos.z += 1.0;
-        }
-        while ( part->pos.z > 1.0 ) {
-            part->pos.z -= 1.0;
-        }
+        usePBC(part->pos);
     }
 
     /**
      * @brief usePBC
-     * Function normalise vector by box size to fit in range [0;1].
-     * In other words distnaces or positions in real coordinates are translated into internal coordinates which are normalised by box size.
-     * @param vec - pointer to vector in real coordinates
+     * Function take point in reduce coordinate space and then put point (vector) in central box
+     * @param vec - reference to vector in real coordinates
      */
     void usePBC( Vector &vec ){
-        vec.x /= box.x;
-        vec.y /= box.y;
-        vec.z /= box.z;
+        while ( vec.x < 0.0 ) {
+            vec.x += 1.0;
+        }
+        while ( vec.x > 1.0 ) {
+            vec.x -= 1.0;
+        }
+        while ( vec.y < 0.0 ) {
+            vec.y += 1.0;
+        }
+        while ( vec.y > 1.0 ) {
+            vec.y -= 1.0;
+        }
+        while ( vec.z < 0.0 ) {
+            vec.z += 1.0;
+        }
+        while ( vec.z > 1.0 ) {
+            vec.z -= 1.0;
+        }
     }
 
     /**

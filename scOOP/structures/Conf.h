@@ -339,7 +339,9 @@ public:
         Vector r_cm;
         for ( std::vector<int>::iterator it = mol->begin()+1 ; it != mol->end() ; ++it ){
             r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*(it-1))].pos );
-            geo.usePBC( r_cm );
+            r_cm.x/=geo.box.x;//Image function return distance in real space so we need to get back in internal coordinates [0:1]
+            r_cm.y/=geo.box.y;
+            r_cm.z/=geo.box.z;
             pvec[(*it)].pos = pvec[(*(it-1))].pos + r_cm;
         }
     }
