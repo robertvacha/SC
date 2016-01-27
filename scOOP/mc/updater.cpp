@@ -745,7 +745,6 @@ int Updater::sortClusterList() {
         exit(1);
     }
 
-    for(int i = 0; i < sim->max_clust; i++){
     for(int i = 0; i < sim->max_clust; i++) {
         sim->clusterstat[i] = 0;
     }
