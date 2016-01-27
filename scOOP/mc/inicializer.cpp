@@ -373,7 +373,7 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
 
     if(myGetLine(&line, &line_size, *infile) == -1){
-        fprintf (stderr, "ERROR: Could not read box size1.\n\n");
+        fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
         return false;
     }
     strip_comment(line);
@@ -465,6 +465,10 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
         conf->geo.usePBC(&pvec[i]);
 #else
+
+        // for compatibility unfortunately
+        //conf->geo.usePBC2(&pvec[i]); // range 0 - 1
+
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
         pvec[i].pos.z /= conf->geo.box.z;
@@ -1267,6 +1271,7 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         if(j==0) {
             topo.moleculeParam[i].name = (char*) malloc(strlen(molname)+1);
             strcpy(topo.moleculeParam[i].name, molname);
+            topo.moleculeParam[i].molType = i;
         }
 
         topo.moleculeParam[i].particleTypes.push_back(molecules[i].type[j]);
