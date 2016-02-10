@@ -1,6 +1,7 @@
 #include "updater.h"
 
 #include <iomanip>
+#include <algorithm>
 
 void Updater::emptyFiles() {
 
@@ -806,6 +807,12 @@ int Updater::sameCluster(long fst, long snd) {
     /*cluster is made of attractively interacting particles*/
     /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
             struct topo * topo, struct conf * conf); Redeclaration*/
+
+    /*Here we add particle into cluster if particles fst and snd are from same molecule*/
+    Molecule fstMol = conf->pvec.getMolOfPart(fst);
+    if( std::find(fstMol.begin(), fstMol.end(), snd) != fstMol.end() ){
+        return true;
+    }
 
     if(calcEnergy.p2p(fst, snd) > -0.10 ) {
         return false;

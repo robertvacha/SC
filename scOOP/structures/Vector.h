@@ -229,6 +229,12 @@ public:
         return Vector(-input.y, input.x, 0.0);
     }
 
+    static inline Vector getOrthogonalVector( Vector inDirection, Vector withRespectTo ){
+        Vector axis;
+        axis = inDirection.cross(withRespectTo);
+        return axis.cross(inDirection);
+    }
+
     static inline Vector getRandomOrthogonalVector(Vector input){
         Vector  vec = getOrthogonalVector(input);               // get orthogonal vector to input vector
 

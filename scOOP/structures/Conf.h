@@ -335,17 +335,14 @@ public:
      * In other words function restore Molecule to be in one pice if molecule were broken by using PBC.
      * @param *mol
      */
-    void makeMoleculeWhole( Molecule *mol ){
+    void makeMoleculeWhole( Molecule *mol ){ // BACHA POKUD JE mol->size() == 0 TAK SE SAHA NA NEPLATNOU PAMET !!!
         Vector r_cm;
-        std::vector<int>::iterator first = mol->begin();
-        for ( std::vector<int>::iterator it = first+1 ; it != mol->end() ; ++it ){
-            r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*first)].pos );
-
-            r_cm.x /= geo.box.x;
-            r_cm.y /= geo.box.y;
-            r_cm.z /= geo.box.z;
-
-            pvec[(*it)].pos = pvec[(*first)].pos + r_cm;
+        for ( std::vector<int>::iterator it = mol->begin()+1 ; it != mol->end() ; ++it ){
+            r_cm = geo.image( &pvec[(*it)].pos, &pvec[(*(it-1))].pos );
+            r_cm.x/=geo.box.x;//Image function return distance in real space so we need to get back in internal coordinates [0:1]
+            r_cm.y/=geo.box.y;
+            r_cm.z/=geo.box.z;
+            pvec[(*it)].pos = pvec[(*(it-1))].pos + r_cm;
         }
     }
 
