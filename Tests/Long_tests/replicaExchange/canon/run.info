@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job_info>
+    <infinity version="INFINITY_INFO_v_2_0" site="{ROBOX:ca923bb5-d4ed-42a3-a709-a4aae64d7931}" server="robox.ncbr.muni.cz"/>
+    <basic timedate="1456145617" stimedate="2016-02-22 13:53:37">
+        <external>
+            <item name="INF_EXTERNAL_NAME_SUFFIX" value=""/>
+            <item name="INF_EXTERNAL_VARIABLES" value=""/>
+            <item name="INF_EXTERNAL_START_AFTER" value=""/>
+        </external>
+        <arguments>
+            <item name="INF_ARG_DESTINATION" value="long"/>
+            <item name="INF_ARG_JOB" value="run"/>
+            <item name="INF_ARG_RESOURCES" value="ncpus=4"/>
+            <item name="INF_ARG_SYNC_MODE" value=""/>
+        </arguments>
+        <jobinput>
+            <item name="INF_JOB_PATH" value="/home/xsukenik/git/SC/SC/Tests/Long_tests/replicaExchange/canon"/>
+            <item name="INF_JOB_MACHINE" value="lop.ncbr.muni.cz"/>
+            <item name="INF_JOB_NAME" value="run"/>
+            <item name="INF_JOB_TYPE" value="generic"/>
+            <item name="INF_EXCLUDED_FILES" value=""/>
+            <item name="INF_JOB_PROJECT" value=""/>
+            <item name="INF_JOB_TITLE" value="run"/>
+            <item name="INF_JOB_KEY" value="bf9141f7-87b9-3236-5762-b58cca2cdb94"/>
+        </jobinput>
+        <modules>
+            <item name="INF_EXPORTED_MODULES" value=""/>
+        </modules>
+    </basic>
+    <specific>
+        <resources>
+            <item name="INF_UGROUP" value="students"/>
+            <item name="INF_UMASK" value="022"/>
+            <item name="INF_FS_TYPE" value="consistent"/>
+            <item name="INF_ALIAS" value="long"/>
+            <item name="INF_ALIAS_RESOURCES" value="props=student"/>
+            <item name="INF_ALIAS_SYNC_MODE" value="sync"/>
+            <item name="INF_DEFAULT_RESOURCES" value="maxcpuspernode=4"/>
+            <item name="INF_QUEUE" value="long"/>
+            <item name="INF_NCPU" value="4"/>
+            <item name="INF_NGPU" value="0"/>
+            <item name="INF_MAX_CPUS_PER_NODE" value="4"/>
+            <item name="INF_NNODE" value="1"/>
+            <item name="INF_RESOURCES" value="nodes=1:ppn=4:student,ncpus=4,props=student,maxcpuspernode=4"/>
+            <item name="INF_SURROGATE_MACHINE" value="lop.ncbr.muni.cz"/>
+            <item name="INF_SYNC_MODE" value="sync"/>
+            <item name="INF_SCRATCH_TYPE" value="local"/>
+            <item name="INF_UGROUP_REALM" value=""/>
+            <item name="INF_UGROUP_ORIG" value=""/>
+        </resources>
+    </specific>
+    <submit timedate="1456145617" stimedate="2016-02-22 13:53:37">
+        <job>
+            <item name="INF_JOB_ID" value="2957.robox.ncbr.muni.cz"/>
+        </job>
+    </submit>
+    <start timedate="1456145622" stimedate="2016-02-22 13:53:42">
+        <workdir>
+            <item name="INF_MAIN_NODE" value="robox2.ncbr.muni.cz"/>
+            <item name="INF_WORK_DIR" value="/scratch/xsukenik/2957.robox.ncbr.muni.cz/main"/>
+        </workdir>
+        <nodes>
+            <node name="robox2.ncbr.muni.cz"/>
+            <node name="robox2.ncbr.muni.cz"/>
+            <node name="robox2.ncbr.muni.cz"/>
+            <node name="robox2.ncbr.muni.cz"/>
+        </nodes>
+        <gpus/>
+    </start>
+    <stop timedate="1456173613" stimedate="2016-02-22 21:40:13">
+        <result>
+            <item name="INF_JOB_EXIT_CODE" value="0"/>
+        </result>
+    </stop>
+</job_info>

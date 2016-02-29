@@ -1,0 +1,103 @@
+Using RAN2 random generator
+
+Patchy Spherocylinders version 3.6
+-------------------------------------
+Reading options...
+ Pressure coupling type:                             1
+ Pressure:                                           0.00000000
+ Replica exchange pressure:                          0.00000000
+ Average volume change attempts per sweep:           0.00000000
+ Equilibration sweeps:                               0
+ Sweeps between step size adjustments:               0
+ Production sweeps:                                  30000000
+ Sweeps between statistics samples:                  50000
+ Sweeps between statistics reports:                  50000
+ Average chain move attempts per sweep:              0.00000000
+ Initial maximum displacement:                       0.01000000
+ Inititial maximum angular change (degrees):         1.00000000
+ Inititial maximum angular cone angle (degrees):     0.00000000
+ Inititial maximum geo.box edge change:              0.00000000
+ Initial maximum chain displacement:                 0.00000000
+ Inititial maximum chain angular change (degrees):   0.00000000
+ Temperature in kT/e:                                0.24426000
+ Parallel tempering temperature in kT/e:             0.28426000
+ Sweeps between replica exchange:                    0
+ Sweeps between Grand-Canonical move:                0
+ Sweeps between Cluster moves:                       1
+ Wang-Landau method:                                 0 0
+ Calculate the Wang-Landau method for atom type:     0
+ Average type switch attempts per sweep:             0.00000000
+ Number of Sweeps per pairlist update:               0
+ Random number seed:                                 196150684
+ Number of sweeps per writing out cluster info:      50000
+ Sweeps between movie frames:                      50000
+
+Reading topology...
+Species:
+Fields:11 0
+Topology read of 1:        A (geotype: CPSC, 13) with parameters 1.33333 1.2 | 1.34695 0.3 | 60 5 | 0 
+
+Topology read for molecule: A 
+particle 1: 	1 
+system:  A 164
+
+Topology succesfully read. Generating pair interactions...
+Generating GroupLists...
+
+Reading configuration...
+Box: (20, 20, 20)
+Equilibration of maximum step sizes: 0 sweeps
+
+Initializing energy functions...
+Production run:  30000000 sweeps
+
+sweep: 3000000 particles: 164 drift: -1.00044e-11
+InteractionEnergy: -327.931, sweeps per hour: 4.01733e+06
+
+sweep: 6000000 particles: 164 drift: -2.63753e-11
+InteractionEnergy: -331.606, sweeps per hour: 4.00562e+06
+
+sweep: 9000000 particles: 164 drift: -4.36557e-11
+InteractionEnergy: -354.068, sweeps per hour: 4.0005e+06
+
+sweep: 12000000 particles: 164 drift: -2.54659e-11
+InteractionEnergy: -371.383, sweeps per hour: 4.05981e+06
+
+sweep: 15000000 particles: 164 drift: -1.36424e-11
+InteractionEnergy: -341.659, sweeps per hour: 4.12284e+06
+
+sweep: 18000000 particles: 164 drift: -1.27329e-11
+InteractionEnergy: -317.811, sweeps per hour: 4.13589e+06
+
+sweep: 21000000 particles: 164 drift: -1.09139e-11
+InteractionEnergy: -375.379, sweeps per hour: 4.12731e+06
+
+sweep: 24000000 particles: 164 drift: -2.00089e-11
+InteractionEnergy: -370.466, sweeps per hour: 4.13854e+06
+
+sweep: 27000000 particles: 164 drift: -2.00089e-11
+InteractionEnergy: -339.611, sweeps per hour: 4.13084e+06
+
+sweep: 30000000 particles: 164 drift: -1.63709e-11
+InteractionEnergy: -352.46, sweeps per hour: 4.12525e+06
+
+Energy drift: -1.63709e-11 
+Starting energy+pv: -6335.54617004 
+Starting energy: -301.40108453 
+Ending energy: -352.45655971 
+
+
+******************************************************************************
+*                               Moves Statistics                             *
+******************************************************************************
+Move                          Acc (%)   Rej (%)   Steps     
+System:
+A 164
+
+Simulation time:2.6e+04 s
+PairList generation time:0 %
+
+DONE
+Deallocating Conf...
+Deallocating Sim...
+Deallocating Topo...

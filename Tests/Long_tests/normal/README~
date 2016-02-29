@@ -1,0 +1,11 @@
+System averages test, the percentage of monomers, dimers, trimers ...
+
+Should be same for all simulations
+
+Grand_single - muVTmove() + ParticleMove()
+new - ParticleMove()
+new_switch - ParticleMove() + switchTypeMove()
+
+Same but for *.c version
+old
+old_switch

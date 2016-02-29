@@ -1,0 +1,13 @@
+System averages test, the percentage of monomers, dimers, trimers ...
+
+Grand_single - muVTmove() + ParticleMove()
+new - ParticleMove()
+old - ParticleMove() for *.c version
+cluster - ParticleMove() + clusterMove()
+
+chainNew - ParticleMove() + chainMove()
+chainOld - ParticleMove() + chainMove() for *.c version
+
+
+new_switch - ParticleMove() + switchTypeMove()
+old_switch - ParticleMove() + switchTypeMove() for *.c version

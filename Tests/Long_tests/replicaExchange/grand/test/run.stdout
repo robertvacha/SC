@@ -1,0 +1,178 @@
+MPI SIMULATION
+MPI SIMULATION
+MPI SIMULATION
+
+Patchy Spherocylinders version 3.6
+
+Patchy Spherocylinders version 3.6
+-------------------------------------
+-------------------------------------
+
+Patchy Spherocylinders version 3.6
+-------------------------------------
+MPI SIMULATION
+
+Patchy Spherocylinders version 3.6
+-------------------------------------
+ MPI versionReading options...
+ Pressure coupling type:                             1
+ Pressure:                                           0.00000000
+ Replica exchange pressure:                          0.00000000
+ Average volume change attempts per sweep:           0.00000000
+ Equilibration sweeps:                               0
+ Sweeps between step size adjustments:               0
+ MPI versionReading topology...
+ MPI versionReading topology...
+Species:
+ Production sweeps:                                  30000000
+ Sweeps between statistics samples:                  50000
+ Sweeps between statistics reports:                  50000
+ Average chain move attempts per sweep:              0.00000000
+Species:
+ Initial maximum displacement:                       0.05000000
+ Inititial maximum angular change (degrees):         7.50000000
+ Inititial maximum angular cone angle (degrees):     0.00000000
+ Inititial maximum geo.box edge change:              0.00000000
+ Initial maximum chain displacement:                 0.00000000
+ Inititial maximum chain angular change (degrees):   0.00000000
+ Temperature in kT/e:                                0.24426000
+ Parallel tempering temperature in kT/e:             0.28426000
+ Sweeps between replica exchange:                    100000
+ Sweeps between Grand-Canonical move:                100
+ Sweeps between Cluster moves:                       0
+ Wang-Landau method:                                 0 0
+ Calculate the Wang-Landau method for atom type:     0
+ Average type switch attempts per sweep:             0.00000000
+ Number of Sweeps per pairlist update:               0
+ Random number seed:                                 196150684
+ Number of sweeps per writing out cluster info:      50000
+ Sweeps between movie frames:                      50000
+Fields:11 0
+Fields:11 0
+
+Topology read of 1:        A (geotype: CPSC, 13) with parameters 1.33333 1.2 | 1.34695 0.3 | 60 5 | 0 
+Topology read of 1:        A (geotype: CPSC, 13) with parameters 1.33333 1.2 | 1.34695 0.3 | 60 5 | 0 
+
+
+Topology read for molecule: A 
+Topology read for molecule: A 
+Reading topology...
+Species:
+particle 1: 	1 
+particle 1: 	1 
+activity: 0.007000 
+activity: 0.007000 
+system:  A 172
+system:  A 172
+
+Topology succesfully read. Generating pair interactions...
+
+Topology succesfully read. Generating pair interactions...
+Fields:11 0
+Topology read of 1:        A (geotype: CPSC, 13) with parameters 1.33333 1.2 | 1.34695 0.3 | 60 5 | 0 
+
+Topology read for molecule: A 
+Generating GroupLists...
+particle 1: 	1 
+Generating GroupLists...
+Probability to switch replicas is roughly: 0.985026
+activity: 0.007000 
+system:  A 172
+Probability to switch replicas is roughly: 0.985026
+
+Topology succesfully read. Generating pair interactions...
+
+Reading configuration...
+
+Reading configuration...
+Generating GroupLists...
+Probability to switch replicas is roughly: 0.985026
+ MPI versionReading topology...
+
+Reading configuration...
+Species:
+Fields:11 0
+Topology read of 1:        A (geotype: CPSC, 13) with parameters 1.33333 1.2 | 1.34695 0.3 | 60 5 | 0 
+
+Topology read for molecule: A 
+particle 1: 	1 
+activity: 0.007000 
+system:  A 172
+
+Topology succesfully read. Generating pair interactions...
+Generating GroupLists...
+Probability to switch replicas is roughly: 0.985026
+
+Reading configuration...
+Box: (20, 20, 20)
+Box: (20, 20, 20)
+Equilibration of maximum step sizes: 0 sweeps
+Equilibration of maximum step sizes: 0 sweeps
+Box: (20, 20, 20)
+Equilibration of maximum step sizes: 0 sweeps
+Box: (20, 20, 20)
+Equilibration of maximum step sizes: 0 sweeps
+
+Initializing energy functions...
+
+Initializing energy functions...
+
+Initializing energy functions...
+Production run:  30000000 sweeps
+
+Production run:  30000000 sweeps
+
+Production run:  30000000 sweeps
+
+
+Initializing energy functions...
+Production run:  30000000 sweeps
+
+3 Energy drift: 3.10956e-09 
+System:
+A 82
+3p, MPI replica changeT / changeP / acceptance ratio: 0.0133333, 0, 0.00666667
+2 Energy drift: 6.80575e-09 
+System:
+A 96
+2p, MPI replica changeT / changeP / acceptance ratio: 0.0133333, 0, 0.01
+1 Energy drift: 4.50746e-09 
+System:
+A 125
+1p, MPI replica changeT / changeP / acceptance ratio: 0.0133333, 0, 0.00666667
+0 Energy drift: 2.34559e-09 
+System:
+A 159
+0p, MPI replica changeT / changeP / acceptance ratio: 0.0133333, 0, 0
+
+Simulation time:31317.1 s
+PairList generation time:0 %
+
+
+DONE
+Deallocating Conf...
+Simulation time:31334.1 s
+PairList generation time:0 %
+
+DONE
+Deallocating Conf...
+
+Simulation time:31327 s
+PairList generation time:0 %
+
+DONE
+Deallocating Conf...
+Deallocating Sim...
+Deallocating Sim...
+Deallocating Topo...
+Deallocating Topo...
+Deallocating Sim...
+Deallocating Topo...
+
+Simulation time:31332.9 s
+PairList generation time:0 %
+
+DONE
+Deallocating Conf...
+Deallocating Sim...
+Deallocating Topo...

@@ -1,0 +1,2413 @@
+Sweep: 50000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 100000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 150000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 200000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 250000 | Maximal size: 3
+    1	   16
+    2	   62
+    3	    8
+Sweep: 300000 | Maximal size: 3
+    1	   16
+    2	   65
+    3	    6
+Sweep: 350000 | Maximal size: 3
+    1	   13
+    2	   68
+    3	    5
+Sweep: 400000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 450000 | Maximal size: 3
+    1	   10
+    2	   68
+    3	    6
+Sweep: 500000 | Maximal size: 3
+    1	   15
+    2	   67
+    3	    5
+Sweep: 550000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 600000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 650000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 700000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 750000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 800000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 850000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 900000 | Maximal size: 3
+    1	    4
+    2	   62
+    3	   12
+Sweep: 950000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 1000000 | Maximal size: 3
+    1	   15
+    2	   55
+    3	   13
+Sweep: 1050000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 1100000 | Maximal size: 3
+    1	   14
+    2	   66
+    3	    6
+Sweep: 1150000 | Maximal size: 3
+    1	    3
+    2	   70
+    3	    7
+Sweep: 1200000 | Maximal size: 3
+    1	    3
+    2	   67
+    3	    9
+Sweep: 1250000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 1300000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 1350000 | Maximal size: 3
+    1	   14
+    2	   54
+    3	   14
+Sweep: 1400000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 1450000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 1500000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 1550000 | Maximal size: 4
+    1	   14
+    2	   58
+    3	   10
+    4	    1
+Sweep: 1600000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 1650000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 1700000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 1750000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 1800000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 1850000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 1900000 | Maximal size: 3
+    1	   13
+    2	   68
+    3	    5
+Sweep: 1950000 | Maximal size: 3
+    1	   12
+    2	   67
+    3	    6
+Sweep: 2000000 | Maximal size: 3
+    1	   12
+    2	   70
+    3	    4
+Sweep: 2050000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 2100000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 2150000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 2200000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 2250000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 2300000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 2350000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 2400000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 2450000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 2500000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 2550000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 2600000 | Maximal size: 3
+    1	    4
+    2	   62
+    3	   12
+Sweep: 2650000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 2700000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 2750000 | Maximal size: 3
+    1	    6
+    2	   58
+    3	   14
+Sweep: 2800000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 2850000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 2900000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 2950000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 3000000 | Maximal size: 3
+    1	    5
+    2	   60
+    3	   13
+Sweep: 3050000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 3100000 | Maximal size: 3
+    1	   14
+    2	   54
+    3	   14
+Sweep: 3150000 | Maximal size: 3
+    1	   19
+    2	   53
+    3	   13
+Sweep: 3200000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 3250000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 3300000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 3350000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 3400000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 3450000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 3500000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 3550000 | Maximal size: 3
+    1	   18
+    2	   58
+    3	   10
+Sweep: 3600000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 3650000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 3700000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 3750000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 3800000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 3850000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 3900000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 3950000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 4000000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 4050000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 4100000 | Maximal size: 4
+    1	    7
+    2	   63
+    3	    9
+    4	    1
+Sweep: 4150000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 4200000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 4250000 | Maximal size: 5
+    1	   10
+    2	   61
+    3	    9
+    4	    0
+    5	    1
+Sweep: 4300000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 4350000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 4400000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 4450000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 4500000 | Maximal size: 3
+    1	   12
+    2	   55
+    3	   14
+Sweep: 4550000 | Maximal size: 3
+    1	   16
+    2	   50
+    3	   16
+Sweep: 4600000 | Maximal size: 3
+    1	   10
+    2	   50
+    3	   18
+Sweep: 4650000 | Maximal size: 3
+    1	    7
+    2	   53
+    3	   17
+Sweep: 4700000 | Maximal size: 3
+    1	    8
+    2	   54
+    3	   16
+Sweep: 4750000 | Maximal size: 3
+    1	    6
+    2	   55
+    3	   16
+Sweep: 4800000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 4850000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 4900000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 4950000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 5000000 | Maximal size: 3
+    1	    5
+    2	   57
+    3	   15
+Sweep: 5050000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 5100000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 5150000 | Maximal size: 3
+    1	   18
+    2	   58
+    3	   10
+Sweep: 5200000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 5250000 | Maximal size: 3
+    1	   15
+    2	   58
+    3	   11
+Sweep: 5300000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 5350000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 5400000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 5450000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 5500000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 5550000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 5600000 | Maximal size: 3
+    1	   16
+    2	   65
+    3	    6
+Sweep: 5650000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 5700000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 5750000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 5800000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 5850000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 5900000 | Maximal size: 3
+    1	   15
+    2	   64
+    3	    7
+Sweep: 5950000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 6000000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 6050000 | Maximal size: 3
+    1	   11
+    2	   69
+    3	    5
+Sweep: 6100000 | Maximal size: 3
+    1	    7
+    2	   71
+    3	    5
+Sweep: 6150000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 6200000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 6250000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 6300000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 6350000 | Maximal size: 3
+    1	   17
+    2	   66
+    3	    5
+Sweep: 6400000 | Maximal size: 3
+    1	    8
+    2	   72
+    3	    4
+Sweep: 6450000 | Maximal size: 3
+    1	    5
+    2	   69
+    3	    7
+Sweep: 6500000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 6550000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 6600000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 6650000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 6700000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 6750000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 6800000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 6850000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 6900000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 6950000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 7000000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 7050000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 7100000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 7150000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 7200000 | Maximal size: 3
+    1	   17
+    2	   60
+    3	    9
+Sweep: 7250000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 7300000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 7350000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 7400000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 7450000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 7500000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 7550000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 7600000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 7650000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 7700000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 7750000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 7800000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 7850000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 7900000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 7950000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 8000000 | Maximal size: 3
+    1	    4
+    2	   65
+    3	   10
+Sweep: 8050000 | Maximal size: 3
+    1	    5
+    2	   63
+    3	   11
+Sweep: 8100000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 8150000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 8200000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 8250000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 8300000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 8350000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 8400000 | Maximal size: 4
+    1	   11
+    2	   67
+    3	    5
+    4	    1
+Sweep: 8450000 | Maximal size: 3
+    1	    7
+    2	   71
+    3	    5
+Sweep: 8500000 | Maximal size: 3
+    1	    8
+    2	   75
+    3	    2
+Sweep: 8550000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 8600000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 8650000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 8700000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 8750000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 8800000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 8850000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 8900000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 8950000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 9000000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 9050000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 9100000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 9150000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 9200000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 9250000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 9300000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 9350000 | Maximal size: 3
+    1	   15
+    2	   58
+    3	   11
+Sweep: 9400000 | Maximal size: 3
+    1	   16
+    2	   56
+    3	   12
+Sweep: 9450000 | Maximal size: 3
+    1	   16
+    2	   59
+    3	   10
+Sweep: 9500000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 9550000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 9600000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 9650000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 9700000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 9750000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 9800000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 9850000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 9900000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 9950000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 10000000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 10050000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 10100000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 10150000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 10200000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 10250000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 10300000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 10350000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 10400000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 10450000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 10500000 | Maximal size: 3
+    1	    9
+    2	   55
+    3	   15
+Sweep: 10550000 | Maximal size: 3
+    1	   10
+    2	   53
+    3	   16
+Sweep: 10600000 | Maximal size: 3
+    1	   11
+    2	   51
+    3	   17
+Sweep: 10650000 | Maximal size: 3
+    1	   10
+    2	   53
+    3	   16
+Sweep: 10700000 | Maximal size: 3
+    1	   16
+    2	   53
+    3	   14
+Sweep: 10750000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 10800000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 10850000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 10900000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 10950000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 11000000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 11050000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 11100000 | Maximal size: 3
+    1	   16
+    2	   62
+    3	    8
+Sweep: 11150000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 11200000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 11250000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 11300000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 11350000 | Maximal size: 3
+    1	    8
+    2	   69
+    3	    6
+Sweep: 11400000 | Maximal size: 3
+    1	   10
+    2	   68
+    3	    6
+Sweep: 11450000 | Maximal size: 3
+    1	   12
+    2	   67
+    3	    6
+Sweep: 11500000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 11550000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 11600000 | Maximal size: 3
+    1	    5
+    2	   60
+    3	   13
+Sweep: 11650000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 11700000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 11750000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 11800000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 11850000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 11900000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 11950000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 12000000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 12050000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 12100000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 12150000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 12200000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 12250000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 12300000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 12350000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 12400000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 12450000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 12500000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 12550000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 12600000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 12650000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 12700000 | Maximal size: 3
+    1	    3
+    2	   64
+    3	   11
+Sweep: 12750000 | Maximal size: 3
+    1	    2
+    2	   66
+    3	   10
+Sweep: 12800000 | Maximal size: 3
+    1	    2
+    2	   66
+    3	   10
+Sweep: 12850000 | Maximal size: 3
+    1	   11
+    2	   69
+    3	    5
+Sweep: 12900000 | Maximal size: 3
+    1	   12
+    2	   67
+    3	    6
+Sweep: 12950000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 13000000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 13050000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 13100000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 13150000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 13200000 | Maximal size: 4
+    1	   12
+    2	   65
+    3	    6
+    4	    1
+Sweep: 13250000 | Maximal size: 3
+    1	    9
+    2	   70
+    3	    5
+Sweep: 13300000 | Maximal size: 3
+    1	   11
+    2	   69
+    3	    5
+Sweep: 13350000 | Maximal size: 3
+    1	   10
+    2	   68
+    3	    6
+Sweep: 13400000 | Maximal size: 3
+    1	    5
+    2	   69
+    3	    7
+Sweep: 13450000 | Maximal size: 3
+    1	    5
+    2	   69
+    3	    7
+Sweep: 13500000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 13550000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 13600000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 13650000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 13700000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 13750000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 13800000 | Maximal size: 3
+    1	   16
+    2	   65
+    3	    6
+Sweep: 13850000 | Maximal size: 3
+    1	    7
+    2	   68
+    3	    7
+Sweep: 13900000 | Maximal size: 3
+    1	    3
+    2	   70
+    3	    7
+Sweep: 13950000 | Maximal size: 3
+    1	    4
+    2	   68
+    3	    8
+Sweep: 14000000 | Maximal size: 3
+    1	    4
+    2	   68
+    3	    8
+Sweep: 14050000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 14100000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 14150000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 14200000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 14250000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 14300000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 14350000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 14400000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 14450000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 14500000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 14550000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 14600000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 14650000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 14700000 | Maximal size: 3
+    1	    4
+    2	   65
+    3	   10
+Sweep: 14750000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 14800000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 14850000 | Maximal size: 3
+    1	   12
+    2	   55
+    3	   14
+Sweep: 14900000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 14950000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 15000000 | Maximal size: 3
+    1	    4
+    2	   62
+    3	   12
+Sweep: 15050000 | Maximal size: 3
+    1	    5
+    2	   63
+    3	   11
+Sweep: 15100000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 15150000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 15200000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 15250000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 15300000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 15350000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 15400000 | Maximal size: 3
+    1	   10
+    2	   68
+    3	    6
+Sweep: 15450000 | Maximal size: 3
+    1	    7
+    2	   71
+    3	    5
+Sweep: 15500000 | Maximal size: 3
+    1	    9
+    2	   70
+    3	    5
+Sweep: 15550000 | Maximal size: 3
+    1	   16
+    2	   65
+    3	    6
+Sweep: 15600000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 15650000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 15700000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 15750000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 15800000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 15850000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 15900000 | Maximal size: 3
+    1	   17
+    2	   57
+    3	   11
+Sweep: 15950000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 16000000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 16050000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 16100000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 16150000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 16200000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 16250000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 16300000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 16350000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 16400000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 16450000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 16500000 | Maximal size: 3
+    1	   15
+    2	   67
+    3	    5
+Sweep: 16550000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 16600000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 16650000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 16700000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 16750000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 16800000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 16850000 | Maximal size: 3
+    1	   12
+    2	   55
+    3	   14
+Sweep: 16900000 | Maximal size: 3
+    1	    8
+    2	   54
+    3	   16
+Sweep: 16950000 | Maximal size: 3
+    1	    4
+    2	   59
+    3	   14
+Sweep: 17000000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 17050000 | Maximal size: 3
+    1	   16
+    2	   56
+    3	   12
+Sweep: 17100000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 17150000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 17200000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 17250000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 17300000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 17350000 | Maximal size: 3
+    1	   16
+    2	   62
+    3	    8
+Sweep: 17400000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 17450000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 17500000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 17550000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 17600000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 17650000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 17700000 | Maximal size: 3
+    1	   14
+    2	   69
+    3	    4
+Sweep: 17750000 | Maximal size: 3
+    1	   13
+    2	   68
+    3	    5
+Sweep: 17800000 | Maximal size: 3
+    1	   13
+    2	   68
+    3	    5
+Sweep: 17850000 | Maximal size: 3
+    1	   15
+    2	   67
+    3	    5
+Sweep: 17900000 | Maximal size: 3
+    1	   15
+    2	   67
+    3	    5
+Sweep: 17950000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 18000000 | Maximal size: 3
+    1	   10
+    2	   68
+    3	    6
+Sweep: 18050000 | Maximal size: 3
+    1	    7
+    2	   71
+    3	    5
+Sweep: 18100000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 18150000 | Maximal size: 3
+    1	   19
+    2	   62
+    3	    7
+Sweep: 18200000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 18250000 | Maximal size: 3
+    1	    4
+    2	   65
+    3	   10
+Sweep: 18300000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 18350000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 18400000 | Maximal size: 4
+    1	   11
+    2	   62
+    3	    7
+    4	    2
+Sweep: 18450000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 18500000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 18550000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 18600000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 18650000 | Maximal size: 3
+    1	    4
+    2	   65
+    3	   10
+Sweep: 18700000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 18750000 | Maximal size: 3
+    1	   12
+    2	   64
+    3	    8
+Sweep: 18800000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 18850000 | Maximal size: 4
+    1	    4
+    2	   66
+    3	    8
+    4	    1
+Sweep: 18900000 | Maximal size: 3
+    1	    7
+    2	   68
+    3	    7
+Sweep: 18950000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 19000000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 19050000 | Maximal size: 3
+    1	    3
+    2	   67
+    3	    9
+Sweep: 19100000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 19150000 | Maximal size: 3
+    1	    2
+    2	   66
+    3	   10
+Sweep: 19200000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 19250000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 19300000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 19350000 | Maximal size: 3
+    1	    4
+    2	   62
+    3	   12
+Sweep: 19400000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 19450000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 19500000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 19550000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 19600000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 19650000 | Maximal size: 3
+    1	   14
+    2	   66
+    3	    6
+Sweep: 19700000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 19750000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 19800000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 19850000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 19900000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 19950000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 20000000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 20050000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 20100000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 20150000 | Maximal size: 3
+    1	    7
+    2	   56
+    3	   15
+Sweep: 20200000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 20250000 | Maximal size: 3
+    1	    7
+    2	   56
+    3	   15
+Sweep: 20300000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 20350000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 20400000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 20450000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 20500000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 20550000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 20600000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 20650000 | Maximal size: 3
+    1	   17
+    2	   63
+    3	    7
+Sweep: 20700000 | Maximal size: 3
+    1	   12
+    2	   67
+    3	    6
+Sweep: 20750000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 20800000 | Maximal size: 3
+    1	   16
+    2	   62
+    3	    8
+Sweep: 20850000 | Maximal size: 3
+    1	    9
+    2	   64
+    3	    9
+Sweep: 20900000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 20950000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 21000000 | Maximal size: 3
+    1	   17
+    2	   60
+    3	    9
+Sweep: 21050000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 21100000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 21150000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 21200000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 21250000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 21300000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 21350000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 21400000 | Maximal size: 4
+    1	   15
+    2	   53
+    3	   13
+    4	    1
+Sweep: 21450000 | Maximal size: 4
+    1	   14
+    2	   46
+    3	   18
+    4	    1
+Sweep: 21500000 | Maximal size: 3
+    1	   10
+    2	   53
+    3	   16
+Sweep: 21550000 | Maximal size: 3
+    1	    9
+    2	   52
+    3	   17
+Sweep: 21600000 | Maximal size: 3
+    1	    9
+    2	   55
+    3	   15
+Sweep: 21650000 | Maximal size: 3
+    1	   17
+    2	   48
+    3	   17
+Sweep: 21700000 | Maximal size: 3
+    1	   17
+    2	   48
+    3	   17
+Sweep: 21750000 | Maximal size: 3
+    1	   18
+    2	   49
+    3	   16
+Sweep: 21800000 | Maximal size: 3
+    1	   14
+    2	   48
+    3	   18
+Sweep: 21850000 | Maximal size: 3
+    1	    9
+    2	   52
+    3	   17
+Sweep: 21900000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 21950000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 22000000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 22050000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 22100000 | Maximal size: 3
+    1	   12
+    2	   55
+    3	   14
+Sweep: 22150000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 22200000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 22250000 | Maximal size: 3
+    1	   17
+    2	   57
+    3	   11
+Sweep: 22300000 | Maximal size: 3
+    1	   15
+    2	   58
+    3	   11
+Sweep: 22350000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 22400000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 22450000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 22500000 | Maximal size: 3
+    1	   14
+    2	   54
+    3	   14
+Sweep: 22550000 | Maximal size: 3
+    1	   13
+    2	   53
+    3	   15
+Sweep: 22600000 | Maximal size: 3
+    1	    6
+    2	   58
+    3	   14
+Sweep: 22650000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 22700000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 22750000 | Maximal size: 3
+    1	    9
+    2	   55
+    3	   15
+Sweep: 22800000 | Maximal size: 3
+    1	   14
+    2	   54
+    3	   14
+Sweep: 22850000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 22900000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 22950000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 23000000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 23050000 | Maximal size: 4
+    1	   11
+    2	   55
+    3	   13
+    4	    1
+Sweep: 23100000 | Maximal size: 3
+    1	   16
+    2	   59
+    3	   10
+Sweep: 23150000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 23200000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 23250000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 23300000 | Maximal size: 3
+    1	   15
+    2	   64
+    3	    7
+Sweep: 23350000 | Maximal size: 3
+    1	    9
+    2	   67
+    3	    7
+Sweep: 23400000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 23450000 | Maximal size: 3
+    1	   17
+    2	   63
+    3	    7
+Sweep: 23500000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 23550000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 23600000 | Maximal size: 3
+    1	   14
+    2	   66
+    3	    6
+Sweep: 23650000 | Maximal size: 3
+    1	    9
+    2	   70
+    3	    5
+Sweep: 23700000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 23750000 | Maximal size: 3
+    1	   10
+    2	   65
+    3	    8
+Sweep: 23800000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 23850000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 23900000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 23950000 | Maximal size: 3
+    1	   17
+    2	   60
+    3	    9
+Sweep: 24000000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 24050000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 24100000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 24150000 | Maximal size: 3
+    1	   15
+    2	   55
+    3	   13
+Sweep: 24200000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 24250000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 24300000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 24350000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 24400000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 24450000 | Maximal size: 3
+    1	    5
+    2	   63
+    3	   11
+Sweep: 24500000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 24550000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 24600000 | Maximal size: 3
+    1	   13
+    2	   62
+    3	    9
+Sweep: 24650000 | Maximal size: 3
+    1	   14
+    2	   63
+    3	    8
+Sweep: 24700000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 24750000 | Maximal size: 3
+    1	   11
+    2	   66
+    3	    7
+Sweep: 24800000 | Maximal size: 4
+    1	    8
+    2	   67
+    3	    6
+    4	    1
+Sweep: 24850000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 24900000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 24950000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 25000000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 25050000 | Maximal size: 3
+    1	   14
+    2	   57
+    3	   12
+Sweep: 25100000 | Maximal size: 3
+    1	   15
+    2	   52
+    3	   15
+Sweep: 25150000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 25200000 | Maximal size: 3
+    1	    4
+    2	   59
+    3	   14
+Sweep: 25250000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 25300000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10
+Sweep: 25350000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 25400000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 25450000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 25500000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 25550000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 25600000 | Maximal size: 3
+    1	   15
+    2	   61
+    3	    9
+Sweep: 25650000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 25700000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 25750000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 25800000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 25850000 | Maximal size: 3
+    1	    7
+    2	   53
+    3	   17
+Sweep: 25900000 | Maximal size: 3
+    1	   14
+    2	   51
+    3	   16
+Sweep: 25950000 | Maximal size: 3
+    1	    9
+    2	   49
+    3	   19
+Sweep: 26000000 | Maximal size: 3
+    1	   17
+    2	   48
+    3	   17
+Sweep: 26050000 | Maximal size: 3
+    1	   12
+    2	   52
+    3	   16
+Sweep: 26100000 | Maximal size: 3
+    1	   16
+    2	   53
+    3	   14
+Sweep: 26150000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 26200000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 26250000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 26300000 | Maximal size: 3
+    1	    5
+    2	   57
+    3	   15
+Sweep: 26350000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 26400000 | Maximal size: 3
+    1	   10
+    2	   53
+    3	   16
+Sweep: 26450000 | Maximal size: 3
+    1	   14
+    2	   54
+    3	   14
+Sweep: 26500000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 26550000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 26600000 | Maximal size: 3
+    1	    7
+    2	   59
+    3	   13
+Sweep: 26650000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 26700000 | Maximal size: 3
+    1	    8
+    2	   63
+    3	   10
+Sweep: 26750000 | Maximal size: 3
+    1	    7
+    2	   62
+    3	   11
+Sweep: 26800000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 26850000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 26900000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 26950000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 27000000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 27050000 | Maximal size: 3
+    1	    7
+    2	   68
+    3	    7
+Sweep: 27100000 | Maximal size: 3
+    1	    6
+    2	   67
+    3	    8
+Sweep: 27150000 | Maximal size: 3
+    1	    5
+    2	   66
+    3	    9
+Sweep: 27200000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 27250000 | Maximal size: 3
+    1	   13
+    2	   65
+    3	    7
+Sweep: 27300000 | Maximal size: 3
+    1	    8
+    2	   66
+    3	    8
+Sweep: 27350000 | Maximal size: 3
+    1	   10
+    2	   59
+    3	   12
+Sweep: 27400000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 27450000 | Maximal size: 3
+    1	    9
+    2	   58
+    3	   13
+Sweep: 27500000 | Maximal size: 3
+    1	    6
+    2	   61
+    3	   12
+Sweep: 27550000 | Maximal size: 3
+    1	   10
+    2	   62
+    3	   10
+Sweep: 27600000 | Maximal size: 3
+    1	   11
+    2	   63
+    3	    9
+Sweep: 27650000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 27700000 | Maximal size: 3
+    1	    7
+    2	   65
+    3	    9
+Sweep: 27750000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 27800000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 27850000 | Maximal size: 3
+    1	    9
+    2	   61
+    3	   11
+Sweep: 27900000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 27950000 | Maximal size: 3
+    1	    9
+    2	   52
+    3	   17
+Sweep: 28000000 | Maximal size: 3
+    1	   14
+    2	   48
+    3	   18
+Sweep: 28050000 | Maximal size: 3
+    1	   10
+    2	   53
+    3	   16
+Sweep: 28100000 | Maximal size: 3
+    1	    9
+    2	   55
+    3	   15
+Sweep: 28150000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 28200000 | Maximal size: 3
+    1	   12
+    2	   61
+    3	   10
+Sweep: 28250000 | Maximal size: 3
+    1	   15
+    2	   64
+    3	    7
+Sweep: 28300000 | Maximal size: 3
+    1	   15
+    2	   58
+    3	   11
+Sweep: 28350000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 28400000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 28450000 | Maximal size: 3
+    1	    5
+    2	   57
+    3	   15
+Sweep: 28500000 | Maximal size: 3
+    1	    7
+    2	   56
+    3	   15
+Sweep: 28550000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 28600000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 28650000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 28700000 | Maximal size: 3
+    1	    8
+    2	   57
+    3	   14
+Sweep: 28750000 | Maximal size: 3
+    1	   12
+    2	   55
+    3	   14
+Sweep: 28800000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 28850000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 28900000 | Maximal size: 3
+    1	   12
+    2	   52
+    3	   16
+Sweep: 28950000 | Maximal size: 3
+    1	   11
+    2	   54
+    3	   15
+Sweep: 29000000 | Maximal size: 3
+    1	    5
+    2	   57
+    3	   15
+Sweep: 29050000 | Maximal size: 3
+    1	    6
+    2	   55
+    3	   16
+Sweep: 29100000 | Maximal size: 3
+    1	    7
+    2	   56
+    3	   15
+Sweep: 29150000 | Maximal size: 3
+    1	    8
+    2	   54
+    3	   16
+Sweep: 29200000 | Maximal size: 3
+    1	   13
+    2	   53
+    3	   15
+Sweep: 29250000 | Maximal size: 3
+    1	   13
+    2	   53
+    3	   15
+Sweep: 29300000 | Maximal size: 3
+    1	   17
+    2	   54
+    3	   13
+Sweep: 29350000 | Maximal size: 3
+    1	   11
+    2	   60
+    3	   11
+Sweep: 29400000 | Maximal size: 3
+    1	    6
+    2	   64
+    3	   10
+Sweep: 29450000 | Maximal size: 4
+    1	   10
+    2	   57
+    3	   12
+    4	    1
+Sweep: 29500000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 29550000 | Maximal size: 3
+    1	    6
+    2	   58
+    3	   14
+Sweep: 29600000 | Maximal size: 3
+    1	    5
+    2	   57
+    3	   15
+Sweep: 29650000 | Maximal size: 3
+    1	   10
+    2	   56
+    3	   14
+Sweep: 29700000 | Maximal size: 3
+    1	   16
+    2	   59
+    3	   10
+Sweep: 29750000 | Maximal size: 3
+    1	   11
+    2	   57
+    3	   13
+Sweep: 29800000 | Maximal size: 3
+    1	   12
+    2	   58
+    3	   12
+Sweep: 29850000 | Maximal size: 3
+    1	   13
+    2	   56
+    3	   13
+Sweep: 29900000 | Maximal size: 3
+    1	    8
+    2	   60
+    3	   12
+Sweep: 29950000 | Maximal size: 3
+    1	   13
+    2	   59
+    3	   11
+Sweep: 30000000 | Maximal size: 3
+    1	   14
+    2	   60
+    3	   10

@@ -1,0 +1,17 @@
+[Types]
+# NAME  NUMBER    GEOTYPE  EPSILON  SIGMA    ATTRACTION_DIST   ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH   SC_LENGTH   Paralel EPS
+A       1         CPSC     1.333333 1.2      1.346954458       0.3               60.0        5.0            3           0.0
+[Molecules]
+# Molecules letter
+#  bond1 - harmonic bond between nearest neighbours
+#  bond2 - harmonic bond between second nearest neighbours
+#  angle1 - angle between two spherocylinders -nearest neighbours
+#  angle2 - angle between two spherocylinder patches -nearest neighbours
+#  particles - types as they go in chain in molecule
+A: {
+#what:       TYPE     SWITCHTYPE  DELTA_MU
+particles:   1
+ACTIVITY:    0.007
+}
+[System]
+A 159
