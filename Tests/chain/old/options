@@ -18,11 +18,11 @@ report   = 0      #  Number of sweeps between statistics reports
 nrepchange = 0          #  Number of sweeps between replica exchanges
 movie    = 0       #  Number of sweeps between movie frames (0 = no movie)
 chainprob = 0.125         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
-transmx = 0.212         #  Initial maximum displacement
+transmx = 0.0212         #  Initial maximum displacement
 rotmx = 7.5             #  Initial maximum orientation change (degrees)
 edge_mx = 0.0           #  Initial maximum box length change
-chainmmx = 0.0          #  Initial maximum chain displacement
-chainrmx = 0.0          #  Initial maximum chain rotation change (degrees)
+chainmmx = 0.03          #  Initial maximum chain displacement
+chainrmx = 3.0          #  Initial maximum chain rotation change (degrees)
 temper = 0.1       #  Temperature in units kT/e
 paraltemper = 0.1 #  Temperature for parallel tempering in kT/e 
 wlm = 0                 #  Wang-Landau method

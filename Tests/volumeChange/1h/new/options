@@ -19,10 +19,10 @@ nrepchange = 0          #  Number of sweeps between replica exchanges
 nGrandCanon = 0
 nClustMove = 0
 movie    = 0       #  Number of sweeps between movie frames (0 = no movie)
-chainprob = 0.125         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
-transmx = 0.212         #  Initial maximum displacement
-rotmx = 7.5             #  Initial maximum orientation change (degrees)
-edge_mx = 0.01           #  Initial maximum box length change
+chainprob = 0.0         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
+transmx = 0.002         #  Initial maximum displacement
+rotmx = 2.0             #  Initial maximum orientation change (degrees)
+edge_mx = 0.005           #  Initial maximum box length change
 chainmmx = 0.0          #  Initial maximum chain displacement
 chainrmx = 0.0          #  Initial maximum chain rotation change (degrees)
 temper = 0.1       #  Temperature in units kT/e

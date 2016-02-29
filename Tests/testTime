@@ -21,9 +21,9 @@ cd ../scOOP/
 rm -f CMakeCache.txt
 rm -rf CMakeFiles/
 
-cmake .
+cmake . > /dev/null
 
-make
+make -j4 > /dev/null
 mv SC ../Tests/
 
 cd ../Tests/
@@ -31,6 +31,19 @@ cd ../Tests/
 echo ""
 echo "Building comparison version..."
 gcc sc35.c -O3 -march=native -msse2 -mfpmath=sse -lm
+
+echo ""
+echo "Building comparison version 2..."
+cd scOOP/
+
+rm -f CMakeCache.txt
+rm -rf CMakeFiles/
+
+cmake . > /dev/null
+
+make -j4 > /dev/null
+mv SC ../SC2
+cd ..
 
 echo ""
 echo "testing..."
@@ -48,22 +61,92 @@ echo 'NEW'
 time ./SC > /dev/null
 diff config.last ../old/config.last > /dev/null
 print "1) Basic Test, TCPSC"
+echo ""
+clean
+
+#
+# TEST normal with energy matrix, pairlist_update 1000
+#
+cp SC normal_w_EnergyMatrix/new/
+cp a.out normal_w_EnergyMatrix/old/
+cd normal_w_EnergyMatrix/old
+echo 'OLD'
+time ./a.out >/dev/null
+cd ../new/
+echo 'NEW'
+time ./SC > /dev/null
+diff config.last ../old/config.last > /dev/null
+print "1) Basic Test with energy matrix and pairlist(1000), TCPSC"
+echo ""
+clean
+
+#
+# TEST grandCanon with energy matrix, pairlist_update 0
+#
+cp SC GrandCanon/NO_pairlist/
+cp SC2 GrandCanon/NO_pairlist/
+cd GrandCanon/NO_pairlist/
+echo 'Version without Energymatrix'
+time ./SC2 >/dev/null
+mv config.last config2.last
+echo 'NEW'
+time ./SC > /dev/null
+diff config.last config2.last > /dev/null
+print "1) GrandCanon Test with energy matrix and pairlist(0), TCPSC"
+echo ""
+rm -f SC2
+clean
+
+
+#
+# TEST grandCanon with energy matrix, pairlist_update 10
+#
+cp SC GrandCanon/pairlist/
+cp SC2 GrandCanon/pairlist/
+cd GrandCanon/pairlist/
+echo 'Version without Energymatrix'
+time ./SC2 >/dev/null
+mv config.last config2.last
+echo 'NEW'
+time ./SC > /dev/null
+diff config.last config2.last > /dev/null
+print "1) GrandCanon Test with energy matrix and pairlist(1000), TCPSC"
+echo ""
+rm -f SC2
 clean
 
 #
 # TEST chain
 #
-cp SC chain/new/
+cp SC chain/new2/
 cp a.out chain/old/
 cd chain/old
 echo 'OLD'
 time ./a.out > /dev/null
-cd ../new/
+cd ../new2/
 echo 'NEW'
 time ./SC > /dev/null
 diff config.last ../old/config.last > /dev/null
 print "2) Chain Test, 5 TCPSC"
+echo ""
 clean
+
+#
+# TEST chain with energy matrix and pairlist(1000)
+#
+cp SC chain_w_EnergyMatrix/new2/
+cp a.out chain_w_EnergyMatrix/old/
+cd chain_w_EnergyMatrix/old
+echo 'OLD'
+time ./a.out > /dev/null
+cd ../new2/
+echo 'NEW'
+time ./SC > /dev/null
+diff config.last ../old/config.last > /dev/null
+print "2) Chain Test with energy matrix and pairlist(1000), 5 TCPSC"
+echo ""
+clean
+
 
 #
 # TEST mempore

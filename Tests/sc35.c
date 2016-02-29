@@ -1200,6 +1200,7 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 	pvdriftend =  sim->press * volume - (double)topo->npart * log(volume) / sim->temper;
 	printf("Energy drift: %.15lf \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
 	printf("Starting energy+pv: %.8lf \n",edriftstart+pvdriftstart);
+	printf("Starting energy: %.8lf \n",edriftstart);
 	fflush(stdout);
 
 	/* End wang-landau*/

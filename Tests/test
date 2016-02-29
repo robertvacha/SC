@@ -58,6 +58,32 @@ print "1) Basic Test, TCPSC"
 clean
 
 #
+# TEST normal with energy matrix, pairlist_update 1000
+#
+cp SC normal_w_EnergyMatrix/new/
+cp a.out normal_w_EnergyMatrix/new/
+cd normal_w_EnergyMatrix/new
+./a.out >/dev/null
+mv config.last config.last2
+./SC > /dev/null
+diff config.last config.last2 > /dev/null
+print "1) Basic Test with energy matrix and pairlist(1000), TCPSC"
+clean
+
+#
+# TEST chain
+#
+cp SC chain_w_EnergyMatrix/new/
+cp a.out chain_w_EnergyMatrix/new/
+cd chain_w_EnergyMatrix/new
+./a.out >/dev/null
+mv config.last config.last2
+./SC > /dev/null
+diff config.last config.last2 > /dev/null
+print "2) Chain Test with energy matrix and pairlist(1000), 5 TCPSC"
+clean
+
+#
 # TEST chain
 #
 cp SC chain/new/
