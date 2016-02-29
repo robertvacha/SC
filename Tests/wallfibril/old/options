@@ -17,8 +17,8 @@ report   =   5000000    #  Number of sweeps between statistics reports
 nrepchange = 5000000    #  Number of sweeps between replica exchanges
 movie    =     50000    #  Number of sweeps between movie frames (0 = no movie)
 chainprob = 0.0         #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
-transmx = 0.212         #  Initial maximum displacement
-rotmx = 7.5             #  Initial maximum orientation change (degrees)
+transmx = 0.25         #  Initial maximum displacement
+rotmx = 15.0             #  Initial maximum orientation change (degrees)
 edge_mx = 0.00          #  Initial maximum box length change
 chainmmx = 0.0          #  Initial maximum chain displacement
 chainrmx = 0.0          #  Initial maximum chain rotation change (degrees)

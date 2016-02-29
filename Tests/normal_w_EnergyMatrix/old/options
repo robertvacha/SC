@@ -28,6 +28,6 @@ paraltemper = 0.1 #  Temperature for parallel tempering in kT/e
 wlm = 0                 #  Wang-Landau method
 wlmtype = 0             #  For which atomic type (from top.init) should the Wang-Landau method be calculated?
 switchprob = 0.00       #  Probability of type switch attempts per sweep
-pairlist_update = 0     #  Number of sweeps after which the pairlist should be updated
+pairlist_update = 10     #  Number of sweeps after which the pairlist should be updated
 seed = 145658           #  Random number seed
 write_cluster = 0	#  Number of sweeps per writing out cluster info

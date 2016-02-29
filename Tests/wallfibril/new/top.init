@@ -9,7 +9,7 @@ beta    2         CHCPSC   3.5       1.0    1.12246205        1.0         170.0 
 #  particles - types as they go in chain in molecule
 A: {
 #what:       TYPE     SWITCHTYPE  DELTA_MU
-particles:   1        2           15
+particles:   1        2           5
 }
 [System]
 A 400
