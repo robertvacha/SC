@@ -110,12 +110,16 @@ public:
         // in files
         sprintf(configurationPool, "%dpool", rank);
         sprintf(configurationInFile, "%dconfig.init", rank);
+        sprintf(topologyInFile, "%dtop.init", rank);
+
         // topology in file -> change only for grand  canonical paralel tempering
         // options file is the same
         sprintf(wlinfile, "%dwl.dat", rank);
 
         // out files
         sprintf(configurationoutfile, "%dconfig.last", rank);
+        sprintf(topologyOutFile, "%dtop.last", rank);
+
         // topology out file -> change only for grand  canonical paralel tempering
         sprintf(moviefile, "%dmovie", rank);
         sprintf(wloutfile, "%dwl-new.dat", rank);
@@ -185,9 +189,9 @@ public:
 
     Disp() : mx(0.0), angle(0.0), oldrmsd(0.0), oldmx(0.0), acc(0), rej(0) {}
 
-double ratio() {
+inline double ratio() {
     if(acc + rej > 0) {
-        return 1.0*acc/(acc+rej);
+        return ((double) acc)/(acc+rej);
     }
     else return 0.0;
 }
@@ -228,12 +232,100 @@ public:
 
     StatsGrand grand[MAXMT];
 
-    Disp edge;                  ///< \brief Maximum box length change and statistics
+    Disp edge;                  ///< \brief Maximum box length change and statistics -> Pressure move
     Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
     Disp trans[MAXT];           ///< \brief Maximum translation  and statistics
+    Disp switchMv[MAXT];        ///< \brief Switch move statistics
     Disp chainm[MAXMT];         ///< \brief Maximum translation for chain  and statistics
     Disp chainr[MAXMT];         ///< \brief Maximum rotation for chain and statistics
     Disp mpiexch;               ///< \brief MPI statistics
+
+    int accSwitch() {
+        int var=0;
+        for(int i=0; i<MAXT; i++)
+            var += switchMv[i].acc;
+        return var;
+    }
+
+    int rejSwitch() {
+        int var=0;
+        for(int i=0; i<MAXT; i++)
+            var += switchMv[i].rej;
+        return var;
+    }
+
+    int accSTrans() {
+        int var=0;
+        for(int i=0; i<MAXT; i++)
+            var += trans[i].acc;
+        return var;
+    }
+
+    int rejSTrans() {
+        int var=0;
+        for(int i=0; i<MAXT; i++)
+            var += trans[i].rej;
+        return var;
+    }
+
+    int stepsSTrans() { return accSTrans() + rejSTrans(); }
+    int stepsSwitch() { return accSwitch() + rejSwitch(); }
+
+    int accCTrans() {
+        int var=0;
+        for(int i=0; i<MAXMT; i++)
+            var += chainm[i].acc;
+        return var;
+    }
+
+    int rejCTrans() {
+        int var=0;
+        for(int i=0; i<MAXMT; i++)
+            var += chainm[i].rej;
+        return var;
+    }
+
+    int stepsCTrans() { return accCTrans() + rejCTrans(); }
+
+    int accSRot() {
+        int var=0;
+        for(int i=0; i<MAXT; i++) {
+            var += rot[i].acc;
+        }
+        return var;
+    }
+
+    int rejSRot() {
+        int var=0;
+        for(int i=0; i<MAXT; i++) {
+            var += rot[i].rej;
+        }
+        return var;
+    }
+
+    int stepsSRot() { return accSRot() + rejSRot(); }
+
+    int accCRot() {
+        int var=0;
+        for(int i=0; i<MAXMT; i++) {
+            var += chainr[i].acc;
+        }
+        return var;
+    }
+
+    int rejCRot() {
+        int var=0;
+        for(int i=0; i<MAXMT; i++) {
+            var += chainr[i].rej;
+        }
+        return var;
+    }
+
+    int stepsCRot() { return accCRot() + rejCRot(); }
+
+
+
+
 
 #ifdef ENABLE_MPI
     MPI_Datatype* defDataType(MPI_Datatype* MPI_stat) {
@@ -381,8 +473,7 @@ public:
         }
     }
 
-    Vector box;         // box of configuration
-    Vector syscm;       // system CM of configuration
+    double press;       // pressure
     double energy;	    // energy of configuration
     double volume;      // volume of configuration
     double temperature;
@@ -419,32 +510,30 @@ public:
         //
         // Prepare MpiExchangeData structure in MPI
         //
-        //                                box           syscm         energy      volume      temperature wantedtemp  radius..  wl_order, acc,     partNum, pseu,    mpiRank
-        MPI_Datatype mpiexdataType[12] = {*MPI_vector2, *MPI_vector2, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-        int          mpiexdataLen[12]  = {1,            1,            1,          1,          1,          1,          1,        2,        1,       MAXMT,       1,       1};
+        //                                press       energy      volume      temperature wantedtemp  radius..  wl_order, acc,     partNum, pseu,    mpiRank
+        MPI_Datatype mpiexdataType[11] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+        int          mpiexdataLen[11]  = {1,          1,          1,          1,          1,          1,        2,        1,       MAXMT,       1,       1};
 
-        MPI_Aint     mpiexdata[12];
+        MPI_Aint     mpiexdata[11];
         MPI_Address( this, &dispstart);
-        MPI_Address( &(this->box), &mpiexdata[0]);
-        MPI_Address( &(this->syscm), &mpiexdata[1]);
+        MPI_Address( &(this->press), &mpiexdata[0]);
+        MPI_Address( &(this->energy), &mpiexdata[1]);
+        MPI_Address( &(this->volume), &mpiexdata[2]);
+        MPI_Address( &(this->temperature), &mpiexdata[3]);
+        MPI_Address( &(this->wantedTemp), &mpiexdata[4]);
 
-        MPI_Address( &(this->energy), &mpiexdata[2]);
-        MPI_Address( &(this->volume), &mpiexdata[3]);
-        MPI_Address( &(this->temperature), &mpiexdata[4]);
-        MPI_Address( &(this->wantedTemp), &mpiexdata[5]);
+        MPI_Address( &(this->radiusholemax), &mpiexdata[5]);
+        MPI_Address( &(this->wl_order), &mpiexdata[6]);
 
-        MPI_Address( &(this->radiusholemax), &mpiexdata[6]);
-        MPI_Address( &(this->wl_order), &mpiexdata[7]);
+        MPI_Address( &(this->accepted), &mpiexdata[7]);
+        MPI_Address( &(this->partNum), &mpiexdata[8]);
+        MPI_Address( &(this->pseudoMpiRank), &mpiexdata[9]);
+        MPI_Address( &(this->mpiRank), &mpiexdata[10]);
 
-        MPI_Address( &(this->accepted), &mpiexdata[8]);
-        MPI_Address( &(this->partNum), &mpiexdata[9]);
-        MPI_Address( &(this->pseudoMpiRank), &mpiexdata[10]);
-        MPI_Address( &(this->mpiRank), &mpiexdata[11]);
-
-        for (int i=0; i <12; i++)
+        for (int i=0; i <11; i++)
             mpiexdata[i] -= dispstart;
 
-        MPI_Type_struct(12, mpiexdataLen, mpiexdata, mpiexdataType, MPI_exchange);
+        MPI_Type_struct(11, mpiexdataLen, mpiexdata, mpiexdataType, MPI_exchange);
         MPI_Type_commit( MPI_exchange);
 
         return MPI_exchange;

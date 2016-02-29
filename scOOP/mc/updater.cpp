@@ -121,8 +121,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double edriftend;       // Energy drift calculation - end
     double pvdriftend;      // PV drift calculation - end
     double moveprobab;      // random number selecting the move
+    double edriftstart = 0;
 
-    const double edriftstart = calcEnergy(0, 0, 0);;     // Energy drift calculation - start
+    edriftstart = calcEnergy.allToAll(conf->energyMatrix);     // Energy drift calculation - start
+
     double volume = conf->geo.volume();          // volume of geo.box
     const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
 
@@ -141,7 +143,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             time = clock()-time;
             cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
                  << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
-            cout <<"\nInteractionEnergy: "<<calcEnergy.allToAll();
+            cout <<"\nInteractionEnergy: " << edriftend;
             cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
             time = clock();
         }
@@ -164,7 +166,11 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         }
         //____________GrandCanonical Move____________
         if(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) {
+            unsigned int size = conf->pvec.size();
             edriftchanges += move.muVTMove();
+
+            if(size != conf->pvec.size())
+                calcEnergy.allToAll(conf->energyMatrix);
 
             if(sim->pairlist_update) {
                 temp = clock();
@@ -186,7 +192,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 (
                     (sweep % sim->pairlist_update == 0) && // on scheduled sweep
                     !(sim->nGrandCanon != 0 && sweep%sim->nGrandCanon == 0) && // not on grandCanon sweep
-                    !(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) &&
+                    !(sim->nClustMove != 0 && sweep%sim->nClustMove == 0) && // not on Cluster move sweep
                     !((sim->nrepchange) && (sweep % sim->nrepchange == 0))  // not on replica exchange sweep
                 )
                 ) {
@@ -197,6 +203,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         //normal moves
         for (step=1; step <= (long)conf->pvec.size(); step++) {
             moveprobab = ran2();
+
+            //assert(testEnergyMatrix()); // Super expensive
 
             if ( moveprobab < sim->shprob) {
                 edriftchanges += move.pressureMove();
@@ -379,39 +387,82 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
         printf("Starting energy: %.8f \n",edriftstart);
         printf("Ending energy: %.8f \n",edriftend);
+
+        cout << std::setprecision(2) << std::left;
+        cout << "\n\n******************************************************************************" << endl;
+        cout << "*                               Moves Statistics                             *" << endl;
+        cout << "******************************************************************************" << endl;
+        cout << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
+
+        if(sim->stat.stepsSTrans() > 0) {
+            cout << setw(30) << "Single particle translation: "
+                 << setw(10) <<  (double)sim->stat.accSTrans()/sim->stat.stepsSTrans()*100.0
+                 << setw(10) << (double)sim->stat.rejSTrans()/sim->stat.stepsSTrans()*100.0
+                 << setw(10) << sim->stat.stepsSTrans() << endl;
+        }
+
+        if(sim->stat.stepsSRot() > 0) {
+            cout << setw(30) << "Single particle rotation: "
+                 << setw(10) << 100.0*sim->stat.accSRot()/sim->stat.stepsSRot()
+                 << setw(10) << (double)sim->stat.rejSRot()/sim->stat.stepsSRot()*100.0
+                 << setw(10) << sim->stat.stepsSRot() << endl;
+        }
+
+        if(sim->stat.stepsCTrans() > 0) {
+            cout << setw(30) << "Chain translation: "
+                 << setw(10) <<  (double)sim->stat.accCTrans()/sim->stat.stepsCTrans()*100.0
+                 << setw(10) << (double)sim->stat.rejCTrans()/sim->stat.stepsCTrans()*100.0
+                 << setw(10) << sim->stat.stepsCTrans() << endl;
+        }
+
+        if(sim->stat.stepsCRot() > 0) {
+            cout << setw(30) << "Chain rotation: "
+                 << setw(10) <<  (double)sim->stat.accCRot()/sim->stat.stepsCRot()*100.0
+                 << setw(10) << (double)sim->stat.rejCRot()/sim->stat.stepsCRot()*100.0
+                 << setw(10) << sim->stat.stepsCRot() << endl;
+        }
+
+        if(sim->stat.edge.acc + sim->stat.edge.rej > 0) {
+            cout << setw(30) << "Pressure move: "
+                 << setw(10) << (double)sim->stat.edge.acc / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
+                 << setw(10) << (double)sim->stat.edge.rej / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
+                 << setw(10) << (sim->stat.edge.acc + sim->stat.edge.rej) << endl;
+        }
+
+        if(sim->stat.stepsSwitch() > 0) {
+            cout << setw(30) << "Switch type move: "
+                 << setw(10) <<  (double)sim->stat.accSwitch()/sim->stat.stepsSwitch()*100.0
+                 << setw(10) << (double)sim->stat.rejSwitch()/sim->stat.stepsSwitch()*100.0
+                 << setw(10) << sim->stat.stepsSwitch() << endl;
+        }
+
+        if(sim->nGrandCanon != 0) {
+            for(int i=0; i<conf->pvec.molTypeCount; i++) {
+                cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
+                     << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                     << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                     << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
+
+                cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
+                     << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                     << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                     << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
+
+                cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
+                     << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
+            }
+        }
+
         //printf("EdriftChanges: %.5e\n", edriftchanges);
     }
 
-
 //    printf("PVChanges: %.5e\n", pvdriftend -pvdriftstart);
-
 
     printf("System:\n");
 
     for(i=0; i < conf->pvec.molTypeCount; i++)
         printf("%s %d\n", topo.moleculeParam[i].name, conf->pvec.molCountOfType(i));
 
-    if(sim->nGrandCanon != 0) {
-        cout << "Acceptance:\n";
-        cout << "  Type   insAcc insRej delAcc delRej <num of particles>\n";
-        cout << std::setprecision(3) <<  std::fixed << std::left;
-        for(int i=0; i<conf->pvec.molTypeCount; i++) {
-            if(topo.moleculeParam[i].activity != -1.0) {
-                cout << "  " << std::setw(6) <<topo.moleculeParam[i].name << " "
-                     << std::setw(6)
-                     << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << " "
-                     << std::setw(6)
-                     << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << " "
-                     << std::setw(6)
-                     << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << " "
-                     << std::setw(6)
-                     << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << " "
-                     << std::setw(6)
-                     << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
-            }
-        }
-        cout << std::setprecision(6);
-    }
     fflush(stdout);
 
     sim->wl.endWangLandau(files->wloutfile);
@@ -457,7 +508,7 @@ void Updater::optimizeStep(Disp *x, double hi, double lo) {
 void Updater::optimizeRot(Disp *x, double hi, double lo) {
     double newrmsd;
 
-    newrmsd = (*x).mx * RATIO((*x)) ;
+    newrmsd = (*x).mx * x->ratio() ;
     if ((*x).oldrmsd > 0) {
         if ( newrmsd  > (*x).oldrmsd ) {
             if ( (*x).oldmx > 1) {
@@ -507,10 +558,6 @@ double Updater::alignmentOrder() {
     return sumdot;
 }
 
-void Updater::genPairList() {
-    genSimplePairList();
-}
-
 void Updater::genSimplePairList() {
     Vector r_cm;
     double r_cm2;
@@ -546,6 +593,9 @@ void Updater::genSimplePairList() {
             if (r_cm2 <= sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]){
                 conf->neighborList[i].neighborID[conf->neighborList[i].neighborCount] = j;
                 conf->neighborList[j].neighborID[conf->neighborList[j].neighborCount] = i;
+
+                /*conf->neighborList[i].energyID[conf->neighborList[i].neighborCount] = calcEnergy.p2p(i,j);
+                conf->neighborList[j].energyID[conf->neighborList[j].neighborCount] = conf->neighborList[i].energyID[conf->neighborList[i].neighborCount];*/
 
                 conf->neighborList[i].neighborCount++;
                 conf->neighborList[j].neighborCount++;
@@ -639,8 +689,8 @@ int Updater::genClusterList() {
                     //snd = sim->pairlist[i].pairs[j];
                 }
                 /*do cluster analysis only for spherocylinders*/
-                if ( (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[0] < SP) && \
-                    (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[1] < SP) ) {
+                //if ( (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[0] < SP) && \
+                 //   (topo.ia_params[conf->pvec[fst].type][conf->pvec[snd].type].geotype[1] < SP) ) {
 
                     /* if they are close to each other */
                     if(sameCluster(fst, snd)){
@@ -663,7 +713,7 @@ int Updater::genClusterList() {
                             /* => will eventually start the i loop from new */
                         }
                     }
-                }
+                //}
             }
             if(change){
                 break;

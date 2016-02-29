@@ -107,6 +107,7 @@ int main(int argc, char** argv) {
     mov = fopen("movie", "w");
     fclose (mov);
 
+    conf.initEMatrix();
     if (sim.pairlist_update) {
         init.initNeighborList();
         conf.pairlist_update = true;

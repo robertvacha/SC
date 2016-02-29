@@ -624,6 +624,12 @@ void Inicializer::initMPI(int argc, char** argv) {
             fclose (infile);
         else  sprintf(files->configurationInFile, "config.init");
 
+
+        infile = fopen(files->topologyInFile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(files->topologyInFile, "top.init");
+
         //test if there is a specific input wang-landau for mpi run
 
         infile = fopen(files->wlinfile, "r");

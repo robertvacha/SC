@@ -16,13 +16,10 @@ double MoveCreator::particleMove() {
     target = ran2() * (long)conf->pvec.size();
 
     if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
-    ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
-        //target = 1;
-        //printf ("displacement\n\n");
+    ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
         edriftchanges = partDisplace(target);
     } else {
-        /*=== Rotation step ===*/
-        // TODO: v pripade Isotropnich kouli nema pohyb ucinost ... mozna dat vyjimku pro koule
+        //=== Rotation step ===//
         // BTW: partAcialRotate pro uhel 180.0 a pouziti Vector::getRandomUnitConeUniform by se mel chovat stejne jako normalni partRotate ....
         if(sim->coneAngle == 0.0){
             edriftchanges = partRotate(target);
@@ -31,7 +28,7 @@ double MoveCreator::particleMove() {
         }
 
     }
-    /*=== End particle move step ===*/
+    //=== End particle move step ===
     return edriftchanges;
 }
 
@@ -108,7 +105,11 @@ double MoveCreator::partDisplace(long target) {
     origsyscm.z = 0;
 
     //temp = clock();
-    energy = (*calcEnergy)(target, 1, 0);
+    //
+    //  PAIRLIST -> USE ENERGIES FROM conf->energyMatrix
+    //
+    energy = calcEnergy->oneToAll(target);
+
     //sim->energyCalc += clock() - temp;
 
     orig = conf->pvec[target].pos;
@@ -197,22 +198,26 @@ double MoveCreator::partDisplace(long target) {
     }
 #endif
 
-    if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
+    if (!reject) {  // wang-landaou ok, try move - calcualte energy
         //temp = clock();
-        enermove =  (*calcEnergy)(target, 1, 0);
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove = calcEnergy->oneToAll(target, &conf->changes);
         //sim->energyCalc += clock() - temp;
     }
-    if ( reject || moveTry(energy, enermove, sim->temper) ) {  /* probability acceptance */
+    if (reject || moveTry(energy, enermove, sim->temper)) {  // probability acceptance
         conf->pvec[target].pos = orig;
         sim->stat.trans[conf->pvec[target].type].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-    } else { /* move was accepted */
+    } else { // move was accepted
         sim->stat.trans[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
 
         edriftchanges = enermove - energy + wlener;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
 
         //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->geo.box.z , enermove);
         //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
@@ -227,30 +232,34 @@ double MoveCreator::partRotate(long target) {
     int reject=0,wli;
     //size_t temp;
 
-    /*=== Rotation step ===*/
+    //=== Rotation step ===
     //printf ("rotation %ld npart %ld\n\n",target,npart);
     //temp = clock();
-    energy = (*calcEnergy)(target, 1, 0);
+    //
+    //  PAIRLIST -> USE ENERGIES FROM conf->energyMatrix
+    //
+    energy = calcEnergy->oneToAll(target);
+
     //sim->energyCalc += clock() - temp;
 
     origpart = conf->pvec[target];
 //    pscRotate(&conf->pvec[target], sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
     conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
-    /*should be normalised and ortogonal but we do for safety*/
+    //should be normalised and ortogonal but we do for safety
     conf->pvec[target].dir.normalise();
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
 
     reject = 0;
     edriftchanges =0.0;
     wlener = 0.0;
-    if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
+    if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
         for (wli=0;wli<sim->wl.wlmdim;wli++) {
             switch (sim->wl.wlm[wli]) {
                 case 3:
                     if (target == 0)  sim->wl.neworder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
                     else sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    /* only rotation change direction */
+                    // only rotation change direction
                     break;
                 default:
                     sim->wl.neworder[wli] = sim->wl.currorder[wli];
@@ -264,21 +273,28 @@ double MoveCreator::partRotate(long target) {
         }
     }
 
-    if (!reject) {  /* wang-landaou ok, try move - calcualte energy */
+    if (!reject) {  // wang-landaou ok, try move - calcualte energy
         //temp = clock();
-        enermove =  (*calcEnergy)(target, 1, 0);
+
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove = calcEnergy->oneToAll(target, &conf->changes);
+
         //sim->energyCalc += clock() - temp;
     }
-    if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
+    if ( reject || moveTry(energy,enermove,sim->temper) ) {  // probability acceptance
         conf->pvec[target] = origpart;
         sim->stat.rot[conf->pvec[target].type].rej++;
         sim->wl.reject(sim->wl.radiusholemax, sim->wl.wlm);
-    } else { /* move was accepted */
+    } else { // move was accepted
         // DEBUG
         //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
         sim->stat.rot[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
+
         //printf("%f\t%f\n", conf->pvec[0].patchdir[0].z, enermove);
     }
 
@@ -286,13 +302,14 @@ double MoveCreator::partRotate(long target) {
 }
 
 double MoveCreator::partAxialRotate(long target){
-    double   edriftchanges   =   0.0,
-             energyold       =   (*calcEnergy)(target, 1, 0),
-             energynew       =   0.0;
+    double edriftchanges = 0.0;
+    double energyold;
+    double energynew = 0.0;
 
     Vector   rotaxis;
-
     Particle origpart        =   conf->pvec[target];
+
+    energyold = calcEnergy->oneToAll(target);
 
     //=============================================//
     //            Get vector from cone             //
@@ -311,8 +328,10 @@ double MoveCreator::partAxialRotate(long target){
 
     //=============================================//
     //                MC criterium                 //
-    //=============================================//
-    energynew = (*calcEnergy)(target, 1, 0); // Calculate energy change of target with rest of system
+    //=============================================//  
+    conf->changes.clear();
+    assert(conf->changes.empty());
+    energynew = calcEnergy->oneToAll(target, &conf->changes);
 
     if (moveTry(energyold, energynew, sim->temper)){
         // move was rejected
@@ -320,19 +339,24 @@ double MoveCreator::partAxialRotate(long target){
     } else {
         // move was accepted
         edriftchanges = energynew - energyold;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
     }
+
     return edriftchanges;
 }
 
 
 double MoveCreator::switchTypeMove() {
-    double edriftchanges=0.0, energy,enermove,wlener=0.0;
+    double edriftchanges=0.0, energy,enermove=0.0, switchE=0.0,wlener=0.0;
     int reject=0,wli;
     long target;
     double radiusholemax_orig=0;
     int switchType, sequence_num=0, delta_mu;
 
-    /*=== This is an attempt to switch a type ===*/   
+    double e = calcEnergy->allToAllBasic();
+
+    //=== This is an attempt to switch a type ===
     target = ran2() * conf->pvec.switchPartCount();
     target = conf->pvec.getSwitchPart(target, sequence_num); // stores sequence number
     delta_mu = topo.moleculeParam[conf->pvec[target].molType ].deltaMu[sequence_num];
@@ -343,7 +367,9 @@ double MoveCreator::switchTypeMove() {
 
     DEBUG_SIM("Switching the particle type");
     DEBUG_SIM("PARTICLE: %ld", target);
-    energy = (*calcEnergy)(target, 1, 0);
+
+    energy = calcEnergy->oneToAll(target);
+
     // Start switching the type
     int switched = conf->pvec[target].switched;
     int pmone = PMONE(switched);
@@ -404,25 +430,33 @@ double MoveCreator::switchTypeMove() {
     }
 
     if (!reject) {
-        enermove = delta_mu * pmone;
+        switchE = delta_mu * pmone;
         // DEBUG
         //double dmu = enermove;
         //pvec[target].switched += pmone;
-        enermove += (*calcEnergy)( target, 1, 0);
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove = calcEnergy->oneToAll(target, &conf->changes);
+
         //printf("energy: %f \t %f\t%f\n",pvec[target].delta_mu, dmu, enermove);
     }
 
     // If not accepted: switch back
-    if ( reject || moveTry(energy,enermove,sim->temper) ) {  /* probability acceptance */
+    if ( reject || moveTry(energy,enermove+switchE,sim->temper) ) {  // probability acceptance
         DEBUG_SIM("Did NOT switch it\n");
         conf->pvec[target].type = tmp_type;
         conf->pvec[target].switched -= pmone;
         conf->pvec[target].init(&(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type]));
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-    } else { /* move was accepted */
+        sim->stat.switchMv[conf->pvec[target].type].rej++;
+    } else { // move was accepted
         sim->wl.accept(sim->wl.wlm[0]);
+        sim->stat.switchMv[conf->pvec[target].type].acc++;
         edriftchanges = enermove - energy + wlener;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
     }
+
     return edriftchanges;
 }
 
@@ -438,17 +472,16 @@ double MoveCreator::chainMove() {
     target = ran2() * conf->pvec.getChainCount();
 
     if (ran2() < 0.5) {
-        /*=== Displacement step of cluster/chain ===*/
+        //=== Displacement step of cluster/chain ===
         edriftchanges = chainDisplace(target);
     } else {
-        /*=== Rotation step of cluster/chain ===*/
+        //=== Rotation step of cluster/chain ===
         edriftchanges = chainRotate(target);
-    } /* ==== END OF CHAIN MOVES ===== */
+    } // ==== END OF CHAIN MOVES =====
     return edriftchanges;
 }
 
-double MoveCreator::chainDisplace(long target)
-{
+double MoveCreator::chainDisplace(long target) {
     Molecule chain = conf->pvec.getChain(target);
     double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
     Vector dr, origsyscm(0.0, 0.0, 0.0);
@@ -457,12 +490,12 @@ double MoveCreator::chainDisplace(long target)
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0.0;
 
-    /*=== Displacement step of cluster/chain ===*/
+    //=== Displacement step of cluster/chain ===
     //printf ("move chain\n\n");
     for(unsigned int i=0; i<chain.size(); i++) // store old configuration
         chorig[i].pos = conf->pvec[chain[i]].pos;
 
-    energy += calcEnergy->mol2others(chain); // Inner energy indiferent to displacement of chain
+    energy += calcEnergy->mol2others(chain);
 
     dr.randomUnitSphere();
     dr.x *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
@@ -538,8 +571,10 @@ double MoveCreator::chainDisplace(long target)
             energy += wlener;
         }
     }
-    if (!reject) { /* wang-landaou ok, try move - calcualte energy */
-        enermove += calcEnergy->mol2others(chain);
+    if (!reject) { // wang-landaou ok, try move - calcualte energy
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove += calcEnergy->mol2others(chain, &conf->changes);
     }
     if ( reject || moveTry(energy, enermove, sim->temper) ) {  // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
@@ -549,9 +584,13 @@ double MoveCreator::chainDisplace(long target)
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-    } else { /* move was accepted */
+
+    } else { // move was accepted
         sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
+
+        conf->fixEMatrixChain(sim->pairlist_update, chain);
+
         edriftchanges = enermove - energy + wlener;
     }
 
@@ -645,7 +684,9 @@ double MoveCreator::chainRotate(long target) {
         }
     }
     if (!reject) { // wang-landaou ok, try move - calcualte energy
-        enermove += calcEnergy->mol2others(chain);
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove += calcEnergy->mol2others(chain, &conf->changes);
     }
     if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
@@ -657,32 +698,35 @@ double MoveCreator::chainRotate(long target) {
         sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
         edriftchanges = enermove - energy + wlener;
+
+        conf->fixEMatrixChain(sim->pairlist_update, chain);
     }
 
     return edriftchanges;
 }
 
 double MoveCreator::pressureMove() {
-    double edriftchanges,energy,enermove,wlener;
+    double edriftchanges,energy,enermove=0.0,wlener;
     int reject=0,wli;
-    double old_side;   /* geo.box length before attempted change */
-    double *side;      /* geo.box dimension to try changing */
-    double psch;       /* Size of a geo.box change during pressure */
-    double pvol;       /* Size of a volume during pressure */
-    double pvoln;      /* Size of a new volume during pressure */
-    double rsave;      /* Saved random number */
+    double old_side;   // geo.box length before attempted change
+    double *side;      // geo.box dimension to try changing
+    double psch;       // Size of a geo.box change during pressure
+    double pvol;       // Size of a volume during pressure
+    double pvoln;      // Size of a new volume during pressure
+    double rsave;      // Saved random number
     double area;
     double radiusholemax_orig=0;
 
-    /*=== This is a volume change step ===*/
-    /*calculate energy*/
+    //=== This is a volume change step ===
     edriftchanges=0.0;
     wlener = 0.0;
-    energy = (*calcEnergy)(0, 0, 0);
-    /* Choose an edge */
+
+    energy = calcEnergy->allToAll();
+
+    // Choose an edge
     switch (sim->ptype) {
         case 0:
-            /* Anisotropic pressure coupling */
+            // Anisotropic pressure coupling
             rsave = ran2();
             if (rsave < 1.0/3.0) {
                 side = &(conf->geo.box.x);
@@ -740,16 +784,18 @@ double MoveCreator::pressureMove() {
                     energy += wlener;
                 }
             }
-            if (!reject) { /* wang-landaou ok, try move - calculate energy */
+            if (!reject) { // wang-landaou ok, try move - calculate energy
                 enermove = sim->press * area * (*side - old_side) - (double)conf->pvec.size() * log(*side/old_side) / sim->temper;
-                enermove += (*calcEnergy)(0, 0, 0);
+
+                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
             if ( reject || *side <= 0.0 || ( moveTry(energy,enermove,sim->temper) ) ) { /* probability acceptance */
                 *side = old_side;
                 sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-            } else {  /* move was accepted */
+            } else {  // move was accepted
                 sim->stat.edge.acc++;
+                conf->swapEMatrices();
                 sim->wl.accept(sim->wl.wlm[0]);
                 edriftchanges = enermove - energy + wlener;
             }
@@ -806,7 +852,8 @@ double MoveCreator::pressureMove() {
             }
             if (!reject) { /* wang-landaou ok, try move - calcualte energy */
                 enermove = sim->press * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
-                enermove += (*calcEnergy)(0, 0, 0);
+
+                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
             if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
                 conf->geo.box.x -= psch;
@@ -814,14 +861,15 @@ double MoveCreator::pressureMove() {
                 conf->geo.box.z -= psch;
                 sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-            } else { /* move was accepted */
+            } else { // move was accepted
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
+                conf->swapEMatrices();
                 edriftchanges = enermove - energy + wlener;
             }
             break;
         case 2:
-            /* Isotropic pressure coupling in xy, z constant */
+            // Isotropic pressure coupling in xy, z constant
             psch = sim->stat.edge.mx * (ran2() - 0.5);
             pvol = conf->geo.box.x * conf->geo.box.y;
             conf->geo.box.x += psch;
@@ -829,10 +877,10 @@ double MoveCreator::pressureMove() {
             pvoln = conf->geo.box.x * conf->geo.box.y;
 
             reject = 0;
-            if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
+            if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
                 for (wli=0;wli<sim->wl.wlmdim;wli++) {
                     switch (sim->wl.wlm[wli]) {
-                        /*no change in case 1, it does not change geo.box.z*/
+                        //no change in case 1, it does not change geo.box.z
                         case 2: sim->wl.origmesh = sim->wl.mesh;
                             sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
                                                                                   conf->pvec.size(),
@@ -868,23 +916,25 @@ double MoveCreator::pressureMove() {
                     energy += wlener;
                 }
             }
-            if (!reject) { /* wang-landaou ok, try move - calculate energy */
+            if (!reject) { // wang-landaou ok, try move - calculate energy
                 enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
-                enermove += (*calcEnergy)(0, 0, 0);
+
+                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
+            if ( reject || moveTry(energy,enermove,sim->temper) )  { // probability acceptance
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-            } else { /* move was accepted */
+            } else { // move was accepted
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
+                conf->swapEMatrices();
                 edriftchanges = enermove - energy + wlener;
             }
             break;
         case 3:
-            /* Isotropic pressure coupling in xy, z coupled to have fixed volume */
+            // Isotropic pressure coupling in xy, z coupled to have fixed volume
             psch = sim->stat.edge.mx * (ran2() - 0.5);
             pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
             conf->geo.box.x += psch;
@@ -892,7 +942,7 @@ double MoveCreator::pressureMove() {
             conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
 
             reject = 0;
-            if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
+            if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
                 for (wli=0;wli<sim->wl.wlmdim;wli++) {
                     switch (sim->wl.wlm[wli]) {
                         case 1: sim->wl.neworder[wli] = sim->wl.zOrder(wli);
@@ -932,18 +982,19 @@ double MoveCreator::pressureMove() {
                     energy += wlener;
                 }
             }
-            if (!reject) { /* wang-landaou ok, try move - calculate energy */
-                enermove = (*calcEnergy)(0, 0, 0);
+            if (!reject) { // wang-landaou ok, try move - calculate energy
+                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
+            if ( reject || moveTry(energy,enermove,sim->temper) )  { // probability acceptance
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
                 sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-            } else { /* move was accepted */
+            } else { // move was accepted
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
+                conf->swapEMatrices();
                 edriftchanges = enermove - energy + wlener;
             }
             break;
@@ -953,7 +1004,7 @@ double MoveCreator::pressureMove() {
             exit(1);
     }
 
-    /*=== End volume change step ===*/
+    //=== End volume change step ===
     return edriftchanges;
 }
 
@@ -1105,11 +1156,10 @@ double MoveCreator::replicaExchangeMove(long sweep) {
     //
     // Init local mpi data
     //
-    localmpi.box = conf->geo.box;
     localmpi.energy = calcEnergy->allToAll();
+    localmpi.press = sim->press;
     localmpi.volume = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
     localmpi.accepted = 0;
-    localmpi.syscm = conf->syscm;
     localmpi.radiusholemax = sim->wl.radiusholemax;
     localmpi.mpiRank = sim->mpirank;
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
@@ -1182,12 +1232,11 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 sim->stat.mpiexch.acc++;
 
                 localmpi.accepted = receivedmpi.accepted;
-                conf->geo.box = receivedmpi.box;
-                conf->syscm = receivedmpi.syscm;
 
                 edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
 
                 sim->temper = receivedmpi.temperature;
+                sim->press = receivedmpi.press;
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
@@ -1264,13 +1313,12 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 //printf("exchange accepted \n");
 
                 localmpi.accepted = 1;
-                conf->geo.box = receivedmpi.box;
-                conf->syscm = receivedmpi.syscm;
 
                 edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
 
                 // change temperature and pseudorank
                 sim->temper = receivedmpi.temperature;
+                sim->press = receivedmpi.press;
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
@@ -1341,7 +1389,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 double MoveCreator::muVTMove() {
 
 #ifndef NDEBUG // For tests of energy
-    double e = calcEnergy->allToAll();
+    double e = calcEnergy->allToAllBasic();
 #endif
 
     Molecule target;
@@ -1355,10 +1403,10 @@ double MoveCreator::muVTMove() {
     int molType = getRandomMuVTType();
     molSize = topo.moleculeParam[molType].molSize();
 
-    assert(molType == 0 && "delete this assert, only of one atomic type simulation");
+    /*assert(molType == 0 && "delete this assert, only of one atomic type simulation");
     assert(molSize == 1 && "delete this assert, only of one atomic type simulation");
 
-    assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");
+    assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");*/
     assert(insert.empty() && "Insert vector must be empty at the begining of grand canonical move");
 
     sim->stat.grand[molType].muVtSteps++;
@@ -1413,8 +1461,9 @@ double MoveCreator::muVTMove() {
 
             sim->stat.grand[molType].insAcc++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            conf->resizeEMatrix();
 
-            assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
+            assert((e + energy) > calcEnergy->allToAllBasic()-0.0000001 && (e + energy) < calcEnergy->allToAllBasic()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
 
             return energy - molSize*entrophy;
         } else { // rejected
@@ -1422,7 +1471,7 @@ double MoveCreator::muVTMove() {
             sim->stat.grand[molType].insRej++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAll() && "GrandCanonical, insertion rejected but energy of system changed");
+            assert(e == calcEnergy->allToAllBasic() && "GrandCanonical, insertion rejected but energy of system changed");
 
             return 0;
         }
@@ -1438,10 +1487,9 @@ double MoveCreator::muVTMove() {
 
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType, topo.moleculeParam[molType].molSize()); // get random molecule of molType
 
-        energy = calcEnergy->mol2others(target);
+        energy = calcEnergy->mol2othersBasic(target);
 
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-
         if( ( ((double)conf->pvec.molCountOfType(molType)/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot) ) > ran2()) {
             for(unsigned int i=0; i<molSize; i++)
                 conf->sysvolume -= topo.ia_params[conf->pvec[target[0]+i].type][conf->pvec[target[0]+i].type].volume;
@@ -1453,15 +1501,16 @@ double MoveCreator::muVTMove() {
 
             sim->stat.grand[molType].delAcc++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
+            conf->resizeEMatrix();
 
-            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
+            assert((e - energy) > calcEnergy->allToAllBasic()-0.0000001 && (e - energy) < calcEnergy->allToAllBasic()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
 
             return -energy + molSize*entrophy;
         } else {
             sim->stat.grand[molType].delRej++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAll() && "GrandCanonical, deletion rejected but energy of system changed");
+            assert(e == calcEnergy->allToAllBasic() && "GrandCanonical, deletion rejected but energy of system changed");
 
             return 0;
         }
@@ -1615,6 +1664,9 @@ double MoveCreator::clusterMoveGeom(long target) {
      * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
      * DOI: 10.1103/PhysRevLett.92.035504
     */
+
+    if(conf->pvec.empty())
+        return 0.0;
 
     double edriftchanges = calcEnergy->allToAll(), cluster[MAXN];
     Vector r_center;

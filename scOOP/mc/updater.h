@@ -43,6 +43,40 @@ public:
     void simulate(long nsweeps, long adjust, long paramfrq, long report);
 
 private:
+    void initEnergyMatrix() {
+        if(conf->pvec.empty())
+            return;
+
+        for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
+            for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
+                conf->energyMatrix->operator [](i)[j] = calcEnergy.p2p(i,j);
+                conf->energyMatrix->operator [](j)[i] = conf->energyMatrix->operator [](i)[j];
+            }
+        }
+    }
+
+    /**
+     * @brief testEnergyMatrix
+     * @return TRUE - Energy matrix is fine
+     */
+    bool testEnergyMatrix() {
+        if(conf->pvec.empty())
+            return true;
+
+        for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
+            for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
+                if( !(conf->energyMatrix->operator [](i)[j] + 0.0000001 >= calcEnergy.p2p(i,j)
+                        && conf->energyMatrix->operator [](i)[j] - 0.0000001 <= calcEnergy.p2p(i,j)  )
+                        || conf->energyMatrix->operator [](j)[i] != conf->energyMatrix->operator [](i)[j] ) {
+                    cout << "[i][j]= " << conf->energyMatrix->operator [](i)[j] << ", [j][i]=  " << conf->energyMatrix->operator [](j)[i] << ", calc= " << calcEnergy.p2p(i,j) << endl;
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     void dumpMovie(long sweep) {
         FILE* mf;
         if (sim->movie > 0) {
@@ -87,7 +121,9 @@ private:
     /**
      * @brief gen_pairlist Interface for the generation of the pairlist. Define other pairlist algorithms above.
      */
-    void genPairList();
+    inline void genPairList() {
+        genSimplePairList();
+    }
 
     /**
      * @brief gen_simple_pairlist Generates a pairlist with a very basic alogrithm
