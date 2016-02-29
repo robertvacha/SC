@@ -513,30 +513,42 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
     }
     free(line);
     /*Make chains WHOLE*/
-    for (int i=0; i<conf->pvec.getChainCount(); i++){
-        j=0;
-        current = conf->pvec.getChainPart(i,0);
-        first = current;
-        chorig[0].pos = pvec[first].pos;
-        while (current >=0 ) {
-            /*shift the chain particle by first one*/
-            pvec[current].pos.x -= chorig[0].pos.x;
-            pvec[current].pos.y -= chorig[0].pos.y;
-            pvec[current].pos.z -= chorig[0].pos.z;
-            /*put it in orig geo.box*/
-            pvec[current].pos.x -=  anInt(pvec[current].pos.x);
-            pvec[current].pos.y -=  anInt(pvec[current].pos.y);
-            pvec[current].pos.z -=  anInt(pvec[current].pos.z);
-            //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
-            /*shot it back*/
-            pvec[current].pos.x += chorig[0].pos.x;
-            pvec[current].pos.y += chorig[0].pos.y;
-            pvec[current].pos.z += chorig[0].pos.z;
-            //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
-            j++;
-            current = conf->pvec.getChainPart(i,j);
+//    for (int i=0; i<conf->pvec.getChainCount(); i++){
+//        j=0;
+//        current = conf->pvec.getChainPart(i,0);
+//        first = current;
+//        chorig[0].pos = pvec[first].pos;
+//        while (current >=0 ) {
+//            /*shift the chain particle by first one*/
+//            pvec[current].pos.x -= chorig[0].pos.x;
+//            pvec[current].pos.y -= chorig[0].pos.y;
+//            pvec[current].pos.z -= chorig[0].pos.z;
+//            /*put it in orig geo.box*/
+//            pvec[current].pos.x -=  anInt(pvec[current].pos.x);
+//            pvec[current].pos.y -=  anInt(pvec[current].pos.y);
+//            pvec[current].pos.z -=  anInt(pvec[current].pos.z);
+//            //printf("ant: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
+//            /*shot it back*/
+//            pvec[current].pos.x += chorig[0].pos.x;
+//            pvec[current].pos.y += chorig[0].pos.y;
+//            pvec[current].pos.z += chorig[0].pos.z;
+//            //printf("posstart: %f %f %f\n",conf->pvec[current].pos.x,conf->pvec[current].pos.y,conf->pvec[current].pos.z);
+//            j++;
+//            current = conf->pvec.getChainPart(i,j);
+//        }
+//    }
+
+        for (int i=0; i<conf->pvec.getChainCount(); i++){
+            j=0;
+            Molecule mol;
+            current = conf->pvec.getChainPart(i,0);
+            while (current >=0 ) {
+                mol.push_back(current);
+                j++;
+                current = conf->pvec.getChainPart(i,j);
+            }
+            conf->makeMoleculeWhole(&mol);
         }
-    }
 
     err = 0;
     //for (i=0; i < topo.npart-1; i++) {
@@ -1342,6 +1354,22 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         return 1;
     }
 
+    if (!strcmp(molcommand,"BONDH")) {
+        fields = sscanf(molparams, "%le %le ", &bondk, &bonddist);
+        if (fields < 2) {
+            fprintf (stderr, "TOPOLOGY ERROR: wrong number of parameters for bondh, should be 2.\n\n");
+            return 0;
+        }
+        if (bonddist < 0) {
+            fprintf (stderr, "TOPOLOGY ERROR: bondhdist cannot be negative: %f \n\n",bonddist);
+            return 0;
+        }
+        topo.moleculeParam[i].bondhc = bondk;
+        topo.moleculeParam[i].bondheq = bonddist;
+        fprintf (stdout, "bondh: %f %f \n",topo.moleculeParam[i].bondhc,topo.moleculeParam[i].bondheq);
+        return 1;
+    }
+
     if (!strcmp(molcommand,"ANGLE1")) {
         fields = sscanf(molparams, "%le %le ", &bondk, &bonddist);
         if (fields < 2) {
@@ -1353,7 +1381,7 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
             return 0;
         }
         topo.moleculeParam[i].angle1c = bondk;
-        topo.moleculeParam[i].angle1eq = bonddist/180.0*PI;
+        topo.moleculeParam[i].angle1eq = bonddist*DEGTORAD;
         fprintf (stdout, "angle1: %f %f \n",topo.moleculeParam[i].angle1c,topo.moleculeParam[i].angle1eq);
         return 1;
     }
@@ -1368,7 +1396,7 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
             return 0;
         }
         topo.moleculeParam[i].angle2c = bondk;
-        topo.moleculeParam[i].angle2eq = bonddist/180.0*PI;
+        topo.moleculeParam[i].angle2eq = bonddist*DEGTORAD;
         fprintf (stdout, "angle2: %f %f \n",topo.moleculeParam[i].angle2c,topo.moleculeParam[i].angle2eq);
         return 1;
     }

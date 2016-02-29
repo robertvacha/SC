@@ -1732,7 +1732,7 @@ double MoveCreator::clusterMoveGeom(long target) {
         reflection = conf->pvec[cluster[counter]];// copy old particle into reflected particle
         //Reflect particle cluster[counter] by point reflection by center r_center point
         reflection.pos           = 2.0*r_center - reflection.pos;// reflect center of particle around r_center
-        reflection.dir          *=-1.0;// reflect orientation of particle
+        reflection.dir          *=1.0;// reflect orientation of particle
         reflection.patchdir[0]  *=-1.0;// reflect orientation of patch1
         reflection.patchdir[1]  *=-1.0;// reflect orientation of patch2
         reflection.patchsides[0]*=-1.0;// reflect all sides of patch
