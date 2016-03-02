@@ -26,6 +26,7 @@ private:
     Conf* conf;                // Should contain fast changing particle and box(?) information
 
     std::vector<Particle > insert;  // insert vector for muVt -> malloc() error when in muVTmove()
+    Particle chorig[MAXCHL];
 
 public:
     TotalEnergyCalculator* calcEnergy;

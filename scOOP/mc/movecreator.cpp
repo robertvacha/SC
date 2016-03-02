@@ -15,7 +15,7 @@ double MoveCreator::particleMove() {
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
 
-    if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
+    if ( !( ((sim->wl.wlm[0] == 3) && (sim->wl.wlm[1] == 0) ) || ((sim->wl.wlm[0] == 0) && (sim->wl.wlm[1] == 3) )) && target == 0  && \
     ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
         edriftchanges = partDisplace(target);
     } else {
@@ -92,130 +92,49 @@ double MoveCreator::printClustersConf() {
 }
 
 double MoveCreator::partDisplace(long target) {
-    double edriftchanges,energy,enermove,wlener;
-    Vector orig, dr, origsyscm;
-    int reject=0,wli;
+    double edriftchanges = 0.0,energy,enermove,wlener = 0.0;
+    chorig[0] = conf->pvec[target];
+    Vector dr, origsyscm = conf->syscm;
+    int reject=0;
     double radiusholemax_orig=0;
-    //size_t temp;
 
-    /*=== Displacement step ===*/
-    edriftchanges =0.0;
-    origsyscm.x = 0;
-    origsyscm.y = 0;
-    origsyscm.z = 0;
-
-    //temp = clock();
-    //
-    //  PAIRLIST -> USE ENERGIES FROM conf->energyMatrix
-    //
     energy = calcEnergy->oneToAll(target);
-
-    //sim->energyCalc += clock() - temp;
-
-    orig = conf->pvec[target].pos;
 
     dr.randomUnitSphere();
 
     dr.x *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.x;
     dr.y *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.y;
     dr.z *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.z;
-    if ( ((sim->wl.wlm[0] == 3)||(sim->wl.wlm[1] == 3)) && (target == 0) ) {
-        dr.z = 0;
-        dr.y = 0;
-        dr.x = 0;
-    }
+
     conf->pvec[target].pos.x += dr.x;
     conf->pvec[target].pos.y += dr.y;
     conf->pvec[target].pos.z += dr.z;
-    //} while (conf->pvec[target].pos.x < 0.25 || conf->pvec[target].pos.x > 0.50);
 
-#ifdef WEDGE
-        conf->geo.usePBC(&conf->pvec[target]);
-#endif
-
-    reject = 0;
-    wlener = 0.0;
-    if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-            switch (sim->wl.wlm[wli]) {
-                case 1: origsyscm = conf->syscm;
-                    conf->syscm.x += dr.x * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.y += dr.y * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.z += dr.z * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                    break;
-                case 2: sim->wl.origmesh = sim->wl.mesh;
-                   sim->wl.neworder[wli] = meshOrderMoveOne(orig, conf->pvec[target].pos, &sim->wl.mesh, (long)conf->pvec.size(), target, wli);
-                    break;
-                case 4:
-                    sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                    break;
-                case 5:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    origsyscm = conf->syscm;
-                    conf->syscm.x += dr.x * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.y += dr.y * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    conf->syscm.z += dr.z * topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume / conf->sysvolume;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                    break;
-                case 6:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    if ( target == 0 )
-                      sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                    else
-                      sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveOne(&orig, target,wli,&(conf->pvec[0].pos));
-                    break;
-                case 7:
-                    sim->wl.partincontactold = sim->wl.partincontact;
-                    if ( target == 0 )
-                        sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                    else
-                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveOne(&orig,target,wli);
-                    break;
-                default:
-                    sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    break;
-            }
-            if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-        }
-        if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
-        }
+    if(sim->wl.wlm[0] > 0) {
+        Molecule tar;
+        tar.resize(1);
+        tar[0] = target;
+        dr.scale(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume);
+        wlener = sim->wl.run(reject, chorig, dr, radiusholemax_orig, tar);
     }
-
-#ifdef WEDGE
-    if(conf->geo.boundaryOverlap(&conf->pvec[target].pos)) { // reject solid overlap, soft already handled by usePBC()
-        conf->pvec[target].pos = orig;
-        sim->stat.trans[conf->pvec[target].type].rej++;
-        if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
-            conf->syscm = origsyscm;
-        sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
-
-        return 0.0;
-    }
-#endif
 
     if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        //temp = clock();
         conf->changes.clear();
         assert(conf->changes.empty());
         enermove = calcEnergy->oneToAll(target, &conf->changes);
-        //sim->energyCalc += clock() - temp;
     }
-    if (reject || moveTry(energy, enermove, sim->temper)) {  // probability acceptance
-        conf->pvec[target].pos = orig;
+    if (reject || moveTry(energy+wlener, enermove, sim->temper)) {  // probability acceptance
+        conf->pvec[target].pos = chorig[0].pos;
         sim->stat.trans[conf->pvec[target].type].rej++;
         if ( (sim->wl.wlm[0] == 1) || (sim->wl.wlm[0] == 5) || (sim->wl.wlm[1] == 1) || (sim->wl.wlm[1] == 5) )
             conf->syscm = origsyscm;
         sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
+
     } else { // move was accepted
         sim->stat.trans[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
 
-        edriftchanges = enermove - energy + wlener;
+        edriftchanges = enermove - energy;
 
         conf->fixEMatrixSingle(sim->pairlist_update, target);
 
@@ -227,62 +146,27 @@ double MoveCreator::partDisplace(long target) {
 }
 
 double MoveCreator::partRotate(long target) {
-    double edriftchanges,energy,enermove,wlener;
-    Particle origpart;
-    int reject=0,wli;
-    //size_t temp;
+    double edriftchanges = 0.0, energy, enermove, wlener = 0.0;
+    Particle origpart = conf->pvec[target];
+    int reject = 0;
 
-    //=== Rotation step ===
-    //printf ("rotation %ld npart %ld\n\n",target,npart);
-    //temp = clock();
-    //
-    //  PAIRLIST -> USE ENERGIES FROM conf->energyMatrix
-    //
     energy = calcEnergy->oneToAll(target);
 
-    //sim->energyCalc += clock() - temp;
-
-    origpart = conf->pvec[target];
-//    pscRotate(&conf->pvec[target], sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
     conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     //should be normalised and ortogonal but we do for safety
     conf->pvec[target].dir.normalise();
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
 
-    reject = 0;
-    edriftchanges =0.0;
-    wlener = 0.0;
-    if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-            switch (sim->wl.wlm[wli]) {
-                case 3:
-                    if (target == 0)  sim->wl.neworder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
-                    else sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    // only rotation change direction
-                    break;
-                default:
-                    sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    break;
-            }
-            if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-        }
-        if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
-        }
-    }
+    if(sim->wl.wlm[0] > 0)
+        wlener = sim->wl.runRot(reject, target);
 
     if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        //temp = clock();
-
         conf->changes.clear();
         assert(conf->changes.empty());
         enermove = calcEnergy->oneToAll(target, &conf->changes);
-
-        //sim->energyCalc += clock() - temp;
     }
-    if ( reject || moveTry(energy,enermove,sim->temper) ) {  // probability acceptance
+    if ( reject || moveTry(energy+wlener,enermove,sim->temper) ) {  // probability acceptance
         conf->pvec[target] = origpart;
         sim->stat.rot[conf->pvec[target].type].rej++;
         sim->wl.reject(sim->wl.radiusholemax, sim->wl.wlm);
@@ -291,7 +175,7 @@ double MoveCreator::partRotate(long target) {
         //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
         sim->stat.rot[conf->pvec[target].type].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
-        edriftchanges = enermove - energy + wlener;
+        edriftchanges = enermove - energy;
 
         conf->fixEMatrixSingle(sim->pairlist_update, target);
 
@@ -349,12 +233,10 @@ double MoveCreator::partAxialRotate(long target){
 
 double MoveCreator::switchTypeMove() {
     double edriftchanges=0.0, energy,enermove=0.0, switchE=0.0,wlener=0.0;
-    int reject=0,wli;
+    int reject=0;
     long target;
     double radiusholemax_orig=0;
     int switchType, sequence_num=0, delta_mu;
-
-    double e = calcEnergy->allToAllBasic();
 
     //=== This is an attempt to switch a type ===
     target = ran2() * conf->pvec.switchPartCount();
@@ -388,46 +270,9 @@ double MoveCreator::switchTypeMove() {
         exit(1);
     }
 #endif
-    if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-            switch (sim->wl.wlm[wli]) {
-                /*case 1: sim->wl.neworder = z_order(&sim->wl, conf,wli);
-                     break;*/
-                case 2: sim->wl.origmesh = sim->wl.mesh;
-                    sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                          (long)conf->pvec.size(),
-                                                                          sim->wl.wlmtype,
-                                                                          conf->geo.box,
-                                                                          &conf->pvec) - sim->wl.minorder[wli]);
-                    break;
-                /*case 4:
-                    sim->wl.neworder = twopartdist(&sim->wl,conf,wli);
-                    break;*/
-                case 5:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                    break;
-                case 6:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                    break;
-                case 7:
-                    sim->wl.partincontactold = sim->wl.partincontact;
-                    sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                    break;
-                default:
-                    sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    break;
-            }
-        if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-        }
-        if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
-        }
-    }
+
+    if(sim->wl.wlm[0] > 0)
+        wlener = sim->wl.runSwitch(reject, radiusholemax_orig);
 
     if (!reject) {
         switchE = delta_mu * pmone;
@@ -442,7 +287,7 @@ double MoveCreator::switchTypeMove() {
     }
 
     // If not accepted: switch back
-    if ( reject || moveTry(energy,enermove+switchE,sim->temper) ) {  // probability acceptance
+    if ( reject || moveTry(energy+wlener,enermove+switchE,sim->temper) ) {  // probability acceptance
         DEBUG_SIM("Did NOT switch it\n");
         conf->pvec[target].type = tmp_type;
         conf->pvec[target].switched -= pmone;
@@ -452,7 +297,7 @@ double MoveCreator::switchTypeMove() {
     } else { // move was accepted
         sim->wl.accept(sim->wl.wlm[0]);
         sim->stat.switchMv[conf->pvec[target].type].acc++;
-        edriftchanges = enermove - energy + wlener;
+        edriftchanges = enermove - energy;
 
         conf->fixEMatrixSingle(sim->pairlist_update, target);
     }
@@ -487,7 +332,6 @@ double MoveCreator::chainDisplace(long target) {
     Vector dr, origsyscm(0.0, 0.0, 0.0);
     int reject=0,wli;
     Vector cluscm(0.0, 0.0, 0.0);
-    Particle chorig[MAXCHL];
     double radiusholemax_orig=0.0;
 
     //=== Displacement step of cluster/chain ===
@@ -518,65 +362,15 @@ double MoveCreator::chainDisplace(long target) {
         conf->pvec[chain[j]].pos.z += dr.z;
     }
 
-    reject = 0;
-    if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-        for (wli=0;wli<sim->wl.wlmdim;wli++) {
-            switch (sim->wl.wlm[wli]) {
-                case 1: origsyscm = conf->syscm;
-                    conf->syscm.x += cluscm.x / conf->sysvolume;
-                    conf->syscm.y += cluscm.y / conf->sysvolume;
-                    conf->syscm.z += cluscm.z / conf->sysvolume;
-                    sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                    break;
-                case 2:
-                    sim->wl.origmesh = sim->wl.mesh;
-                    sim->wl.neworder[wli] = meshOrderMoveChain(chain, &sim->wl.mesh, conf->pvec.size(), chorig,wli);
-                    break;
-                case 4:
-                    sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                    break;
-                case 5:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    origsyscm = conf->syscm;
-                    conf->syscm.x += cluscm.x / conf->sysvolume;
-                    conf->syscm.y += cluscm.y / conf->sysvolume;
-                    conf->syscm.z += cluscm.z / conf->sysvolume;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                    break;
-                case 6:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    if ( target == 0 )
-                      sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                    else
-                      sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(chain, chorig,wli,&(conf->pvec[0].pos));
-                    break;
-                case 7:
-                    sim->wl.partincontactold = sim->wl.partincontact;
-                    if ( target == 0 )
-                        sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                    else
-                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(chain,chorig,wli);
-                    break;
-                default:
-                    sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    break;
-            }
-            if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-        }
-        if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]]
-                    - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
-        }
-    }
+    if(sim->wl.wlm[0] > 0)
+        wlener = sim->wl.run(reject, chorig, cluscm, radiusholemax_orig, chain);
+
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         conf->changes.clear();
         assert(conf->changes.empty());
         enermove += calcEnergy->mol2others(chain, &conf->changes);
     }
-    if ( reject || moveTry(energy, enermove, sim->temper) ) {  // probability acceptance
+    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) {  // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]].pos = chorig[j].pos;
 
@@ -591,7 +385,7 @@ double MoveCreator::chainDisplace(long target) {
 
         conf->fixEMatrixChain(sim->pairlist_update, chain);
 
-        edriftchanges = enermove - energy + wlener;
+        edriftchanges = enermove - energy;
     }
 
     return edriftchanges;
@@ -604,8 +398,7 @@ double MoveCreator::chainRotate(long target) {
     Particle chorig[MAXCHL];
     double radiusholemax_orig=0;
 
-    /*=== Rotation step of cluster/chain ===*/
-    //printf ("rotation of chain\n\n");
+    //=== Rotation step of cluster/chain ===
     for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
         chorig[j] = conf->pvec[chain[j]];
         /*We have chains whole! don't have to do PBC*/
@@ -614,7 +407,7 @@ double MoveCreator::chainRotate(long target) {
          r_cm.z = conf->pvec[current].pos.z - conf->particle[first].pos.z;
          if ( r_cm.x < 0  )
          r_cm.x -= (double)( (long)(r_cm.x-0.5) );
-         else
+         elsechain
          r_cm.x -= (double)( (long)(r_cm.x+0.5) );
          if ( r_cm.y < 0  )
          r_cm.y -= (double)( (long)(r_cm.y-0.5) );
@@ -632,63 +425,15 @@ double MoveCreator::chainRotate(long target) {
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
 
-    if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-        for (int wli=0;wli<sim->wl.wlmdim;wli++) {
-            switch (sim->wl.wlm[wli]) {
-                case 1:
-                    if (target == 0) sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                    else sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    /* if we rotated cluster it is around its CM so no change*/
-                    break;
-                case 2:
-                    sim->wl.origmesh = sim->wl.mesh;
-                   sim->wl.neworder[wli] = meshOrderMoveChain(chain, &sim->wl.mesh, conf->pvec.size(), chorig,wli);
-                    break;
-                case 3:
-                    if (target == 0)  sim->wl.neworder[wli] = (long) floor( (conf->pvec[0].dir.z - sim->wl.minorder[wli])/ sim->wl.dorder[wli] );
-                    else sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    /* only rotation change direction */
-                    break;
-                case 4:
-                    sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                    break;
-                case 5:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                    break;
-                case 6:
-                    radiusholemax_orig = sim->wl.radiusholemax;
-                    longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                    if ( target == 0 )
-                        sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                    else
-                        sim->wl.neworder[wli] = sim->wl.radiusholeOrderMoveChain(chain, chorig,wli,&(conf->pvec[0].pos));
-                    break;
-                case 7:
-                    sim->wl.partincontactold = sim->wl.partincontact;
-                    if ( target == 0 )
-                        sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                    else
-                        sim->wl.neworder[wli] = sim->wl.contParticlesMoveChain(chain,chorig,wli);
-                    break;
-                default:
-                    sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                    break;
-            }
-            if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-        }
-        if (!reject) {
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
-        }
-    }
+    if(sim->wl.wlm[0] > 0)
+        wlener = sim->wl.runChainRot(reject, chorig, radiusholemax_orig, chain);
+
     if (!reject) { // wang-landaou ok, try move - calcualte energy
         conf->changes.clear();
         assert(conf->changes.empty());
         enermove += calcEnergy->mol2others(chain, &conf->changes);
     }
-    if ( reject || moveTry(energy, enermove, sim->temper) ) { // probability acceptance
+    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
             conf->pvec[chain[j]] = chorig[j];
 
@@ -697,7 +442,7 @@ double MoveCreator::chainRotate(long target) {
     } else { // move was accepted
         sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
         sim->wl.accept(sim->wl.wlm[0]);
-        edriftchanges = enermove - energy + wlener;
+        edriftchanges = enermove - energy;
 
         conf->fixEMatrixChain(sim->pairlist_update, chain);
     }
@@ -743,53 +488,14 @@ double MoveCreator::pressureMove() {
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-                for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                    switch (sim->wl.wlm[wli]) {
-                        case 1:
-                            sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                            break;
-                        case 2:
-                            sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                                  conf->pvec.size(),
-                                                                                  sim->wl.wlmtype,
-                                                                                  conf->geo.box,
-                                                                                  &conf->pvec) - sim->wl.minorder[wli]);
-                            break;
-                        case 4:
-                            sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                            break;
-                        case 5:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                            break;
-                        case 6:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                            break;
-                        case 7:
-                            sim->wl.partincontactold = sim->wl.partincontact;
-                            sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                            break;
-                        default:
-                            sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                            break;
-                    }
-                    if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-                }
-                if (!reject) {
-                    wlener = sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-                    energy += wlener;
-                }
+                wlener = sim->wl.runPress(reject, radiusholemax_orig);
             }
             if (!reject) { // wang-landaou ok, try move - calculate energy
                 enermove = sim->press * area * (*side - old_side) - (double)conf->pvec.size() * log(*side/old_side) / sim->temper;
 
                 enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || *side <= 0.0 || ( moveTry(energy,enermove,sim->temper) ) ) { /* probability acceptance */
+            if ( reject || *side <= 0.0 || ( moveTry(energy+wlener,enermove,sim->temper) ) ) { // probability acceptance
                 *side = old_side;
                 sim->stat.edge.rej++;
                 sim->wl.reject(radiusholemax_orig, sim->wl.wlm);
@@ -797,7 +503,7 @@ double MoveCreator::pressureMove() {
                 sim->stat.edge.acc++;
                 conf->swapEMatrices();
                 sim->wl.accept(sim->wl.wlm[0]);
-                edriftchanges = enermove - energy + wlener;
+                edriftchanges = enermove - energy;
             }
             break;
         case 1:
@@ -811,51 +517,14 @@ double MoveCreator::pressureMove() {
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  /* get new neworder for wang-landau */
-                for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                    switch (sim->wl.wlm[wli]) {
-                        case 1: sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                            break;
-                        case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                                  conf->pvec.size(),
-                                                                                  sim->wl.wlmtype,
-                                                                                  conf->geo.box,
-                                                                                  &conf->pvec) - sim->wl.minorder[wli]);
-                            break;
-                        case 4:
-                            sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                            break;
-                        case 5:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                            break;
-                        case 6:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                            break;
-                        case 7:
-                            sim->wl.partincontactold = sim->wl.partincontact;
-                            sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                            break;
-                        default:
-                            sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                            break;
-                    }
-                    if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-                }
-                if (!reject) {
-                    wlener = sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-                    energy += wlener;
-                }
+                wlener = sim->wl.runPress(reject, radiusholemax_orig);
             }
             if (!reject) { /* wang-landaou ok, try move - calcualte energy */
                 enermove = sim->press * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
                 enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || moveTry(energy,enermove,sim->temper) )  { /* probability acceptance */
+            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { /* probability acceptance */
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 conf->geo.box.z -= psch;
@@ -865,7 +534,7 @@ double MoveCreator::pressureMove() {
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 conf->swapEMatrices();
-                edriftchanges = enermove - energy + wlener;
+                edriftchanges = enermove - energy;
             }
             break;
         case 2:
@@ -878,50 +547,14 @@ double MoveCreator::pressureMove() {
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
-                for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                    switch (sim->wl.wlm[wli]) {
-                        //no change in case 1, it does not change geo.box.z
-                        case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                                  conf->pvec.size(),
-                                                                                  sim->wl.wlmtype,
-                                                                                  conf->geo.box,
-                                                                                  &conf->pvec) - sim->wl.minorder[wli]);
-                            break;
-                        case 4:
-                            sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                            break;
-                        case 5:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                            break;
-                        case 6:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                            break;
-                        case 7:
-                            sim->wl.partincontactold = sim->wl.partincontact;
-                            sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                            break;
-                        default:
-                            sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                            break;
-                    }
-                    if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-                }
-                if (!reject) {
-                    wlener = sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-                    energy += wlener;
-                }
+                wlener = sim->wl.runPress(reject, radiusholemax_orig, true);
             }
             if (!reject) { // wang-landaou ok, try move - calculate energy
                 enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
                 enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || moveTry(energy,enermove,sim->temper) )  { // probability acceptance
+            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 sim->stat.edge.rej++;
@@ -930,7 +563,7 @@ double MoveCreator::pressureMove() {
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 conf->swapEMatrices();
-                edriftchanges = enermove - energy + wlener;
+                edriftchanges = enermove - energy;
             }
             break;
         case 3:
@@ -943,49 +576,12 @@ double MoveCreator::pressureMove() {
 
             reject = 0;
             if (sim->wl.wlm[0] > 0) {  // get new neworder for wang-landau
-                for (wli=0;wli<sim->wl.wlmdim;wli++) {
-                    switch (sim->wl.wlm[wli]) {
-                        case 1: sim->wl.neworder[wli] = sim->wl.zOrder(wli);
-                            break;
-                        case 2: sim->wl.origmesh = sim->wl.mesh;
-                            sim->wl.neworder[wli] = (long) (sim->wl.mesh.meshInit(sim->wl.wl_meshsize,
-                                                                                  conf->pvec.size(),
-                                                                                  sim->wl.wlmtype,
-                                                                                  conf->geo.box,
-                                                                                  &conf->pvec) - sim->wl.minorder[wli]);
-                            break;
-                        case 4:
-                            sim->wl.neworder[wli] = sim->wl.twoPartDist(wli);
-                            break;
-                        case 5:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->syscm));
-                            break;
-                        case 6:
-                            radiusholemax_orig = sim->wl.radiusholemax;
-                            longarrayCpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
-                            sim->wl.neworder[wli] = sim->wl.radiusholeAll(wli,&(conf->pvec[0].pos));
-                            break;
-                        case 7:
-                            sim->wl.partincontactold = sim->wl.partincontact;
-                            sim->wl.neworder[wli] = sim->wl.contParticlesAll(wli);
-                            break;
-                        default:
-                            sim->wl.neworder[wli] = sim->wl.currorder[wli];
-                            break;
-                    }
-                    if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
-                }
-                if (!reject) {
-                    wlener = sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-                    energy += wlener;
-                }
+                wlener = sim->wl.runPress(reject, radiusholemax_orig);
             }
             if (!reject) { // wang-landaou ok, try move - calculate energy
                 enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
             }
-            if ( reject || moveTry(energy,enermove,sim->temper) )  { // probability acceptance
+            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
                 conf->geo.box.x -= psch;
                 conf->geo.box.y -= psch;
                 conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
@@ -995,7 +591,7 @@ double MoveCreator::pressureMove() {
                 sim->stat.edge.acc++;
                 sim->wl.accept(sim->wl.wlm[0]);
                 conf->swapEMatrices();
-                edriftchanges = enermove - energy + wlener;
+                edriftchanges = enermove - energy;
             }
             break;
 
