@@ -429,8 +429,8 @@ public:
     printf("%f ", wl->minorder[wli]);
     printf("dorder %f \n", wl->dorder[wli] );
     }*/
-        //return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->geo.box.z- minorder[wli]) / dorder[wli]  );
-        return (long) ceil( ((conf->pvec[0].pos.z ) * conf->geo.box.z- minorder[wli]) / dorder[wli]  ); // for testing
+        return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->geo.box.z- minorder[wli]) / dorder[wli]  );
+        //return (long) ceil( ((conf->pvec[0].pos.z ) * conf->geo.box.z- minorder[wli]) / dorder[wli]  ); // for testing
     }
 
 
