@@ -15,7 +15,7 @@ double MoveCreator::particleMove() {
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
 
-    if ( !( ((sim->wl.wlm[0] == 3) && (sim->wl.wlm[1] == 0) ) || ((sim->wl.wlm[0] == 0) && (sim->wl.wlm[1] == 3) )) && target == 0  && \
+    if ( !( ((sim->wl.wlm[0] == 3) && (sim->wl.wlm[1] == 0) ) || ((sim->wl.wlm[0] == 0) && (sim->wl.wlm[1] == 3) ) && target == 0 )  && \
     ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
         edriftchanges = partDisplace(target);
     } else {
