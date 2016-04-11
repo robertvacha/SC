@@ -177,6 +177,8 @@ public:
     inline void holeXYPlane(int wli, Particle orig[MAXCHL], Molecule& target) {
         origmesh = mesh;
         neworder[wli] = meshOrderMoveMolecule(target, orig, &mesh, wli);
+        assert(target.size() == 1 || meshOrderMoveChain(target, &mesh, conf->pvec.size(), orig, wli) == neworder[wli]); // test chain
+        //assert(target.size() > 1 || ); // test monomers
     }
 
     inline void holeXYPlane(int wli) {
@@ -588,6 +590,14 @@ private:
             return false;
         }
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///                          Deprecated, for debug only                                 ///
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    long meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, long npart, long target, int wli);
+
+    long meshOrderMoveChain(Molecule chain, Mesh *mesh, long npart, Particle chorig[], int wli);
 
 };
 

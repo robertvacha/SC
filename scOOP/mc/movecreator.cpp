@@ -15,8 +15,8 @@ double MoveCreator::particleMove() {
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
 
-    if ( !( ((sim->wl.wlm[0] == 3) && (sim->wl.wlm[1] == 0) ) || ((sim->wl.wlm[0] == 0) && (sim->wl.wlm[1] == 3) ) && target == 0 )  && \
-    ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
+    if ( !( ((sim->wl.wlm[0] == 3) || (sim->wl.wlm[1] == 3) ) && (target == 0) ) && \
+         ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
         edriftchanges = partDisplace(target);
     } else {
         //=== Rotation step ===//
@@ -328,9 +328,10 @@ double MoveCreator::chainMove() {
 
 double MoveCreator::chainDisplace(long target) {
     Molecule chain = conf->pvec.getChain(target);
+    assert(chain.size() > 1);
     double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
-    Vector dr, origsyscm(0.0, 0.0, 0.0);
-    int reject=0,wli;
+    Vector dr, origsyscm = conf->syscm;
+    int reject=0;
     Vector cluscm(0.0, 0.0, 0.0);
     double radiusholemax_orig=0.0;
 
@@ -452,7 +453,7 @@ double MoveCreator::chainRotate(long target) {
 
 double MoveCreator::pressureMove() {
     double edriftchanges,energy,enermove=0.0,wlener;
-    int reject=0,wli;
+    int reject=0;
     double old_side;   // geo.box length before attempted change
     double *side;      // geo.box dimension to try changing
     double psch;       // Size of a geo.box change during pressure
