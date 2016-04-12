@@ -40,7 +40,8 @@ SOURCES += main.cpp \
     mc/randomGenerator.cpp \
     mc/externalenergycalculator.cpp \
     mc/dSFMT-src-2.2.3/dSFMT.c \
-    mc/analysis.cpp
+    mc/analysis.cpp \
+    mc/paire.cpp
 
 HEADERS += \
     mc/wanglandau.h \
@@ -81,7 +82,8 @@ HEADERS += \
     mc/dSFMT-src-2.2.3/dSFMT-common.h \
     unitTests/pvectester.h \
     unitTests/vectortester.h \
-    mc/analysis.h
+    mc/analysis.h \
+    mc/paire.h
 
 OTHER_FILES += \
     mc/dSFMT-src-2.2.3/FILES.txt \
