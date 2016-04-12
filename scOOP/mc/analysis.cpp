@@ -3,9 +3,6 @@
 void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i, int& R2j, int &cen, Conf* conf, Sim* sim) {
     const double deg = 180.0/PI;
 
-    int result = 0;
-    int size = 19; // number of spc in sides (hexagon, each line has 19 spc)
-
     // calculate center of mass
     Vector center(0.0, 0.0, 0.0);
     for(unsigned int i=0; i<conf->pvec.size(); i++) {
@@ -41,7 +38,7 @@ void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i
     Vector plane1, plane2, ab, cd;
     Vector midPoint;
     bool c2cOK = false;
-    for(unsigned int i = 0; i<conf->pvec.size(); i++) { // search edge particles
+    for(unsigned int i = 0; i<conf->pvec.size(); i++) {
         dist = 999.0;
         index = -1;
 
@@ -55,6 +52,8 @@ void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i
         // (imagine a plane, arbitralily choose 3 points. Here the smallest distance will be when the points are in line,
         //  however if there is a curvature, then the 3 points with minimal distance from center of two points to center of mass of structure should descibe curvature
         //
+        //  c2c - vector from midpoint to the center of structure
+        //
         for(unsigned int j = 0; j<conf->pvec.size(); j++) {
             c2cOK = true;
             temp = (conf->pvec[j].pos - conf->pvec[i].pos); // vector i to j
@@ -62,9 +61,8 @@ void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i
             c2c = ((conf->pvec[i].pos + temp) - center);
             midPoint = conf->pvec[i].pos + temp;
 
-
-            for(unsigned int k = 0; k<conf->pvec.size(); k++) {
-                if(c2c.size() > (midPoint-conf->pvec[k].pos).size()) {
+            for(unsigned int k = 0; k < conf->pvec.size(); k++) {
+                if(c2c.size() > (midPoint - conf->pvec[k].pos).size()) {
                     c2cOK = false;
                     break;
                 }
@@ -80,6 +78,7 @@ void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i
         }
         // we have distance and two ID: index and i
 
+        //cout << i << " " << index << endl;
 
 
         // calculate phi: form dist(d) and temp (x)

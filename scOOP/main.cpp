@@ -27,57 +27,43 @@ Topo topo; // Global instance of topology
 #endif
 
 int main(int argc, char** argv) {
+    int rank=0, procs=1;
+#ifdef ENABLE_MPI
+    cout << "MPI SIMULATION" << endl;
+
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &procs );
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+#endif
 
     FILE *infile,*outfile,*mov;       // Handle for writing configuration
 
-    Sim sim;                  // Should contain the simulation options.
+    FileNames files(rank);
     Conf conf;                // Should contain fast changing particle and box(?) information
-    FileNames files;
+    Sim sim(&conf, &files, rank, procs);                  // Should contain the simulation options.
 
-    sim.wl.setConf(&conf);
 
 #ifdef OMP1
     cout << "OPENMP SIMULATION" << endl;
 #endif
 
-#ifdef ENABLE_MPI
-    cout << "MPI SIMULATION" << endl;
-
-        printf(" MPI version");
-        MPI_Init(&argc,&argv);
-        MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
-        MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
-
-        sim->pseudoRank = sim->mpirank;
-
-        // MPI out files
-    files.initMPI(sim->mpirank);
-#endif
-
-
-    if(SILENT == 1)
-        cout << "\nPatchy Spherocylinders version 3.6\n"
-             << "-------------------------------------" << endl;
-
+    cout << "\nPatchy Spherocylinders version 3.6\n"
+         << "-------------------------------------" << endl;
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
     cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added, strenght: " << E_ISO << endl;
 #endif
-
 
     /********************************************************/
     /*                  INITIALIZATION                      */
     /********************************************************/
 
     Inicializer init(&sim, &conf, &files);
-
-    init.initMPI(argc,argv);
-    init.readOptions();
     init.initTop(); // here particleStore filled in setParticleParams
     init.testChains(); // if no chains -> move probability of chains 0
 
-    if(SILENT == 1)
-        cout << "\nReading configuration...\n";
+    cout << "\nReading configuration...\n";
     if(init.poolConfig) {
         infile = fopen(files.configurationPool, "r");
         if (infile == NULL) {

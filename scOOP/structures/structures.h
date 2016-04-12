@@ -88,7 +88,7 @@ typedef struct {        // for reading in the options
 
 class FileNames{
 public:
-    FileNames(){
+    FileNames(int rank=0){
         sprintf(configurationPool, "pool");
         sprintf(configurationInFile, "config.init");
         sprintf(configurationoutfile, "config.last");
@@ -102,6 +102,10 @@ public:
         sprintf(clusterfile, "cluster.dat");
         sprintf(clusterstatfile, "cluster_stat.dat");
         sprintf(energyfile, "energy.dat");
+
+#ifdef ENABLE_MPI
+        initMPI(rank);
+#endif
     }
 
     // for MPI
