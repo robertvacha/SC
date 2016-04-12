@@ -90,9 +90,6 @@ public:
     /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();
 
-    /// @brief Sets names of "write files"
-    void initWriteFiles();
-
     /// @brief Initializes the pairlist and allocates memory
     void initNeighborList();
 

@@ -88,7 +88,22 @@ typedef struct {        // for reading in the options
 
 class FileNames{
 public:
-    FileNames(){}
+    FileNames(){
+        sprintf(configurationPool, "pool");
+        sprintf(configurationInFile, "config.init");
+        sprintf(configurationoutfile, "config.last");
+        sprintf(optionsfile, "options");
+        sprintf(topologyInFile, "top.init");
+        sprintf(topologyOutFile, "top.last");
+        sprintf(moviefile, "movie");
+        sprintf(wlinfile, "wl.dat");
+        sprintf(wloutfile, "wl-new.dat");
+        sprintf(statfile, "stat.dat");
+        sprintf(clusterfile, "cluster.dat");
+        sprintf(clusterstatfile, "cluster_stat.dat");
+        sprintf(energyfile, "energy.dat");
+    }
+
     // for MPI
     // input files
     char configurationPool[30];
@@ -105,6 +120,30 @@ public:
     char clusterfile[30];
     char clusterstatfile[30];
     char energyfile[30];
+
+    void initMPI(int rank) {
+        FILE *infile;
+        initMPIRank(rank);
+
+        //test if there is a specific input configuration for mpi run
+
+        infile = fopen(configurationInFile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(configurationInFile, "config.init");
+
+        infile = fopen(topologyInFile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(topologyInFile, "top.init");
+
+        //test if there is a specific input wang-landau for mpi run
+
+        infile = fopen(wlinfile, "r");
+        if (infile != NULL)
+            fclose (infile);
+        else  sprintf(wlinfile, "wl.dat");
+    }
 
     void initMPIRank(int rank) {
         // in files

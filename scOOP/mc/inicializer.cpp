@@ -466,8 +466,8 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         conf->geo.usePBC(&pvec[i]);
 #else
 
-        // for compatibility unfortunately
-        //conf->geo.usePBC2(&pvec[i]); // range 0 - 1
+        // For analysis of sheet
+        //conf->geo.usePBC2(&pvec[i]); // range 0 - box
 
         pvec[i].pos.x /= conf->geo.box.x;
         pvec[i].pos.y /= conf->geo.box.y;
@@ -588,22 +588,6 @@ void Inicializer::testChains() {
     }
 }
 
-void Inicializer::initWriteFiles() {
-    sprintf(files->configurationPool, "pool");
-    sprintf(files->configurationInFile, "config.init");
-    sprintf(files->configurationoutfile, "config.last");
-    sprintf(files->optionsfile, "options");
-    sprintf(files->topologyInFile, "top.init");
-    sprintf(files->topologyOutFile, "top.last");
-    sprintf(files->moviefile, "movie");
-    sprintf(files->wlinfile, "wl.dat");
-    sprintf(files->wloutfile, "wl-new.dat");
-    sprintf(files->statfile, "stat.dat");
-    sprintf(files->clusterfile, "cluster.dat");
-    sprintf(files->clusterstatfile, "cluster_stat.dat");
-    sprintf(files->energyfile, "energy.dat");
-}
-
 void Inicializer::initNeighborList() {
     cout << "\nAllocating memory for pairlist..." << endl;
     //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo.npart); // deprecated, see Conf->neighborlist
@@ -618,37 +602,7 @@ void Inicializer::initNeighborList() {
 }
 
 void Inicializer::initMPI(int argc, char** argv) {
-#ifdef ENABLE_MPI
-        FILE *infile;
-        printf(" MPI version");
-        MPI_Init(&argc,&argv);
-        MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
-        MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
-        sim->pseudoRank = sim->mpirank;
 
-        // MPI out files
-        files->initMPIRank(sim->mpirank);
-
-        //test if there is a specific input configuration for mpi run
-
-        infile = fopen(files->configurationInFile, "r");
-        if (infile != NULL)
-            fclose (infile);
-        else  sprintf(files->configurationInFile, "config.init");
-
-
-        infile = fopen(files->topologyInFile, "r");
-        if (infile != NULL)
-            fclose (infile);
-        else  sprintf(files->topologyInFile, "top.init");
-
-        //test if there is a specific input wang-landau for mpi run
-
-        infile = fopen(files->wlinfile, "r");
-        if (infile != NULL)
-            fclose (infile);
-        else  sprintf(files->wlinfile, "wl.dat");
-#endif
 }
 
 void Inicializer::initGroupLists() {
@@ -1051,7 +1005,7 @@ int Inicializer::fillTypes(char **pline) {
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS" << endl;
         return 0;
     }
-    if (( (geotype_i == CHCPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
+    if (( (geotype_i == CHPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {
         cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS CHIRAL_ANGLE" << endl;
         return 0;
@@ -1061,7 +1015,7 @@ int Inicializer::fillTypes(char **pline) {
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH" << endl;
         return 0;
     }
-    if (( (geotype_i == TCHCPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
+    if (( (geotype_i == TCHPSC) || (geotype_i == TCHCPSC) )&& ( fields != 10)) {
         cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH CHIRAL_ANGLE" << endl;
         return 0;

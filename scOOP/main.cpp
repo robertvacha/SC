@@ -27,14 +27,6 @@ Topo topo; // Global instance of topology
 #endif
 
 int main(int argc, char** argv) {
-#ifdef OMP1
-    cout << "OPENMP SIMULATION" << endl;
-#endif
-
-#ifdef ENABLE_MPI
-    cout << "MPI SIMULATION" << endl;
-
-#endif
 
     FILE *infile,*outfile,*mov;       // Handle for writing configuration
 
@@ -42,9 +34,25 @@ int main(int argc, char** argv) {
     Conf conf;                // Should contain fast changing particle and box(?) information
     FileNames files;
 
-    Updater* updater; // need to get an instance of updater after initialization, because of initFCE
-
     sim.wl.setConf(&conf);
+
+#ifdef OMP1
+    cout << "OPENMP SIMULATION" << endl;
+#endif
+
+#ifdef ENABLE_MPI
+    cout << "MPI SIMULATION" << endl;
+
+        printf(" MPI version");
+        MPI_Init(&argc,&argv);
+        MPI_Comm_size(MPI_COMM_WORLD, &(sim->mpinprocs) );
+        MPI_Comm_rank(MPI_COMM_WORLD, &(sim->mpirank) );
+
+        sim->pseudoRank = sim->mpirank;
+
+        // MPI out files
+    files.initMPI(sim->mpirank);
+#endif
 
 
     if(SILENT == 1)
@@ -63,7 +71,6 @@ int main(int argc, char** argv) {
 
     Inicializer init(&sim, &conf, &files);
 
-    init.initWriteFiles();
     init.initMPI(argc,argv);
     init.readOptions();
     init.initTop(); // here particleStore filled in setParticleParams
@@ -137,22 +144,16 @@ int main(int argc, char** argv) {
         sim.nsweeps = 2147483647; // max long integer (2^31 -1)
     }*/
 
-    updater = new Updater(&sim, &conf, &files);
-
-    /********************************************************/
-    /*                  SOME TESTS                          */
-    /********************************************************/
-
-#ifndef NDEBUG
-    //pVecTester pTest;
-    //assert(pTest.test());
-#endif
+    Updater updater(&sim, &conf, &files); // need to get an instance of updater after initialization, because of initFCE
 
     /********************************************************/
     /*                      ANALYZE                         */
     /********************************************************/
 
-    /*ofstream myfile;
+    /*ofstream user;
+    user.open ("user.dat");
+
+    ofstream myfile;
     myfile.open ("curvatureFull");
 
     ofstream myfileS;
@@ -167,6 +168,7 @@ int main(int argc, char** argv) {
     //
     double r1, r2, fi;
     int R1i, R1j, R2i, R2j, center;
+    int frames = 0;
 
     infile = fopen("movieX", "r");
     if (infile == NULL) {
@@ -196,8 +198,18 @@ int main(int argc, char** argv) {
 
     sscanf(line, "%*s %d", &i);
     fseek(infile, pos, SEEK_SET);
+    double e[1027];
     while (init.initConfig(&infile, conf.pvec) ) {
-        analyzeCur(r1, r2, fi, R1i, R1j, R2i, R2j, center, &conf, &sim);
+
+        for(unsigned int j=0; j< conf.pvec.size(); j++) {
+            e[j] += updater->calcEnergy.oneToAllBasic(j);
+            //user << e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " ";
+        }
+        //user << "\n";
+        frames++;
+        cout << updater->calcEnergy.allToAllBasic() << " " << i << endl;
+
+        /*analyzeCur(r1, r2, fi, R1i, R1j, R2i, R2j, center, &conf, &sim);
         cout << std::setw(8) << std::setprecision(2) << std::fixed;
         cout << i << " "<< std::setw(7) <<  r1 << " " << std::setw(7)<< r2 << " " << std::setw(5) <<fi
              << " " << std::setw(4)<< R1i << " " << std::setw(4)<< R1j << " " << std::setw(4)<< R2i << " " << std::setw(4)<< R2j  << " " << center<< endl;
@@ -211,16 +223,16 @@ int main(int argc, char** argv) {
             if(fi > 88) {
                 myfileS << i << " " << r1 << " " << r2 << " " << fi << endl;
             }
-        }
+        }*//*
 
         pos = ftell(infile);
         if(myGetLine(&line, &line_size, infile) == -1){ // number of part
             fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
-            return false;
+            break;
         }
         if(myGetLine(&line, &line_size, infile) == -1){ // frame info
             fprintf (stderr, "ERROR: Could not read box size (Inicializer::initConfig)\n\n");
-            return false;
+            break;
         }
         strip_comment(line);
         trim(line);
@@ -233,10 +245,24 @@ int main(int argc, char** argv) {
         }
         i += offset;
         fseek(infile, pos, SEEK_SET);
+
+
+    }
+    cout << frames << endl;
+    for(unsigned int j=0; j< 1027; j++) {
+        e[j] /= frames;
+    }
+    for(int k=0; k<frames; k++) {
+        for(unsigned int j=0; j< 1027; j++) {
+            user << e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " "<< e[j] << " ";
+        }
+        user << "\n";
     }
 
+    user.close();
     myfile.close();
     fclose (infile);
+    cout << "Exit" << endl;
     exit(1);*/
 
     /********************************************************/
@@ -248,8 +274,8 @@ int main(int argc, char** argv) {
     if (sim.nequil) {
         printf("\nStart equilibration...\n");
 
-        updater->simulate(sim.nequil/2, sim.adjust, 0, 0);
-        updater->simulate(sim.nequil/2, 0,          0, 0);
+        updater.simulate(sim.nequil/2, sim.adjust, 0, 0);
+        updater.simulate(sim.nequil/2, 0,          0, 0);
 
         sim.printEqStat();
 
@@ -271,7 +297,7 @@ int main(int argc, char** argv) {
     cout << "Production run:  "<< sim.nsweeps << " sweeps\n" << endl;
 
     sim.all = clock();
-    updater->simulate(sim.nsweeps, 0, sim.paramfrq, sim.report);
+    updater.simulate(sim.nsweeps, 0, sim.paramfrq, sim.report);
     sim.all = clock() - sim.all;
 
 #ifdef ENABLE_MPI
