@@ -275,12 +275,14 @@ public:
  * @brief Configuration of the system
  */
 class Conf {
+private:
+    std::vector< std::vector<double> > eMatrix;
+    std::vector< std::vector<double> > eMatrix2;
 public:  
     ParticleVector pvec;  ///< \brief Main store of all particles, grouped by Molecular types
     std::vector<Neighbors > neighborList;
     vector<double> changes;
-    std::vector< std::vector<double> > eMatrix;
-    std::vector< std::vector<double> > eMatrix2;
+
     std::vector< std::vector<double> >* energyMatrix;
     std::vector< std::vector<double> >* energyMatrixTrial;
     //std::vector<ConList > conlist;
