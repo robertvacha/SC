@@ -166,6 +166,12 @@ private:
         return 0;
     }
 
+
+    /**
+     * @brief Reads the run parameters from the external file "options".  See the end of the
+       code for a template. All comments starting with '#' are stripped out.  The
+       options are summarised on standard output and checked for validity of range.
+     */
     void readOptions(FileNames* files) {
 
         if(mpirank == 0)

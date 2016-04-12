@@ -18,10 +18,6 @@ class WangLandau
 public:
     WangLandau() {}
 
-    void setConf(Conf* conf) {
-        this->conf = conf;
-    }
-
     Conf* conf;
 
     int wlm[2];                ///< \brief Wang landau method (wl)

@@ -58,13 +58,6 @@ public:
      */
 
     /**
-     * @brief Reads the run parameters from the external file "options".  See the end of the
-       code for a template. All comments starting with '#' are stripped out.  The
-       options are summarised on standard output and checked for validity of range.
-     */
-    void readOptions();
-
-    /**
      * @brief Inicialization of topology
 
        Create lists for chain operations: Connectivity list where it is written for each sc
@@ -183,75 +176,6 @@ private:
      * @return
      */
     int fillMol(char *molname, char *pline, MolIO *molecules);
-
-    /**
-     * @brief convert string num into two integers
-     * @param num
-     * @param value
-     */
-    void readii2(char * num, int value[2]) {
-        char *end, *num2;
-
-        value[0] = strtol(num, &num2, 10);
-        trim(num2);
-        if ((int)strlen(num2) > 0)
-            value[1] = strtol(num2, &end, 10);
-        else {
-            value[1] =0;
-            return;
-        }
-        if(*end){
-            fprintf(stderr, "Could not convert %s into two integers\n", num);
-            exit(1);
-        }
-
-        return;
-    }
-
-    /**
-     * @brief convert string num into double
-     * @param num
-     * @return
-     */
-    double readd2(char * num) {
-        char *end;
-        double i = strtod(num, &end);
-        if(*end){
-            fprintf(stderr, "Could not convert %s into double\n", num);
-            exit(1);
-        }
-        return i;
-    }
-
-    /**
-     * @brief convert string num into long
-     * @param num
-     * @return
-     */
-    long readl2(char * num) {
-        char *end;
-        long i = strtol(num, &end, 10);
-        if(*end){
-            fprintf(stderr, "Could not convert %s into long\n", num);
-            exit(1);
-        }
-        return i;
-    }
-
-    /**
-     * @brief convert string num into integer
-     * @param num
-     * @return
-     */
-    int readi2(char * num) {
-        char *end;
-        int i = strtol(num, &end, 10);
-        if(*end){
-            fprintf(stderr, "Could not convert %s into integer\n", num);
-            exit(1);
-        }
-        return (int) i;
-    }
 };
 
 #endif // INICIALIZER_H
