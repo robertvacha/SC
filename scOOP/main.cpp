@@ -97,7 +97,6 @@ int main(int argc, char** argv) {
     mov = fopen("movie", "w");
     fclose (mov);
 
-    conf.initEMatrix();
     if (sim.pairlist_update) {
         init.initNeighborList();
         conf.pairlist_update = true;
@@ -109,8 +108,14 @@ int main(int argc, char** argv) {
             topo.gcSpecies++;
     }
 
+    conf.initEMatrix();
+
     //
-    //  PRE-COMPUTE PAIRLIST CUTOFF
+    // THESE REQUIRES SIM AND TOP DATA
+    //
+
+    //
+    //  PRE-COMPUTE PAIRLIST CUTOFF, After topo init
     //
     for(int i=0; i< MAXT; i++) {
         for(int j=0; j<MAXT; j++) {
@@ -123,9 +128,19 @@ int main(int argc, char** argv) {
         }
     }
 
-    /*if(sim.pseudoRank != 0) {
-        sim.nsweeps = 2147483647; // max long integer (2^31 -1)
-    }*/
+    if(sim.nGrandCanon == 0) {
+        bool test = false;
+        for(int i=0; i < MAXMT; ++i) {
+            if( topo.moleculeParam[i].name != NULL && topo.moleculeParam[i].activity != -1 ) {
+                test = true; // we have a gc active species
+                break;
+            }
+        }
+        if(test) {
+            cout << "Activity stated in top.init, But nGrandCanon=0 in options" << endl;
+            exit(1);
+        }
+    }
 
     Updater updater(&sim, &conf, &files); // need to get an instance of updater after initialization, because of initFCE
 

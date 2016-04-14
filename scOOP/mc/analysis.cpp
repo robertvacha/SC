@@ -31,7 +31,7 @@ void analyzeCur(double &r1, double &r2, double &fi, int& R1i, int& R1j, int& R2i
     double dist;
     double phi;
     double alfa;
-    double R, R_min=999999.9, R_min2 = 999999.9, angle;
+    double R, R_min=999999.9, R_min2 = 999999.9, angle=-1;
     int index;
     Vector temp, c2c;
     Vector ref;

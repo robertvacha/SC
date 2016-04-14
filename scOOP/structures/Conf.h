@@ -307,6 +307,7 @@ public:
     Conf() : pairlist_update(false) {
         energyMatrix = &eMatrix;
         energyMatrixTrial = &eMatrix2;
+
         try{
             pvec.reserve(MAXN);
             pool.reserve(MAXN);
@@ -391,19 +392,24 @@ public:
     }
 
     void initEMatrix() {
-        changes.reserve(1024 + pvec.size());
-        energyMatrix->reserve(1024 + pvec.size());
-        energyMatrix->resize(pvec.size());
-        for(unsigned int i=0; i<pvec.size(); i++) {
-            energyMatrix->operator [](i).reserve(1024 + pvec.size());
-            energyMatrix->operator [](i).resize(pvec.size());
-        }
+        try{
+            changes.reserve(1024 + pvec.size());
+            energyMatrix->reserve(1024 + pvec.size());
+            energyMatrix->resize(pvec.size());
+            for(unsigned int i=0; i<pvec.size(); i++) {
+                energyMatrix->operator [](i).reserve(1024 + pvec.size());
+                energyMatrix->operator [](i).resize(pvec.size());
+            }
 
-        energyMatrixTrial->reserve(1024 + pvec.size());
-        energyMatrixTrial->resize(pvec.size());
-        for(unsigned int i=0; i<pvec.size(); i++) {
-            energyMatrixTrial->operator [](i).reserve(1024 + pvec.size());
-            energyMatrixTrial->operator [](i).resize(pvec.size());
+            energyMatrixTrial->reserve(1024 + pvec.size());
+            energyMatrixTrial->resize(pvec.size());
+            for(unsigned int i=0; i<pvec.size(); i++) {
+                energyMatrixTrial->operator [](i).reserve(1024 + pvec.size());
+                energyMatrixTrial->operator [](i).resize(pvec.size());
+            }
+        } catch(std::bad_alloc& bad) {
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix");
+            exit(1);
         }
     }
 
