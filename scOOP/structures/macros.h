@@ -33,11 +33,6 @@
 # include <mpi.h>
 #endif
 
-//#define OMP1 // energy functions openMP
-#ifdef OMP1
-#include "omp.h"
-#endif
-
 
 // For debugging MPI, silent some prints, 0 silenced, 1 printed out
 #define SILENT 1

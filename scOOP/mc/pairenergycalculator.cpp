@@ -14,16 +14,8 @@ double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConLi
 
     double energy=0.0;
 
-#ifdef OMP1 // switching of particles data occurs durin energy calc -> cant use with openMP
-    Particle par1 = *part1;
-    Particle par2 = *part2;
-    this->part1 = &par1;
-    this->part2 = &par2;
-#else // advantageous performace wise for single core simulation
     this->part1 = part1;
     this->part2 = part2;
-#endif
-
     this->conlist = conlist;
 
     /*Placing interactin particle in unit pbc->box and finding vector connecting CM*/

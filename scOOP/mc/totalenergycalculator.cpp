@@ -30,7 +30,7 @@ double TotalEnergyCalculator::allToAll(std::vector< std::vector<double> >* energ
     for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
         conlist = conf->pvec.getConlist(i);
         for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
-            (*energyMatrix)[i][j] = (pairE[getThreadNum()])(&conf->pvec[i], &conf->pvec[j], &conlist);
+            (*energyMatrix)[i][j] = (pairE)(&conf->pvec[i], &conf->pvec[j], &conlist);
             (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
             energy += (*energyMatrix)[i][j];
         }
@@ -43,7 +43,7 @@ double TotalEnergyCalculator::allToAll(std::vector< std::vector<double> >* energ
 
     //add interaction of last particle with external potential
     if (topo.exter.exist && !conf->pvec.empty())
-        energy += exterE[getThreadNum()].extere2(&conf->pvec.back());
+        energy += exterE.extere2(&conf->pvec.back());
 
     return energy;
 }
@@ -66,7 +66,7 @@ double TotalEnergyCalculator::allToAll() {
 
     //add interaction of last particle with external potential
     if (topo.exter.exist && !conf->pvec.empty())
-        energy += exterE[getThreadNum()].extere2(&conf->pvec.back());
+        energy += exterE.extere2(&conf->pvec.back());
 
 #ifndef NDEBUG
     double energy2 = allToAllBasic();
@@ -85,7 +85,7 @@ double TotalEnergyCalculator::allToAllBasic() {
     for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
         conlist = conf->pvec.getConlist(i);
         for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
-            energy += (pairE[getThreadNum()])(&conf->pvec[i], &conf->pvec[j], &conlist);
+            energy += (pairE)(&conf->pvec[i], &conf->pvec[j], &conlist);
         }
 
         //for every particle add interaction with external potential
@@ -95,7 +95,7 @@ double TotalEnergyCalculator::allToAllBasic() {
 
     //add interaction of last particle with external potential
     if (topo.exter.exist && !conf->pvec.empty())
-        energy += exterE[getThreadNum()].extere2(&conf->pvec.back());
+        energy += exterE.extere2(&conf->pvec.back());
 
     return energy;
 }
@@ -114,18 +114,18 @@ double TotalEnergyCalculator::oneToAll(int target, vector<double>* changes) {
 
     if (pairListUpdate) {
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
-            changes->push_back((pairE[getThreadNum()])(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
+            changes->push_back((pairE)(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
             energy += changes->back();
         }
     } else {
         changes->resize(conf->pvec.size());
         (*changes)[target] = 0.0;
         for (i = 0; i < target; i++) {
-            (*changes)[i] = pairE[getThreadNum()](&conf->pvec[target], &conf->pvec[i], &conlist);
+            (*changes)[i] = pairE(&conf->pvec[target], &conf->pvec[i], &conlist);
             energy += (*changes)[i];
         }
         for (i = target+1; i < (long)conf->pvec.size(); i++) {
-            (*changes)[i] = pairE[getThreadNum()](&conf->pvec[target], &conf->pvec[i], &conlist);
+            (*changes)[i] = pairE(&conf->pvec[target], &conf->pvec[i], &conlist);
             energy += (*changes)[i];
         }
     }
@@ -195,7 +195,7 @@ double TotalEnergyCalculator::oneToAllBasic(int target) {
 
     for (int i = 0; i < (int)conf->pvec.size(); i++) {
         if(target != i) {
-            energy += (pairE[getThreadNum()])(&conf->pvec[target], &conf->pvec[i], &conlist);
+            energy += (pairE)(&conf->pvec[target], &conf->pvec[i], &conlist);
         }
     }
 
@@ -298,7 +298,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol, vector<double> *changes)
                         partOfChain = true;
 
                 if(!partOfChain) {
-                    changes->push_back( pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]) );
+                    changes->push_back( pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]) );
                     energy += changes->back();
                 }
             }
@@ -314,12 +314,12 @@ double TotalEnergyCalculator::mol2others(Molecule &mol, vector<double> *changes)
         for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
             // for cycles => pair potential with all particles except those in molecule
             for (i = 0; i < mol[0]; i++) { // pair potential with all particles from 0 to the first one in molecule
-                (*changes)[j*conf->pvec.size() + i] = pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
+                (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
                 energy += (*changes)[j*conf->pvec.size() + i];
             }
 
             for (long i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++) {
-                (*changes)[j*conf->pvec.size() + i] = pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
+                (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
                 energy += (*changes)[j*conf->pvec.size() + i];
             }
 
@@ -344,10 +344,10 @@ double TotalEnergyCalculator::mol2othersBasic(Molecule &mol) {
     for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
         // for cycles => pair potential with all particles except those in molecule
         for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
-            energy += pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
+            energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
 
         for (i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
-            energy += pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[i]);
+            energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
 
         //add interaction with external potential
         if (topo.exter.exist)
@@ -367,10 +367,10 @@ double TotalEnergyCalculator::mol2others(vector<Particle>& mol) {
 
     for(i=0; i<mol.size(); i++) {
         if (topo.exter.exist)
-            energy += exterE[getThreadNum()].extere2(&mol[i]);
+            energy += exterE.extere2(&mol[i]);
 
         for(unsigned int j=0; j < conf->pvec.size(); j++) {
-            energy += pairE[getThreadNum()](&mol[i], &conf->pvec[j]);
+            energy += pairE(&mol[i], &conf->pvec[j]);
         }
     }
 
@@ -401,7 +401,7 @@ double TotalEnergyCalculator::chainInner(vector<Particle >& chain) {
 
     for (unsigned int i=0; i<chain.size(); i++)
         for (unsigned int j=i+1; j<chain.size(); j++)
-            energy += (pairE[getThreadNum()])(&chain[i], &chain[j],  &con[i]);   
+            energy += (pairE)(&chain[i], &chain[j],  &con[i]);
 
     return energy;
 }
@@ -414,7 +414,7 @@ double TotalEnergyCalculator::chainInner(Molecule &chain) {
     for (unsigned int i=0; i<chain.size(); i++) {
         for (unsigned int j=i+1; j<chain.size(); j++) {
             conlist = conf->pvec.getConlist(chain[i]);
-            energy += (pairE[getThreadNum()])(&conf->pvec[chain[i]], &conf->pvec[chain[j]],  &conlist);
+            energy += (pairE)(&conf->pvec[chain[i]], &conf->pvec[chain[j]],  &conlist);
         }
     }
 
@@ -428,12 +428,12 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
 
     if (pairListUpdate && neighborList!=NULL) {
         for (i = 0; i < (unsigned long)neighborList->neighborCount; i++){
-           energy += (pairE[getThreadNum()])(target, &conf->pvec[ neighborList->neighborID[i] ], conlist );
+           energy += (pairE)(target, &conf->pvec[ neighborList->neighborID[i] ], conlist );
         }
     } else {
         for (i = 0; i < conf->pvec.size(); i++) {
             if(target != &conf->pvec[i]) {
-                energy += pairE[getThreadNum()](target, &conf->pvec[i], conlist);
+                energy += pairE(target, &conf->pvec[i], conlist);
                 /*std::cout.precision(15);
                 cout << pairE[getThreadNum()](target, &conf->pvec[i], conlist) << endl;*/
             }
@@ -442,7 +442,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
 
     //add interaction with external potential
     if (topo.exter.exist)
-        energy += exterE[getThreadNum()].extere2(target);
+        energy += exterE.extere2(target);
 
     return energy;
 }
@@ -480,7 +480,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 
     for (i = 0; i < target; i++) {
         if (i != conf->pvec.getChainPart(chainnum, j)) {
-            energy+= pairE[getThreadNum()](&conf->pvec[target], &conf->pvec[i], &conlist);
+            energy+= pairE(&conf->pvec[target], &conf->pvec[i], &conlist);
         } else {
             j++;
         }
@@ -489,7 +489,7 @@ double TotalEnergyCalculator::chainToAll(int target, int chainnum) {
 
     for (i = target + 1; i < (long)conf->pvec.size(); i++) {
         if (i != conf->pvec.getChainPart(chainnum, j)) {
-            energy+= pairE[getThreadNum()](&conf->pvec[target], &conf->pvec[i],  &conlist);
+            energy+= pairE(&conf->pvec[target], &conf->pvec[i],  &conlist);
         } else {
             j++;
         }

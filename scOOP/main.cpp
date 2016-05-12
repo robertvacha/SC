@@ -37,9 +37,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank );
 
 #endif
-#ifdef OMP1
-    cout << "OPENMP SIMULATION" << endl;
-#endif
+
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
     cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added, strenght: " << E_ISO << endl;
 #endif

@@ -12,33 +12,18 @@ using namespace std;
 class TotalEnergyCalculator
 {
 private:
-    vector<PairEnergyCalculator> pairE;
-    vector<ExternalEnergyCalculator> exterE;
-
-#ifdef OMP1
-    inline int getThreadNum() {
-        return omp_get_thread_num();
-    }
-#else
-    inline int getThreadNum() {return 0;}
-#endif
+    PairEnergyCalculator pairE;
+    ExternalEnergyCalculator exterE;
 
     bool pairListUpdate;
     Conf* conf;
 
 public:
-    TotalEnergyCalculator(Sim * sim, Conf * conf): pairListUpdate(sim->pairlist_update), conf(conf) {
-        int threadCount = 1;
-#ifdef OMP1
-        threadCount = 32;
-#endif
-
-        printf ("\nInitializing energy functions...\n");
-        for(int i=0; i < threadCount; i++) {
-            pairE.push_back(PairEnergyCalculator(&conf->geo));
-            exterE.push_back(ExternalEnergyCalculator(&conf->geo.box));
-            pairE[i].initIntFCE();
-        }
+    TotalEnergyCalculator(Sim * sim, Conf * conf): pairE(PairEnergyCalculator(&conf->geo)),
+                                                   exterE(ExternalEnergyCalculator(&conf->geo.box)),
+                                                   pairListUpdate(sim->pairlist_update), conf(conf) {
+        cout << "\nInitializing energy functions...\n";
+        pairE.initIntFCE();
     }
 
     /************************************************************************************************/
@@ -130,12 +115,12 @@ public:
      */
     double p2p(int part1, int part2) {
         ConList conlist = conf->pvec.getConlist(part1);
-        return pairE[getThreadNum()](&conf->pvec[part1], &conf->pvec[part2], &conlist);
+        return pairE(&conf->pvec[part1], &conf->pvec[part2], &conlist);
     }
 
     double p2p(Particle* part1, int part2) {
         ConList conlist = conf->pvec.getConlist(part2);
-        return pairE[getThreadNum()](part1, &conf->pvec[part2], &conlist);
+        return pairE(part1, &conf->pvec[part2], &conlist);
     }
 
     /**
@@ -166,7 +151,7 @@ public:
      * @return
      */
     double extere2(int target) {
-        return exterE[getThreadNum()].extere2(&conf->pvec[target]);
+        return exterE.extere2(&conf->pvec[target]);
     }
 
 
