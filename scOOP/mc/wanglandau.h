@@ -12,6 +12,8 @@ extern bool cond;
 
 /**
  * @brief The WangLandau class - Wang landau method (wl)
+ * Option 1: position in box respective to center of mass
+ * Option 3: cos(angle of orientation to z axis)
  */
 class WangLandau
 {
@@ -428,6 +430,7 @@ public:
     printf("dorder %f \n", wl->dorder[wli] );
     }*/
         return (long) ceil( ((conf->pvec[0].pos.z - conf->syscm.z) * conf->geo.box.z- minorder[wli]) / dorder[wli]  );
+
         //return (long) ceil( ((conf->pvec[0].pos.z ) * conf->geo.box.z- minorder[wli]) / dorder[wli]  ); // for testing
     }
 
@@ -477,7 +480,9 @@ public:
      */
     int end() {
         free(weights);
+        weights = NULL;
         free(hist);
+        hist = NULL;
         return 0;
     }
 

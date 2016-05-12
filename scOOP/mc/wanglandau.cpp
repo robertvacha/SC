@@ -100,7 +100,7 @@ void WangLandau::init(char wlinfile[30]) {
                 printf("Error: starting Wang-Landau method with order parameter %f out of range(%f - %f)\n\n", dorder[wli]*currorder[wli] + \
                    minorder[wli], minorder[wli], minorder[wli]+dorder[wli]*length[wli]  );
                 end();
-                return;
+                exit(0);
             }
         }
         if (alpha < WL_ALPHATOL/100) alpha = WL_ZERO;
