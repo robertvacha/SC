@@ -24,11 +24,10 @@ private:
 #endif
 
     bool pairListUpdate;
-    Sim* sim;
     Conf* conf;
 
 public:
-    TotalEnergyCalculator(Sim * sim, Conf * conf): pairListUpdate(sim->pairlist_update),  sim(sim), conf(conf) {
+    TotalEnergyCalculator(Sim * sim, Conf * conf): pairListUpdate(sim->pairlist_update), conf(conf) {
         int threadCount = 1;
 #ifdef OMP1
         threadCount = 32;

@@ -112,7 +112,7 @@ double TotalEnergyCalculator::oneToAll(int target, vector<double>* changes) {
     long i;
     ConList conlist = conf->pvec.getConlist(target);
 
-    if (sim->pairlist_update) {
+    if (pairListUpdate) {
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
             changes->push_back((pairE[getThreadNum()])(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
             energy += changes->back();
@@ -151,7 +151,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
     double energy=0.0;
     long i;
 
-    if (sim->pairlist_update) {
+    if (pairListUpdate) {
         for (i = 0; i < conf->neighborList[target].neighborCount; i++) {
             energy += conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
 #ifndef NDEBUG
@@ -215,7 +215,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol) {
     long i = 0;
     bool partOfChain;
 
-    if (sim->pairlist_update) {
+    if (pairListUpdate) {
 
         for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
             for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
@@ -285,7 +285,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol, vector<double> *changes)
     long i = 0;
     bool partOfChain;
 
-    if (sim->pairlist_update) {
+    if (pairListUpdate) {
 
         //
         // SAVE the changes to energy to easily swap them later -> instance when oneToAll(target, false, some vector) used
@@ -426,7 +426,7 @@ double TotalEnergyCalculator::oneToAll(Particle *target, ConList* conlist, Neigh
     double energy=0.0;
     unsigned long i;
 
-    if (sim->pairlist_update && neighborList!=NULL) {
+    if (pairListUpdate && neighborList!=NULL) {
         for (i = 0; i < (unsigned long)neighborList->neighborCount; i++){
            energy += (pairE[getThreadNum()])(target, &conf->pvec[ neighborList->neighborID[i] ], conlist );
         }
