@@ -12,7 +12,22 @@ class Updater
 public:
     Updater(Sim* sim, Conf* conf, FileNames* files) :
         sim(sim), conf(conf), files(files),
-        calcEnergy(sim, conf), move(sim, conf, &calcEnergy) {}
+        calcEnergy(sim, conf), move(sim, conf, &calcEnergy, &wl) {
+
+        wl.conf = conf;
+        wl.wlmtype = sim->wlmtype;
+        wl.wlm[0] = sim->wlm[0];
+        wl.wlm[1] = sim->wlm[1];
+
+        if ( wl.wlm[0] > 0 ) {
+            FILE* outfile = fopen(files->wlinfile, "r");
+            if (outfile == NULL) {
+                printf ("ERROR: Cannot open file for Wang-Landau method (%s).\n",files->wlinfile);
+                exit(1);
+            }
+            fclose (outfile);
+        }
+    }
 
 private:
     Sim* sim;            ///< \brief contains the simulation options.
@@ -21,6 +36,7 @@ private:
 
     TotalEnergyCalculator calcEnergy;   ///< \brief energy calculations
     MoveCreator move;                   ///< \brief move calculations
+    WangLandau wl;
 
     long nsweeps;
     long adjust;

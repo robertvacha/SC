@@ -36,22 +36,22 @@ void Updater::initValues() {
     //nem = vol = shapex = shapey = shapez = nullstat;
     //for (i=0; i<MAXF; i++) smec[i] = nullstat;
 
-    sim->wl.wl_meshsize = 0;
-    sim->wl.radiushole = NULL;
-    sim->wl.radiusholeold = NULL;
-    sim->wl.radiusholemax = 0;
-    sim->wl.partincontactold = 0;
-    sim->wl.partincontact = 0;
-    sim->wl.wlmdim = 0;
-    sim->wl.wlmdim = 0;
-    sim->wl.length[0]=0;
-    sim->wl.length[1]=0;
-    sim->wl.currorder[0]=0;
-    sim->wl.currorder[1]=0;
-    sim->wl.neworder[0]=0;
-    sim->wl.neworder[1]=0;
-    sim->wl.weights = NULL;
-    sim->wl.hist = NULL;
+    wl.wl_meshsize = 0;
+    wl.radiushole = NULL;
+    wl.radiusholeold = NULL;
+    wl.radiusholemax = 0;
+    wl.partincontactold = 0;
+    wl.partincontact = 0;
+    wl.wlmdim = 0;
+    wl.wlmdim = 0;
+    wl.length[0]=0;
+    wl.length[1]=0;
+    wl.currorder[0]=0;
+    wl.currorder[1]=0;
+    wl.neworder[0]=0;
+    wl.neworder[1]=0;
+    wl.weights = NULL;
+    wl.hist = NULL;
 
     conf->massCenter();
 }
@@ -110,7 +110,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     initValues();
 
-    sim->wl.init(files->wlinfile);
+    wl.init(files->wlinfile);
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
         temp = clock();
@@ -247,7 +247,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             next_adjust += adjust;
         }
 
-        if ( (sim->wl.wlm[0] > 0) && (sim->wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
+        if ( (wl.wlm[0] > 0) && (wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
             // recalculate system CM to be sure there is no accumulation of errors by +- rejection moves
             /* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
               can be calculated from CM movements of individual particles
@@ -256,38 +256,38 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
              if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
                   masscenter(topo.npart,topo.ia_params, conf);
             */
-            sim->wl.min = sim->wl.hist[0];
-            sim->wl.max = sim->wl.hist[0];
-            for (i=0;i < sim->wl.length[0];i++) {
+            wl.min = wl.hist[0];
+            wl.max = wl.hist[0];
+            for (i=0;i < wl.length[0];i++) {
                 j=0;
-                if ( sim->wl.hist[i+j*sim->wl.length[0]] > sim->wl.max ) sim->wl.max = sim->wl.hist[i+j*sim->wl.length[0]];
-                if ( sim->wl.hist[i+j*sim->wl.length[0]] < sim->wl.min ) sim->wl.min = sim->wl.hist[i+j*sim->wl.length[0]];
-                for (j=1;j < sim->wl.length[1];j++) {
-                    if ( sim->wl.hist[i+j*sim->wl.length[0]] > sim->wl.max ) sim->wl.max = sim->wl.hist[i+j*sim->wl.length[0]];
-                    if ( sim->wl.hist[i+j*sim->wl.length[0]] < sim->wl.min ) sim->wl.min = sim->wl.hist[i+j*sim->wl.length[0]];
+                if ( wl.hist[i+j*wl.length[0]] > wl.max ) wl.max = wl.hist[i+j*wl.length[0]];
+                if ( wl.hist[i+j*wl.length[0]] < wl.min ) wl.min = wl.hist[i+j*wl.length[0]];
+                for (j=1;j < wl.length[1];j++) {
+                    if ( wl.hist[i+j*wl.length[0]] > wl.max ) wl.max = wl.hist[i+j*wl.length[0]];
+                    if ( wl.hist[i+j*wl.length[0]] < wl.min ) wl.min = wl.hist[i+j*wl.length[0]];
                 }
             }
-            if ( sim->wl.min > WL_MINHIST ) {
-                if ( sim->temper * log(sim->wl.max/sim->wl.min) < WL_GERR ) {
+            if ( wl.min > WL_MINHIST ) {
+                if ( sim->temper * log(wl.max/wl.min) < WL_GERR ) {
                     /*DEBUG
                       for (i=1;i<wl.length;i++) {
-                      printf (" %15.8e %15ld %15.8f\n",sim->wl.weights[i],sim->wl.hist[i],pvec[0].pos.z);
+                      printf (" %15.8e %15ld %15.8f\n",wl.weights[i],wl.hist[i],pvec[0].pos.z);
                       fflush(stdout);
                       }
                      */
-                    if ( sim->wl.alpha < WL_ALPHATOL) break;
-                    sim->wl.alpha/=2;
-                    printf("%f \n", sim->wl.alpha);
+                    if ( wl.alpha < WL_ALPHATOL) break;
+                    wl.alpha/=2;
+                    printf("%f \n", wl.alpha);
                     fflush (stdout);
-                    sim->wl.wmin = sim->wl.weights[0];
+                    wl.wmin = wl.weights[0];
 
-                    for (i=0;i < sim->wl.length[0];i++) {
+                    for (i=0;i < wl.length[0];i++) {
                         j=0;
-                        sim->wl.hist[i+j*sim->wl.length[0]] = 0;
-                        sim->wl.weights[i+j*sim->wl.length[0]] -= sim->wl.wmin;
-                        for (j=1;j < sim->wl.length[1];j++) {
-                            sim->wl.hist[i+j*sim->wl.length[0]] = 0;
-                            sim->wl.weights[i+j*sim->wl.length[0]] -= sim->wl.wmin;
+                        wl.hist[i+j*wl.length[0]] = 0;
+                        wl.weights[i+j*wl.length[0]] -= wl.wmin;
+                        for (j=1;j < wl.length[1];j++) {
+                            wl.hist[i+j*wl.length[0]] = 0;
+                            wl.weights[i+j*wl.length[0]] -= wl.wmin;
                         }
                     }
 
@@ -346,11 +346,11 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
-            if (sim->wl.wlm[0] > 0) {
-                sim->wl.write(files->wloutfile);
+            if (wl.wlm[0] > 0) {
+                wl.write(files->wloutfile);
             }
             //print mesh distribution
-            //mesh_findholesdistrib(&sim->wl.mesh);
+            //mesh_findholesdistrib(&wl.mesh);
             next_dump += report;
 
             fclose(ef);
@@ -466,7 +466,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     fflush(stdout);
 
-    sim->wl.endWangLandau(files->wloutfile);
+    wl.endWangLandau(files->wloutfile);
 }
 
 

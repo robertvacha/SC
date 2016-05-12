@@ -30,7 +30,7 @@ public:
     long * clusterstat;         ///< \brief Statistics about the size of cluster
 
     //
-    //  Read only variables NOTE: should change to const
+    //  Read only variables NOTE: should change to constzz
     //
     double paralpress;          ///< \brief Parallel pressure for replica exachnge
     double dpress;		        ///< \brief Pressure change for replica exchange
@@ -59,14 +59,16 @@ public:
     Cluster * clusters;         ///< \brief informations about the single clusters
     double *clustersenergy;     ///< \brief list of energies of clusters
     long num_cluster;           ///< \brief number of single clusters
-
     long max_clust;             ///< \brief maximal clustersize
-    WangLandau wl;              ///< \brief Wang landau data
+
     int mpirank;                ///< \brief MPI number for given process, identical to calling MPI_Comm_rank, constant during simulation
     int mpinprocs;              ///< \brief MPI number of processes
 
     double cell;                  ///< \brief Maximum translation of all types
     double max_dist_squared[MAXT][MAXT]; ///< \brief Stored cutoffs of all particle types for pairList
+
+    int wlm[2];                ///< \brief Wang landau method (wl)
+    int wlmtype;            ///< \brief Atom type for the Wang landau method (wl)
 
     size_t pairList;
     //size_t energyCalc;
@@ -78,8 +80,6 @@ public:
         nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), mpirank(rank), mpinprocs(procs), cell(0.0), pairList(0), /*energyCalc(0), move(0),*/ all(0) {
 
         clusterstat = (long int*) malloc(sizeof(long) * max_clust);
-        wl.conf = conf;
-
         readOptions(files);
     }
 
@@ -145,8 +145,8 @@ public:
         printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
         printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
         printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
-        printf (" Wang-Landau method:                                 %d %d\n", wl.wlm[0],wl.wlm[1]);
-        printf (" Calculate the Wang-Landau method for atom type:     %d\n", wl.wlmtype);
+        printf (" Wang-Landau method:                                 %d %d\n", wlm[0],wlm[1]);
+        printf (" Calculate the Wang-Landau method for atom type:     %d\n", wlmtype);
         printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
         printf (" Number of Sweeps per pairlist update:               %d\n", pairlist_update);
         printf (" Number of sweeps per writing out cluster info:      %ld\n", write_cluster);
@@ -199,8 +199,8 @@ private:
             {"seed",                Long,   false, &seed},
             {"pairlist_update",     Int,    false, &pairlist_update},
             {"ptype",               Int,    false, &ptype},
-            {"wlm",                 Int2,   false, &wl.wlm},
-            {"wlmtype",             Int,    false, &wl.wlmtype},
+            {"wlm",                 Int2,   false, &wlm},
+            {"wlmtype",             Int,    false, &wlmtype},
             {"press",               Double, false, &press},
             {"paralpress",          Double, false, &paralpress},
             {"edge_mx",             Double, false, &stat.edge.mx},
@@ -325,8 +325,8 @@ private:
             printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
             printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
             printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
-            printf (" Wang-Landau method:                                 %d %d\n", wl.wlm[0],wl.wlm[1]);
-            printf (" Calculate the Wang-Landau method for atom type:     %d\n", wl.wlmtype);
+            printf (" Wang-Landau method:                                 %d %d\n", wlm[0],wlm[1]);
+            printf (" Calculate the Wang-Landau method for atom type:     %d\n", wlmtype);
             printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
             printf (" Number of Sweeps per pairlist update:               %d\n", pairlist_update);
             printf (" Random number seed:                                 %ld\n", seed);
@@ -360,23 +360,23 @@ private:
                     1 - isotropic coupling, 2 - isotropic in xy z=const, 3 - isotropic xy V=const.\n\n",ptype);
             exit (1);
         }
-        if ( (wl.wlm[0] <0) || (wl.wlm[0] > 7) || (wl.wlm[1] <0) || (wl.wlm[1] > 7)  ) {
+        if ( (wlm[0] <0) || (wlm[0] > 7) || (wlm[1] <0) || (wlm[1] > 7)  ) {
             fprintf (stderr, "ERROR: Unknown Wang-Landau method %d %d. Program only knows: 0 - none, \
                     1 - z-direction od 1st particle, 2 - pore in membrane, 3 - zorientation of 0th particle,\
                     4 - distance of fist two particles, 5 - pore around z-axis above CM,\
-                    6 - pore around z-axis above 0th particle, 7 - number of particles in contact \n\n",wl.wlm[0],wl.wlm[1]);
+                    6 - pore around z-axis above 0th particle, 7 - number of particles in contact \n\n",wlm[0],wlm[1]);
             exit (1);
         }
-        if ( (wl.wlm[0] == 0) && (wl.wlm[1] > 0)  ) {
+        if ( (wlm[0] == 0) && (wlm[1] > 0)  ) {
             fprintf (stderr, "ERROR: Wang-Landau method has to be set for first order parameter and then for second order parameter\n\n");
             exit (1);
         }
-        if ( (wl.wlm[0] == 2) || (wl.wlm[0] == 5) || (wl.wlm[0] == 6)  ) {
-            if(wl.wlmtype < 1){
-                fprintf (stderr, "ERROR: Atom type for the Wang-Landau Method (%d) was false defined.\n\n",wl.wlmtype);
+        if ( (wlm[0] == 2) || (wlm[0] == 5) || (wlm[0] == 6)  ) {
+            if(wlmtype < 1){
+                fprintf (stderr, "ERROR: Atom type for the Wang-Landau Method (%d) was false defined.\n\n",wlmtype);
                 exit (1);
             }
-            if ( (wl.wlm[1] == 2) || (wl.wlm[1] == 5) || (wl.wlm[1] == 6) ) {
+            if ( (wlm[1] == 2) || (wlm[1] == 5) || (wlm[1] == 6) ) {
                 fprintf (stderr, "ERROR: Simulaneous use of two pore order parameters has not been implemented yet.\n\n");
                 exit (1);
             }
