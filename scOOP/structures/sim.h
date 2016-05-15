@@ -6,6 +6,7 @@
 #include "structures.h"
 #include "../mc/wanglandau.h"
 #include "../mc/mygetline.h"
+#include "../structures/statistics.h"
 
 /**
  * @brief Should contain mostly all the simulation options and variables
@@ -100,32 +101,6 @@ public:
                 return 1;
             }
         }*/
-    }
-
-    void printEqStat() {
-
-        printf ("   Equilibrated maximum displacement / acceptance ratio:            \n");
-        printEqStat(stat.trans,2.0,MAXT);
-
-        printf ("   Equilibrated maximum rotation / acceptance ratio:                       \n");
-        printEqStat(stat.rot,1.0,MAXT);
-
-        printf ("   Equilibrated maximum box length change / acceptance ratio:              \n");
-        printf ("                     %.6e  /  %.6e\n", stat.edge.mx/2.0,RATIO(stat.edge));
-
-        printf ("   Equilibrated maximum displacement of chain / acceptance ratio:   \n");
-        printEqStat(stat.chainm,2.0,MAXMT);
-
-        printf ("   Equilibrated maximum rotation of chain / acceptance ratio:              \n");
-        printEqStat(stat.chainr,1.0,MAXMT);
-        printf ("\n");
-    }
-
-    void printEqStat(Disp *dat, double scale, int length) {
-        for(int i=0; i<length; i++) {
-            if (RATIO(dat[i]) > 0)
-                printf ("   TYPE %d           %.6f  /  %.6f\n", i, dat[i].mx/scale,RATIO(dat[i]));
-        }
     }
 
     void info() {

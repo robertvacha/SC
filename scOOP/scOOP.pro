@@ -83,7 +83,8 @@ HEADERS += \
     unitTests/pvectester.h \
     unitTests/vectortester.h \
     mc/analysis.h \
-    mc/paire.h
+    mc/paire.h \
+    structures/statistics.h
 
 OTHER_FILES += \
     mc/dSFMT-src-2.2.3/FILES.txt \

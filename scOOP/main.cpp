@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
         updater.simulate(sim.nequil/2, sim.adjust, 0, 0);
         updater.simulate(sim.nequil/2, 0,          0, 0);
 
-        sim.printEqStat();
+        sim.stat.printEqStat();
 
         cout << "Further equilibration of configuration:  " << sim.nequil/2 <<  " sweeps" << endl;
 
