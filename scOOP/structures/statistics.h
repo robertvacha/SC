@@ -5,6 +5,98 @@
 
 #include "macros.h"
 
+class StatsGrand {
+public:
+    StatsGrand() : delAcc(0), delRej(0), insAcc(0), insRej(0),
+    muVtAverageParticles(0), muVtSteps(0) {}
+
+    int delAcc;
+    int delRej;
+    int insAcc;
+    int insRej;
+
+    unsigned long long int muVtAverageParticles;
+    unsigned int muVtSteps;
+
+#ifdef ENABLE_MPI
+    MPI_Datatype* defDataType(MPI_Datatype* MPI_stat) {
+
+        MPI_Aint     dispstart;
+
+        MPI_Datatype mpiexdataType[6] = {MPI_INT,    MPI_INT,    MPI_INT,    MPI_INT,    MPI_LONG, MPI_INT};
+        int          mpiexdataLen[6]  = {1,          1,          1,          1,          1,        1};
+
+        MPI_Aint     mpiexdata[6];
+        MPI_Address( this, &dispstart);
+        MPI_Address( &(this->delAcc), &mpiexdata[0]);
+        MPI_Address( &(this->delRej), &mpiexdata[1]);
+        MPI_Address( &(this->insAcc), &mpiexdata[2]);
+
+        MPI_Address( &(this->insRej), &mpiexdata[3]);
+        MPI_Address( &(this->muVtAverageParticles), &mpiexdata[4]);
+        MPI_Address( &(this->muVtSteps), &mpiexdata[5]);
+
+        for (int i=0; i <6; i++)
+            mpiexdata[i] -= dispstart;
+
+        MPI_Type_struct(6, mpiexdataLen, mpiexdata, mpiexdataType, MPI_stat);
+        MPI_Type_commit( MPI_stat);
+
+        return MPI_stat;
+    }
+#endif
+};
+
+/**
+  * @brief Define step size and acceptance ratio statistics
+  **/
+class Disp {
+public:
+    double mx;          ///< \brief Maximum value displacement, cos(angle), etc.
+    double angle;       ///< \brief Maximum angle, since in .mx cos(angle) is saved
+    double oldrmsd;     ///< \brief Averaged mx value in previous equilibration round
+    double oldmx;       ///< \brief Change in mx in last equlibrium step
+    long acc;           ///< \brief Number of accepted steps
+    long rej;           ///< \brief Number of rejected steps
+
+    Disp() : mx(0.0), angle(0.0), oldrmsd(0.0), oldmx(0.0), acc(0), rej(0) {}
+
+inline double ratio() {
+    if(acc + rej > 0) {
+        return ((double) acc)/(acc+rej);
+    }
+    else return 0.0;
+}
+
+#ifdef ENABLE_MPI
+    MPI_Datatype* defDataType(MPI_Datatype* MPI_stat) {
+
+        MPI_Aint     dispstart;
+
+        MPI_Datatype mpiexdataType[6] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG};
+        int          mpiexdataLen[6]  = {1,          1,          1,          1,          1,        1};
+
+        MPI_Aint     mpiexdata[6];
+        MPI_Address( this, &dispstart);
+        MPI_Address( &(this->mx), &mpiexdata[0]);
+        MPI_Address( &(this->angle), &mpiexdata[1]);
+        MPI_Address( &(this->oldrmsd), &mpiexdata[2]);
+
+        MPI_Address( &(this->oldmx), &mpiexdata[3]);
+        MPI_Address( &(this->acc), &mpiexdata[4]);
+        MPI_Address( &(this->rej), &mpiexdata[5]);
+
+        for (int i=0; i <6; i++)
+            mpiexdata[i] -= dispstart;
+
+        MPI_Type_struct(6, mpiexdataLen, mpiexdata, mpiexdataType, MPI_stat);
+        MPI_Type_commit( MPI_stat);
+
+        return MPI_stat;
+    }
+#endif
+};
+
 class Statistics {
 public:
     Statistics (){}
