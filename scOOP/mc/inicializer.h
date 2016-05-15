@@ -110,8 +110,6 @@ private:
 
     void initGroupLists();
 
-    void initClusterList();
-
     void initSwitchList();
 
     void setParticlesParams() {

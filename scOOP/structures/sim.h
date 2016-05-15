@@ -26,11 +26,6 @@ public:
     Statistics stat;
 
     //
-    //  statistics, but set to 0 by sortClusterlist()
-    //
-    long * clusterstat;         ///< \brief Statistics about the size of cluster
-
-    //
     //  Read only variables NOTE: should change to constzz
     //
     double paralpress;          ///< \brief Parallel pressure for replica exachnge
@@ -56,11 +51,7 @@ public:
     long nClustMove;            ///< \brief Number of sweeps between cluster moves
     double coneAngle;             ///< \brief Prephere rotation around axis of spherocylinder in particular angle from axis
     long write_cluster;         ///< \brief Number of sweeps per writing out cluster info
-    long * clusterlist;         ///< \brief clusterlist[i] = cluster index of particle i
-    Cluster * clusters;         ///< \brief informations about the single clusters
-    double *clustersenergy;     ///< \brief list of energies of clusters
-    long num_cluster;           ///< \brief number of single clusters
-    long max_clust;             ///< \brief maximal clustersize
+
 
     int mpirank;                ///< \brief MPI number for given process, identical to calling MPI_Comm_rank, constant during simulation
     int mpinprocs;              ///< \brief MPI number of processes
@@ -80,21 +71,11 @@ public:
         paraltemper(0.0), dtemp(0.0), ptype(0), adjust(0), movie(0), nequil(0), nsweeps(0),paramfrq(0), report(0),
         nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), mpirank(rank), mpinprocs(procs), cell(0.0), pairList(0), /*energyCalc(0), move(0),*/ all(0) {
 
-        clusterstat = (long int*) malloc(sizeof(long) * max_clust);
         readOptions(files);
     }
 
     ~Sim() {
         printf ("Deallocating Sim...\n");
-
-        if (clusterstat != NULL)
-            free(clusterstat);
-
-        if (clusterlist != NULL)
-            free(clusterlist);
-
-        if (clustersenergy != NULL)
-            free(clustersenergy);
 
         /*if (pairlist_update) {
             if(deallocPairlist()) {

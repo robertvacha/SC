@@ -76,6 +76,7 @@ structures/topo.h structures/topo.cpp             # TOPO
 structures/Conf.h structures/Conf.cpp             # CONF
 structures/particle.h structures/particle.cpp     # PARTICLE
 structures/geometry.h     			  # GEOMETRY
+structures/statistics.h     			  # GEOMETRY
 #
 # MC
 #

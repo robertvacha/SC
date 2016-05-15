@@ -469,6 +469,69 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     wl.endWangLandau(files->wloutfile);
 }
 
+int Updater::printClusterList(FILE *stream, bool decor) {
+    if(decor){
+        fprintf(stream, "\n"
+                "-----------------------------------------------------\n"
+                "  The Cluster List\n"
+                "  (Index starts with 1)\n"
+                "-----------------------------------------------------\n");
+    }
+
+    for(int i=0; i < (long)conf->pvec.size(); i++){
+        fprintf(stream,"%3d %3ld %8.4lf %8.4f %8.4f", i + 1,
+                clusterlist[i] + 1,
+                conf->pvec[i].pos.x,
+                conf->pvec[i].pos.y,
+                conf->pvec[i].pos.z);
+        fprintf(stream,"\n");
+    }
+    if(decor){
+        fprintf(stream,"-----------------------------------------------------\n");
+    }
+    fflush(stream);
+    return 0;
+}
+
+int Updater::printClusters(FILE *stream, bool decor) {
+    if(decor){
+        fprintf(stream, "\n"
+                "-----------------------------------------------------\n"
+                "  The Clusters\n"
+                "  (Index starts with 1)\n"
+                "-----------------------------------------------------\n");
+    }
+    for(int i = 0; i < num_cluster; i++){
+        fprintf(stream, "%3d(%f):", i + 1,clustersenergy[i]);
+        for(int j = 0; j < clusters[i].npart; j++){
+            fprintf(stream, "%5ld", clusters[i].particles[j] + 1);
+        }
+        fprintf(stream, "\n");
+    }
+    if(decor){
+        fprintf(stream,"---------------------------------------------------\n");
+    }
+    fflush(stream);
+    return 0;
+}
+
+int Updater::printClusterStat(FILE *stream, bool decor) {
+    if(decor){
+        fprintf(stream, "\n"
+                "-----------------------------------------------------\n"
+                "   Cluster Distribution\n"
+                "-----------------------------------------------------\n");
+    }
+    for(int i=0; i < max_clust; i++){
+        fprintf(stream, "%5d\t%5ld\n", i + 1, clusterstat[i]);
+    }
+    if(decor){
+        fprintf(stream, "--------------------------------------------------\n");
+    }
+    fflush(stream);
+    return 0;
+}
+
 
 void Updater::optimizeStep(Disp *x, double hi, double lo) {
     double newrmsd;
@@ -629,9 +692,9 @@ int Updater::writeCluster(bool decor, long sweep) {
         if(decor == false){
             // if no decor, this means usually into a file. Hence print info
             // about number of line per frame
-            fprintf(cl_stat, "Sweep: %ld | Maximal size: %ld\n", sweep, sim->max_clust);
+            fprintf(cl_stat, "Sweep: %ld | Maximal size: %ld\n", sweep, max_clust);
         }
-        printStat::printClusterStat(cl_stat, decor, sim);
+        printClusterStat(cl_stat, decor);
         /*
            print_clstat_oneline(cl_stat, sweep, sim);
          */
@@ -639,16 +702,16 @@ int Updater::writeCluster(bool decor, long sweep) {
     if(cl){
         if(decor == false){
             fprintf(cl, "Sweep: %ld | Number of clusters: %ld\n",
-                    sweep, sim->num_cluster);
+                    sweep, num_cluster);
         }
-        printStat::printClusters(cl, decor, sim);
+        printClusters(cl, decor);
     }
     FILE *cl_list = NULL; // CL_LIST NEVER USED
     if(cl_list){
         if(decor == false){
             fprintf(cl_list, "Sweep: %ld | Number of particles: %ld\n", sweep, (long)conf->pvec.size());
         }
-        printStat::printClusterList(cl, decor, sim, conf);
+        printClusterList(cl, decor);
     }
 
     fclose(cl_stat);
@@ -666,7 +729,7 @@ int Updater::genClusterList() {
 
     // Set clusterindex to the corresponding index
     for( i = 0; i < (long)conf->pvec.size(); i++){
-        sim->clusterlist[i] = i;
+        clusterlist[i] = i;
     }
 
     // Start determining the cluster
@@ -701,14 +764,14 @@ int Updater::genClusterList() {
                             fst = tmp;
                         }
 
-                        if(sim->clusterlist[fst] < sim->clusterlist[snd]){
-                            sim->clusterlist[snd] = sim->clusterlist[fst];
+                        if(clusterlist[fst] < clusterlist[snd]){
+                            clusterlist[snd] = clusterlist[fst];
                             change = true;
                             break;
                             /* => will eventually start the i loop from new */
                         }
-                        if(sim->clusterlist[snd] < sim->clusterlist[fst]){
-                            sim->clusterlist[fst] = sim->clusterlist[snd];
+                        if(clusterlist[snd] < clusterlist[fst]){
+                            clusterlist[fst] = clusterlist[snd];
                             change = true;
                             break;
                             /* => will eventually start the i loop from new */
@@ -733,86 +796,87 @@ int Updater::sortClusterList() {
     /* how many clusters are there? */
     long max_index = -1;
     for(int i = 0; i < (long)conf->pvec.size(); i++){
-        if(max_index < sim->clusterlist[i]){
-            max_index = sim->clusterlist[i];
+        if(max_index < clusterlist[i]){
+            max_index = clusterlist[i];
             cluster_indices[num_cluster++] = max_index;
         }
     }
 
-    /* free the memory from the old clusters */
-    if(sim->clusters){
-        for(int i = 0; i < sim->num_cluster; i++){
-            if(sim->clusters[i].particles){
-                free(sim->clusters[i].particles);
+    // free the memory from the old clusters */
+    if(clusters){
+        for(int i = 0; i < this->num_cluster; i++){
+            if(clusters[i].particles){
+                free(clusters[i].particles);
             }
         }
-        free(sim->clusters);
+        free(clusters);
+        clusters = NULL;
     }
 
     /* Allocate memory for the clusters */
-    sim->clusters = (Cluster*) malloc(sizeof(Cluster) * num_cluster);
+    clusters = (Cluster*) malloc(sizeof(Cluster) * num_cluster);
 
-    if (!sim->clusters){
+    if (!clusters){
         fprintf(stderr, "Couldn't allocate any memory!\n");
         exit(1);
     }
 
     for(int i = 0; i < num_cluster; i++){
         /* allocate maximal space for all the clusters */
-        sim->clusters[i].particles = (long int*) malloc(sizeof(long) * (long)conf->pvec.size());
+        clusters[i].particles = (long int*) malloc(sizeof(long) * (long)conf->pvec.size());
 
-        if (!sim->clusters[i].particles){
+        if (!clusters[i].particles){
             fprintf(stderr, "Couldn't allocate any memory!\n");
             exit(1);
         }
 
-        sim->clusters[i].npart = 0;
+        clusters[i].npart = 0;
     }
 
     /* fill in the particles belonging to one cluster */
     for(int i = 0; i < num_cluster; i++){
         for(int j = 0; j < (long)conf->pvec.size(); j++){
-            if(sim->clusterlist[j] == cluster_indices[i]){
-                sim->clusters[i].particles[sim->clusters[i].npart++] = j;
+            if(clusterlist[j] == cluster_indices[i]){
+                clusters[i].particles[clusters[i].npart++] = j;
             }
         }
     }
-    sim->num_cluster = num_cluster;
+    this->num_cluster = num_cluster;
 
     /* Find the biggest size */
-    sim->max_clust = 0;
+    max_clust = 0;
     for(int i = 0; i < num_cluster; i++){
-        if(sim->clusters[i].npart > sim->max_clust){
-            sim->max_clust = sim->clusters[i].npart;
+        if(clusters[i].npart > max_clust){
+            max_clust = clusters[i].npart;
         }
     }
     /* Set the statistics to zero */
-    sim->clusterstat = (long int*) realloc( sim->clusterstat, sizeof(long) * sim->max_clust); // OLD, MISTAKE? memmory dont have to be 0, no free
-    memset(sim->clusterstat, 0, sizeof(long) * sim->max_clust);
+    clusterstat = (long int*) realloc( clusterstat, sizeof(long) * max_clust); // OLD, MISTAKE? memmory dont have to be 0, no free
+    memset(clusterstat, 0, sizeof(long) * max_clust);
 
-    if (!sim->clusterstat){
+    if (!clusterstat){
         fprintf(stderr, "Couldn't allocate any memory!\n");
         exit(1);
     }
 
-    for(int i = 0; i < sim->max_clust; i++) {
-        sim->clusterstat[i] = 0;
+    for(int i = 0; i < max_clust; i++) {
+        clusterstat[i] = 0;
     }
     /* Do the statistics */
     for(int i = 0; i < num_cluster; i++){
-        sim->clusterstat[sim->clusters[i].npart - 1]++;
+        clusterstat[clusters[i].npart - 1]++;
     }
 
     return 0;
 }
 
 int Updater::calcClusterEnergies() {
-    for(int i = 0; i < sim->num_cluster; i++) {
-        sim->clustersenergy[i]=0.0;
-        for(int j = 0; j < sim->clusters[i].npart; j++) {
-            for(int k = j+1; k < sim->clusters[i].npart; k++) {
-                sim->clustersenergy[i]+= calcEnergy.p2p(sim->clusters[i].particles[j], // particle 1
-                                                        sim->clusters[i].particles[k]);        // particle 2
+    for(int i = 0; i < num_cluster; i++) {
+        clustersenergy[i]=0.0;
+        for(int j = 0; j < clusters[i].npart; j++) {
+            for(int k = j+1; k < clusters[i].npart; k++) {
+                clustersenergy[i]+= calcEnergy.p2p(clusters[i].particles[j], // particle 1
+                                                        clusters[i].particles[k]);        // particle 2
             }
         }
     }

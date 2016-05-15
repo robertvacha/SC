@@ -26,7 +26,6 @@ void Inicializer::initTop() {
     topo.genTopoParams();
 
     setParticlesParams();
-    initClusterList();
     initSwitchList();
     initGroupLists();
 
@@ -56,20 +55,6 @@ void Inicializer::initTop() {
 #endif
 
     topDealoc();
-}
-
-void Inicializer::initClusterList() {
-    sim->clusterlist = (long int*) malloc(sizeof(long) * MAXN);
-    if(sim->clusterlist == NULL){
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clusterlist!");
-        exit(1);
-    }
-    sim->clustersenergy = (double*) malloc(sizeof(double) * MAXN);
-    if(sim->clustersenergy== NULL){
-        fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clustersenergy!");
-        exit(1);
-    }
-    sim->clusters = NULL;
 }
 
 void Inicializer::initSwitchList() {

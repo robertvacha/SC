@@ -27,6 +27,30 @@ public:
             }
             fclose (outfile);
         }
+
+        clusterstat = (long int*) malloc(sizeof(long) * max_clust);
+        clusterlist = (long int*) malloc(sizeof(long) * MAXN);
+        if(clusterlist == NULL){
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for clusterlist!");
+            exit(1);
+        }
+        clustersenergy = (double*) malloc(sizeof(double) * MAXN);
+        if(clustersenergy== NULL){
+            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clustersenergy!");
+            exit(1);
+        }
+        clusters = NULL;
+    }
+
+    ~Updater() {
+        if (clusterstat != NULL)
+            free(clusterstat);
+
+        if (clusterlist != NULL)
+            free(clusterlist);
+
+        if (clustersenergy != NULL)
+            free(clustersenergy);
     }
 
 private:
@@ -37,6 +61,17 @@ private:
     TotalEnergyCalculator calcEnergy;   ///< \brief energy calculations
     MoveCreator move;                   ///< \brief move calculations
     WangLandau wl;
+
+    //
+    //  statistics, but set to 0 by sortClusterlist()
+    //
+    long * clusterstat;         ///< \brief Statistics about the size of cluster
+
+    long * clusterlist;         ///< \brief clusterlist[i] = cluster index of particle i
+    Cluster * clusters;         ///< \brief informations about the single clusters
+    double *clustersenergy;     ///< \brief list of energies of clusters
+    long num_cluster;           ///< \brief number of single clusters
+    long max_clust;             ///< \brief maximal clustersize
 
     long nsweeps;
     long adjust;
@@ -188,6 +223,14 @@ private:
      * @return
      */
     int writeCluster(bool decor, long sweep);
+
+    int printClusterList(FILE *stream, bool decor);
+
+
+    int printClusters(FILE *stream, bool decor);
+
+
+    int printClusterStat(FILE *stream, bool decor);
 
 };
 
