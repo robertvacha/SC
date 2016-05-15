@@ -35,7 +35,6 @@ SOURCES += main.cpp \
     mc/simlib.cpp \
     structures/Conf.cpp \
     structures/particle.cpp \
-    mc/printStat.cpp \
     structures/topo.cpp \
     mc/randomGenerator.cpp \
     mc/externalenergycalculator.cpp \
@@ -61,7 +60,6 @@ HEADERS += \
     structures/structures.h \
     structures/particle.h \
     structures/Conf.h \
-    mc/printStat.h \
     structures/moleculeparams.h \
     structures/topo.h \
     mc/randomGenerator.h \

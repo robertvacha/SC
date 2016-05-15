@@ -3,7 +3,6 @@
 #ifndef UPDATER_H
 #define UPDATER_H
 
-#include "printStat.h"
 #include "movecreator.h"
 #include "../structures/Conf.h"
 
