@@ -11,13 +11,6 @@
 
 #include <cstdio>
 
-/**
- * @brief contains all the particles of one cluster
- */
-typedef struct{
-    long npart;
-    long * particles;
-} Cluster;
 
 class Molecule : public vector<int > {
 public:

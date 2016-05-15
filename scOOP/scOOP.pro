@@ -40,7 +40,8 @@ SOURCES += main.cpp \
     mc/externalenergycalculator.cpp \
     mc/dSFMT-src-2.2.3/dSFMT.c \
     mc/analysis.cpp \
-    mc/paire.cpp
+    mc/paire.cpp \
+    mc/clust.cpp
 
 HEADERS += \
     mc/wanglandau.h \
@@ -82,7 +83,8 @@ HEADERS += \
     unitTests/vectortester.h \
     mc/analysis.h \
     mc/paire.h \
-    structures/statistics.h
+    structures/statistics.h \
+    mc/clust.h
 
 OTHER_FILES += \
     mc/dSFMT-src-2.2.3/FILES.txt \

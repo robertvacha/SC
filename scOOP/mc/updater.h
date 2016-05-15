@@ -5,13 +5,14 @@
 
 #include "movecreator.h"
 #include "../structures/Conf.h"
+#include "clust.h"
 
 class Updater
 {
 public:
     Updater(Sim* sim, Conf* conf, FileNames* files) :
         sim(sim), conf(conf), files(files),
-        calcEnergy(sim, conf), move(sim, conf, &calcEnergy, &wl) {
+        calcEnergy(sim, conf), move(sim, conf, &calcEnergy, &wl), clust(conf, sim, &calcEnergy, files) {
 
         wl.conf = conf;
         wl.wlmtype = sim->wlmtype;
@@ -26,30 +27,6 @@ public:
             }
             fclose (outfile);
         }
-
-        clusterstat = (long int*) malloc(sizeof(long) * max_clust);
-        clusterlist = (long int*) malloc(sizeof(long) * MAXN);
-        if(clusterlist == NULL){
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for clusterlist!");
-            exit(1);
-        }
-        clustersenergy = (double*) malloc(sizeof(double) * MAXN);
-        if(clustersenergy== NULL){
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for sim->clustersenergy!");
-            exit(1);
-        }
-        clusters = NULL;
-    }
-
-    ~Updater() {
-        if (clusterstat != NULL)
-            free(clusterstat);
-
-        if (clusterlist != NULL)
-            free(clusterlist);
-
-        if (clustersenergy != NULL)
-            free(clustersenergy);
     }
 
 private:
@@ -61,16 +38,7 @@ private:
     MoveCreator move;                   ///< \brief move calculations
     WangLandau wl;
 
-    //
-    //  statistics, but set to 0 by sortClusterlist()
-    //
-    long * clusterstat;         ///< \brief Statistics about the size of cluster
-
-    long * clusterlist;         ///< \brief clusterlist[i] = cluster index of particle i
-    Cluster * clusters;         ///< \brief informations about the single clusters
-    double *clustersenergy;     ///< \brief list of energies of clusters
-    long num_cluster;           ///< \brief number of single clusters
-    long max_clust;             ///< \brief maximal clustersize
+    Clusters clust;
 
     long nsweeps;
     long adjust;
@@ -179,58 +147,6 @@ private:
      * @brief gen_simple_pairlist Generates a pairlist with a very basic alogrithm
      */
     void genSimplePairList();
-
-
-    /****************************************************************************/
-    /* Cluster statistics stuf                                                  */
-    /****************************************************************************/
-
-
-    /**
-     * @brief same_cluster determines, wheter two particles are in the same cluster
-     * @param fst
-     * @param snd
-     * @return
-     */
-    int sameCluster(long fst, long snd);
-
-    /**
-     * @brief gen_clusterlist generate the clusterlist
-     * @return
-     */
-    int genClusterList();
-
-    /**
-     * @brief sort_clusterlist sort the clusterlist
-     * @return
-     */
-    int sortClusterList();
-
-    /**
-     * @brief calc_clusterenergies calculate energies of clusters
-     * @return
-     */
-    int calcClusterEnergies();
-
-    /**
-     * @brief write_cluster write out all the cluster stat in files, if file name is given
-     * @param cl_stat
-     * @param cl
-     * @param cl_list
-     * @param decor
-     * @param sweep
-     * @return
-     */
-    int writeCluster(bool decor, long sweep);
-
-    int printClusterList(FILE *stream, bool decor);
-
-
-    int printClusters(FILE *stream, bool decor);
-
-
-    int printClusterStat(FILE *stream, bool decor);
-
 };
 
 #endif // UPDATER_H
