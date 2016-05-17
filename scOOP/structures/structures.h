@@ -190,14 +190,20 @@ public:
                                 /// or sphere (0-repulsive, 1-isotropic)
     double sigma;               ///< \brief Repulsion wca
     double epsilon;             ///< \brief Repulsion strength
+    double A;                   ///< \brief A = 4 * epsilon * sigma^12
+    double B;                   ///< \brief A = 4 * epsilon * sigma^6
     double pdis;                ///< \brief Interaction distance of patch
+    double pdisSq;              ///< \brief Interaction distance of patch squared
     double pswitch;             ///< \brief Switch of distance of patch
+    double pswitchINV;          ///< \brief Inverted Switch of distance of patch
     double pangl[4];            ///< \brief angular size of patch as was specifid in input
     double panglsw[4];          ///< \brief angular size of patchswitch as was specifid in input
     double pcangl[4];           ///< \brief cosine of half size angle - rotation from patch direction to side
     double pcanglsw[4];         ///< \brief cosine of half size angle plus switch - rotation from patch direction to side
     double rcut;                ///< \brief Cutoff for attraction
+    double rcutSq;              ///< \brief Cutoff for attraction squared
     double rcutwca;             ///< \brief Cutoff for repulsion
+    double rcutwcaSq;           ///< \brief Cutoff for repulsion squared
     double pcoshalfi[4];        ///< \brief Cosine of half angle going to side of interaction
     double psinhalfi[4];        ///< \brief Sine of half angle going to side of interaction -useful for quaterion rotation
     double csecpatchrot[2];     ///< \brief Cosine of Rotation of second patches in 2psc models

@@ -159,6 +159,58 @@ public:
         return wlener;
     }
 
+    /**
+     * @brief init Initialization of wang-landaou method
+     * @param wlinfile
+     */
+    void init(char wlinfile[30]);
+
+    /**
+     * @brief endWangLandau Finalizing of wang-landaou method
+     * @param wloutfile
+     */
+    void endWangLandau(char wloutfile[30]);
+
+    /**
+     * @brief wlwrite
+     * @param filename
+     * @return
+     */
+    int write(char filename[30]);
+
+    /**
+     * @brief wlreject
+     * @param oldlength
+     */
+    void reject(long oldlength, int wlm[2]) {
+        if ( wlm[0] > 0 ) {
+            weights[currorder[0]+currorder[1]*length[0]] -= alpha;
+            hist[currorder[0]+currorder[1]*length[0]]++;
+            if ( (wlm[0] == 2) || (wlm[1] == 2) )
+                this->mesh = this->origmesh;
+            if ( (wlm[0] == 5) || (wlm[1] == 5)||(wlm[0] == 6) || (wlm[1] == 6) ) {
+                longarrayCpy(&radiushole,&radiusholeold,radiusholemax,oldlength);
+                radiusholemax = oldlength;
+            }
+            partincontact = partincontactold;
+        }
+    }
+
+    /**
+     * @brief wlaccept
+     * @param wlm
+     */
+    inline void accept(int wlm) {
+        if ( wlm > 0 ) {
+            for (int i=0;i<2;i++)
+                currorder[i] = neworder[i];
+            weights[ currorder[0] + currorder[1] * length[0]] -= alpha;
+            hist[ currorder[0] + currorder[1] * length[0]]++;
+        }
+    }
+
+private:
+
     // case:1
     inline void zDir(int wli, Vector& cm) {
         conf->syscm.x += cm.x / conf->sysvolume;
@@ -400,17 +452,7 @@ public:
      */
     long meshOrderMoveMolecule(Molecule& target, Particle chorig[], Mesh *mesh, int wli);
 
-    /**
-     * @brief init Initialization of wang-landaou method
-     * @param wlinfile
-     */
-    void init(char wlinfile[30]);
 
-    /**
-     * @brief endWangLandau Finalizing of wang-landaou method
-     * @param wloutfile
-     */
-    void endWangLandau(char wloutfile[30]);
 
     /**
      * @brief z_order
@@ -435,44 +477,10 @@ public:
     }
 
 
-    /**
-     * @brief wlwrite
-     * @param filename
-     * @return
-     */
-    int write(char filename[30]);
 
 
-    /**
-     * @brief wlreject
-     * @param oldlength
-     */
-    void reject(long oldlength, int wlm[2]) {
-        if ( wlm[0] > 0 ) {
-            weights[currorder[0]+currorder[1]*length[0]] -= alpha;
-            hist[currorder[0]+currorder[1]*length[0]]++;
-            if ( (wlm[0] == 2) || (wlm[1] == 2) )
-                this->mesh = this->origmesh;
-            if ( (wlm[0] == 5) || (wlm[1] == 5)||(wlm[0] == 6) || (wlm[1] == 6) ) {
-                longarrayCpy(&radiushole,&radiusholeold,radiusholemax,oldlength);
-                radiusholemax = oldlength;
-            }
-            partincontact = partincontactold;
-        }
-    }
 
-    /**
-     * @brief wlaccept
-     * @param wlm
-     */
-    inline void accept(int wlm) {
-        if ( wlm > 0 ) {
-            for (int i=0;i<2;i++)
-                currorder[i] = neworder[i];
-            weights[ currorder[0] + currorder[1] * length[0]] -= alpha;
-            hist[ currorder[0] + currorder[1] * length[0]]++;
-        }
-    }
+
 
     /**
      * @brief wlend
@@ -508,8 +516,6 @@ public:
      */
     long radiusholeAll(int wli, Vector *position);
 
-
-private:
     /**
      * @brief contParticle_all filling all Particle in the contact
      * @param wli

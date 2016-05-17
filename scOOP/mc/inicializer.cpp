@@ -757,14 +757,20 @@ int Inicializer::fillTypes(char **pline) {
     topo.ia_params[type][type].geotype[1] = geotype_i;
     topo.ia_params[type][type].epsilon = param[0];
     topo.ia_params[type][type].sigma = param[1];
+    topo.ia_params[type][type].A = 4 * topo.ia_params[type][type].epsilon * pow(topo.ia_params[type][type].sigma, 12 );
+    topo.ia_params[type][type].B = 4 * topo.ia_params[type][type].epsilon * pow(topo.ia_params[type][type].sigma, 6 );
     topo.ia_params[type][type].rcutwca = (topo.ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
+    topo.ia_params[type][type].rcutwcaSq = topo.ia_params[type][type].rcutwca * topo.ia_params[type][type].rcutwca;
 
     fprintf(stdout, "Topology read of %d: %8s (geotype: %s, %d) with parameters %g %g", type, name, geotype, geotype_i, topo.ia_params[type][type].epsilon, topo.ia_params[type][type].sigma);
 
     if (fields > 0 && fields != 1 && fields != 3) { // all except SCN and SCA
         topo.ia_params[type][type].pdis = param[2];
+        topo.ia_params[type][type].pdisSq = topo.ia_params[type][type].pdis * topo.ia_params[type][type].pdis;
         topo.ia_params[type][type].pswitch = param[3];
+        topo.ia_params[type][type].pswitchINV = 1.0/param[3];
         topo.ia_params[type][type].rcut = topo.ia_params[type][type].pswitch+topo.ia_params[type][type].pdis;
+        topo.ia_params[type][type].rcutSq = topo.ia_params[type][type].rcut * topo.ia_params[type][type].rcut;
         fprintf(stdout, " | %g %g",topo.ia_params[type][type].pdis,topo.ia_params[type][type].pswitch);
     }
     if(fields == 1) { // SCN
