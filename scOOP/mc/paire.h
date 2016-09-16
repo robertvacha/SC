@@ -6,121 +6,784 @@
 #include "../structures/topo.h"
 #include "../structures/Conf.h"
 
-class PairE {
-private:
-    Particle* part1;
-    Particle* part2;
+class EPotential {
+    virtual double operator() (double dist, const Particle* part1, const Particle* part2) {
+        return 0.0;
+    }
+};
 
-    ConList* conlist;
-
-    /*
-     *  Parameters of interaction calculation
-     */
-    double dist;                    // closest distance
-    Vector distvec;                 // vector of closes distance
-    Vector r_cm;                    // Vector between centres of mass from part2 to part1
-    double distcm;                  // distance between center of masses
-    double dotrcm;                  // square size of r_cm
-    double contt;                   // closest point on spherocylinder to sphere
-
-    GeoBase* pbc;                   // box size
-
-    double (PairE::*intFCE[MAXT][MAXT])();
-
-
+class EAngle {
 public:
-    PairE(GeoBase* pbc) : pbc(pbc) {
-        initIntFCE();
+    virtual double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) {
+        return 0.0;
     }
+};
 
-    double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL) {
-        double energy=0.0;
-
-        this->part1 = part1;
-        this->part2 = part2;
-        this->conlist = conlist;
-
-        // Placing interactin particle in unit pbc->box and finding vector connecting CM
-        r_cm = pbc->image(&part1->pos, &part2->pos);
-
-        dotrcm = DOT(r_cm,r_cm);
-
-        if (dotrcm > topo.sqmaxcut) return 0.0;  // distance so far that even spherocylinders cannot be within cutoff
-
-        /*contt = 0; // not used in SPA-SPA interaction
-        distvec.x = 0;
-        distvec.y = 0;
-        distvec.z = 0;*/
-
-        if(intFCE[part1->type][part2->type] == NULL)
-            fprintf(stderr, "interaction function for type %d and %d not defined!\n", part1->type, part2->type);
-
-        energy = (this->*intFCE[part1->type][part2->type])();
-
-        //printf("num: %ld  %ld   e: %f dist: %f",num1,num2,energy,interact.dist);
-
-        /*if(conlist != NULL) {
-            energy += bondEnergy ();
-            energy += angleEnergy ();
-        }*/
-
-        return energy;
+class EBond {
+public:
+    virtual double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) {
+        return 0.0;
     }
+};
 
-    /**
-     * @brief init_intfce Initializes the array with the pointers to the energy function
-     */
-    void initIntFCE();
-
-private:
-
-    /**
-     * @brief enoexist    Indicates not yet programmed interaction
-     * @return
-     */
-    double eNoExist() {
+class EBasic {
+public:
+    virtual double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
         fprintf (stderr, "ERROR: We have not programed interaction of types %d and %d\n", part1->type,part2->type);
         return 0.0;
     }
+};
 
-    inline double e2ScaOr2Spa() {
-        double repenergy=0.0, atrenergy=0.0;
 
-        dist = sqrt(dotrcm);
-        distcm = dist;
 
-        repenergy = eRepulsive();
 
-        if ( ( dotrcm > topo.ia_params[part1->type][part2->type].rcutSq ) ||
-             (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
-             topo.ia_params[part1->type][part2->type].exclude ) {
-            atrenergy = 0.0;
+class HarmonicSp : public EBond {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
+        assert(conlist != nullptr);
+
+        // interaction with nearest neighbours
+        if ((topo.moleculeParam[part1->molType]).bond1c >= 0)
+            if (part2 == conlist->conlist[1] || part2 == conlist->conlist[0])
+                return harmonicPotential(dist,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
+
+        // interaction with second nearest neighbours
+        if (topo.moleculeParam[part1->molType].bond2c >= 0)
+            if (part2 == conlist->conlist[2] || part2 == conlist->conlist[3])
+                return harmonicPotential(dist,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
+
+        // interaction with nearest neighbours - direct harmonic bond
+        if ((topo.moleculeParam[part1->molType]).bonddc > 0)
+            if (part2 == conlist->conlist[1] || part2 == conlist->conlist[0])
+                return harmonicPotential(dist,topo.moleculeParam[part1->molType].bonddeq,topo.moleculeParam[part1->molType].bonddc);
+
+        // interaction with nearest neighbours - direct harmonic bond hinged
+        if ((topo.moleculeParam[part1->molType]).bondhc > 0)
+            if (part2 == conlist->conlist[1] || part2 == conlist->conlist[0])
+                return harmonicPotential(dist,topo.moleculeParam[part1->molType].bondheq,topo.moleculeParam[part1->molType].bondhc);
+
+        return 0.0;
+    }
+
+private:
+    /**
+     * @brief harmonic    function for calculation of harmonic potential
+     * @param aktualvalue
+     * @param eqvalue
+     * @param springconst
+     * @return
+     */
+    inline double harmonicPotential(double aktualvalue, double eqvalue, double springconst) {
+        return springconst*(aktualvalue-eqvalue)*(aktualvalue-eqvalue)*0.5;
+    }
+};
+
+
+
+
+class Lj : public EPotential {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2) override {
+        return topo.ia_params[part1->type][part2->type].A * pow(dist, -12) - topo.ia_params[part1->type][part2->type].B * pow(dist, -6);
+    }
+};
+
+
+
+
+/**
+ * @brief The WcaTrunc class - shifted truncated WCA potential (repulsive only)
+ */
+class WcaTrunc : public EPotential {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2) override {
+        if (dist > topo.ia_params[part1->type][part2->type].rcutwca)
+            return 0.0;
+        return topo.ia_params[part1->type][part2->type].A * pow(dist, -12) - topo.ia_params[part1->type][part2->type].B * pow(dist, -6) + topo.ia_params[part1->type][part2->type].epsilon;
+    }
+};
+
+
+
+
+/**
+ * @brief The WcaCos2 class - shifted truncated WCA potential + cos^2 potential
+ *
+ * Decreasing distance, energy:
+ * too large : 0
+ * below rcut -> attraction fce
+ * below pdis -> -epsilon
+ * below rcutWCA -> -epsilon + repulsive fce
+ *
+ * 0        rcutWCA         pdis        rcut        infinity
+ */
+class WcaCos2 : public EPotential {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2) override {
+        double e = 0.0;
+        if(dist > topo.ia_params[part1->type][part2->type].rcut ||
+                (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+                topo.ia_params[part1->type][part2->type].exclude)
+            return 0.0;
+
+        if(dist > topo.ia_params[part1->type][part2->type].pdis) {
+            // taylor cos, precise to ~10^(-7)
+            e = PIH * (dist - topo.ia_params[part1->type][part2->type].pdis) * topo.ia_params[part1->type][part2->type].pswitchINV;
+            e *= e;
+            e = ( 1 - e + e*e*(1.0/3.0) - e*e*e*(2.0/45.0) + e*e*e*e*(1.0/315.0) - e*e*e*e*e*(2.0/14175.0)
+                    + e*e*e*e*e*e*(2.0/467775.0) - e*e*e*e*e*e*e*(4.0/42567525) + e*e*e*e*e*e*e*e*(1.0/638512875) ) * -topo.ia_params[part1->type][part2->type].epsilon;
         } else {
-            if (dotrcm < topo.ia_params[part1->type][part2->type].pdisSq)
-                atrenergy = -topo.ia_params[part1->type][part2->type].epsilon;
-            else  {
-                atrenergy = cos(PIH*(dist - topo.ia_params[part1->type][part2->type].pdis) * topo.ia_params[part1->type][part2->type].pswitchINV);
-                atrenergy *= -atrenergy*topo.ia_params[part1->type][part2->type].epsilon ;
+            e = -topo.ia_params[part1->type][part2->type].epsilon;
+        }
+
+        // WCA repulsion
+        if (dist > topo.ia_params[part1->type][part2->type].rcutwca) {
+            return e;
+        }
+        return topo.ia_params[part1->type][part2->type].A * pow(dist, -12) - topo.ia_params[part1->type][part2->type].B * pow(dist, -6);
+    }
+};
+
+class WcaCos2Full : public EPotential {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2) override {
+        double e = 0.0;
+        if(dist > topo.ia_params[part1->type][part2->type].rcut ||
+                (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+                topo.ia_params[part1->type][part2->type].exclude)
+            return 0.0;
+
+        if(dist > topo.ia_params[part1->type][part2->type].pdis) {
+            // full precision cos
+            e = cos(PIH*(dist - topo.ia_params[part1->type][part2->type].pdis) * topo.ia_params[part1->type][part2->type].pswitchINV);
+            e *= -e * topo.ia_params[part1->type][part2->type].epsilon;
+        } else {
+            e = -topo.ia_params[part1->type][part2->type].epsilon;
+        }
+
+        // WCA repulsion
+        if (dist > topo.ia_params[part1->type][part2->type].rcutwca) {
+            return e;
+        }
+        return topo.ia_params[part1->type][part2->type].A * pow(dist, -12) - topo.ia_params[part1->type][part2->type].B * pow(dist, -6);
+    }
+};
+
+
+
+
+template <typename PotentialE, typename BondE, typename AngleE>
+class Sphere : public EBasic {
+    PotentialE potE;
+    BondE bondE;
+    AngleE angleE;
+public:
+    double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
+        double e = 0.0;
+        if(conlist != nullptr) {
+            e = bondE(dist, part1, part2, conlist);
+            e += angleE(dist, part1, part2, conlist);
+        }
+        return e + potE(dist, part1, part2);
+    }
+};
+
+
+
+
+
+
+
+
+class SpheroCylinder : public EBasic {
+public:
+    inline double closestDist(const Vector& r_cm, const Vector& dir1, const Vector& dir2, int type1, int type2) {
+        Vector distvec = minDistSegments(dir1, dir2, topo.ia_params[type1][type2].half_len[0], topo.ia_params[type1][type2].half_len[1], r_cm);
+        return DOT(distvec,distvec);
+    }
+
+    double eattractivePscPsc(const Ia_param& iaParam, const Vector& p1Dir, const Vector& p2Dir, const Patch p1P, const Patch p2P,
+                             int patchnum1, int patchnum2, const Vector& r_cm) { //patchnum1/2 define if partice 1/2 have two patches
+        int intrs;
+        double atrenergy, ndist;
+        double v1, v2, f0, f1, f2, T1, T2, S1, S2, a, paral;
+        Vector vec1, vec2, vec_intrs, vec_mindist;
+
+        //
+        // 1 - do intersections of spherocylinder2 with patch of spherocylinder1 at cut distance C
+        //
+        intrs = pscIntersect(   p1Dir, p2Dir, p1P, r_cm, T1, T2,
+                                iaParam.pcanglsw[2*patchnum1],
+                iaParam.rcutSq,
+                iaParam.half_len[0],
+                iaParam.half_len[1]);
+
+        if (intrs < 2) // No intersection
+            return 0.0; // sc is all outside patch, attractive energy is 0
+
+        //
+        // 2 - now do the same oposite way psc1 in patch of psc2
+        //
+        vec1 = -1.0*r_cm;
+        intrs = pscIntersect(   p2Dir, p1Dir, p2P, vec1, S1, S2,
+                                iaParam.pcanglsw[2*patchnum2+1],
+                iaParam.rcutSq,
+                iaParam.half_len[1],
+                iaParam.half_len[0]);
+
+        if (intrs <2)
+            return 0.0; //sc is all outside patch, attractive energy is 0
+
+        //
+        // 3 - scaling function1: dependence on the length of intersetions
+        //
+        v1=fabs(S1-S2);
+        v2=fabs(T1-T2);
+        f0=0.5*(v1+v2);
+
+        // 4a - with two intersection pieces calculate vector between their CM -this is for angular orientation
+        vec1 = ((S1+S2)*0.5) * p1Dir;
+        vec2 = ((T1+T2)*0.5) * p2Dir;
+        vec_intrs.x = vec2.x - vec1.x - r_cm.x; //vec_intrs should be from sc1 to sc2
+        vec_intrs.y = vec2.y - vec1.y - r_cm.y;
+        vec_intrs.z = vec2.z - vec1.z - r_cm.z;
+
+        // 4b - calculate closest distance attractive energy from it
+        vec_mindist = minDistSegments(p1Dir, p2Dir, v1, v2, vec_intrs);
+        ndist = sqrt(DOT(vec_mindist, vec_mindist));
+        //dist=DOT(vec_intrs,vec_intrs);
+
+        //
+        // POTENTIAL FUNCTION
+        //
+        if (ndist < iaParam.pdis)
+            atrenergy = -iaParam.epsilon;
+        else {
+            atrenergy = cos(PIH*(ndist - iaParam.pdis) / iaParam.pswitch);
+            atrenergy *= -atrenergy * iaParam.epsilon;
+        }
+
+        //
+        // 5 - scaling function2: angular dependence of patch1
+        //
+        vec1 = vec_intrs;
+        //vec1=vecScale(vec_mindist,-1.0);
+        vec1= vec1.perpProject(p1Dir);
+        vec1.normalise();
+        a = DOT(vec1, p1P.dir);
+        f1 = fanglScale(a, iaParam.pcangl[0+2*patchnum1], iaParam.pcanglsw[0+2*patchnum1]);
+
+        //
+        // 6 - scaling function3: angular dependence of patch2
+        //
+        vec1 = -1.0 * vec_intrs;
+        //vec1=vecScale(vec_mindist,1.0);
+        vec1 = vec1.perpProject(p2Dir);
+        vec1.normalise();
+        a = DOT(vec1, p2P.dir);
+        f2 = fanglScale(a, iaParam.pcangl[1+2*patchnum2], iaParam.pcanglsw[1+2*patchnum2]);
+
+        //
+        // 7 - add scaling increased if particles are parallel or antiparallel
+        //
+        if( iaParam.parallel != 0.0)
+            paral = 1.0;
+        else
+            paral = scparallel(iaParam.parallel, p1Dir, p2Dir);
+
+        //7- put it all together
+        atrenergy *= f0*f1*f2*paral;
+
+        return atrenergy;
+    }
+
+private:
+    Vector minDistSegments(const Vector &segA, const Vector &segB, double halfl1, double halfl2, const Vector &r_cm);
+
+    inline double fanglScale(double a, double pcangl, double pcanglsw) { // TODO for different types
+        if (a <= pcanglsw)
+            return 0.0;
+        else {
+            if (a >= pcangl)
+                return 1.0;
+            else {
+                return 0.5 - ((pcanglsw + pcangl)*0.5 - a ) / (pcangl - pcanglsw);
             }
         }
-
-    #ifdef LJ    // LJ
-        double en6 = pow((topo.ia_params[part1->type][part2->type].sigma / dist),6);
-        repenergy = 4*en6*(en6-1);
-        atrenergy = 0.0;
-    #endif
-
-        return repenergy+atrenergy;
+        assert(false);
+        return 0.0;
     }
 
-    inline double eRepulsive() {
-        // WCA repulsion
-        if (dotrcm > topo.ia_params[part1->type][part2->type].rcutwcaSq) {
-            return 0.0;
-        } else {
-            return topo.ia_params[part1->type][part2->type].A * pow(dotrcm, -6) - topo.ia_params[part1->type][part2->type].B * pow(dotrcm, -3) + topo.ia_params[part1->type][part2->type].epsilon;
+
+    int calcIntersections(const Vector& p1Dir, const Vector& p2Dir, const Patch& p1P, const Vector& r_cm,
+             double intersections[], double pcanglsw, double halfl1, double halfl2, double b, double c) {
+
+        int intrs = 0;
+        Vector vec1;
+        double x1,e;
+
+        double d = b*b-4*c;
+
+        if (d >= 0) { //if d<0 there are no intersections
+
+            d = sqrt(d);
+            x1 = (-b + d)*0.5; //parameter on line of SC2 determining intersection
+
+            if ((x1 >=halfl2) || (x1 <= -halfl2)) {
+                intrs+=0; //intersection is outside sc2
+            } else {
+                vec1.x = p2Dir.x*x1 - r_cm.x;
+                vec1.y = p2Dir.y*x1 - r_cm.y;
+                vec1.z = p2Dir.z*x1 - r_cm.z;
+                e = DOT(p1Dir, vec1);
+                if ((e >= halfl1) || (e <= -halfl1)) { //if not intersection is inside sc1
+                    intrs += testIntrPatch(p1Dir, p1P.dir, vec1, pcanglsw, x1, intersections);
+                }
+            }
+            if ( d > 0) {
+
+                x1= (-b - d)*0.5; //parameter on line of SC2 determining intersection
+
+                if ((x1 >=halfl2) || (x1 <= -halfl2))
+                    intrs+=0; //intersection is outside sc2
+                else {
+                    vec1.x = p2Dir.x*x1 - r_cm.x;
+                    vec1.y = p2Dir.y*x1 - r_cm.y;
+                    vec1.z = p2Dir.z*x1 - r_cm.z;
+                    e = DOT(p1Dir, vec1);
+                    if ((e >=halfl1) || (e <= -halfl1)) { //if not intersection is inside sc1
+                        intrs += testIntrPatch(p1Dir, p1P.dir, vec1, pcanglsw, x1, intersections);
+                    }
+                }
+            }
         }
+        return intrs;
     }
+
+
+
+    int pscIntersect(const Vector& p1Dir, const Vector& p2Dir, const Patch& p1P, const Vector& r_cm,
+                     double& in1, double& in2, const double pcanglsw, double rcutSq, double halfl1, double halfl2) {
+        int intrs = 0;
+        double a, b, c, d, e, x1;
+        Vector vec1, vec2, vec3;
+        double intersections[5] = {0};
+
+        //1- do intersections of spherocylinder2 with patch of spherocylinder1 at cut distance C
+        //1a- test intersection with half planes of patch and look how far they are from spherocylinder. If closer then C  we got itersection
+
+        // plane1 // find intersections of part2 with plane by par1 and patchsides[0]
+        intrs += findIntersectPlane(p1Dir, p2Dir, halfl2, r_cm, p1P.sides[0], pcanglsw, intersections, rcutSq);
+        // plane2 // find intersections of part2 with plane by par1 and patchsides[1]
+        intrs += findIntersectPlane(p1Dir, p2Dir, halfl2, r_cm, p1P.sides[1], pcanglsw, intersections, rcutSq);
+
+        if ( (intrs == 2 ) && (pcanglsw < 0) ) {
+            fprintf (stderr, "ERROR: Patch is larger than 180 degrees and we are getting two segments - this hasnot been programed yet.\n\n");
+        }
+        //
+        // 1b - test intersection with cylinder - it is at distance C
+        //
+        if (intrs < 2 )  {
+            vec1 = -1.0 * r_cm;
+            vec1 = vecCrossProduct(vec1,p1Dir);
+            vec2 = vecCrossProduct(p2Dir,p1Dir);
+
+            a = DOT(vec2,vec2);
+            b = 2*DOT(vec1,vec2);
+            c = -rcutSq + DOT(vec1,vec1);
+
+            d = b*b - 4*a*c;
+
+            if ( d >= 0) { //there is intersection with infinite cylinder
+
+                d = sqrt(d);
+                a = 0.5/a;
+                x1 = (-b + d) * a;//parameter on line of SC2 determining intersection
+
+                if ( (x1 >= halfl2) || (x1 <= -halfl2) ) {
+                    intrs += 0; //intersection is outside sc2
+                } else {
+                    // vectors from center os sc1 to intersection with infinite cylinder
+                    vec1.x = p2Dir.x*x1-r_cm.x;
+                    vec1.y = p2Dir.y*x1-r_cm.y;
+                    vec1.z = p2Dir.z*x1-r_cm.z;
+                    e = DOT(p1Dir, vec1);
+                    if ((e >=halfl1) || (e <= -halfl1))
+                        intrs+=0; //intersection is outside sc1
+                    else {
+                        intrs += testIntrPatch(p1Dir, p1P.dir, vec1, pcanglsw, x1, intersections);
+                    }
+                }
+                if ( d > 0 ){
+
+                    x1 = (-b - d) * a;//parameter on line of SC2 determining intersection
+
+                    if ((x1 >=halfl2) || (x1 <= -halfl2)) intrs+=0; //intersection is outside sc2
+                    else {
+                        vec1.x = p2Dir.x*x1 - r_cm.x;
+                        vec1.y = p2Dir.y*x1 - r_cm.y;
+                        vec1.z = p2Dir.z*x1 - r_cm.z;
+                        e = DOT(p1Dir, vec1);
+                        if ((e >=halfl1) || (e <= -halfl1))
+                            intrs+=0; //intersection is outside sc1
+                        else {
+                            intrs+=testIntrPatch(p1Dir, p1P.dir, vec1, pcanglsw, x1, intersections);
+                        }
+                    }
+                }
+            }
+        }
+        //
+        // 1c - test intersection with spheres at the end - it is at distace C
+        //
+        if (intrs < 2 )  {
+            //centers of spheres
+            //relative to the CM of sc2
+            vec1.x =  p1Dir.x * halfl1 - r_cm.x;
+            vec1.y =  p1Dir.y * halfl1 - r_cm.y;
+            vec1.z =  p1Dir.z * halfl1 - r_cm.z;
+            vec2.x = -p1Dir.x * halfl1 - r_cm.x;
+            vec2.y = -p1Dir.y * halfl1 - r_cm.y;
+            vec2.z = -p1Dir.z * halfl1 - r_cm.z;
+
+            //sphere1, do discriminant, a = 1.0
+            //a = DOT(p2Dir,p2Dir);
+            b = 2.0*DOT(vec1, p2Dir);
+            c = DOT(vec1,vec1) - rcutSq;
+
+            intrs += calcIntersections(p1Dir, p2Dir, p1P, r_cm, intersections, pcanglsw, halfl1, halfl2, b, c);
+
+            //sphere2
+            //a = DOT(part2->dir,part2->dir);
+            b = 2.0*DOT(vec2, p2Dir);
+            c = DOT(vec2,vec2)- rcutSq;
+            d = b*b-4*c;
+
+            intrs += calcIntersections(p1Dir, p2Dir, p1P, r_cm, intersections, pcanglsw, halfl1, halfl2, b, c);
+        }
+        //
+        // 1d - if there is only one itersection shperocylinder ends within patch wedge set as second intersection end inside patch
+        //
+        if (intrs < 2 )  {
+            //whole spherocylinder is in or all out if intrs ==0
+            vec1.x = p2Dir.x*halfl2 - r_cm.x;
+            vec1.y = p2Dir.y*halfl2 - r_cm.y;
+            vec1.z = p2Dir.z*halfl2 - r_cm.z;
+            //vector from CM of sc1 to end of sc2
+            //check is is inside sc1
+            a=DOT(vec1,p1Dir);
+            vec3.x = vec1.x - p1Dir.x*a;
+            vec3.y = vec1.y - p1Dir.y*a;
+            vec3.z = vec1.z - p1Dir.z*a;
+            b=DOT(vec3,vec3);
+            d = fabs(a)-halfl1;
+
+            if ( d <= 0)
+                c = b; //is inside cylindrical part
+            else
+                c = d*d + b; //is inside caps
+            //c is distance squared from line or end to test if is inside sc
+            if (c < rcutSq)
+                intrs += testIntrPatch(p1Dir, p1P.dir, vec1, pcanglsw, halfl2, intersections);
+
+            if (intrs < 2 ) {
+                vec2.x = -p2Dir.x*halfl2 - r_cm.x;
+                vec2.y = -p2Dir.y*halfl2 - r_cm.y;
+                vec2.z = -p2Dir.z*halfl2 - r_cm.z;
+                //check is is inside sc1
+                a = DOT(vec2,p1Dir);
+                vec1.x = vec2.x - p1Dir.x*a;
+                vec1.y = vec2.y - p1Dir.y*a;
+                vec1.z = vec2.z - p1Dir.z*a;
+                b = DOT(vec1,vec1);
+                d = fabs(a) -halfl1;
+                if (d <= 0)
+                    c = b; //is inside cylindrical part
+                else
+                    c = d*d + b; //is inside caps
+                //c is distance squared from line or end to test if is inside sc
+                if (c < rcutSq)
+                    intrs += testIntrPatch(p1Dir, p1P.dir, vec2, pcanglsw, -1.0*halfl2, intersections);
+            }
+        }
+        in1 = intersections[0];
+        in2 = intersections[1];
+
+        return intrs;
+    }
+
+
+    int testIntrPatch(const Vector& dir, const Vector& patchdir, Vector vec, double cospatch,
+                                            double ti, double intersections[]) { // test if we have intersection
+        double a;
+        int intrs=0;
+
+        vec = vec.perpProject(dir); // do projection to patch plane
+        vec.normalise();  
+        a = DOT(patchdir,vec);
+        if (a >= cospatch) { // test angle distance from patch
+            intrs=1;
+            int i=0;
+            while (intersections[i] !=0 && i<5) {
+                if (ti == intersections[i])
+                    intrs=0; // found intersection we already have -it is at boundary
+                i++;
+            }
+            if (intrs > 0)
+                intersections[i]=ti;
+        }
+
+        return intrs;
+    }
+
+
+    inline double scparallel(double epsilonparallel, const Vector& dir1, const Vector& dir2){
+        double cosa=DOT(dir1,dir2);
+
+        if ((epsilonparallel>0 && cosa>0) || (epsilonparallel<0 && cosa<0))
+            return 1.0 + epsilonparallel*cosa;
+        else
+            return 1.0;
+    }
+
+    int findIntersectPlane(const Vector& dirA, const Vector& dirB, double halfl2,
+                                                 const Vector& r_cm, Vector w_vec, double cospatch, double intersections[], double rcutSq) {
+        int i, intrs;
+        double a, c, d, ti, disti;
+        Vector d_vec, nplane = vecCrossProduct(dirA, w_vec);
+
+        nplane.normalise();
+        a =  DOT(nplane, dirB);
+        if (a == 0.0) {
+            intrs=0; // there is no intersection plane and sc are paralel
+        } else {
+            ti = DOT(nplane,r_cm)/a;
+            if ((ti  > halfl2 ) || (ti < -halfl2)) {
+                intrs=0; // there is no intersection plane sc is too short
+            } else {
+                d_vec.x = ti * dirB.x - r_cm.x; // vector from intersection point to CM
+                d_vec.y = ti * dirB.y - r_cm.y;
+                d_vec.z = ti * dirB.z - r_cm.z;
+
+                assert(fabs(w_vec.size() - 1.0) < 1e-13 || !(cout << "w_vec isnt normalised" << endl));
+
+                c = DOT (d_vec, w_vec);
+                if ( c * cospatch < 0)  {
+                    intrs=0; // the intersection in plane is on other side of patch
+                } else {
+                    d = fabs(DOT (d_vec, dirA)) - halfl2;
+                    if (d <= 0) disti = c*c; // is inside cylinder
+                    else disti = d*d + c*c; // is inside patch
+
+                    if (disti > rcutSq) // the intersection is outside sc
+                        intrs=0;
+                    else {
+                        intrs=1;
+                        i=0;
+                        while (intersections[i] !=0 && i<5) {
+                            if (ti == intersections[i]) intrs=0; // found intersection we already have -it is at boundary
+                            i++;
+                        }
+                        if (intrs > 0) {
+                            intersections[i]=ti;
+                        }
+                    }
+                }
+            }
+
+        }
+        return intrs;
+    }
+};
+
+
+
+template <typename PotentialE, typename BondE, typename AngleE>
+class Psc : public SpheroCylinder {
+public:
+    PotentialE potE;
+    BondE bondE;
+    AngleE angleE;
+
+    double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
+        double abE = 0.0, distSq = 0.0, atrenergy = 0.0, repenergy = 0.0;
+
+        if(conlist != nullptr) {
+            abE = bondE(dist, part1, part2, conlist);
+            abE += angleE(dist, part1, part2, conlist);
+        }
+
+        distSq = closestDist(r_cm, part1->dir, part2->dir, part1->type, part2->type);
+
+        //
+        // WCA repulsion from SC shape
+        //
+        if (distSq > topo.ia_params[part1->type][part2->type].rcutwcaSq)
+            repenergy = 0.0;
+        else
+            repenergy = topo.ia_params[part1->type][part2->type].epsilon + topo.ia_params[part1->type][part2->type].A * pow(distSq, -6) - topo.ia_params[part1->type][part2->type].B * pow(distSq, -3);
+
+        //
+        // Attractive energy from patches
+        //
+        if ( ( distSq >topo.ia_params[part1->type][part2->type].rcutSq ) ||
+             (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+             topo.ia_params[part1->type][part2->type].exclude ) { // cutoff or not interacting
+            atrenergy = 0.0;
+        } else {
+            atrenergy = eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                    Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                    Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,0, r_cm);
+
+            // addition of interaction of second patches
+            if(topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) { // part1 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                    Patch(part1->patchdir[1], part1->patchsides[2], part1->patchsides[3]),
+                    Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,0, r_cm);
+            }
+
+            if(topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) { // part2 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                    Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                    Patch(part2->patchdir[1], part2->patchsides[2], part2->patchsides[3]), 0,1, r_cm);
+            }
+
+            if(topo.ia_params[part1->type][part2->type].geotype[0] == TPSC && topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) { // part1 and part2 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                    Patch(part1->patchdir[1], part1->patchsides[2], part1->patchsides[3]),
+                    Patch(part2->patchdir[1], part2->patchsides[2], part2->patchsides[3]), 1,1, r_cm);
+            }
+        }
+        return abE + repenergy+atrenergy;
+    }
+};
+
+
+template <typename PotentialE, typename BondE, typename AngleE>
+class TCHPscTCHPsc : public SpheroCylinder {
+public:
+    PotentialE potE;
+    BondE bondE;
+    AngleE angleE;
+
+    double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
+        double abE = 0.0, distSq = 0.0, atrenergy = 0.0, repenergy = 0.0;
+
+        if(conlist != nullptr) {
+            abE = bondE(dist, part1, part2, conlist);
+            abE += angleE(dist, part1, part2, conlist);
+        }
+
+        distSq = closestDist(r_cm, part1->dir, part2->dir, part1->type, part2->type);
+
+        //
+        // WCA repulsion from SC shape
+        //
+        if (distSq > topo.ia_params[part1->type][part2->type].rcutwcaSq)
+            repenergy = 0.0;
+        else
+            repenergy = topo.ia_params[part1->type][part2->type].epsilon + topo.ia_params[part1->type][part2->type].A * pow(distSq, -6) - topo.ia_params[part1->type][part2->type].B * pow(distSq, -3);
+
+        //
+        // Attractive energy from patches
+        //
+        if ( ( distSq >topo.ia_params[part1->type][part2->type].rcutSq ) ||
+             (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
+             topo.ia_params[part1->type][part2->type].exclude ) { // cutoff or not interacting
+            atrenergy = 0.0;
+        } else {
+            bool firstCH=false, secondCH=false; // PSC are they Chiral
+
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+                firstCH = true;
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+                secondCH = true;
+
+            if ((firstCH) || (secondCH) ) {
+                //closestDist(); // computed data not used
+            }
+
+            atrenergy = eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                    Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                    Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,0, r_cm);
+
+
+            // addition of interaction of second patches
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
+              (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
+                bool firstT=false, secondT=false;
+                if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+                firstT = true;
+                if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
+                secondT = true;
+
+                if (firstT) {
+                if (firstCH) {
+                    //part1->dir = part1->chdir[1];
+                    //closestDist(); // computed data not used
+                }
+
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,0, r_cm);
+                }
+                if ( (firstT) && (secondT) ) {
+                if (secondCH) {
+                    //part2->dir = part2->chdir[1];
+                    //closestDist(); // computed data not used
+                }
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,1, r_cm);
+                }
+                if (secondT) {
+                if (firstT && firstCH ) {
+                    //part1->dir = part1->chdir[0];
+                    //closestDist(); // computed data not used
+                }
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
+                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,1, r_cm);
+                }
+            }
+
+            /*if (firstCH)
+                part1->dir = olddir1;
+            if (secondCH)
+                part2->dir = olddir2;*/
+
+        }
+        return abE + repenergy+atrenergy;
+    }
+};
+
+
+
+
+class PairE {
+    GeoBase* pbc;                   // box size
+    EBasic* eFce[MAXT][MAXT];
+public:
+    PairE(GeoBase* pbc) : pbc(pbc) { initIntFCE(); }
+
+    double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL) {
+        Vector r_cm = pbc->image(&part1->pos, &part2->pos);
+        double dotrcm = r_cm.dot(r_cm);
+
+        if (dotrcm > topo.sqmaxcut)
+            return 0.0;  // distance so far that even spherocylinders cannot be within cutoff
+
+        double dist = sqrt(dotrcm);
+
+        return (*eFce[part1->type][part2->type])(dist, r_cm, part1, part2, conlist); // on fast fce (SPA, SPN) function call slows the sim ~4%
+    }
+
+private:
+
+    /**
+     * @brief init_intfce Initializes the array with energy functors
+     */
+    void initIntFCE();
 };
 
 #endif // PAIRE_H
