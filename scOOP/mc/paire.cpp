@@ -27,11 +27,8 @@ void PairE::initIntFCE() {
                 intFCE[i][j] = &PairE::eCpscCpsc;
             }*/
 
-            if ( (geotype == CHPSC || geotype == TCHPSC) && (other_geotype == CHPSC || other_geotype == TCHPSC) ){
-                eFce[i][j] = new Psc<WcaCos2, EBond, EAngle>();
-            }
-
-            if ( (geotype == PSC || geotype == TPSC) && (other_geotype == PSC || other_geotype == TPSC) ){ // PSC-PSC, PSC-TPSC, TPSC-PSC, TPSC-TPSC
+            if ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC) &&
+                 (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ){
                 eFce[i][j] = new Psc<WcaCos2, EBond, EAngle>();
             }
 

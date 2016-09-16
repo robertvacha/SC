@@ -631,25 +631,44 @@ public:
              topo.ia_params[part1->type][part2->type].exclude ) { // cutoff or not interacting
             atrenergy = 0.0;
         } else {
-            atrenergy = eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+            bool firstCH = false, secondCH = false, firstT = false, secondT = false;
+
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+                firstCH = true;
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+                secondCH = true;
+            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
+                firstT = true;
+            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
+                secondT = true;
+
+            atrenergy = eattractivePscPsc(topo.ia_params[part1->type][part2->type],
+                    (firstCH) ? part1->chdir[0] : part1->dir,
+                    (secondCH) ? part2->chdir[0] : part2->dir,
                     Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
                     Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,0, r_cm);
 
             // addition of interaction of second patches
-            if(topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) { // part1 has second patch
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+            if(firstT) { // part1 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type],
+                        (firstCH) ? part1->chdir[1] : part1->dir,
+                        (secondCH) ? part2->chdir[0] : part2->dir,
                     Patch(part1->patchdir[1], part1->patchsides[2], part1->patchsides[3]),
                     Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,0, r_cm);
             }
 
-            if(topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) { // part2 has second patch
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+            if(secondT) { // part2 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type],
+                        (firstCH) ? part1->chdir[0] : part1->dir,
+                        (secondCH) ? part2->chdir[1] : part2->dir,
                     Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
                     Patch(part2->patchdir[1], part2->patchsides[2], part2->patchsides[3]), 0,1, r_cm);
             }
 
-            if(topo.ia_params[part1->type][part2->type].geotype[0] == TPSC && topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) { // part1 and part2 has second patch
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
+            if(firstT && secondT) { // part1 and part2 has second patch
+                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type],
+                        (firstCH) ? part1->chdir[1] : part1->dir,
+                        (secondCH) ? part2->chdir[1] : part2->dir,
                     Patch(part1->patchdir[1], part1->patchsides[2], part1->patchsides[3]),
                     Patch(part2->patchdir[1], part2->patchsides[2], part2->patchsides[3]), 1,1, r_cm);
             }
@@ -657,106 +676,6 @@ public:
         return abE + repenergy+atrenergy;
     }
 };
-
-
-template <typename PotentialE, typename BondE, typename AngleE>
-class TCHPscTCHPsc : public SpheroCylinder {
-public:
-    PotentialE potE;
-    BondE bondE;
-    AngleE angleE;
-
-    double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
-        double abE = 0.0, distSq = 0.0, atrenergy = 0.0, repenergy = 0.0;
-
-        if(conlist != nullptr) {
-            abE = bondE(dist, part1, part2, conlist);
-            abE += angleE(dist, part1, part2, conlist);
-        }
-
-        distSq = closestDist(r_cm, part1->dir, part2->dir, part1->type, part2->type);
-
-        //
-        // WCA repulsion from SC shape
-        //
-        if (distSq > topo.ia_params[part1->type][part2->type].rcutwcaSq)
-            repenergy = 0.0;
-        else
-            repenergy = topo.ia_params[part1->type][part2->type].epsilon + topo.ia_params[part1->type][part2->type].A * pow(distSq, -6) - topo.ia_params[part1->type][part2->type].B * pow(distSq, -3);
-
-        //
-        // Attractive energy from patches
-        //
-        if ( ( distSq >topo.ia_params[part1->type][part2->type].rcutSq ) ||
-             (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
-             topo.ia_params[part1->type][part2->type].exclude ) { // cutoff or not interacting
-            atrenergy = 0.0;
-        } else {
-            bool firstCH=false, secondCH=false; // PSC are they Chiral
-
-            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
-                firstCH = true;
-            if ( (topo.ia_params[part1->type][part2->type].geotype[1] == CHPSC)||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) )
-                secondCH = true;
-
-            if ((firstCH) || (secondCH) ) {
-                //closestDist(); // computed data not used
-            }
-
-            atrenergy = eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
-                    Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
-                    Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,0, r_cm);
-
-
-            // addition of interaction of second patches
-            if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
-              (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
-                bool firstT=false, secondT=false;
-                if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) )
-                firstT = true;
-                if ( (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC)  )
-                secondT = true;
-
-                if (firstT) {
-                if (firstCH) {
-                    //part1->dir = part1->chdir[1];
-                    //closestDist(); // computed data not used
-                }
-
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
-                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
-                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,0, r_cm);
-                }
-                if ( (firstT) && (secondT) ) {
-                if (secondCH) {
-                    //part2->dir = part2->chdir[1];
-                    //closestDist(); // computed data not used
-                }
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
-                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
-                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 1,1, r_cm);
-                }
-                if (secondT) {
-                if (firstT && firstCH ) {
-                    //part1->dir = part1->chdir[0];
-                    //closestDist(); // computed data not used
-                }
-                atrenergy += eattractivePscPsc(topo.ia_params[part1->type][part2->type], part1->dir, part2->dir,
-                        Patch(part1->patchdir[0], part1->patchsides[0], part1->patchsides[1]),
-                        Patch(part2->patchdir[0], part2->patchsides[0], part2->patchsides[1]), 0,1, r_cm);
-                }
-            }
-
-            /*if (firstCH)
-                part1->dir = olddir1;
-            if (secondCH)
-                part2->dir = olddir2;*/
-
-        }
-        return abE + repenergy+atrenergy;
-    }
-};
-
 
 
 
