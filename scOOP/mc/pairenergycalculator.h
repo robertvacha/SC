@@ -35,7 +35,9 @@ private:
 
 
 public:
-    PairEnergyCalculator(GeoBase* pbc) : pbc(pbc) {}
+    PairEnergyCalculator(GeoBase* pbc) : pbc(pbc) {
+        initIntFCE();
+    }
 
     double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL);
 
@@ -272,13 +274,8 @@ private:
     int findIntersectPlanec(Particle * part1, Particle * part2, double halfl,
             Vector r_cm, Vector w_vec, double cospatch, double intersections[5]);
 
-    /**
-     * @brief vec_perpproject vector projection of vector A perpendicular to direction of B
-     * @param A
-     * @param B
-     * @return
-     */
-    Vector vecPerpProject(Vector *A,Vector *B);
+
+
     double angleEnergyAngle2( Particle &p1,  Particle &p2);
 };
 

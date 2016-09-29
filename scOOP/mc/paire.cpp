@@ -16,42 +16,58 @@ void PairE::initIntFCE() {
             geotype = topo.ia_params[i][j].geotype[0];
             other_geotype = topo.ia_params[i][j].geotype[1];
 
-            /*if ( ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
+            //
+            //  BOTH PARTICLES ARE SPHEROCYLINDERS
+            //
+            if ( ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
                   ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC)  &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) )  {
-                intFCE[i][j] = &PairE::ePscPsc;
+                eFce[i][j] = new SpheroCylinder<PscCPsc, WcaTruncSq, EBond, EAngle>();
             }
             if ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ){
-                intFCE[i][j] = &PairE::eCpscCpsc;
-            }*/
-
+                eFce[i][j] = new SpheroCylinder<CPsc, WcaTruncSq, EBond, EAngle>();
+            }
             if ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC) &&
                  (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ){
-                eFce[i][j] = new Psc<WcaCos2, EBond, EAngle>();
+                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, EBond, EAngle>();
+            }
+            if( geotype == SCN && other_geotype == SCN ) {
+                eFce[i][j] = new SpheroCylinder<Scn, WcaTruncSq, EBond, EAngle>();
+            }
+            if( geotype == SCA && other_geotype == SCA ) {
+                eFce[i][j] = new SpheroCylinder<Sca, WcaTruncSq, EBond, EAngle>();
             }
 
-            if(geotype == SCN || geotype == SPN
-                    || other_geotype == SCN || other_geotype == SPN){
+            //
+            //  BOTH PARTICLES ARE SPHERES
+            //
+            if( geotype == SPN || other_geotype == SPN ) {
                 eFce[i][j] = new Sphere<WcaTrunc, HarmonicSp, EAngle>();
             }
-            if((geotype == SCA && other_geotype == SCA)
-                    || (geotype == SPA && other_geotype == SPA)){
+            if( geotype == SPA && other_geotype == SPA ){
                 eFce[i][j] = new Sphere<WcaCos2, HarmonicSp, EAngle>();
             }
-            /*if((geotype == SCA && other_geotype == SPA)
-                    || (geotype == SPA && other_geotype == SCA)){
-                intFCE[i][j] = &PairE::eSpaSca;
+
+            //
+            //  SPHERE - SPHEROCYLINDER
+            //
+            /*if( geotype == SCN || other_geotype == SCN ) {
+                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, EBond, EAngle>();
             }
+            if((geotype == SCA && other_geotype == SPA)
+                    || (geotype == SPA && other_geotype == SCA)){
+                eFce[i][j] = &PairE::eSpaSca;
+            }*/
             if(( (geotype == PSC || geotype == CHPSC || geotype == TCHPSC || geotype == TPSC) && other_geotype == SPA)
                     || (geotype == SPA && (other_geotype == PSC||other_geotype == CHPSC || other_geotype == TCHPSC || other_geotype == TPSC) )){
-                intFCE[i][j] = &PairE::ePscSpa;
+                eFce[i][j] = new MixSpSc<PscSpa, WcaTruncSq, EBond, EAngle>();
             }
             if(( (geotype == CPSC ||geotype == CHCPSC || geotype == TCHCPSC || geotype == TCPSC) && other_geotype == SPA)
                     || (geotype == SPA && (other_geotype == CPSC||other_geotype == CHCPSC || other_geotype == TCHCPSC || other_geotype == TCPSC)  )){
-                intFCE[i][j] = &PairE::eCpscSpa;
-            }*/
+                eFce[i][j] = new MixSpSc<CPscSpa, WcaTruncSq, EBond, EAngle>();
+            }
 
         }
     }
@@ -60,7 +76,7 @@ void PairE::initIntFCE() {
 
 
 
-Vector SpheroCylinder::minDistSegments(const Vector &segA, const Vector &segB, double halfl1, double halfl2, const Vector &r_cm) {
+Vector Common::minDistSegments(const Vector &segA, const Vector &segB, double halfl1, double halfl2, const Vector &r_cm) {
     Vector u,v,w,vec;
     double a,b,c,d,e,D,sc,sN,sD,tc,tN,tD;
     bool paralel = false;

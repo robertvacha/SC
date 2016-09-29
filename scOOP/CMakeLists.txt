@@ -13,7 +13,7 @@ option(ENABLE_MPI      "Enable MPI code" off)
 #   Compiler Flags
 # ------------------
 
-set (CMAKE_CXX_FLAGS " -O3 -msse2 -mfpmath=sse ")
+set (CMAKE_CXX_FLAGS " -Ofast -march=native -std=c++11")
 
 # -------------------------------------
 #   Mersenne Twister requires

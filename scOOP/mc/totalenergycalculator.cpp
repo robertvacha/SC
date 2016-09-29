@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
 
 extern Topo topo;
 
@@ -114,8 +115,22 @@ double TotalEnergyCalculator::oneToAll(int target, vector<double>* changes) {
 
     if (pairListUpdate) {
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
-            changes->push_back((pairE)(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
+            changes->push_back(pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
+            //changes->push_back(pairEControl(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
+
             energy += changes->back();
+
+#ifndef NDEBUG // check calculation
+            double ener = pairEControl(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
+            double ener2 = pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
+            if(fabs(ener - ener2) > 1e-6) {
+                cout << "New vs Control: " << std::setprecision(20) << ener << " != " << ener2 << endl;
+                exit(0);
+            }
+            assert(fabs(ener - ener2) < 1e-6 || !(cout << "New vs Control: " << ener << " != " << ener2 << endl) );
+            assert(fabs(ener - changes->back()) < 1e-6 || !(cout << "New vs Stored: " << ener << " != " << changes->back() << endl) );
+            assert(fabs(ener2 - changes->back()) < 1e-6 || !(cout << "Control vs Stored: " << ener2 << " != " << changes->back() << endl) );
+#endif
         }
     } else {
         changes->resize(conf->pvec.size());
@@ -156,9 +171,10 @@ double TotalEnergyCalculator::oneToAll(int target) {
             energy += conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
 #ifndef NDEBUG
             ConList conlist = conf->pvec.getConlist(target);
-            double ener = pairE[getThreadNum()](&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
+            double ener = pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
+            double ener2 = pairEControl(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
             double matrE = conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
-            assert(ener + 0.0000001 >= matrE && ener - 0.0000001 <= matrE);
+            assert(fabs(ener - matrE) < 1e-10 || !(cout << ener << " " << ener2 << " != " << matrE << endl) );
 #endif
         }
     } else {
@@ -167,7 +183,7 @@ double TotalEnergyCalculator::oneToAll(int target) {
                 energy += conf->energyMatrix->operator [](target)[i];
 #ifndef NDEBUG
                 ConList conlist = conf->pvec.getConlist(target);
-                double ener = (pairE[getThreadNum()])(&conf->pvec[target], &conf->pvec[i], &conlist);
+                double ener = pairE(&conf->pvec[target], &conf->pvec[i], &conlist);
                 double matrE = conf->energyMatrix->operator [](target)[i];
                 assert(ener + 0.0000001 >= matrE && ener - 0.0000001 <= matrE);
 #endif
@@ -227,7 +243,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol) {
                 if(!partOfChain) {
                     energy += conf->energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
 #ifndef NDEBUG
-                    double ener = pairE[getThreadNum()](&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]);
+                    double ener = pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]);
                     double matrE = conf->energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
                     double matrE2 = conf->energyMatrix->operator [](conf->neighborList[mol[j]].neighborID[i])[mol[j]];
                     assert(matrE == matrE2);
@@ -248,7 +264,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol) {
                 energy += conf->energyMatrix->operator [](mol[j])[i];
 #ifndef NDEBUG
                 ConList conlist = conf->pvec.getConlist(i);
-                double ener = (pairE[getThreadNum()])(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
+                double ener = pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
                 double matrE = conf->energyMatrix->operator [](mol[j])[i];
                 assert(ener + 0.0000001 >= matrE && ener - 0.0000001 <= matrE);
 #endif
@@ -258,7 +274,7 @@ double TotalEnergyCalculator::mol2others(Molecule &mol) {
                 energy += conf->energyMatrix->operator [](mol[j])[i];
 #ifndef NDEBUG
                 ConList conlist = conf->pvec.getConlist(i);
-                double ener = (pairE[getThreadNum()])(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
+                double ener = pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
                 double matrE = conf->energyMatrix->operator [](mol[j])[i];
                 assert(ener + 0.0000001 >= matrE && ener - 0.0000001 <= matrE);
 #endif
@@ -365,11 +381,19 @@ double TotalEnergyCalculator::mol2others(vector<Particle>& mol) {
     double energy=0.0;
     unsigned int i=0;
 
+    //double test, test2;
+
     for(i=0; i<mol.size(); i++) {
         if (topo.exter.exist)
             energy += exterE.extere2(&mol[i]);
 
         for(unsigned int j=0; j < conf->pvec.size(); j++) {
+            /*test=pairE(&mol[i], &conf->pvec[j]);
+            test2 = pairE2(&mol[i], &conf->pvec[j]);
+            if( test < 10000 && fabs( test - test2 ) > 0.00000001 ) {
+                cout << std::setprecision(20) << fabs( test - test2 ) << endl;
+                cout << std::setprecision(20) << test << " != " << test2 << endl;
+            }*/
             energy += pairE(&mol[i], &conf->pvec[j]);
         }
     }

@@ -4,6 +4,7 @@
 #define TOTALENERGYCALCULATOR_H
 
 #include "pairenergycalculator.h"
+#include "paire.h"
 #include "externalenergycalculator.h"
 #include "../structures/sim.h"
 
@@ -12,24 +13,27 @@ using namespace std;
 class TotalEnergyCalculator
 {
 private:
-    PairEnergyCalculator pairE;
+    PairEnergyCalculator pairEControl;
+    PairE pairE;
+
+    //PairE pairEControl;
+    //PairEnergyCalculator pairE;
+
     ExternalEnergyCalculator exterE;
 
     bool pairListUpdate;
     Conf* conf;
 
 public:
-    TotalEnergyCalculator(Sim * sim, Conf * conf): pairE(PairEnergyCalculator(&conf->geo)),
+    TotalEnergyCalculator(Sim * sim, Conf * conf): pairEControl(PairEnergyCalculator(&conf->geo)), pairE(PairE(&conf->geo)),
+                                                   //pairEControl(PairE(&conf->geo)), pairE(PairEnergyCalculator(&conf->geo)),
                                                    exterE(ExternalEnergyCalculator(&conf->geo.box)),
-                                                   pairListUpdate(sim->pairlist_update), conf(conf) {
-        cout << "\nInitializing energy functions...\n";
-        pairE.initIntFCE();
-    }
+                                                   pairListUpdate(sim->pairlist_update), conf(conf) {}
 
     /************************************************************************************************/
     /*                                                                                              */
     /*  ENERGY FUNCTIONS:                                                                           */
-    /*  always provide 3 functions, one utilizing energy matrix, second which doesnt for testing    */
+    /*  always provide 3 functions, one utilizing energy matrix, one which doesnt for testing       */
     /*  and third for update of part of energy matrix                                               */
     /*                                                                                              */
     /*  Further diverge all function but the ones for testing on the usage of pairlist              */

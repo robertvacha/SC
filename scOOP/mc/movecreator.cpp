@@ -1043,7 +1043,7 @@ double MoveCreator::muVTMove() {
         energy = calcEnergy->mol2others(insert);
 
         // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT), NOTE: faunus uses exp(log(V/N+1) * ln(a*Nav*1e-27))  -U(new)/kT)
-        if( ( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
+        if(( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
               (exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) ) > ran2() ) {
 
             if(!topo.moleculeParam[molType].isAtomic())

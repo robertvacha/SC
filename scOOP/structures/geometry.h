@@ -118,6 +118,12 @@ public:
         r_cm.y = box.y * (r_cm.y - static_cast<double>(reinterpret_cast<int&>(temp.y) ) );
         r_cm.z = box.z * (r_cm.z - static_cast<double>(reinterpret_cast<int&>(temp.z) ) );
 #pragma GCC diagnostic pop
+
+        // Safe option, but slower
+        /*r_cm.x = box.x * (r_cm.x - round(r_cm.x) );
+        r_cm.y = box.y * (r_cm.y - round(r_cm.y) );
+        r_cm.z = box.z * (r_cm.z - round(r_cm.z) );*/
+
         return r_cm;
     }
 

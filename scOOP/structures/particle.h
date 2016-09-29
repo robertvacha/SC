@@ -6,6 +6,17 @@
 
 extern Topo topo;
 
+class Patch {
+public:
+    Patch(Vector dir, Vector s1, Vector s2) : dir(dir) {
+        sides[0] = s1;
+        sides[1] = s2;
+    }
+
+    Vector dir;
+    Vector sides[2];
+};
+
 /**
  * @brief Define a particle
  */
@@ -18,11 +29,11 @@ public:
     Vector chdir[2];        ///< \brief Direction for chirality - keep in memory to increase speed
 
     int molType;           ///< \brief Molecule type 0-100, given sequentialy from 0
-    //long chainIndex;        ///< \brief Chain number, only for Molecules of two or more particles
     int type;               ///< \brief Type of the particle 0 - 40
     int switchtype;         ///< \brief With which kind of particle do you want to switch?
     double delta_mu;        ///< \brief Chemical potential for the switch
     int switched;           ///< \brief 0: in initial stat; 1: in the switched stat
+
 
     Particle() {}
     Particle(Vector pos, Vector dir, Vector patchDir, int molType, int type) {
@@ -46,6 +57,13 @@ public:
      * @param ia_parami
      */
     void init(Ia_param * ia_parami);
+
+    bool isSame(Particle& o) {
+        return (this->dir == o.dir) && (this->pos == o.pos) && (this->patchdir[0] == o.patchdir[0]) && (this->patchdir[1] == o.patchdir[1]) && (this->patchsides[0] == o.patchsides[0])
+                && (this->patchsides[1] == o.patchsides[1]) && (this->patchsides[2] == o.patchsides[2]) && (this->patchsides[3] == o.patchsides[3]) && (this->chdir[0] == o.chdir[0])
+                && (this->chdir[1] == o.chdir[1]) && (this->molType == o.molType) && (this->type == o.type) && (this->switchtype == o.switchtype)
+                && (this->delta_mu == o.delta_mu) && (this->switched == o.switched);
+    }
 
     inline bool operator== (Particle* other) {
         if(this == other) return true;
@@ -103,7 +121,7 @@ public:
         // calculate chdir vector for seond patch
         if ( (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
 
-            if(chdir[1].dot(chdir[1]) > 1.000001 || chdir[1].dot(chdir[1]) < 0.999999) {
+            if(fabs(chdir[1].dot(chdir[1]) - 1.0) > 1e-13) {
                 cout << "Vector chdir[1] is not an unit Vector" << endl;
                 return false;
             }

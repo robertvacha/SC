@@ -29,13 +29,13 @@ public:
     Vector(){}
     Vector(double x, double y, double z) : x(x), y(y), z(z) {}
 
-    std::string info() {
+    std::string info() const {
         std::ostringstream o;
         o << "(" <<x << ", " << y << ", " << z <<")";
         return o.str();
     }
 
-    std::string infoRaw() {
+    std::string infoRaw() const {
         std::ostringstream o;
         o <<x << " " << y << " " << z;
         return o.str();
@@ -45,7 +45,7 @@ public:
      * @brief Return a norm of Vector
      * @return
      */
-    inline double size() {
+    inline double size() const {
         return sqrt( pow(this->x,2) + pow(this->y,2) + pow(this->z,2));
     }
 
@@ -68,7 +68,7 @@ public:
      * @param other
      * @return
      */
-    inline double dot(Vector& other)  {
+    inline double dot(const Vector& other)  {
         return x*other.x + y*other.y + z*other.z;
     }
 
@@ -114,9 +114,9 @@ public:
         this->x*=scale, this->y*=scale, this->z*=scale;
     }
 
-    friend inline Vector operator* (double,Vector&);
+    friend inline Vector operator* (double, const Vector&);
 
-    inline Vector cross(Vector& B) {
+    inline Vector cross(const Vector& B) const {
         return Vector(this->y*B.z - this->z*B.y, -this->x*B.z + this->z*B.x, this->x*B.y - this->y*B.x);
     }
 
@@ -213,6 +213,25 @@ public:
         z = ran2();
     }
 
+    /**
+     * @brief vec_perpproject vector projection of vector this perpendicular to direction of B
+     * @param A
+     * @param B
+     * @return
+     */
+    Vector perpProject(const Vector& B) {
+        Vector pp;
+        double dp;
+
+        dp = this->dot(B);
+
+        pp.x = this->x - B.x*dp;
+        pp.y = this->y - B.y*dp;
+        pp.z = this->z - B.z*dp;
+
+        return pp;
+    }
+
     static inline Vector getRandomUnitCube() {
         return Vector(ran2(), ran2(), ran2());
     }
@@ -284,7 +303,7 @@ public:
     }
 };
 
-inline Vector operator* (double scale, Vector& vec) {
+inline Vector operator* (double scale, const Vector& vec) {
     return Vector(vec.x*scale, vec.y*scale, vec.z*scale);
 }
 
