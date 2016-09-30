@@ -115,7 +115,7 @@ double TotalEnergyCalculator::oneToAll(int target, vector<double>* changes) {
 
     if (pairListUpdate) {
         for (i = 0; i < conf->neighborList[target].neighborCount; i++){
-            changes->push_back(pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
+            changes->push_back(pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist));
             //changes->push_back(pairEControl(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist));
 
             energy += changes->back();

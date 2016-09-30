@@ -46,7 +46,9 @@ inline double closestDist(const Vector&& r_cm, const Vector& dir1, double halfl,
 }
 
 
-
+/**
+ * @brief The EPatchToSphere class - interaction of patch with spheres
+ */
 class EPatchToSphere {
 public:
     virtual double operator() (double dist, double contt, Vector& distvec, const Ia_param& iaParam, const Vector& p1Dir, const Patch p1P)  {
@@ -62,6 +64,9 @@ public:
     }
 };
 
+/**
+ * @brief The EPatch class - interaction of patch to patch
+ */
 class EPatch {
 public:
     virtual double operator() (const Ia_param& iaParam, const Vector& p1Dir, const Vector& p2Dir, const Patch p1P, const Patch p2P, const Vector& r_cm,
@@ -90,8 +95,21 @@ public:
 
 class EBond {
 public:
+    GeoBase* pbc;
+
     virtual double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) {
         return 0.0;
+    }
+
+    /**
+     * @brief harmonic    function for calculation of harmonic potential
+     * @param aktualvalue
+     * @param eqvalue
+     * @param springconst
+     * @return
+     */
+    inline double harmonicPotential(double aktualvalue, double eqvalue, double springconst) {
+        return springconst*(aktualvalue-eqvalue)*(aktualvalue-eqvalue)*0.5;
     }
 };
 
@@ -105,7 +123,9 @@ public:
 
 
 
-
+/**
+ * @brief The HarmonicSp class - bond between spheres
+ */
 class HarmonicSp : public EBond {
 public:
     double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
@@ -133,17 +153,169 @@ public:
 
         return 0.0;
     }
+};
 
-private:
-    /**
-     * @brief harmonic    function for calculation of harmonic potential
-     * @param aktualvalue
-     * @param eqvalue
-     * @param springconst
-     * @return
-     */
-    inline double harmonicPotential(double aktualvalue, double eqvalue, double springconst) {
-        return springconst*(aktualvalue-eqvalue)*(aktualvalue-eqvalue)*0.5;
+
+class HarmonicSc : public EBond {
+public:
+    double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
+        assert(conlist != nullptr);
+        double bondlength, halfl;
+        Vector vec1, vec2, vecbond;
+        int * geotype = topo.ia_params[part1->type][part2->type].geotype;
+
+        // interaction with nearest neighbours
+        if ((topo.moleculeParam[part1->molType]).bond1c >= 0) {
+            if (part2 == conlist->conlist[1]) {
+                // num1 is connected to num2 by tail
+                if (geotype[0] < SP)
+                    halfl = topo.ia_params[part1->type][part2->type].half_len[0];
+                else
+                    halfl = 0.0;
+
+                vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
+                vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
+                vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
+
+                if (geotype[1] < SP)
+                    halfl = topo.ia_params[part1->type][part2->type].half_len[1];
+                else
+                    halfl = 0.0;
+
+                vec2.x = part2->pos.x + part2->dir.x * halfl / pbc->box.x;
+                vec2.y = part2->pos.y + part2->dir.y * halfl / pbc->box.y;
+                vec2.z = part2->pos.z + part2->dir.z * halfl / pbc->box.z;
+                vecbond = pbc->image(&vec1, &vec2);
+                bondlength = sqrt(DOT(vecbond,vecbond));
+                return harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
+
+            } else {
+                if (part2 == conlist->conlist[0]) {
+                    // num1 is connected to num2 by head
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+                        vec1.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
+                        vec1.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
+                        vec1.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
+
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+
+                        vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
+                        vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
+                        vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
+                        vecbond = pbc->image(&vec1, &vec2);
+                        bondlength = sqrt(DOT(vecbond,vecbond));
+                        return harmonicPotential(bondlength,topo.moleculeParam[part1->molType].bond1eq,topo.moleculeParam[part1->molType].bond1c);
+
+                }
+            }
+        }
+
+        // interaction with second nearest neighbours
+        if (topo.moleculeParam[part1->molType].bond2c >= 0)
+            if (part2 == conlist->conlist[2] || part2 == conlist->conlist[3])
+                    return harmonicPotential(dist,topo.moleculeParam[part1->molType].bond2eq,topo.moleculeParam[part1->molType].bond2c);
+
+
+        // interaction with nearest neighbours - direct harmonic bond
+        if ((topo.moleculeParam[part1->molType]).bonddc > 0) {
+            if (part2 == conlist->conlist[1]) {
+                //num1 is connected to num2 by tail
+                    if (geotype[0] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    else
+                        halfl = 0.0;
+                    vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
+                    vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
+                    vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
+                    if (geotype[1] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
+                    else
+                        halfl = 0.0;
+                    vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
+                    vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
+                    vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
+                    vecbond = pbc->image(&vec1, &vec2);
+                    bondlength = sqrt(DOT(vecbond,vecbond));
+                    return harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
+
+            } else {
+                if (part2 == conlist->conlist[0]) {
+                    //num1 is connected to num2 by head
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+                        vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
+                        vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
+                        vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+                        vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
+                        vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
+                        vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
+                        vecbond = pbc->image(&vec1, &vec2);
+                        bondlength = sqrt(DOT(vecbond,vecbond));
+                        return harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bonddc);
+
+                }
+            }
+        }
+
+        // interaction with nearest neighbours - direct harmonic bond hinged
+        if ((topo.moleculeParam[part1->molType]).bondhc > 0) {
+            if (part2 == conlist->conlist[1]) {
+                //num1 is connected to num2 by tail
+                    if (geotype[0] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    else
+                        halfl = 0.0;
+                    vec1.x = part1->pos.x - part1->dir.x * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.x );
+                    vec1.y = part1->pos.y - part1->dir.y * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.y );
+                    vec1.z = part1->pos.z - part1->dir.z * ( ( halfl + topo.moleculeParam[part1->molType].bondheq ) / pbc->box.z );
+                    if (geotype[1] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
+                    else
+                        halfl = 0.0;
+                    vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ;
+                    vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ;
+                    vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ;
+                    vecbond = pbc->image(&vec1, &vec2);
+                    bondlength = sqrt(DOT(vecbond,vecbond));
+                    return harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bondhc);
+
+            } else {
+                if (part2 == conlist->conlist[0]) {
+                    //num1 is connected to num2 by head
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+                        vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ;
+                        vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ;
+                        vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ;
+                        if (geotype[0] < SP)
+                            halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                        else
+                            halfl = 0.0;
+                        vec2.x = part2->pos.x - part2->dir.x * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.x ) ;
+                        vec2.y = part2->pos.y - part2->dir.y * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.y ) ;
+                        vec2.z = part2->pos.z - part2->dir.z * ( (halfl + topo.moleculeParam[part1->molType].bondheq) / pbc->box.z ) ;
+                        vecbond = pbc->image(&vec1, &vec2);
+                        bondlength = sqrt(DOT(vecbond,vecbond));
+                        return harmonicPotential(bondlength,0.0,topo.moleculeParam[part1->molType].bondhc);
+
+                }
+            }
+        }
+        return 0.0;
     }
 };
 
