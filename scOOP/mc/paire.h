@@ -25,8 +25,11 @@ inline double fanglScale(double a, double pcangl, double pcanglsw) { // TODO for
 /**
  * @brief The EPatchToSphere class - interaction of patch with spheres
  */
+template<typename EPotential>
 class EPatchToSphere {
 public:
+    EPotential repE;
+
     virtual double operator() (double dist, double contt, Vector& distvec, const Ia_param& iaParam, const Vector& p1Dir, const Patch p1P)  {
         return 0.0;
     }
@@ -195,6 +198,8 @@ class EBond {
 public:
     GeoBase* pbc;
 
+    EBond(GeoBase* pbc) : pbc(pbc) {}
+
     virtual double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) {
         return 0.0;
     }
@@ -227,6 +232,8 @@ public:
  */
 class HarmonicSp : public EBond {
 public:
+    HarmonicSp(GeoBase* pbc) : EBond(pbc) {}
+
     double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
         assert(conlist != nullptr);
 
@@ -257,6 +264,9 @@ public:
 
 class HarmonicSc : public EBond {
 public:
+
+    HarmonicSc(GeoBase* pbc) : EBond(pbc) {}
+
     double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
         assert(conlist != nullptr);
         double bondlength, halfl;
@@ -717,7 +727,6 @@ public:
         vec1 = -1.0*r_cm;
         if( 2 > cpscIntersect(   p2Dir, p1Dir, p2P, vec1, S1, S2, iaParam.pcanglsw[2*patchnum2+1], iaParam.rcutSq, iaParam.half_len[1], iaParam.half_len[0]) )
             return 0.0; //sc is all outside patch, attractive energy is 0
-
         return this->atrE(iaParam, p1Dir, p2Dir, p1P, p2P, r_cm, patchnum1, patchnum2, S1, S2, T1, T2);
     }
 
@@ -959,8 +968,8 @@ public:
 
 
 
-
-class ScaSpa : public EPatchToSphere  {
+template<typename EPotential>
+class ScaSpa : public EPatchToSphere<EPotential>  {
 public:
     double operator() (double dist, double contt, Vector& distvec, const Ia_param& iaParam, const Vector& p1Dir, const Patch p1P) override {
 
@@ -991,7 +1000,8 @@ public:
     }
 };
 
-class PscSpa : public EPatchToSphere  {
+template<typename EPotential>
+class PscSpa : public EPatchToSphere<EPotential>  {
 public:
     double operator() (double dist, double contt, Vector& distvec, const Ia_param& iaParam, const Vector& p1Dir, const Patch p1P) override {
 
@@ -1039,7 +1049,8 @@ public:
     }
 };
 
-class CPscSpa : public PscSpa  {
+template<typename EPotential>
+class CPscSpa : public PscSpa<EPotential> {
 public:
     void getGeoTypes(const Ia_param& iaParam, bool& chiral, bool& sec) override {
         chiral=false; sec=false;
@@ -1059,13 +1070,13 @@ public:
 
 
 
-template <typename PatchE, typename RepE, typename BondE, typename AngleE>
+template <typename PatchE, typename BondE, typename AngleE>
 class MixSpSc : public EBasic {
-public:
     PatchE patchE;
-    RepE repE;
     BondE bondE;
     AngleE angleE;
+public: 
+    MixSpSc(GeoBase* pbc) : bondE(pbc) {}
 
     double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
 
@@ -1079,7 +1090,7 @@ public:
 
         // WCA
         if (distSq < iaParam.rcutwcaSq)
-            repenergy = iaParam.epsilon + iaParam.A * pow(distSq, -6)- iaParam.B * pow(distSq, -3);
+            repenergy = patchE.repE(distSq, topo.ia_params[part1->type][part2->type]);
 
         if ( ( distSq > iaParam.rcutSq ) || (iaParam.epsilon == 0.0 ) || iaParam.exclude || patchE.isFar(contt, iaParam.half_len[0]) ) {
             atrenergy = 0.0;
@@ -1142,6 +1153,8 @@ class Sphere : public EBasic {
     PotentialE potE;
     BondE bondE;
 public:
+    Sphere(GeoBase* pbc) : bondE(pbc) {}
+
     double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
         return ( (conlist != nullptr) ? bondE(dist, part1, part2, conlist) : 0.0 ) + potE(dist, topo.ia_params[part1->type][part2->type]);
     }
@@ -1152,10 +1165,11 @@ public:
  */
 template <typename PatchE, typename BondE, typename AngleE>
 class SpheroCylinder : public EBasic {
-public:
     PatchE patchE;
     BondE bondE;
-    AngleE angleE;
+    AngleE angleE; 
+public:
+    SpheroCylinder(GeoBase* pbc) : bondE(pbc) {}
 
     double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
         double abE = 0.0, distSq = 0.0, atrenergy = 0.0, repenergy = 0.0;

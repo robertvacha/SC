@@ -149,10 +149,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             time = clock();
         }
 
-#ifdef ENABLE_MPI
-    // receive MPI data
-#endif
-
         //____________Replica Exchange Move____________
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
 
@@ -345,7 +341,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             statf = fopen(files->statfile, "a");
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
-            fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
+            fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy.allToAll(), alignmentOrder());
             if (wl.wlm[0] > 0) {
                 wl.write(files->wloutfile);
             }

@@ -1,6 +1,9 @@
 #include "clust.h"
 
 
+
+
+
 int Clusters::writeCluster(bool decor, long sweep) {
 
     FILE *cl_stat = NULL;
@@ -79,9 +82,6 @@ int Clusters::sameCluster(long fst, long snd) {
     }*/
 
     /*cluster is made of attractively interacting particles*/
-    /*double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
-            struct topo * topo, struct conf * conf); Redeclaration*/
-
     /*Here we add particle into cluster if particles fst and snd are from same molecule*/
     Molecule fstMol = conf->pvec.getMolOfPart(fst);
     if( std::find(fstMol.begin(), fstMol.end(), snd) != fstMol.end() ){
@@ -241,68 +241,5 @@ int Clusters::sortClusterList() {
         clusterstat[clusters[i].npart - 1]++;
     }
 
-    return 0;
-}
-
-int Clusters::printClusterList(FILE *stream, bool decor) {
-    if(decor){
-        fprintf(stream, "\n"
-                "-----------------------------------------------------\n"
-                "  The Cluster List\n"
-                "  (Index starts with 1)\n"
-                "-----------------------------------------------------\n");
-    }
-
-    for(int i=0; i < (long)conf->pvec.size(); i++){
-        fprintf(stream,"%3d %3ld %8.4lf %8.4f %8.4f", i + 1,
-                clusterlist[i] + 1,
-                conf->pvec[i].pos.x,
-                conf->pvec[i].pos.y,
-                conf->pvec[i].pos.z);
-        fprintf(stream,"\n");
-    }
-    if(decor){
-        fprintf(stream,"-----------------------------------------------------\n");
-    }
-    fflush(stream);
-    return 0;
-}
-
-int Clusters::printClusters(FILE *stream, bool decor) {
-    if(decor){
-        fprintf(stream, "\n"
-                "-----------------------------------------------------\n"
-                "  The Clusters\n"
-                "  (Index starts with 1)\n"
-                "-----------------------------------------------------\n");
-    }
-    for(int i = 0; i < num_cluster; i++){
-        fprintf(stream, "%3d(%f):", i + 1,clustersenergy[i]);
-        for(int j = 0; j < clusters[i].npart; j++){
-            fprintf(stream, "%5ld", clusters[i].particles[j] + 1);
-        }
-        fprintf(stream, "\n");
-    }
-    if(decor){
-        fprintf(stream,"---------------------------------------------------\n");
-    }
-    fflush(stream);
-    return 0;
-}
-
-int Clusters::printClusterStat(FILE *stream, bool decor) {
-    if(decor){
-        fprintf(stream, "\n"
-                "-----------------------------------------------------\n"
-                "   Cluster Distribution\n"
-                "-----------------------------------------------------\n");
-    }
-    for(int i=0; i < max_clust; i++){
-        fprintf(stream, "%5d\t%5ld\n", i + 1, clusterstat[i]);
-    }
-    if(decor){
-        fprintf(stream, "--------------------------------------------------\n");
-    }
-    fflush(stream);
     return 0;
 }

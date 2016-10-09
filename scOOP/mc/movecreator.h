@@ -7,6 +7,7 @@
 
 extern Topo topo;
 
+
 class MoveCreator
 {
 public:
@@ -44,6 +45,8 @@ public:
      * @return
      */
     double clusterMove();
+
+    int isInCluster(double *list, int size, double value);
 
     /**
      * @brief Function to produce one geometrical cluster move ()
@@ -98,10 +101,7 @@ public:
      */
     double muVTMove();
 
-    double muVTMove2();
-
 private:
-
     int getRandomMuVTType();
 
     /**
@@ -151,43 +151,9 @@ private:
 
     void clusterRotate(vector<Particle >& cluster, double max_angle);
 
-    inline Vector clusterCM(vector<int >& cluster) {
-        double chainVolume=0.0;
-        Vector cluscm(0.0, 0.0, 0.0);
+    inline Vector clusterCM(vector<int >& cluster);
 
-        for(unsigned int i=0; i<cluster.size(); i++) {
-            cluscm.x += conf->pvec[cluster[i]].pos.x * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
-            cluscm.y += conf->pvec[cluster[i]].pos.y * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
-            cluscm.z += conf->pvec[cluster[i]].pos.z * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
-
-            chainVolume += topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
-        }
-
-        cluscm.x /= chainVolume;
-        cluscm.y /= chainVolume;
-        cluscm.z /= chainVolume;
-
-        return cluscm;
-    }
-
-    inline Vector clusterCM(vector<Particle >& cluster) {
-        double chainVolume=0.0;
-        Vector cluscm(0.0, 0.0, 0.0);
-
-        for(unsigned int i=0; i<cluster.size(); i++) {
-            cluscm.x += cluster[i].pos.x * topo.ia_params[cluster[i].type][cluster[i].type].volume;
-            cluscm.y += cluster[i].pos.y * topo.ia_params[cluster[i].type][cluster[i].type].volume;
-            cluscm.z += cluster[i].pos.z * topo.ia_params[cluster[i].type][cluster[i].type].volume;
-
-            chainVolume += topo.ia_params[cluster[i].type][cluster[i].type].volume;
-        }
-
-        cluscm.x /= chainVolume;
-        cluscm.y /= chainVolume;
-        cluscm.z /= chainVolume;
-
-        return cluscm;
-    }
+    inline Vector clusterCM(vector<Particle >& cluster);
 
 
 

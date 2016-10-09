@@ -32,6 +32,145 @@ double MoveCreator::particleMove() {
     return edriftchanges;
 }
 
+double MoveCreator::clusterMove() {
+
+    double edriftchanges =0.0;
+    long target;
+
+    target = ran2() * (long)conf->pvec.size();// Select random particle from config
+    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
+    return edriftchanges;
+}
+
+int MoveCreator::isInCluster(double *list, int size, double value){
+    for(int i=0; i< size; i++){
+        if(list[i] == value){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+double MoveCreator::clusterMoveGeom(long target) {
+    /*
+     * For reference to this move see:
+     * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
+     * DOI: 10.1103/PhysRevLett.92.035504
+    */
+
+    if(conf->pvec.empty())
+        return 0.0;
+
+    double edriftchanges = calcEnergy->allToAll(), cluster[MAXN];
+    Vector r_center;
+
+    /*=============================================*/
+    /*            Set reflection center            */
+    /*=============================================*/
+    /*There exists two ways how to select reflection center, Global and Local.
+     * Global ---- select random point in simulation box as reflection center
+     * Local  ---- select vector from selected particle of random length in interval (0; max_len>
+     *
+     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement (max_len) must be set.
+     *
+     * From test simulations on rather small systems it seems Global relection have faster convergence
+    */
+
+    /*____________Global____________*/
+    r_center = conf->geo.randomPos();
+
+    /*____________Local (displacement like)____________*/
+    //    double max_displacement= 1.5;
+    //    r_center.randomUnitSphere();// create unit random vector
+    //    r_center *= ran2() * max_displacement;// set displacement from range [0:max_displacement]
+    //    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
+
+    Particle reflection;
+    Molecule selected_chain;
+    std::vector<Molecule> chainsToFix; // thse are all cahins that might be disturbed by application of PBC
+    int counter= 0, num_particles=0;
+    double energy_old, energy_new;
+
+    /*=============================================*/
+    /*     Addition of particles into cluster      */
+    /*=============================================*/
+    /*
+     * Here we chose to add whole chain into cluster if one particle of chain is includedtarget in cluster
+     * This make move slightly faster but
+     * !!!!SIMULATION OF CHAINS WITHOUT SINGLE PARTICLE MOVES CANT CONVERGE!!!!
+     *
+     * TODO:    change it in way that intra chain energy is used to determine if other particles from chain should be added
+     *          into cluster
+    */
+
+    double molecule_size;
+    //topo.moleculeParam[conf->pvec[target].molType].particleTypes.size() == number of particles in chain ... special case is single particle of length 1
+    molecule_size = topo.moleculeParam[conf->pvec[target].molType].particleTypes.size();
+    if ( molecule_size == 1 ){
+        cluster[num_particles] = target;
+        num_particles++;
+    }else{
+        selected_chain = conf->pvec.getMolOfPart(target);
+        chainsToFix.push_back(selected_chain);
+        for(unsigned int i=0; i < selected_chain.size(); i++){
+            cluster[num_particles] = selected_chain[i];
+            num_particles++;
+        }
+    }
+
+    /*=============================================*/
+    /*            Cluster Creation Loop            */
+    /*=============================================*/
+    do{
+        reflection = conf->pvec[cluster[counter]];// copy old particle into reflected particle
+        //Reflect particle cluster[counter] by point reflection by center r_center point
+        reflection.pos           = 2.0*r_center - reflection.pos;// reflect center of particle around r_center
+        reflection.dir          *=1.0;// reflect orientation of particle
+        reflection.patchdir[0]  *=-1.0;// reflect orientation of patch1
+        reflection.patchdir[1]  *=-1.0;// reflect orientation of patch2
+        reflection.patchsides[0]*=-1.0;// reflect all sides of patch
+        reflection.patchsides[1]*=-1.0;
+        reflection.patchsides[2]*=-1.0;
+        reflection.patchsides[3]*=-1.0;
+        reflection.chdir[0]     *=-1.0;
+        reflection.chdir[1]     *=-1.0;
+        conf->geo.usePBC(&reflection);
+
+        // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+
+        //Iterate through reflection "Neighbours"
+        for (unsigned int i = 0; i < conf->pvec.size(); i++){
+            if (!isInCluster(cluster, num_particles, i)){
+                energy_old = calcEnergy->p2p(cluster[counter], i);
+                energy_new = calcEnergy->p2p(&reflection, i);
+                if (ran2() < (1-exp((energy_old-energy_new)/sim->temper))){//ran2() < (1-exp(-1.0*((energy_new-energy_old)/sim->temper))) acceptance criteria vis. Reference
+                    //Addition of chain into cluster
+                    //-----------------------------------------------------
+                    molecule_size = topo.moleculeParam[conf->pvec[i].molType].particleTypes.size();
+                    if(molecule_size == 1){
+                        cluster[num_particles] = i;
+                        num_particles++;
+                    }else{
+                        selected_chain = conf->pvec.getMolOfPart(i);
+                        chainsToFix.push_back(selected_chain);
+                        for(unsigned int t=0; t < selected_chain.size(); t++){
+                            cluster[num_particles] = selected_chain[t];
+                            num_particles++;
+                        }
+                    }
+                    //-----------------------------------------------------
+                }
+            }
+        }
+        conf->pvec[cluster[counter]] = reflection;
+        counter++;
+    }while(counter < num_particles);
+    for ( std::vector<Molecule>::iterator it = chainsToFix.begin(); it != chainsToFix.end(); ++it ){
+        conf->makeMoleculeWhole(&(*it));
+    }
+    return calcEnergy->allToAll()-edriftchanges;
+}
+
 double MoveCreator::printClustersConf() {
     // in cluster when dist < 3
     // Breadth-first search, BFS
@@ -90,146 +229,6 @@ double MoveCreator::printClustersConf() {
 
     return 0.0;
 }
-
-double MoveCreator::partDisplace(long target) {
-    double edriftchanges = 0.0,energy,enermove,wlener = 0.0;
-    chorig[0] = conf->pvec[target];
-    Vector dr, origsyscm = conf->syscm;
-    int reject=0;
-    double radiusholemax_orig=0;
-
-    energy = calcEnergy->oneToAll(target);
-
-    dr.randomUnitSphere();
-
-    dr.x *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.x;
-    dr.y *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.y;
-    dr.z *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.z;
-
-    conf->pvec[target].pos.x += dr.x;
-    conf->pvec[target].pos.y += dr.y;
-    conf->pvec[target].pos.z += dr.z;
-
-    if(wl->wlm[0] > 0) {
-        Molecule tar;
-        tar.resize(1);
-        tar[0] = target;
-        dr.scale(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume);
-        wlener = wl->run(reject, chorig, dr, radiusholemax_orig, tar);
-    }
-
-    if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove = calcEnergy->oneToAll(target, &conf->changes);
-    }
-    if (reject || moveTry(energy+wlener, enermove, sim->temper)) {  // probability acceptance
-        conf->pvec[target].pos = chorig[0].pos;
-        sim->stat.trans[conf->pvec[target].type].rej++;
-        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) )
-            conf->syscm = origsyscm;
-        wl->reject(radiusholemax_orig, wl->wlm);
-
-    } else { // move was accepted
-        sim->stat.trans[conf->pvec[target].type].acc++;
-        wl->accept(wl->wlm[0]);
-
-        edriftchanges = enermove - energy;
-
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
-
-        //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->geo.box.z , enermove);
-        //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
-    }
-
-    return edriftchanges;
-}
-
-double MoveCreator::partRotate(long target) {
-    double edriftchanges = 0.0, energy, enermove, wlener = 0.0;
-    Particle origpart = conf->pvec[target];
-    int reject = 0;
-
-    energy = calcEnergy->oneToAll(target);
-
-    conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
-
-    //should be normalised and ortogonal but we do for safety
-    conf->pvec[target].dir.normalise();
-    conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
-
-    if(wl->wlm[0] > 0)
-        wlener = wl->runRot(reject, target);
-
-    if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove = calcEnergy->oneToAll(target, &conf->changes);
-    }
-    if ( reject || moveTry(energy+wlener,enermove,sim->temper) ) {  // probability acceptance
-        conf->pvec[target] = origpart;
-        sim->stat.rot[conf->pvec[target].type].rej++;
-        wl->reject(wl->radiusholemax, wl->wlm);
-    } else { // move was accepted
-        // DEBUG
-        //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
-        sim->stat.rot[conf->pvec[target].type].acc++;
-        wl->accept(wl->wlm[0]);
-        edriftchanges = enermove - energy;
-
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
-
-        //printf("%f\t%f\n", conf->pvec[0].patchdir[0].z, enermove);
-    }
-
-    return edriftchanges;
-}
-
-double MoveCreator::partAxialRotate(long target){
-    double edriftchanges = 0.0;
-    double energyold;
-    double energynew = 0.0;
-
-    Vector   rotaxis;
-    Particle origpart        =   conf->pvec[target];
-
-    energyold = calcEnergy->oneToAll(target);
-
-    //=============================================//
-    //            Get vector from cone             //
-    //=============================================//
-    // Get vector which is randomly distributed in cone around patch direction. Cone is specified by angle in radians in options coneAngle
-    rotaxis = Vector::getRandomUnitConeUniform( conf->pvec[target].dir,\
-                                                sim->coneAngle);
-
-    //=============================================//
-    //              Rotate particle                //
-    //=============================================//
-    // Now rotate particle around rotaxis in specified cone around patch direction
-    conf->pvec[target].pscRotate(   sim->stat.rot[conf->pvec[target].type].angle*ran2(),\
-                                    topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0],\
-                                    rotaxis);
-
-    //=============================================//
-    //                MC criterium                 //
-    //=============================================//  
-    conf->changes.clear();
-    assert(conf->changes.empty());
-    energynew = calcEnergy->oneToAll(target, &conf->changes);
-
-    if (moveTry(energyold, energynew, sim->temper)){
-        // move was rejected
-        conf->pvec[target] = origpart; // return to old configuration
-    } else {
-        // move was accepted
-        edriftchanges = energynew - energyold;
-
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
-    }
-
-    return edriftchanges;
-}
-
 
 double MoveCreator::switchTypeMove() {
     double edriftchanges=0.0, energy,enermove=0.0, switchE=0.0,wlener=0.0;
@@ -326,131 +325,6 @@ double MoveCreator::chainMove() {
     return edriftchanges;
 }
 
-double MoveCreator::chainDisplace(long target) {
-    Molecule chain = conf->pvec.getChain(target);
-    assert(chain.size() > 1);
-    double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
-    Vector dr, origsyscm = conf->syscm;
-    int reject=0;
-    Vector cluscm(0.0, 0.0, 0.0);
-    double radiusholemax_orig=0.0;
-
-    //=== Displacement step of cluster/chain ===
-    //printf ("move chain\n\n");
-    for(unsigned int i=0; i<chain.size(); i++) // store old configuration
-        chorig[i].pos = conf->pvec[chain[i]].pos;
-
-    energy += calcEnergy->mol2others(chain);
-
-    dr.randomUnitSphere();
-    dr.x *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
-    dr.y *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
-    dr.z *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
-
-    if ( ((wl->wlm[0] == 3)||(wl->wlm[1] == 3)) && (target == 0) ) {
-        dr.z = 0;
-        dr.y = 0;
-        dr.x = 0;
-    }
-    for(unsigned int j=0; j<chain.size(); j++) { // move chaine to new position
-        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) ) { /* calculate move of center of mass  */
-            cluscm.x += dr.x*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
-            cluscm.y += dr.y*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
-            cluscm.z += dr.z*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
-        }
-        conf->pvec[chain[j]].pos.x += dr.x;
-        conf->pvec[chain[j]].pos.y += dr.y;
-        conf->pvec[chain[j]].pos.z += dr.z;
-    }
-
-    if(wl->wlm[0] > 0)
-        wlener = wl->run(reject, chorig, cluscm, radiusholemax_orig, chain);
-
-    if (!reject) { // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove += calcEnergy->mol2others(chain, &conf->changes);
-    }
-    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) {  // probability acceptance
-        for(unsigned int j=0; j<chain.size(); j++)
-            conf->pvec[chain[j]].pos = chorig[j].pos;
-
-        sim->stat.chainm[conf->pvec[chain[0]].molType].rej++;
-        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) )
-            conf->syscm = origsyscm;
-        wl->reject(radiusholemax_orig, wl->wlm);
-
-    } else { // move was accepted
-        sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
-        wl->accept(wl->wlm[0]);
-
-        conf->fixEMatrixChain(sim->pairlist_update, chain);
-
-        edriftchanges = enermove - energy;
-    }
-
-    return edriftchanges;
-}
-
-double MoveCreator::chainRotate(long target) {
-    Molecule chain = conf->pvec.getChain(target);
-    double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
-    int reject=0;
-    Particle chorig[MAXCHL];
-    double radiusholemax_orig=0;
-
-    //=== Rotation step of cluster/chain ===
-    for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
-        chorig[j] = conf->pvec[chain[j]];
-        /*We have chains whole! don't have to do PBC*/
-        /*r_cm.x = conf->pvec[current].pos.x - conf->particle[first].pos.x;
-         r_cm.y = conf->pvec[current].pos.y - conf->particle[first].pos.y;
-         r_cm.z = conf->pvec[current].pos.z - conf->particle[first].pos.z;
-         if ( r_cm.x < 0  )
-         r_cm.x -= (double)( (long)(r_cm.x-0.5) );
-         elsechain
-         r_cm.x -= (double)( (long)(r_cm.x+0.5) );
-         if ( r_cm.y < 0  )
-         r_cm.y -= (double)( (long)(r_cm.y-0.5) );
-         else
-         r_cm.y -= (double)( (long)(r_cm.y+0.5) );
-         if ( r_cm.z < 0  )
-         r_cm.z -= (double)( (long)(r_cm.z-0.5) );
-         else
-         r_cm.z -= (double)( (long)(r_cm.z+0.5) );
-         */
-    }
-
-    energy += calcEnergy->mol2others(chain);
-
-    //do actual rotations around geometrical center
-    clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
-
-    if(wl->wlm[0] > 0)
-        wlener = wl->runChainRot(reject, chorig, radiusholemax_orig, chain);
-
-    if (!reject) { // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove += calcEnergy->mol2others(chain, &conf->changes);
-    }
-    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) { // probability acceptance
-        for(unsigned int j=0; j<chain.size(); j++)
-            conf->pvec[chain[j]] = chorig[j];
-
-        sim->stat.chainr[conf->pvec[chain[0]].molType].rej++;
-        wl->reject(radiusholemax_orig, wl->wlm);
-    } else { // move was accepted
-        sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
-        wl->accept(wl->wlm[0]);
-        edriftchanges = enermove - energy;
-
-        conf->fixEMatrixChain(sim->pairlist_update, chain);
-    }
-
-    return edriftchanges;
-}
-
 double MoveCreator::pressureMove() {
     double edriftchanges,energy,enermove=0.0,wlener;
     int reject=0;
@@ -471,243 +345,139 @@ double MoveCreator::pressureMove() {
 
     // Choose an edge
     switch (sim->ptype) {
-        case 0:
-            // Anisotropic pressure coupling
-            rsave = ran2();
-            if (rsave < 1.0/3.0) {
-                side = &(conf->geo.box.x);
-                area = conf->geo.box.y * conf->geo.box.z;
-            } else if (rsave < 2.0/3.0) {
-                side = &(conf->geo.box.y);
-                area = conf->geo.box.x * conf->geo.box.z;
-            } else {
-                side = &(conf->geo.box.z);
-                area = conf->geo.box.x * conf->geo.box.y;
-            }
-            old_side = *side;
-            *side += sim->stat.edge.mx * (ran2() - 0.5);
+    case 0:
+        // Anisotropic pressure coupling
+        rsave = ran2();
+        if (rsave < 1.0/3.0) {
+            side = &(conf->geo.box.x);
+            area = conf->geo.box.y * conf->geo.box.z;
+        } else if (rsave < 2.0/3.0) {
+            side = &(conf->geo.box.y);
+            area = conf->geo.box.x * conf->geo.box.z;
+        } else {
+            side = &(conf->geo.box.z);
+            area = conf->geo.box.x * conf->geo.box.y;
+        }
+        old_side = *side;
+        *side += sim->stat.edge.mx * (ran2() - 0.5);
 
-            reject = 0;
-            if (wl->wlm[0] > 0) {  /* get new neworder for wang-landau */
-                wlener = wl->runPress(reject, radiusholemax_orig);
-            }
-            if (!reject) { // wang-landaou ok, try move - calculate energy
-                enermove = sim->press * area * (*side - old_side) - (double)conf->pvec.size() * log(*side/old_side) / sim->temper;
+        reject = 0;
+        if (wl->wlm[0] > 0) {  /* get new neworder for wang-landau */
+            wlener = wl->runPress(reject, radiusholemax_orig);
+        }
+        if (!reject) { // wang-landaou ok, try move - calculate energy
+            enermove = sim->press * area * (*side - old_side) - (double)conf->pvec.size() * log(*side/old_side) / sim->temper;
 
-                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
-            }
-            if ( reject || *side <= 0.0 || ( moveTry(energy+wlener,enermove,sim->temper) ) ) { // probability acceptance
-                *side = old_side;
-                sim->stat.edge.rej++;
-                wl->reject(radiusholemax_orig, wl->wlm);
-            } else {  // move was accepted
-                sim->stat.edge.acc++;
-                conf->swapEMatrices();
-                wl->accept(wl->wlm[0]);
-                edriftchanges = enermove - energy;
-            }
-            break;
-        case 1:
-            /* Isotropic pressure coupling */
-            psch = sim->stat.edge.mx * (ran2() - 0.5);
-            pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
-            conf->geo.box.x += psch;
-            conf->geo.box.y += psch;
-            conf->geo.box.z += psch;
-            pvoln = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+        }
+        if ( reject || *side <= 0.0 || ( moveTry(energy+wlener,enermove,sim->temper) ) ) { // probability acceptance
+            *side = old_side;
+            sim->stat.edge.rej++;
+            wl->reject(radiusholemax_orig, wl->wlm);
+        } else {  // move was accepted
+            sim->stat.edge.acc++;
+            conf->swapEMatrices();
+            wl->accept(wl->wlm[0]);
+            edriftchanges = enermove - energy;
+        }
+        break;
+    case 1:
+        /* Isotropic pressure coupling */
+        psch = sim->stat.edge.mx * (ran2() - 0.5);
+        pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+        conf->geo.box.x += psch;
+        conf->geo.box.y += psch;
+        conf->geo.box.z += psch;
+        pvoln = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
 
-            reject = 0;
-            if (wl->wlm[0] > 0) {  /* get new neworder for wang-landau */
-                wlener = wl->runPress(reject, radiusholemax_orig);
-            }
-            if (!reject) { /* wang-landaou ok, try move - calcualte energy */
-                enermove = sim->press * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
+        reject = 0;
+        if (wl->wlm[0] > 0) {  /* get new neworder for wang-landau */
+            wlener = wl->runPress(reject, radiusholemax_orig);
+        }
+        if (!reject) { /* wang-landaou ok, try move - calcualte energy */
+            enermove = sim->press * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
-                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
-            }
-            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { /* probability acceptance */
-                conf->geo.box.x -= psch;
-                conf->geo.box.y -= psch;
-                conf->geo.box.z -= psch;
-                sim->stat.edge.rej++;
-                wl->reject(radiusholemax_orig, wl->wlm);
-            } else { // move was accepted
-                sim->stat.edge.acc++;
-                wl->accept(wl->wlm[0]);
-                conf->swapEMatrices();
-                edriftchanges = enermove - energy;
-            }
-            break;
-        case 2:
-            // Isotropic pressure coupling in xy, z constant
-            psch = sim->stat.edge.mx * (ran2() - 0.5);
-            pvol = conf->geo.box.x * conf->geo.box.y;
-            conf->geo.box.x += psch;
-            conf->geo.box.y += psch;
-            pvoln = conf->geo.box.x * conf->geo.box.y;
+            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+        }
+        if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { /* probability acceptance */
+            conf->geo.box.x -= psch;
+            conf->geo.box.y -= psch;
+            conf->geo.box.z -= psch;
+            sim->stat.edge.rej++;
+            wl->reject(radiusholemax_orig, wl->wlm);
+        } else { // move was accepted
+            sim->stat.edge.acc++;
+            wl->accept(wl->wlm[0]);
+            conf->swapEMatrices();
+            edriftchanges = enermove - energy;
+        }
+        break;
+    case 2:
+        // Isotropic pressure coupling in xy, z constant
+        psch = sim->stat.edge.mx * (ran2() - 0.5);
+        pvol = conf->geo.box.x * conf->geo.box.y;
+        conf->geo.box.x += psch;
+        conf->geo.box.y += psch;
+        pvoln = conf->geo.box.x * conf->geo.box.y;
 
-            reject = 0;
-            if (wl->wlm[0] > 0) {  // get new neworder for wang-landau
-                wlener = wl->runPress(reject, radiusholemax_orig, true);
-            }
-            if (!reject) { // wang-landaou ok, try move - calculate energy
-                enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
+        reject = 0;
+        if (wl->wlm[0] > 0) {  // get new neworder for wang-landau
+            wlener = wl->runPress(reject, radiusholemax_orig, true);
+        }
+        if (!reject) { // wang-landaou ok, try move - calculate energy
+            enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
-                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
-            }
-            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
-                conf->geo.box.x -= psch;
-                conf->geo.box.y -= psch;
-                sim->stat.edge.rej++;
-                wl->reject(radiusholemax_orig, wl->wlm);
-            } else { // move was accepted
-                sim->stat.edge.acc++;
-                wl->accept(wl->wlm[0]);
-                conf->swapEMatrices();
-                edriftchanges = enermove - energy;
-            }
-            break;
-        case 3:
-            // Isotropic pressure coupling in xy, z coupled to have fixed volume
-            psch = sim->stat.edge.mx * (ran2() - 0.5);
-            pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
-            conf->geo.box.x += psch;
-            conf->geo.box.y += psch;
+            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+        }
+        if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
+            conf->geo.box.x -= psch;
+            conf->geo.box.y -= psch;
+            sim->stat.edge.rej++;
+            wl->reject(radiusholemax_orig, wl->wlm);
+        } else { // move was accepted
+            sim->stat.edge.acc++;
+            wl->accept(wl->wlm[0]);
+            conf->swapEMatrices();
+            edriftchanges = enermove - energy;
+        }
+        break;
+    case 3:
+        // Isotropic pressure coupling in xy, z coupled to have fixed volume
+        psch = sim->stat.edge.mx * (ran2() - 0.5);
+        pvol = conf->geo.box.x * conf->geo.box.y * conf->geo.box.z;
+        conf->geo.box.x += psch;
+        conf->geo.box.y += psch;
+        conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
+
+        reject = 0;
+        if (wl->wlm[0] > 0) {  // get new neworder for wang-landau
+            wlener = wl->runPress(reject, radiusholemax_orig);
+        }
+        if (!reject) { // wang-landaou ok, try move - calculate energy
+            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+        }
+        if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
+            conf->geo.box.x -= psch;
+            conf->geo.box.y -= psch;
             conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
+            sim->stat.edge.rej++;
+            wl->reject(radiusholemax_orig, wl->wlm);
+        } else { // move was accepted
+            sim->stat.edge.acc++;
+            wl->accept(wl->wlm[0]);
+            conf->swapEMatrices();
+            edriftchanges = enermove - energy;
+        }
+        break;
 
-            reject = 0;
-            if (wl->wlm[0] > 0) {  // get new neworder for wang-landau
-                wlener = wl->runPress(reject, radiusholemax_orig);
-            }
-            if (!reject) { // wang-landaou ok, try move - calculate energy
-                enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
-            }
-            if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
-                conf->geo.box.x -= psch;
-                conf->geo.box.y -= psch;
-                conf->geo.box.z = pvol / conf->geo.box.x / conf->geo.box.y;
-                sim->stat.edge.rej++;
-                wl->reject(radiusholemax_orig, wl->wlm);
-            } else { // move was accepted
-                sim->stat.edge.acc++;
-                wl->accept(wl->wlm[0]);
-                conf->swapEMatrices();
-                edriftchanges = enermove - energy;
-            }
-            break;
-
-        default:
-            fprintf (stderr, "ERROR: unknown type of pressure coupling %d",sim->ptype);
-            exit(1);
+    default:
+        fprintf (stderr, "ERROR: unknown type of pressure coupling %d",sim->ptype);
+        exit(1);
     }
 
     //=== End volume change step ===
     return edriftchanges;
 }
-
-
-
-void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
-    Vector cluscm;
-    double vc,vs;
-    Vector newaxis;
-
-    cluscm = clusterCM(cluster);
-
-    // create rotation quaternion
-    newaxis.randomUnitSphere(); /*random axes for rotation*/
-    vc = cos(max_angle * ran2() );
-    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
-    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
-
-    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
-
-    //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
-
-    //shift position to geometrical center
-    for(unsigned int i=0; i<cluster.size(); i++) {
-        //shift position to geometrical center
-        conf->pvec[cluster[i]].pos.x -= cluscm.x;
-        conf->pvec[cluster[i]].pos.y -= cluscm.y;
-        conf->pvec[cluster[i]].pos.z -= cluscm.z;
-        //scale things by geo.box not to have them distorted
-        conf->pvec[cluster[i]].pos.x *= conf->geo.box.x;
-        conf->pvec[cluster[i]].pos.y *= conf->geo.box.y;
-        conf->pvec[cluster[i]].pos.z *= conf->geo.box.z;
-        //do rotation
-        conf->pvec[cluster[i]].pos.rotate(newquat);
-        conf->pvec[cluster[i]].dir.rotate(newquat);
-        conf->pvec[cluster[i]].patchdir[0].rotate(newquat);
-        conf->pvec[cluster[i]].patchdir[1].rotate(newquat);
-        conf->pvec[cluster[i]].chdir[0].rotate(newquat);
-        conf->pvec[cluster[i]].chdir[1].rotate(newquat);
-        conf->pvec[cluster[i]].patchsides[0].rotate(newquat);
-        conf->pvec[cluster[i]].patchsides[1].rotate(newquat);
-        conf->pvec[cluster[i]].patchsides[2].rotate(newquat);
-        conf->pvec[cluster[i]].patchsides[3].rotate(newquat);
-        //sclae back
-        conf->pvec[cluster[i]].pos.x /= conf->geo.box.x;
-        conf->pvec[cluster[i]].pos.y /= conf->geo.box.y;
-        conf->pvec[cluster[i]].pos.z /= conf->geo.box.z;
-        //shift positions back
-        conf->pvec[cluster[i]].pos.x += cluscm.x;
-        conf->pvec[cluster[i]].pos.y += cluscm.y;
-        conf->pvec[cluster[i]].pos.z += cluscm.z;
-    }
-}
-
-
-
-void MoveCreator::clusterRotate(vector<Particle> &cluster, double max_angle) {
-    Vector cluscm;
-    double vc,vs;
-    Vector newaxis;
-
-    cluscm = clusterCM(cluster);
-
-    // create rotation quaternion
-    newaxis.randomUnitSphere(); /*random axes for rotation*/
-    vc = cos(max_angle * ran2() );
-    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
-    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
-
-    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
-
-    //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
-
-    //shift position to geometrical center
-    for(unsigned int i=0; i<cluster.size(); i++) {
-        //shift position to geometrical center
-        cluster[i].pos.x -= cluscm.x;
-        cluster[i].pos.y -= cluscm.y;
-        cluster[i].pos.z -= cluscm.z;
-        //scale things by geo.box not to have them distorted
-        cluster[i].pos.x *= conf->geo.box.x;
-        cluster[i].pos.y *= conf->geo.box.y;
-        cluster[i].pos.z *= conf->geo.box.z;
-        //do rotation
-        cluster[i].pos.rotate(newquat);
-        cluster[i].dir.rotate(newquat);
-        cluster[i].patchdir[0].rotate(newquat);
-        cluster[i].patchdir[1].rotate(newquat);
-        cluster[i].chdir[0].rotate(newquat);
-        cluster[i].chdir[1].rotate(newquat);
-        cluster[i].patchsides[0].rotate(newquat);
-        cluster[i].patchsides[1].rotate(newquat);
-        cluster[i].patchsides[2].rotate(newquat);
-        cluster[i].patchsides[3].rotate(newquat);
-        //sclae back
-        cluster[i].pos.x /= conf->geo.box.x;
-        cluster[i].pos.y /= conf->geo.box.y;
-        cluster[i].pos.z /= conf->geo.box.z;
-        //shift positions back
-        cluster[i].pos.x += cluscm.x;
-        cluster[i].pos.y += cluscm.y;
-        cluster[i].pos.z += cluscm.z;
-    }
-}
-
-
 
 double MoveCreator::replicaExchangeMove(long sweep) {
     double edriftchanges=0.0;
@@ -1044,7 +814,7 @@ double MoveCreator::muVTMove() {
 
         // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT), NOTE: faunus uses exp(log(V/N+1) * ln(a*Nav*1e-27))  -U(new)/kT)
         if(( (volume / (conf->pvec.molCountOfType(molType) + 1.0)) *
-              (exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) ) > ran2() ) {
+             (exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) ) > ran2() ) {
 
             if(!topo.moleculeParam[molType].isAtomic())
                 energy += calcEnergy->chainInner(insert);
@@ -1084,7 +854,7 @@ double MoveCreator::muVTMove() {
 
         target = conf->pvec.getMolecule(ran2() * conf->pvec.molCountOfType(molType), molType, topo.moleculeParam[molType].molSize()); // get random molecule of molType
 
-        energy = calcEnergy->mol2othersBasic(target);
+        energy = calcEnergy->mol2others(target);
 
         // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
         if( ( ((double)conf->pvec.molCountOfType(molType)/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot) ) > ran2()) {
@@ -1116,105 +886,6 @@ double MoveCreator::muVTMove() {
     return 0;
 }
 
-double MoveCreator::muVTMove2() {
-
-#ifndef NDEBUG // For tests of energy
-    double e = calcEnergy->allToAll();
-#endif
-
-    int target=-1;
-    double volume = conf->geo.volume();
-    double entrophy = log(volume)/sim->temper;
-    double energy = 0.0;
-    unsigned int molSize=1;
-    Vector pos, dir, patchdir;
-    Particle part;
-    int molType = 0;
-    int type = 1;
-
-    //////////////////////////////////////////////////////////////
-    //                      INSERT MOVE                         //
-    //////////////////////////////////////////////////////////////
-    if(ran2() > 0.5) {
-        //////////////////////////////////////////////////////////////////////////////////////
-        /////////////////////////// INITIALIZATION OF PARTICLE ///////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////////
-        pos.randomUnitCube();
-        dir.randomUnitSphere();
-        patchdir.randomUnitSphere();
-        part = Particle(pos, dir, patchdir, molType, type);
-        part.init(&(topo.ia_params[type][type]));
-
-        //////////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////// TRIAL MOVE //////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////////
-        energy = calcEnergy->oneToAll(&part);
-
-        // accept with probability -> V/N+1 * e^(ln(a*Nav*1e-27))  -U(new)/kT), NOTE: faunus uses exp(log(V/N+1) + ln(a*Nav*1e-27))  -U(new)/kT)
-        if( ( (volume / (conf->pvec.size() + 1.0)) *
-              (exp( topo.moleculeParam[molType].chemPot - (energy/sim->temper) ) ) ) > ran2() ) {
-
-
-            //////////////////////////////////////////////////////////////////////////////////////
-            //////////////////////////////////// ACCEPT MOVE /////////////////////////////////////
-            //////////////////////////////////////////////////////////////////////////////////////
-            conf->pvec.push_back(part);
-
-            conf->sysvolume += topo.ia_params[type][type].volume;
-
-            assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
-
-            return energy - molSize*entrophy;
-        } else { // rejected
-            //////////////////////////////////////////////////////////////////////////////////////
-            //////////////////////////////////// REJECT MOVE /////////////////////////////////////
-            //////////////////////////////////////////////////////////////////////////////////////
-
-            assert(e == calcEnergy->allToAll() && "GrandCanonical, insertion rejected but energy of system changed");
-
-            return 0.0;
-        }
-
-    //////////////////////////////////////////////////////////////
-    //                      DELETE MOVE                         //
-    //////////////////////////////////////////////////////////////
-    } else {
-        if(conf->pvec.size() == 0) { // check if there are molecules of certain type
-            return 0.0;
-        }
-
-        target = ran2() * conf->pvec.size();
-
-        energy = calcEnergy->oneToAll(target);
-
-        // accept with probability -> N/V * e^(3*ln(wavelenght) - mu/kT + U(del)/kT)
-        if( ( ((double)conf->pvec.size()/volume) * exp( (energy/sim->temper) - topo.moleculeParam[molType].chemPot)) > ran2()) {
-            //////////////////////////////////////////////////////////////////////////////////////
-            //////////////////////////////////// ACCEPT MOVE /////////////////////////////////////
-            //////////////////////////////////////////////////////////////////////////////////////
-
-            conf->sysvolume -= topo.ia_params[type][type].volume;
-
-            conf->pvec.erase(conf->pvec.begin()+target);
-
-            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
-
-            return -energy + molSize*entrophy;
-        } else {
-            //////////////////////////////////////////////////////////////////////////////////////
-            //////////////////////////////////// REJECT MOVE /////////////////////////////////////
-            //////////////////////////////////////////////////////////////////////////////////////
-
-            assert(e == calcEnergy->allToAll() && "GrandCanonical, deletion rejected but energy of system changed");
-
-            return 0.0;
-        }
-    }
-    assert(false && "IMPOSIBRU!!!");
-    return 0.0;
-}
-
-
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
     molType = ran2() * topo.gcSpecies;
@@ -1236,141 +907,402 @@ int MoveCreator::getRandomMuVTType() {
     return molType;
 }
 
-double MoveCreator::clusterMove() {
+double MoveCreator::partDisplace(long target) {
+    double edriftchanges = 0.0,energy,enermove,wlener = 0.0;
+    chorig[0] = conf->pvec[target];
+    Vector dr, origsyscm = conf->syscm;
+    int reject=0;
+    double radiusholemax_orig=0;
 
-    double edriftchanges =0.0;
-    long target;
+    energy = calcEnergy->oneToAll(target);
 
-    target = ran2() * (long)conf->pvec.size();// Select random particle from config
-    edriftchanges = clusterMoveGeom(target);// Call geometric cluster move
+    dr.randomUnitSphere();
+
+    dr.x *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.x;
+    dr.y *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.y;
+    dr.z *= sim->stat.trans[conf->pvec[target].type].mx/conf->geo.box.z;
+
+    conf->pvec[target].pos.x += dr.x;
+    conf->pvec[target].pos.y += dr.y;
+    conf->pvec[target].pos.z += dr.z;
+
+    if(wl->wlm[0] > 0) {
+        Molecule tar;
+        tar.resize(1);
+        tar[0] = target;
+        dr.scale(topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].volume);
+        wlener = wl->run(reject, chorig, dr, radiusholemax_orig, tar);
+    }
+
+    if (!reject) {  // wang-landaou ok, try move - calcualte energy
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove = calcEnergy->oneToAll(target, &conf->changes);
+    }
+    if (reject || moveTry(energy+wlener, enermove, sim->temper)) {  // probability acceptance
+        conf->pvec[target].pos = chorig[0].pos;
+        sim->stat.trans[conf->pvec[target].type].rej++;
+        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) )
+            conf->syscm = origsyscm;
+        wl->reject(radiusholemax_orig, wl->wlm);
+
+    } else { // move was accepted
+        sim->stat.trans[conf->pvec[target].type].acc++;
+        wl->accept(wl->wlm[0]);
+
+        edriftchanges = enermove - energy;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
+
+        //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->geo.box.z , enermove);
+        //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
+    }
+
     return edriftchanges;
 }
 
-int isInCluster(double *list, int size, double value){
-    for(int i=0; i< size; i++){
-        if(list[i] == value){
-            return 1;
-        }
+double MoveCreator::partRotate(long target) {
+    double edriftchanges = 0.0, energy, enermove, wlener = 0.0;
+    Particle origpart = conf->pvec[target];
+    int reject = 0;
+
+    energy = calcEnergy->oneToAll(target);
+
+    conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
+
+    //should be normalised and ortogonal but we do for safety
+    conf->pvec[target].dir.normalise();
+    conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
+
+    if(wl->wlm[0] > 0)
+        wlener = wl->runRot(reject, target);
+
+    if (!reject) {  // wang-landaou ok, try move - calcualte energy
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove = calcEnergy->oneToAll(target, &conf->changes);
     }
-    return 0;
+    if ( reject || moveTry(energy+wlener,enermove,sim->temper) ) {  // probability acceptance
+        conf->pvec[target] = origpart;
+        sim->stat.rot[conf->pvec[target].type].rej++;
+        wl->reject(wl->radiusholemax, wl->wlm);
+    } else { // move was accepted
+        // DEBUG
+        //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
+        sim->stat.rot[conf->pvec[target].type].acc++;
+        wl->accept(wl->wlm[0]);
+        edriftchanges = enermove - energy;
+
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
+
+        //printf("%f\t%f\n", conf->pvec[0].patchdir[0].z, enermove);
+    }
+
+    return edriftchanges;
 }
 
-double MoveCreator::clusterMoveGeom(long target) {
-    /*
-     * For reference to this move see:
-     * Liu, Jiwen, and Erik Luijten. "Rejection-free geometric cluster algorithm for complex fluids." Physical review letters 92.3 (2004): 035504.
-     * DOI: 10.1103/PhysRevLett.92.035504
-    */
+double MoveCreator::partAxialRotate(long target){
+    double edriftchanges = 0.0;
+    double energyold;
+    double energynew = 0.0;
 
-    if(conf->pvec.empty())
-        return 0.0;
+    Vector   rotaxis;
+    Particle origpart        =   conf->pvec[target];
 
-    double edriftchanges = calcEnergy->allToAll(), cluster[MAXN];
-    Vector r_center;
+    energyold = calcEnergy->oneToAll(target);
 
-    /*=============================================*/
-    /*            Set reflection center            */
-    /*=============================================*/
-    /*There exists two ways how to select reflection center, Global and Local.
-     * Global ---- select random point in simulation box as reflection center
-     * Local  ---- select vector from selected particle of random length in interval (0; max_len>
-     *
-     * Both ways of selecting reflection center should be equal where in case of Local selection maximal displacement (max_len) must be set.
-     *
-     * From test simulations on rather small systems it seems Global relection have faster convergence
-    */
+    //=============================================//
+    //            Get vector from cone             //
+    //=============================================//
+    // Get vector which is randomly distributed in cone around patch direction. Cone is specified by angle in radians in options coneAngle
+    rotaxis = Vector::getRandomUnitConeUniform( conf->pvec[target].dir,\
+                                                sim->coneAngle);
 
-    /*____________Global____________*/
-    r_center = conf->geo.randomPos();
+    //=============================================//
+    //              Rotate particle                //
+    //=============================================//
+    // Now rotate particle around rotaxis in specified cone around patch direction
+    conf->pvec[target].pscRotate(   sim->stat.rot[conf->pvec[target].type].angle*ran2(),\
+            topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0],\
+            rotaxis);
 
-    /*____________Local (displacement like)____________*/
-//    double max_displacement= 1.5;
-//    r_center.randomUnitSphere();// create unit random vector
-//    r_center *= ran2() * max_displacement;// set displacement from range [0:max_displacement]
-//    r_center += conf->pvec[target].pos;// set center of reflection to be shifted by length of DISPLACEMENT in random direction from target
+    //=============================================//
+    //                MC criterium                 //
+    //=============================================//
+    conf->changes.clear();
+    assert(conf->changes.empty());
+    energynew = calcEnergy->oneToAll(target, &conf->changes);
 
-    Particle reflection;
-    Molecule selected_chain;
-    std::vector<Molecule> chainsToFix; // thse are all cahins that might be disturbed by application of PBC
-    int counter= 0, num_particles=0;
-    double energy_old, energy_new;
+    if (moveTry(energyold, energynew, sim->temper)){
+        // move was rejected
+        conf->pvec[target] = origpart; // return to old configuration
+    } else {
+        // move was accepted
+        edriftchanges = energynew - energyold;
 
-    /*=============================================*/
-    /*     Addition of particles into cluster      */
-    /*=============================================*/
-    /*
-     * Here we chose to add whole chain into cluster if one particle of chain is includedtarget in cluster
-     * This make move slightly faster but
-     * !!!!SIMULATION OF CHAINS WITHOUT SINGLE PARTICLE MOVES CANT CONVERGE!!!!
-     *
-     * TODO:    change it in way that intra chain energy is used to determine if other particles from chain should be added
-     *          into cluster
-    */
-
-    double molecule_size;
-    //topo.moleculeParam[conf->pvec[target].molType].particleTypes.size() == number of particles in chain ... special case is single particle of length 1
-    molecule_size = topo.moleculeParam[conf->pvec[target].molType].particleTypes.size();
-    if ( molecule_size == 1 ){
-        cluster[num_particles] = target;
-        num_particles++;
-    }else{
-        selected_chain = conf->pvec.getMolOfPart(target);
-        chainsToFix.push_back(selected_chain);
-        for(unsigned int i=0; i < selected_chain.size(); i++){
-            cluster[num_particles] = selected_chain[i];
-            num_particles++;
-        }
+        conf->fixEMatrixSingle(sim->pairlist_update, target);
     }
 
-    /*=============================================*/
-    /*            Cluster Creation Loop            */
-    /*=============================================*/
-    do{
-        reflection = conf->pvec[cluster[counter]];// copy old particle into reflected particle
-        //Reflect particle cluster[counter] by point reflection by center r_center point
-        reflection.pos           = 2.0*r_center - reflection.pos;// reflect center of particle around r_center
-        reflection.dir          *=1.0;// reflect orientation of particle
-        reflection.patchdir[0]  *=-1.0;// reflect orientation of patch1
-        reflection.patchdir[1]  *=-1.0;// reflect orientation of patch2
-        reflection.patchsides[0]*=-1.0;// reflect all sides of patch
-        reflection.patchsides[1]*=-1.0;
-        reflection.patchsides[2]*=-1.0;
-        reflection.patchsides[3]*=-1.0;
-        reflection.chdir[0]     *=-1.0;
-        reflection.chdir[1]     *=-1.0;
-        conf->geo.usePBC(&reflection);
+    return edriftchanges;
+}
 
-        // bring reflected particle into box (if not particles could start to spread too far and numerical errors acumulate!)
+double MoveCreator::chainDisplace(long target) {
+    Molecule chain = conf->pvec.getChain(target);
+    assert(chain.size() > 1);
+    double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
+    Vector dr, origsyscm = conf->syscm;
+    int reject=0;
+    Vector cluscm(0.0, 0.0, 0.0);
+    double radiusholemax_orig=0.0;
 
-        //Iterate through reflection "Neighbours"
-        for (unsigned int i = 0; i < conf->pvec.size(); i++){
-            if (!isInCluster(cluster, num_particles, i)){
-                energy_old = calcEnergy->p2p(cluster[counter], i);
-                energy_new = calcEnergy->p2p(&reflection, i);
-                if (ran2() < (1-exp((energy_old-energy_new)/sim->temper))){//ran2() < (1-exp(-1.0*((energy_new-energy_old)/sim->temper))) acceptance criteria vis. Reference
-                    //Addition of chain into cluster
-                    //-----------------------------------------------------
-                    molecule_size = topo.moleculeParam[conf->pvec[i].molType].particleTypes.size();
-                    if(molecule_size == 1){
-                        cluster[num_particles] = i;
-                        num_particles++;
-                    }else{
-                        selected_chain = conf->pvec.getMolOfPart(i);
-                        chainsToFix.push_back(selected_chain);
-                        for(unsigned int t=0; t < selected_chain.size(); t++){
-                            cluster[num_particles] = selected_chain[t];
-                            num_particles++;
-                        }
-                    }
-                    //-----------------------------------------------------
-                }
-            }
-        }
-        conf->pvec[cluster[counter]] = reflection;
-        counter++;
-    }while(counter < num_particles);
-    for ( std::vector<Molecule>::iterator it = chainsToFix.begin(); it != chainsToFix.end(); ++it ){
-        conf->makeMoleculeWhole(&(*it));
+    //=== Displacement step of cluster/chain ===
+    //printf ("move chain\n\n");
+    for(unsigned int i=0; i<chain.size(); i++) // store old configuration
+        chorig[i].pos = conf->pvec[chain[i]].pos;
+
+    energy += calcEnergy->mol2others(chain);
+
+    dr.randomUnitSphere();
+    dr.x *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.x;
+    dr.y *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.y;
+    dr.z *= sim->stat.chainm[conf->pvec[chain[0]].molType].mx/conf->geo.box.z;
+
+    if ( ((wl->wlm[0] == 3)||(wl->wlm[1] == 3)) && (target == 0) ) {
+        dr.z = 0;
+        dr.y = 0;
+        dr.x = 0;
     }
-    return calcEnergy->allToAll()-edriftchanges;
+    for(unsigned int j=0; j<chain.size(); j++) { // move chaine to new position
+        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) ) { /* calculate move of center of mass  */
+            cluscm.x += dr.x*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
+            cluscm.y += dr.y*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
+            cluscm.z += dr.z*topo.ia_params[conf->pvec[chain[j]].type][conf->pvec[chain[j]].type].volume;
+        }
+        conf->pvec[chain[j]].pos.x += dr.x;
+        conf->pvec[chain[j]].pos.y += dr.y;
+        conf->pvec[chain[j]].pos.z += dr.z;
+    }
+
+    if(wl->wlm[0] > 0)
+        wlener = wl->run(reject, chorig, cluscm, radiusholemax_orig, chain);
+
+    if (!reject) { // wang-landaou ok, try move - calcualte energy
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove += calcEnergy->mol2others(chain, &conf->changes);
+    }
+    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) {  // probability acceptance
+        for(unsigned int j=0; j<chain.size(); j++)
+            conf->pvec[chain[j]].pos = chorig[j].pos;
+
+        sim->stat.chainm[conf->pvec[chain[0]].molType].rej++;
+        if ( (wl->wlm[0] == 1) || (wl->wlm[0] == 5) || (wl->wlm[1] == 1) || (wl->wlm[1] == 5) )
+            conf->syscm = origsyscm;
+        wl->reject(radiusholemax_orig, wl->wlm);
+
+    } else { // move was accepted
+        sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
+        wl->accept(wl->wlm[0]);
+
+        conf->fixEMatrixChain(sim->pairlist_update, chain);
+
+        edriftchanges = enermove - energy;
+    }
+
+    return edriftchanges;
+}
+
+double MoveCreator::chainRotate(long target) {
+    Molecule chain = conf->pvec.getChain(target);
+    double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
+    int reject=0;
+    Particle chorig[MAXCHL];
+    double radiusholemax_orig=0;
+
+    //=== Rotation step of cluster/chain ===
+    for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
+        chorig[j] = conf->pvec[chain[j]];
+        /*We have chains whole! don't have to do PBC*/
+        /*r_cm.x = conf->pvec[current].pos.x - conf->particle[first].pos.x;
+         r_cm.y = conf->pvec[current].pos.y - conf->particle[first].pos.y;
+         r_cm.z = conf->pvec[current].pos.z - conf->particle[first].pos.z;
+         if ( r_cm.x < 0  )
+         r_cm.x -= (double)( (long)(r_cm.x-0.5) );
+         elsechain
+         r_cm.x -= (double)( (long)(r_cm.x+0.5) );
+         if ( r_cm.y < 0  )
+         r_cm.y -= (double)( (long)(r_cm.y-0.5) );
+         else
+         r_cm.y -= (double)( (long)(r_cm.y+0.5) );
+         if ( r_cm.z < 0  )
+         r_cm.z -= (double)( (long)(r_cm.z-0.5) );
+         else
+         r_cm.z -= (double)( (long)(r_cm.z+0.5) );
+         */
+    }
+
+    energy += calcEnergy->mol2others(chain);
+
+    //do actual rotations around geometrical center
+    clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
+
+    if(wl->wlm[0] > 0)
+        wlener = wl->runChainRot(reject, chorig, radiusholemax_orig, chain);
+
+    if (!reject) { // wang-landaou ok, try move - calcualte energy
+        conf->changes.clear();
+        assert(conf->changes.empty());
+        enermove += calcEnergy->mol2others(chain, &conf->changes);
+    }
+    if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) { // probability acceptance
+        for(unsigned int j=0; j<chain.size(); j++)
+            conf->pvec[chain[j]] = chorig[j];
+
+        sim->stat.chainr[conf->pvec[chain[0]].molType].rej++;
+        wl->reject(radiusholemax_orig, wl->wlm);
+    } else { // move was accepted
+        sim->stat.chainr[conf->pvec[chain[0]].molType].acc++;
+        wl->accept(wl->wlm[0]);
+        edriftchanges = enermove - energy;
+
+        conf->fixEMatrixChain(sim->pairlist_update, chain);
+    }
+
+    return edriftchanges;
+}
+
+void MoveCreator::clusterRotate(vector<Particle> &cluster, double max_angle) {
+    Vector cluscm;
+    double vc,vs;
+    Vector newaxis;
+
+    cluscm = clusterCM(cluster);
+
+    // create rotation quaternion
+    newaxis.randomUnitSphere(); /*random axes for rotation*/
+    vc = cos(max_angle * ran2() );
+    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
+    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
+
+    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
+
+    //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
+
+    //shift position to geometrical center
+    for(unsigned int i=0; i<cluster.size(); i++) {
+        //shift position to geometrical center
+        cluster[i].pos.x -= cluscm.x;
+        cluster[i].pos.y -= cluscm.y;
+        cluster[i].pos.z -= cluscm.z;
+        //scale things by geo.box not to have them distorted
+        cluster[i].pos.x *= conf->geo.box.x;
+        cluster[i].pos.y *= conf->geo.box.y;
+        cluster[i].pos.z *= conf->geo.box.z;
+        //do rotation
+        cluster[i].pos.rotate(newquat);
+        cluster[i].dir.rotate(newquat);
+        cluster[i].patchdir[0].rotate(newquat);
+        cluster[i].patchdir[1].rotate(newquat);
+        cluster[i].chdir[0].rotate(newquat);
+        cluster[i].chdir[1].rotate(newquat);
+        cluster[i].patchsides[0].rotate(newquat);
+        cluster[i].patchsides[1].rotate(newquat);
+        cluster[i].patchsides[2].rotate(newquat);
+        cluster[i].patchsides[3].rotate(newquat);
+        //sclae back
+        cluster[i].pos.x /= conf->geo.box.x;
+        cluster[i].pos.y /= conf->geo.box.y;
+        cluster[i].pos.z /= conf->geo.box.z;
+        //shift positions back
+        cluster[i].pos.x += cluscm.x;
+        cluster[i].pos.y += cluscm.y;
+        cluster[i].pos.z += cluscm.z;
+    }
+}
+
+Vector MoveCreator::clusterCM(vector<Particle> &cluster) {
+    double chainVolume=0.0;
+    Vector cluscm(0.0, 0.0, 0.0);
+
+    for(unsigned int i=0; i<cluster.size(); i++) {
+        cluscm.x += cluster[i].pos.x * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+        cluscm.y += cluster[i].pos.y * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+        cluscm.z += cluster[i].pos.z * topo.ia_params[cluster[i].type][cluster[i].type].volume;
+
+        chainVolume += topo.ia_params[cluster[i].type][cluster[i].type].volume;
+    }
+
+    cluscm.x /= chainVolume;
+    cluscm.y /= chainVolume;
+    cluscm.z /= chainVolume;
+
+    return cluscm;
+}
+
+Vector MoveCreator::clusterCM(vector<int> &cluster) {
+    double chainVolume=0.0;
+    Vector cluscm(0.0, 0.0, 0.0);
+
+    for(unsigned int i=0; i<cluster.size(); i++) {
+        cluscm.x += conf->pvec[cluster[i]].pos.x * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+        cluscm.y += conf->pvec[cluster[i]].pos.y * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+        cluscm.z += conf->pvec[cluster[i]].pos.z * topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+
+        chainVolume += topo.ia_params[conf->pvec[cluster[i]].type][conf->pvec[cluster[i]].type].volume;
+    }
+
+    cluscm.x /= chainVolume;
+    cluscm.y /= chainVolume;
+    cluscm.z /= chainVolume;
+
+    return cluscm;
+}
+
+void MoveCreator::clusterRotate(vector<int> &cluster, double max_angle) {
+    Vector cluscm;
+    double vc,vs;
+    Vector newaxis;
+
+    cluscm = clusterCM(cluster);
+
+    // create rotation quaternion
+    newaxis.randomUnitSphere(); /*random axes for rotation*/
+    vc = cos(max_angle * ran2() );
+    if (ran2() <0.5) vs = sqrt(1.0 - vc*vc);
+    else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
+
+    Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
+
+    //quatsize=sqrt(newquat.w*newquat.w+newquat.x*newquat.x+newquat.y*newquat.y+newquat.z*newquat.z);
+
+    //shift position to geometrical center
+    for(unsigned int i=0; i<cluster.size(); i++) {
+        //shift position to geometrical center
+        conf->pvec[cluster[i]].pos.x -= cluscm.x;
+        conf->pvec[cluster[i]].pos.y -= cluscm.y;
+        conf->pvec[cluster[i]].pos.z -= cluscm.z;
+        //scale things by geo.box not to have them distorted
+        conf->pvec[cluster[i]].pos.x *= conf->geo.box.x;
+        conf->pvec[cluster[i]].pos.y *= conf->geo.box.y;
+        conf->pvec[cluster[i]].pos.z *= conf->geo.box.z;
+        //do rotation
+        conf->pvec[cluster[i]].pos.rotate(newquat);
+        conf->pvec[cluster[i]].dir.rotate(newquat);
+        conf->pvec[cluster[i]].patchdir[0].rotate(newquat);
+        conf->pvec[cluster[i]].patchdir[1].rotate(newquat);
+        conf->pvec[cluster[i]].chdir[0].rotate(newquat);
+        conf->pvec[cluster[i]].chdir[1].rotate(newquat);
+        conf->pvec[cluster[i]].patchsides[0].rotate(newquat);
+        conf->pvec[cluster[i]].patchsides[1].rotate(newquat);
+        conf->pvec[cluster[i]].patchsides[2].rotate(newquat);
+        conf->pvec[cluster[i]].patchsides[3].rotate(newquat);
+        //sclae back
+        conf->pvec[cluster[i]].pos.x /= conf->geo.box.x;
+        conf->pvec[cluster[i]].pos.y /= conf->geo.box.y;
+        conf->pvec[cluster[i]].pos.z /= conf->geo.box.z;
+        //shift positions back
+        conf->pvec[cluster[i]].pos.x += cluscm.x;
+        conf->pvec[cluster[i]].pos.y += cluscm.y;
+        conf->pvec[cluster[i]].pos.z += cluscm.z;
+    }
 }
