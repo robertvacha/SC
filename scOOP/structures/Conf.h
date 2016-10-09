@@ -15,7 +15,9 @@ using namespace std;
 
 class ConList {
 public:
-    ConList() : conlist() {}
+    ConList() : isEmpty(true), conlist() {}
+
+    bool isEmpty;
     Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 
     inline Particle* operator[] (int j) {
@@ -87,6 +89,7 @@ public:
             return conlist;
 
         int pos = (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize(); // position within chain
+        conlist.isEmpty = false;
 
         if(pos > 0)
             conlist.conlist[0] = &this->operator [](part1-1);

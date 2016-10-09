@@ -23,31 +23,31 @@ void PairE::initIntFCE() {
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
                   ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC)  &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) )  {
-                eFce[i][j] = new SpheroCylinder<PscCPsc, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<PscCPsc<WcaTruncSq>,HarmonicSc, EAngle>();
             }
             if ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) {
-                eFce[i][j] = new SpheroCylinder<CPsc, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<CPsc<WcaTruncSq>, HarmonicSc, EAngle>();
             }
             if ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC) &&
                  (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) {
-                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<Psc<WcaTruncSq>, HarmonicSc, EAngle>();
             }
             if( geotype == SCN && other_geotype == SCN ) {
-                eFce[i][j] = new SpheroCylinder<Scn, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<Scn<WcaTruncSq>, HarmonicSc, EAngle>();
             }
             if( geotype == SCA && other_geotype == SCA ) {
-                eFce[i][j] = new SpheroCylinder<Sca, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<Sca<WcaTruncSq>, HarmonicSc, EAngle>();
             }
 
             //
             //  BOTH PARTICLES ARE SPHERES
             //
             if( geotype == SPN || other_geotype == SPN ) {
-                eFce[i][j] = new Sphere<WcaTrunc, HarmonicSp, EAngle>();
+                eFce[i][j] = new Sphere<WcaTrunc, HarmonicSp>();
             }
             if( geotype == SPA && other_geotype == SPA ) {
-                eFce[i][j] = new Sphere<WcaCos2, HarmonicSp, EAngle>();
+                eFce[i][j] = new Sphere<WcaCos2, HarmonicSp>();
             }
 
             //
@@ -75,7 +75,8 @@ void PairE::initIntFCE() {
 
 
 
-Vector Common::minDistSegments(const Vector &segA, const Vector &segB, double halfl1, double halfl2, const Vector &r_cm) {
+template<typename EPotential>
+Vector EPatch<EPotential>::minDistSegments(const Vector &segA, const Vector &segB, double halfl1, double halfl2, const Vector &r_cm) {
     Vector u,v,w,vec;
     double a,b,c,d,e,D,sc,sN,sD,tc,tN,tD;
     bool paralel = false;
@@ -232,4 +233,62 @@ Vector Common::minDistSegments(const Vector &segA, const Vector &segB, double ha
     return vec;
 }
 
+template<typename EPotential>
+double EPatch<EPotential>::atrE(const Ia_param &iaParam, const Vector &p1Dir, const Vector &p2Dir, const Patch &p1P, const Patch &p2P, const Vector &r_cm, int patchnum1, int patchnum2, double &S1, double &S2, double &T1, double &T2) {
+    Vector vec1, vec2, vec_intrs, vec_mindist;
+    double atrenergy = 0, ndist, a, paral, f1, f2;
 
+    // 3 - scaling function1: dependence on the length of intersetions
+    double v1 = fabs(S1-S2);
+    double v2 = fabs(T1-T2);
+    double f0 = 0.5*(v1+v2);
+
+    // 4a - with two intersection pieces calculate vector between their CM -this is for angular orientation
+    vec1 = ((S1+S2)*0.5) * p1Dir;
+    vec2 = ((T1+T2)*0.5) * p2Dir;
+    vec_intrs.x = vec2.x - vec1.x - r_cm.x; //vec_intrs should be from sc1 to sc2
+    vec_intrs.y = vec2.y - vec1.y - r_cm.y;
+    vec_intrs.z = vec2.z - vec1.z - r_cm.z;
+
+    // 4b - calculate closest distance attractive energy from it
+    vec_mindist = minDistSegments(p1Dir, p2Dir, v1, v2, vec_intrs);
+    ndist = sqrt(DOT(vec_mindist, vec_mindist));
+
+    //
+    // POTENTIAL FUNCTION
+    //
+    if (ndist < iaParam.pdis)
+        atrenergy = -iaParam.epsilon;
+    else {
+        atrenergy = cos(PIH*(ndist - iaParam.pdis) / iaParam.pswitch);
+        atrenergy *= -atrenergy * iaParam.epsilon;
+    }
+
+    //
+    // 5 - scaling function2: angular dependence of patch1
+    //
+    vec1 = vec_intrs;
+    vec1 = vec1.perpProject(p1Dir);
+    a = DOT(vec1, p1P.dir) / vec1.size();
+    f1 = fanglScale(a, iaParam.pcangl[0+2*patchnum1], iaParam.pcanglsw[0+2*patchnum1]);
+
+    //
+    // 6 - scaling function3: angular dependence of patch2
+    //
+    vec1 = -1.0 * vec_intrs;
+    vec1 = vec1.perpProject(p2Dir);
+    a = DOT(vec1, p2P.dir) / vec1.size();
+    f2 = fanglScale(a, iaParam.pcangl[1+2*patchnum2], iaParam.pcanglsw[1+2*patchnum2]);
+
+    //
+    // 7 - add scaling increased if particles are parallel or antiparallel
+    //
+    paral = 1.0;
+    if( iaParam.parallel != 0.0)
+        paral = scparallel(iaParam.parallel, p1Dir, p2Dir);
+
+    //7- put it all together, CPSC + PSC -> dont have PARAL E
+    atrenergy *= f0 * f1 * f2 * paral;
+
+    return atrenergy;
+}
