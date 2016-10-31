@@ -361,13 +361,13 @@ public:
 };
 
 
-template<typename pairE>
-class TotalEFull : public TotalE<pairE>
+template<typename pairEFce>
+class TotalEFull : public TotalE<pairEFce>
 {
 public:
-    using TotalE<PairE>::mol2others;
+    using TotalE<pairEFce>::mol2others;
 
-    TotalEFull(Sim * sim, Conf * conf) : TotalE<pairE>(sim, conf) {}
+    TotalEFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
     double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
         return allToAll();
@@ -436,18 +436,104 @@ public:
     }
 };
 
-template<typename PairE, typename PairEControl>
+template<typename pairE>
+class TotalEFullSymetry : public TotalE<pairE>
+{
+public:
+    using TotalE<pairE>::mol2others;
+
+    TotalEFullSymetry(Sim * sim, Conf * conf) : TotalE<pairE>(sim, conf) {}
+
+    bool test(double a, double b) {
+        return fabs(a - b) > 1e-10;
+    }
+
+    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+        return allToAll();
+    }
+
+    double allToAll() override {
+        if(this->conf->pvec.empty()) return 0.0;
+
+        double energy=0.0;
+        ConList conlist;
+        for (unsigned int i = 0; i < this->conf->pvec.size() - 1; i++) {
+            conlist = this->conf->pvec.getConlist(i);
+            for (unsigned long j = i + 1; j < this->conf->pvec.size(); j++) {
+                energy += (this->pairE)(&this->conf->pvec[i], &this->conf->pvec[j], &conlist);
+            }
+
+            if (topo.exter.exist) //for every particle add interaction with external potential
+                energy += this->exterE.extere2(&this->conf->pvec[i]);
+        }
+
+        if (topo.exter.exist && !this->conf->pvec.empty()) //add interaction of last particle with external potential
+            energy += this->exterE.extere2(&this->conf->pvec.back());
+
+        return energy;
+    }
+
+    double oneToAll(int target, vector<double> *changes) override {
+        return oneToAll(target);
+    }
+
+    double oneToAll(int target) override {
+        ConList conlist = this->conf->pvec.getConlist(target);
+        ConList conlist2;
+
+        double energy=0.0, temp, tempSym;
+
+        for (int i = 0; i < (int)this->conf->pvec.size(); i++) {
+            if(target != i) {
+                temp = (this->pairE)(&this->conf->pvec[target], &this->conf->pvec[i], &conlist);
+                conlist2 = this->conf->pvec.getConlist(i);
+                tempSym = (this->pairE)(&this->conf->pvec[i], &this->conf->pvec[target], &conlist2);
+                if( test(temp, tempSym) )
+                    cout << std::setprecision(10) << "Error, energy: " << temp << " symetrical: " << tempSym << endl;
+                energy += temp;
+            }
+        }
+
+        if (topo.exter.exist) //add interaction with external potential
+            energy += this->exterE.extere2(&this->conf->pvec[target]);
+
+        return energy;
+    }
+
+    double mol2others(Molecule &mol, vector<double> *changes) override {
+        return mol2others(mol);
+    }
+
+    double mol2others(Molecule &mol) override {
+        double energy=0.0;
+        long i = 0;
+
+        for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
+            for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
+                energy += this->pairE(&this->conf->pvec[mol[j]], &this->conf->pvec[i]);
+
+            for (i = mol[mol.size()-1] + 1; i < (long)this->conf->pvec.size(); i++)
+                energy += this->pairE(&this->conf->pvec[mol[j]], &this->conf->pvec[i]);
+
+            if (topo.exter.exist) //add interaction with external potential
+                energy += this->exterE.extere2(&this->conf->pvec[mol[j]]);
+        }
+        return energy;
+    }
+};
+
+template<typename TotE, typename TotEControl>
 class TestE : public TotalE<PairE> {
 public:
     using TotalE<PairE>::mol2others;
 
-    TotalEFull<PairE> tested;
-    TotalEMatrix<PairEControl> control;
+    TotE tested;
+    TotEControl control;
 
     TestE(Sim * sim, Conf * conf) : TotalE<PairE>(sim, conf), tested(sim, conf), control(sim, conf)  {}
 
     bool test(double a, double b) {
-        return fabs(a - b) > 1e-7;
+        return fabs(a - b) > 1e-4;
     }
 
     double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
@@ -523,9 +609,10 @@ public:
     }
 };
 
-//typedef TotalEMatrix<PairEnergyCalculator> TotalEnergyCalculator; // Energy matrix optimization
-typedef TotalEMatrix<PairE> TotalEnergyCalculator; // Energy matrix optimization
-//typedef TotalEFull<PairE> TotalEnergyCalculator;        // Full calculation
-//typedef TestE<PairE, PairEnergyCalculator> TotalEnergyCalculator;        // Test of Pair energy
+//typedef TotalEMatrix<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
+//typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
+//typedef TotalEFull<PairEnergyCalculator> TotalEnergyCalculator;                          // Full calculation
+typedef TestE<TotalEFull<PairE>, TotalEFull<PairEnergyCalculator> > TotalEnergyCalculator;         // Test of Pair energy
+//typedef TotalEFullSymetry<PairEnergyCalculator> TotalEnergyCalculator;         // Test of Pair energy symetry
 
 #endif // TOTALENERGYCALCULATOR_H

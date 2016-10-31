@@ -129,9 +129,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double volume = conf->geo.volume();          // volume of geo.box
     const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
 
-    //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
-    //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
-
     /********************************************************/
     /*                 Simulation Loop                      */
     /********************************************************/

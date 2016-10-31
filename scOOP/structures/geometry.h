@@ -10,7 +10,7 @@ public:
     GeoBase(){}
 
     virtual void usePBC(Particle *pos) = 0;
-    virtual Vector image(Vector* r1, Vector* r2) = 0;
+    virtual Vector image(const Vector* r1, const Vector* r2) const = 0;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
     virtual bool boundaryOverlap(Vector *pos) {return false;}       // all - for insertion because of uniformity
@@ -107,7 +107,7 @@ public:
      * @param box
      * @return
      */
-    inline Vector image(Vector* r1, Vector* r2) {
+    inline Vector image(const Vector* r1, const Vector* r2) const override {
         Vector r_cm( r1->x - r2->x, r1->y - r2->y, r1->z - r2->z );
 
         Vector temp(r_cm.x + 6755399441055744.0, r_cm.y + 6755399441055744.0, r_cm.z + 6755399441055744.0);

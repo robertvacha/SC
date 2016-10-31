@@ -13,16 +13,18 @@ extern Topo topo;
 
 using namespace std;
 
+
 class ConList {
 public:
-    ConList() : isEmpty(true), conlist() {}
+    ConList() : isEmpty(true) {}
 
     bool isEmpty;
-    Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+    double sp;
+    double mod[2];
+    double c[2];
+    double eq[2];
 
-    inline Particle* operator[] (int j) {
-        return conlist[j];
-    }
+    Particle* conlist[4] = {nullptr};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 };
 
 
@@ -83,37 +85,58 @@ public:
     }
 
     inline ConList getConlist(int part1) {
-        ConList conlist; // all NULL already
-
         if(topo.moleculeParam[(*this)[part1].molType].isAtomic())  // particle not in any chain
-            return conlist;
+            return ConList();
 
-        int pos = (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize(); // position within chain
-        conlist.isEmpty = false;
-
-        if(pos > 0)
-            conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
-        conlist.conlist[1] = &this->operator [](part1+1);
-        if(pos > 1)
-            conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
-            conlist.conlist[3] = &this->operator [](part1+2);
-
-        return conlist;
+        return getConlist(part1, (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize());
     }
 
     inline ConList getConlist(int part1, int pos) {
         ConList conlist; // all NULL already
 
-        if(pos > 0)
-            conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < topo.moleculeParam[(*this)[part1].molType].molSize())
-        conlist.conlist[1] = &this->operator [](part1+1);
-        if(pos > 1)
-            conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < topo.moleculeParam[(*this)[part1].molType].molSize())
-            conlist.conlist[3] = &this->operator [](part1+2);
+        if (topo.moleculeParam[(*this)[part1].molType].bond1c >= 0.0 || topo.moleculeParam[(*this)[part1].molType].bonddc >= 0.0 || topo.moleculeParam[(*this)[part1].molType].bondhc >= 0.0) {
+            if(pos > 0) {
+                conlist.conlist[0] = &this->operator [](part1-1);
+            }
+            if(pos+1 < topo.moleculeParam[(*this)[part1].molType].molSize()) {
+                conlist.conlist[1] = &this->operator [](part1+1);
+            }
+
+            if (topo.moleculeParam[(*this)[part1].molType].bond1c >= 0.0) {
+                conlist.eq[0] = topo.moleculeParam[(*this)[part1].molType].bond1eq;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bond1c;
+
+                conlist.mod[0] = 0.0;
+                conlist.mod[1] = 0.0;
+                conlist.sp = 0.0;
+            }
+            if (topo.moleculeParam[(*this)[part1].molType].bonddc >= 0.0) {
+                conlist.eq[0] = 0.0;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bonddc;
+
+                conlist.mod[0] = topo.moleculeParam[(*this)[part1].molType].bonddeq;
+                conlist.mod[1] = 0.0;
+                conlist.sp = 0.0;
+            }
+            if (topo.moleculeParam[(*this)[part1].molType].bondhc >= 0.0) {
+                conlist.eq[0] = 0.0;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bondhc;
+
+                conlist.mod[0] = topo.moleculeParam[(*this)[part1].molType].bondheq;
+                conlist.mod[1] = topo.moleculeParam[(*this)[part1].molType].bondheq;
+                conlist.sp = topo.moleculeParam[(*this)[part1].molType].bondheq;
+            }
+        }
+        if (topo.moleculeParam[(*this)[part1].molType].bond2c >= 0.0) {
+            if(pos > 1) {
+                conlist.conlist[2] = &this->operator [](part1-2);
+            }
+            if(pos+2 < topo.moleculeParam[(*this)[part1].molType].molSize()) {
+                conlist.conlist[3] = &this->operator [](part1+2);
+            }
+            conlist.eq[1] = topo.moleculeParam[(*this)[part1].molType].bond2eq;
+            conlist.c[1] = topo.moleculeParam[(*this)[part1].molType].bond2c;
+        }
 
         return conlist;
     }

@@ -12,6 +12,7 @@ class MoleculeParams
 public:
     char * name;        ///< \brief name of the molecule
     int molType;
+
     double bond1eq;     ///< \brief Equilibrium distance of harmonic bond between nearest neighbours
     double bond1c;      ///< \brief Spring constant for harmonic bond between nearest neighbours
 
@@ -38,9 +39,8 @@ public:
     int switchCount;        ///< \brief count of particles with defined switchtype
 
 public:
-    MoleculeParams() : name(NULL), bond1eq(-1.0), bond1c(-1.0), bond2eq(-1.0), bond2c(-1.0), /*bonddeq(-1),*/ bonddc(-1.0),
-                       angle1eq(-1.0), angle1c(-1.0), angle2eq(-1.0), angle2c(-1.0),
-                       activity(-1.0), chemPot(-1.0) {
+    MoleculeParams() : name(NULL), bond1eq(-1.0), bond1c(-1.0), bond2eq(-1.0), bond2c(-1.0), bonddeq(-1), bonddc(-1.0), bondheq(-1.0), bondhc(-1.0),
+                       angle1eq(-1.0), angle1c(-1.0), angle2eq(-1.0), angle2c(-1.0), activity(-1.0), chemPot(-1.0) {
         particleTypes.reserve(MAXCHL);
     }
 

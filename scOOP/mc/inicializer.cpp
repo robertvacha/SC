@@ -1099,6 +1099,13 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
         return 1;
     }
 
+    if( ( topo.moleculeParam[i].bond1c > 0.0 && topo.moleculeParam[i].bonddc > 0.0 )
+            || ( topo.moleculeParam[i].bondhc > 0.0 && topo.moleculeParam[i].bonddc > 0.0 )
+            || ( topo.moleculeParam[i].bond1c > 0.0 && topo.moleculeParam[i].bondhc > 0.0 ) ) {
+        cout << "Defined Bond1, BondH or BondD, Choose only one" << endl;
+        exit(1);
+    }
+
     fprintf (stderr, "TOPOLOGY ERROR: unknown parameter: %s.\n\n",molcommand);
     return 0;
 }

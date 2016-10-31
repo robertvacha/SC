@@ -25,7 +25,6 @@ QMAKE_CXXFLAGS += -Ofast -march=native -std=c++11 -Wno-unused-parameter # -g -fn
 SOURCES += main.cpp \
     mc/wanglandau.cpp \
     mc/updater.cpp \
-    mc/totalenergycalculator.cpp \
     mc/pairenergycalculator.cpp \
     mc/mygetline2.cpp \
     mc/MoveCreatorMesh.cpp \

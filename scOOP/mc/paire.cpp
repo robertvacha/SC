@@ -23,21 +23,21 @@ void PairE::initIntFCE() {
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
                   ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC)  &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) )  {
-                eFce[i][j] = new SpheroCylinder<PscCPsc<WcaTruncSq>,HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new SpheroCylinder<PscCPsc<WcaTruncSq>,HarmonicSc, AngleSc>(pbc);
             }
             if ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) {
-                eFce[i][j] = new SpheroCylinder<CPsc<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new SpheroCylinder<CPsc<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
             if ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC) &&
                  (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) {
-                eFce[i][j] = new SpheroCylinder<Psc<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new SpheroCylinder<Psc<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
             if( geotype == SCN && other_geotype == SCN ) {
-                eFce[i][j] = new SpheroCylinder<Scn<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new SpheroCylinder<Scn<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
             if( geotype == SCA && other_geotype == SCA ) {
-                eFce[i][j] = new SpheroCylinder<Sca<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new SpheroCylinder<Sca<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
 
             //
@@ -54,18 +54,18 @@ void PairE::initIntFCE() {
             //  SPHERE - SPHEROCYLINDER
             //
             /*if( (geotype == SCN && other_geotype == SPN) || (geotype == SPN || other_geotype == SCN) ) {
-                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, HarmonicSc, EAngle>();
+                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, HarmonicSc, AngleSc>();
             }*/
             if((geotype == SCA && other_geotype == SPA) || (geotype == SPA && other_geotype == SCA) ) {
-                eFce[i][j] = new MixSpSc<ScaSpa<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new MixSpSc<ScaSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
             if(( (geotype == PSC || geotype == CHPSC || geotype == TCHPSC || geotype == TPSC) && other_geotype == SPA)
                     || (geotype == SPA && (other_geotype == PSC||other_geotype == CHPSC || other_geotype == TCHPSC || other_geotype == TPSC) )){
-                eFce[i][j] = new MixSpSc<PscSpa<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new MixSpSc<PscSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
             if(( (geotype == CPSC ||geotype == CHCPSC || geotype == TCHCPSC || geotype == TCPSC) && other_geotype == SPA)
                     || (geotype == SPA && (other_geotype == CPSC||other_geotype == CHCPSC || other_geotype == TCHCPSC || other_geotype == TCPSC)  )){
-                eFce[i][j] = new MixSpSc<CPscSpa<WcaTruncSq>, HarmonicSc, EAngle>(pbc);
+                eFce[i][j] = new MixSpSc<CPscSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
 
         }

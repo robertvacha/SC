@@ -266,12 +266,13 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec1.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
                     vec1.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
                     vec1.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
 
-                    if (geotype[0] < SP)
-                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    if (geotype[1] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                     else
                         halfl = 0.0;
 
@@ -321,6 +322,7 @@ double PairEnergyCalculator::bondEnergy() {
                     halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
+
                 vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
                 vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
                 vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
@@ -328,6 +330,7 @@ double PairEnergyCalculator::bondEnergy() {
                     halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
+
                 vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
                 vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
                 vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
@@ -345,6 +348,7 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
                     vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
                     vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
@@ -352,6 +356,7 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
                     vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
                     vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
