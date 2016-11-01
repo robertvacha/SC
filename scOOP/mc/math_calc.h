@@ -25,6 +25,10 @@ inline double anInt(double arg)  {
     }*/
 }
 
+inline bool isSame(double a, double b, double c=1e-7) {
+    return fabs((a-b)) < c;
+}
+
 
 /**
  * @brief vec cross_product

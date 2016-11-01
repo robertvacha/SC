@@ -81,7 +81,6 @@ public:
             return 1.0;
     }
 
-    // psc + cpsc
     inline void testIntrPatch(const Vector& dir, const Vector& patchdir, Vector vec, double cospatch,
                                             double ti, double intersections[]) { // test if we have intersection
 
@@ -380,6 +379,16 @@ public:
     }
 };
 
+class WcaTruncShiftSq : public EPotential {
+public:
+    double operator() (double distSq, const Ia_param& iaParam) override {
+        if (distSq > iaParam.rcutwcaSq)
+            return 0.0;
+        else
+            return 1.0 + iaParam.epsilon + iaParam.A * pow(distSq, -6)- iaParam.B * pow(distSq, -3);
+    }
+};
+
 /**
  * @brief The WcaCos2 class - shifted truncated WCA potential + cos^2 potential
  *
@@ -391,7 +400,7 @@ public:
  *
  * 0        rcutWCA         pdis        rcut        infinity
  */
-class WcaCos2 : public EPotential {
+class WcaCos2Taylor : public EPotential {
 public:
     double operator() (double dist, const Ia_param& iaParam) override {
         double e = 0.0;
@@ -435,11 +444,10 @@ public:
         if (dist > iaParam.rcutwca) {
             return e;
         }
+
         return iaParam.A * pow(dist, -12) - iaParam.B * pow(dist, -6);
     }
 };
-
-
 
 
 template<typename EPotential>
@@ -735,7 +743,6 @@ public:
                         this->testIntrPatch(p1Dir,p1P.dir,vec2, pcanglsw,x1,intersections);
                     }
                 }
-                //		    printf ("plane cap1 %d %f\n", intrs, x1);
                 //plane cap2
                 vec1.x= r_cm.x - halfl1*p1Dir.x;
                 vec1.y= r_cm.y - halfl1*p1Dir.y;
@@ -1168,7 +1175,6 @@ public:
         }
         atrenergy += extraAttr;
 #endif
-
         return abE + repenergy + atrenergy;
     }
 };

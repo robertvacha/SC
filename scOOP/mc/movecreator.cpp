@@ -756,7 +756,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 double MoveCreator::muVTMove() {
 
 #ifndef NDEBUG // For tests of energy
-    double e = calcEnergy->allToAllBasic();
+    double e = calcEnergy->allToAll();
 #endif
 
     Molecule target;
@@ -830,7 +830,7 @@ double MoveCreator::muVTMove() {
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
             conf->resizeEMatrix();
 
-            assert((e + energy) > calcEnergy->allToAllBasic()-0.0000001 && (e + energy) < calcEnergy->allToAllBasic()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
+            assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
 
             return energy - molSize*entrophy;
         } else { // rejected
@@ -838,7 +838,7 @@ double MoveCreator::muVTMove() {
             sim->stat.grand[molType].insRej++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAllBasic() && "GrandCanonical, insertion rejected but energy of system changed");
+            assert(e == calcEnergy->allToAll() && "GrandCanonical, insertion rejected but energy of system changed");
 
             return 0;
         }
@@ -870,14 +870,14 @@ double MoveCreator::muVTMove() {
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
             conf->resizeEMatrix();
 
-            assert((e - energy) > calcEnergy->allToAllBasic()-0.0000001 && (e - energy) < calcEnergy->allToAllBasic()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
+            assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
 
             return -energy + molSize*entrophy;
         } else {
             sim->stat.grand[molType].delRej++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
 
-            assert(e == calcEnergy->allToAllBasic() && "GrandCanonical, deletion rejected but energy of system changed");
+            assert(e == calcEnergy->allToAll() && "GrandCanonical, deletion rejected but energy of system changed");
 
             return 0;
         }
@@ -971,7 +971,7 @@ double MoveCreator::partRotate(long target) {
     conf->pvec[target].rotateRandom(sim->stat.rot[conf->pvec[target].type].angle, topo.ia_params[origpart.type][origpart.type].geotype[0]);
 
     //should be normalised and ortogonal but we do for safety
-    conf->pvec[target].dir.normalise();
+    assert(isSame(conf->pvec[target].dir.size(), 1.0));
     conf->pvec[target].patchdir[0].ortogonalise(conf->pvec[target].dir);
 
     if(wl->wlm[0] > 0)
@@ -987,15 +987,11 @@ double MoveCreator::partRotate(long target) {
         sim->stat.rot[conf->pvec[target].type].rej++;
         wl->reject(wl->radiusholemax, wl->wlm);
     } else { // move was accepted
-        // DEBUG
-        //fprintf(fenergy, "%f\t%f\n", conf->particle[1].pos.x * conf->geo.box.x , enermove);
         sim->stat.rot[conf->pvec[target].type].acc++;
         wl->accept(wl->wlm[0]);
         edriftchanges = enermove - energy;
 
         conf->fixEMatrixSingle(sim->pairlist_update, target);
-
-        //printf("%f\t%f\n", conf->pvec[0].patchdir[0].z, enermove);
     }
 
     return edriftchanges;

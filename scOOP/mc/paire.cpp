@@ -47,15 +47,15 @@ void PairE::initIntFCE() {
                 eFce[i][j] = new Sphere<WcaTrunc, HarmonicSp>(pbc);
             }
             if( geotype == SPA && other_geotype == SPA ) {
-                eFce[i][j] = new Sphere<WcaCos2, HarmonicSp>(pbc);
+                eFce[i][j] = new Sphere<WcaCos2Taylor, HarmonicSp>(pbc);
             }
 
             //
             //  SPHERE - SPHEROCYLINDER
             //
-            /*if( (geotype == SCN && other_geotype == SPN) || (geotype == SPN || other_geotype == SCN) ) {
-                eFce[i][j] = new SpheroCylinder<Psc, WcaTruncSq, HarmonicSc, AngleSc>();
-            }*/
+            if( (geotype != SPN && other_geotype == SPN) || (geotype == SPN && other_geotype != SPN) ) {
+                eFce[i][j] = new MixSpSc<EPatchToSphere<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
+            }
             if((geotype == SCA && other_geotype == SPA) || (geotype == SPA && other_geotype == SCA) ) {
                 eFce[i][j] = new MixSpSc<ScaSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }

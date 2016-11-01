@@ -126,6 +126,7 @@ public:
                 conlist.mod[1] = topo.moleculeParam[(*this)[part1].molType].bondheq;
                 conlist.sp = topo.moleculeParam[(*this)[part1].molType].bondheq;
             }
+            conlist.isEmpty = false;
         }
         if (topo.moleculeParam[(*this)[part1].molType].bond2c >= 0.0) {
             if(pos > 1) {
@@ -136,6 +137,7 @@ public:
             }
             conlist.eq[1] = topo.moleculeParam[(*this)[part1].molType].bond2eq;
             conlist.c[1] = topo.moleculeParam[(*this)[part1].molType].bond2c;
+            conlist.isEmpty = false;
         }
 
         return conlist;
