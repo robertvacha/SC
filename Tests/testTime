@@ -51,9 +51,8 @@ echo "testing..."
 #
 # TEST normal
 #
-cp SC normal/new/
-cp a.out normal/old/
-cd normal/old
+cp SC a.out test_normal/new/
+cd test_normal/old
 echo 'OLD'
 time ./a.out >/dev/null
 cd ../new/
@@ -67,9 +66,9 @@ clean
 #
 # TEST normal with energy matrix, pairlist_update 1000
 #
-cp SC normal_w_EnergyMatrix/new/
-cp a.out normal_w_EnergyMatrix/old/
-cd normal_w_EnergyMatrix/old
+cp SC test_normal_w_EnergyMatrix/new/
+cp a.out test_normal_w_EnergyMatrix/old/
+cd test_normal_w_EnergyMatrix/old
 echo 'OLD'
 time ./a.out >/dev/null
 cd ../new/
@@ -118,9 +117,9 @@ clean
 #
 # TEST chain
 #
-cp SC chain/new2/
-cp a.out chain/old/
-cd chain/old
+cp SC test_chain/new2/
+cp a.out test_chain/old/
+cd test_chain/old
 echo 'OLD'
 time ./a.out > /dev/null
 cd ../new2/
@@ -134,9 +133,9 @@ clean
 #
 # TEST chain with energy matrix and pairlist(1000)
 #
-cp SC chain_w_EnergyMatrix/new2/
-cp a.out chain_w_EnergyMatrix/old/
-cd chain_w_EnergyMatrix/old
+cp SC test_chain_w_EnergyMatrix/new2/
+cp a.out test_chain_w_EnergyMatrix/old/
+cd test_chain_w_EnergyMatrix/old
 echo 'OLD'
 time ./a.out > /dev/null
 cd ../new2/
@@ -151,9 +150,9 @@ clean
 #
 # TEST mempore
 #
-cp SC mempore/new/
-cp a.out mempore/old/
-cd mempore/old
+cp SC test_mempore/new/
+cp a.out test_mempore/old/
+cd test_mempore/old
 echo 'OLD'
 time ./a.out > /dev/null
 cd ../new/
@@ -166,9 +165,9 @@ clean
 #
 # TEST wallfibril
 #
-cp SC wallfibril/new/
-cp a.out wallfibril/old/
-cd wallfibril/old
+cp SC test_wallfibril/new/
+cp a.out test_wallfibril/old/
+cd test_wallfibril/old
 echo 'OLD'
 time ./a.out > /dev/null
 cd ../new/
@@ -181,9 +180,9 @@ clean
 #
 # TEST pscthrough
 #
-cp SC pscthrough/new/
-cp a.out pscthrough/old/
-cd pscthrough/old
+cp SC test_pscthrough/new/
+cp a.out test_pscthrough/old/
+cd test_pscthrough/old
 echo 'OLD'
 time ./a.out > /dev/null
 cd ../new/
