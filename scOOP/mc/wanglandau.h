@@ -7,9 +7,6 @@
 #include "simlib.h"
 #include <cstring>
 
-extern long int test[30];
-extern bool cond;
-
 /**
  * @brief The WangLandau class - Wang landau method (wl)
  * Option 1: position in box respective to center of mass
