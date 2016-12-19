@@ -953,9 +953,6 @@ double MoveCreator::partDisplace(long target) {
         edriftchanges = enermove - energy;
 
         conf->fixEMatrixSingle(sim->pairlist_update, target);
-
-        //printf("%f\t%f\n", conf->pvec[0].pos.z * conf->geo.box.z , enermove);
-        //printf("%.12f\t%.12f\t%.12f\n", energy , enermove,edriftchanges);
     }
 
     return edriftchanges;
