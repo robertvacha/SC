@@ -56,6 +56,8 @@ for name in `ls -d test_*`; do
     cd ../..
 done
 
+echo "Pressure Tests: "
+
 cp SC a.out volumeChange/
 cd volumeChange
 for name in `ls -d ?h ?l`; do
