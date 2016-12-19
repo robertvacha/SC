@@ -124,7 +124,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double moveprobab;      // random number selecting the move
     double edriftstart = 0;
 
-    edriftstart = calcEnergy.allToAll(conf->energyMatrix);     // Energy drift calculation - start
+    edriftstart = calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);     // Energy drift calculation - start
 
     double volume = conf->geo.volume();          // volume of geo.box
     const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
@@ -164,7 +164,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftchanges += move.muVTMove();
 
             if(size != conf->pvec.size())
-                calcEnergy.allToAll(conf->energyMatrix);
+                calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);
 
             if(sim->pairlist_update) {
                 temp = clock();
