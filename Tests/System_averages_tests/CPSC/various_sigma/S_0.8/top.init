@@ -1,0 +1,9 @@
+[Types]
+#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH CHIRAL_ANGLE
+F     1      CPSC     1.0     0.8   0.8979696386        0.878          30          5.0          2.0                     
+[Molecules]
+F: {
+particles:  1
+}
+[System]
+F 100

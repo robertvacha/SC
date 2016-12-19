@@ -1,0 +1,49 @@
+[Types]
+#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH CHIRAL_ANGLE
+A     1      TPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0           90.0           30.0        5.0
+B     2      PSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0       
+C     3      TCHPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0           90.0           30.0        5.0 5.0
+D     4      CHPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0  5.0
+E     5      TCPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0           90.0           30.0        5.0
+F     6      CPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0       
+G     7      TCHCPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0           90.0           30.0        5.0 5.0
+H     8      CHCPSC     1.0     1.0   1.122        0.878          30          5.0          2.0       0.0  5.0  
+I     9      SPA     1.0     1.0   1.122        0.878          
+[Molecules]
+A: {
+particles:   1
+}
+B: {
+particles:   2
+}
+C: {
+particles:   3
+}
+D: {
+particles:   4
+}
+E: {
+particles:   5
+}
+F: {
+particles:   6
+}
+G: {
+particles:   7
+}
+H: {
+particles:   8
+}
+I: {
+particles:   9
+}
+[System]
+A 0
+B 0
+C 0
+D 0
+E 0
+F 100
+G 0
+H 0
+I 0
