@@ -278,9 +278,7 @@ double MoveCreator::switchTypeMove() {
         // DEBUG
         //double dmu = enermove;
         //pvec[target].switched += pmone;
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove = calcEnergy->oneToAll(target, &conf->changes);
+        enermove = calcEnergy->oneToAll(target, &calcEnergy->eMat.changes);
 
         //printf("energy: %f \t %f\t%f\n",pvec[target].delta_mu, dmu, enermove);
     }
@@ -298,7 +296,7 @@ double MoveCreator::switchTypeMove() {
         sim->stat.switchMv[conf->pvec[target].type].acc++;
         edriftchanges = enermove - energy;
 
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
+        calcEnergy->eMat.fixEMatrixSingle(sim->pairlist_update, target);
     }
 
     return edriftchanges;
@@ -368,7 +366,7 @@ double MoveCreator::pressureMove() {
         if (!reject) { // wang-landaou ok, try move - calculate energy
             enermove = sim->press * area * (*side - old_side) - (double)conf->pvec.size() * log(*side/old_side) / sim->temper;
 
-            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+            enermove += calcEnergy->allToAll(calcEnergy->eMat.energyMatrixTrial);
         }
         if ( reject || *side <= 0.0 || ( moveTry(energy+wlener,enermove,sim->temper) ) ) { // probability acceptance
             *side = old_side;
@@ -376,7 +374,7 @@ double MoveCreator::pressureMove() {
             wl->reject(radiusholemax_orig, wl->wlm);
         } else {  // move was accepted
             sim->stat.edge.acc++;
-            conf->swapEMatrices();
+            calcEnergy->eMat.swapEMatrices();
             wl->accept(wl->wlm[0]);
             edriftchanges = enermove - energy;
         }
@@ -397,7 +395,7 @@ double MoveCreator::pressureMove() {
         if (!reject) { /* wang-landaou ok, try move - calcualte energy */
             enermove = sim->press * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
-            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+            enermove += calcEnergy->allToAll(calcEnergy->eMat.energyMatrixTrial);
         }
         if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { /* probability acceptance */
             conf->geo.box.x -= psch;
@@ -408,7 +406,7 @@ double MoveCreator::pressureMove() {
         } else { // move was accepted
             sim->stat.edge.acc++;
             wl->accept(wl->wlm[0]);
-            conf->swapEMatrices();
+            calcEnergy->eMat.swapEMatrices();
             edriftchanges = enermove - energy;
         }
         break;
@@ -427,7 +425,7 @@ double MoveCreator::pressureMove() {
         if (!reject) { // wang-landaou ok, try move - calculate energy
             enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * log(pvoln/pvol) / sim->temper;
 
-            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+            enermove += calcEnergy->allToAll(calcEnergy->eMat.energyMatrixTrial);
         }
         if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
             conf->geo.box.x -= psch;
@@ -437,7 +435,7 @@ double MoveCreator::pressureMove() {
         } else { // move was accepted
             sim->stat.edge.acc++;
             wl->accept(wl->wlm[0]);
-            conf->swapEMatrices();
+            calcEnergy->eMat.swapEMatrices();
             edriftchanges = enermove - energy;
         }
         break;
@@ -454,7 +452,7 @@ double MoveCreator::pressureMove() {
             wlener = wl->runPress(reject, radiusholemax_orig);
         }
         if (!reject) { // wang-landaou ok, try move - calculate energy
-            enermove += calcEnergy->allToAll(conf->energyMatrixTrial);
+            enermove += calcEnergy->allToAll(calcEnergy->eMat.energyMatrixTrial);
         }
         if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
             conf->geo.box.x -= psch;
@@ -465,7 +463,7 @@ double MoveCreator::pressureMove() {
         } else { // move was accepted
             sim->stat.edge.acc++;
             wl->accept(wl->wlm[0]);
-            conf->swapEMatrices();
+            calcEnergy->eMat.swapEMatrices();
             edriftchanges = enermove - energy;
         }
         break;
@@ -828,7 +826,7 @@ double MoveCreator::muVTMove() {
 
             sim->stat.grand[molType].insAcc++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
-            conf->resizeEMatrix();
+            calcEnergy->eMat.resizeEMatrix();
 
             assert((e + energy) > calcEnergy->allToAll()-0.0000001 && (e + energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical insertion");
 
@@ -868,7 +866,7 @@ double MoveCreator::muVTMove() {
 
             sim->stat.grand[molType].delAcc++;
             sim->stat.grand[molType].muVtAverageParticles +=  conf->pvec.molCountOfType(molType);
-            conf->resizeEMatrix();
+            calcEnergy->eMat.resizeEMatrix();
 
             assert((e - energy) > calcEnergy->allToAll()-0.0000001 && (e - energy) < calcEnergy->allToAll()+0.0000001 && "Energy calculated incorectly in grandcanonical deletion");
 
@@ -935,9 +933,7 @@ double MoveCreator::partDisplace(long target) {
     }
 
     if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove = calcEnergy->oneToAll(target, &conf->changes);
+        enermove = calcEnergy->oneToAll(target, &calcEnergy->eMat.changes);
     }
     if (reject || moveTry(energy+wlener, enermove, sim->temper)) {  // probability acceptance
         conf->pvec[target].pos = chorig[0].pos;
@@ -952,7 +948,7 @@ double MoveCreator::partDisplace(long target) {
 
         edriftchanges = enermove - energy;
 
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
+        calcEnergy->eMat.fixEMatrixSingle(sim->pairlist_update, target);
     }
 
     return edriftchanges;
@@ -975,9 +971,7 @@ double MoveCreator::partRotate(long target) {
         wlener = wl->runRot(reject, target);
 
     if (!reject) {  // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove = calcEnergy->oneToAll(target, &conf->changes);
+        enermove = calcEnergy->oneToAll(target, &calcEnergy->eMat.changes);
     }
     if ( reject || moveTry(energy+wlener,enermove,sim->temper) ) {  // probability acceptance
         conf->pvec[target] = origpart;
@@ -988,7 +982,7 @@ double MoveCreator::partRotate(long target) {
         wl->accept(wl->wlm[0]);
         edriftchanges = enermove - energy;
 
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
+        calcEnergy->eMat.fixEMatrixSingle(sim->pairlist_update, target);
     }
 
     return edriftchanges;
@@ -1022,9 +1016,7 @@ double MoveCreator::partAxialRotate(long target){
     //=============================================//
     //                MC criterium                 //
     //=============================================//
-    conf->changes.clear();
-    assert(conf->changes.empty());
-    energynew = calcEnergy->oneToAll(target, &conf->changes);
+    energynew = calcEnergy->oneToAll(target, &calcEnergy->eMat.changes);
 
     if (moveTry(energyold, energynew, sim->temper)){
         // move was rejected
@@ -1033,7 +1025,7 @@ double MoveCreator::partAxialRotate(long target){
         // move was accepted
         edriftchanges = energynew - energyold;
 
-        conf->fixEMatrixSingle(sim->pairlist_update, target);
+        calcEnergy->eMat.fixEMatrixSingle(sim->pairlist_update, target);
     }
 
     return edriftchanges;
@@ -1080,9 +1072,7 @@ double MoveCreator::chainDisplace(long target) {
         wlener = wl->run(reject, chorig, cluscm, radiusholemax_orig, chain);
 
     if (!reject) { // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove += calcEnergy->mol2others(chain, &conf->changes);
+        enermove += calcEnergy->mol2others(chain, &calcEnergy->eMat.changes);
     }
     if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) {  // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
@@ -1097,7 +1087,7 @@ double MoveCreator::chainDisplace(long target) {
         sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
         wl->accept(wl->wlm[0]);
 
-        conf->fixEMatrixChain(sim->pairlist_update, chain);
+        calcEnergy->eMat.fixEMatrixChain(sim->pairlist_update, chain);
 
         edriftchanges = enermove - energy;
     }
@@ -1143,9 +1133,7 @@ double MoveCreator::chainRotate(long target) {
         wlener = wl->runChainRot(reject, chorig, radiusholemax_orig, chain);
 
     if (!reject) { // wang-landaou ok, try move - calcualte energy
-        conf->changes.clear();
-        assert(conf->changes.empty());
-        enermove += calcEnergy->mol2others(chain, &conf->changes);
+        enermove += calcEnergy->mol2others(chain, &calcEnergy->eMat.changes);
     }
     if ( reject || moveTry(energy+wlener, enermove, sim->temper) ) { // probability acceptance
         for(unsigned int j=0; j<chain.size(); j++)
@@ -1158,7 +1146,7 @@ double MoveCreator::chainRotate(long target) {
         wl->accept(wl->wlm[0]);
         edriftchanges = enermove - energy;
 
-        conf->fixEMatrixChain(sim->pairlist_update, chain);
+        calcEnergy->eMat.fixEMatrixChain(sim->pairlist_update, chain);
     }
 
     return edriftchanges;
