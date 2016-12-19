@@ -189,6 +189,7 @@ public:
                                 /// spherocylinder (0-repulsive, 1-isotropic, 2-patchy, 3-cylindrical)
                                 /// or sphere (0-repulsive, 1-isotropic)
     double sigma;               ///< \brief Repulsion wca
+    double sigmaSq;               ///< \brief Repulsion wca
     double epsilon;             ///< \brief Repulsion strength
     double A;                   ///< \brief A = 4 * epsilon * sigma^12
     double B;                   ///< \brief A = 4 * epsilon * sigma^6

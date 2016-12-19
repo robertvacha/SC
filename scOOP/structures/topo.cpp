@@ -3,7 +3,6 @@
 #include <cstring>
 
 void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
-
     int a[2];
     int len;
     double length = 0; // The length of a PSC, currently only one is allow, ie implemented
@@ -75,6 +74,7 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
                     strncpy(ia_params[i][j].other_name, ia_params[i][i].other_name, len + 1);
 
                     ia_params[i][j].sigma   = AVER(ia_params[i][i].sigma,ia_params[j][j].sigma);
+                    ia_params[i][j].sigmaSq   = ia_params[i][j].sigma * ia_params[i][j].sigma;
                     ia_params[i][j].epsilon = sqrt(ia_params[i][i].epsilon *  ia_params[j][j].epsilon);
                     ia_params[i][j].A = 4 * ia_params[i][j].epsilon * pow(ia_params[i][j].sigma, 12 );
                     ia_params[i][j].B = 4 * ia_params[i][j].epsilon * pow(ia_params[i][j].sigma, 6 );
@@ -302,6 +302,7 @@ int Topo::fillTypes(char **pline) {
     ia_params[type][type].geotype[1] = geotype_i;
     ia_params[type][type].epsilon = param[0];
     ia_params[type][type].sigma = param[1];
+    ia_params[type][type].sigmaSq   = ia_params[type][type].sigma * ia_params[type][type].sigma;
     ia_params[type][type].A = 4 * ia_params[type][type].epsilon * pow(ia_params[type][type].sigma, 12 );
     ia_params[type][type].B = 4 * ia_params[type][type].epsilon * pow(ia_params[type][type].sigma, 6 );
     ia_params[type][type].rcutwca = (ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
