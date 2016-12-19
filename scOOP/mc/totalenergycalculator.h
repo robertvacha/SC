@@ -4,6 +4,7 @@
 #define TOTALENERGYCALCULATOR_H
 
 #include <iomanip>
+#include <limits>
 
 #include "pairenergycalculator.h"
 #include "paire.h"
@@ -12,17 +13,17 @@
 
 using namespace std;
 
-template<typename PairE>
+template<typename pairEFce>
 class TotalE {
 public:
-    PairE pairE;
+    pairEFce pairE;
 
     ExternalEnergyCalculator exterE;
 
     bool pairListUpdate;
     Conf* conf;
 
-    TotalE(Sim * sim, Conf * conf) : pairE(PairE(&conf->geo)),
+    TotalE(Sim * sim, Conf * conf) : pairE(pairEFce(&conf->geo)),
                                                    exterE(ExternalEnergyCalculator(&conf->geo.box)),
                                                    pairListUpdate(sim->pairlist_update), conf(conf) {}
 
@@ -169,8 +170,8 @@ public:
     }
 };
 
-template<typename PairE>
-class TotalEMatrix : public TotalE<PairE>
+template<typename pairEFce>
+class TotalEMatrix : public TotalE<pairEFce>
 {
 public:
     using TotalE<PairE>::mol2others;
@@ -363,7 +364,7 @@ public:
     }
 };
 
-
+// PairList not included - need to be done for benchmarks
 template<typename pairEFce>
 class TotalEFull : public TotalE<pairEFce>
 {
@@ -618,10 +619,433 @@ public:
     }
 };
 
+template<typename pairEFce>
+class TotalEHardSphereFull : public TotalE<pairEFce>
+{
+public:
+    using TotalE<pairEFce>::mol2others;
+    using TotalE<pairEFce>::conf;
+    using TotalE<pairEFce>::pairE;
+    using TotalE<pairEFce>::pairListUpdate;
+
+    TotalEHardSphereFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
+
+    inline double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+        return allToAll();
+    }
+
+    inline double allToAll() override { // just to check a valid config
+        if(conf->pvec.empty()) return 0.0;
+
+        Vector r_cm;
+        double dotrcm;
+        for(unsigned int i=0; i < conf->pvec.size()-1; ++i) {
+            for(unsigned int j= i+1; j < conf->pvec.size(); ++j) {
+                r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq)
+                    return std::numeric_limits<double>::infinity();
+            }
+        }
+
+        return 0.0;
+    }
+
+    inline double oneToAll(int target, vector<double> *changes) override {
+        Vector r_cm;
+        double dotrcm;
+
+        if (pairListUpdate) {
+            for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[ conf->neighborList[target].neighborID[i] ].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].sigmaSq)
+                    return std::numeric_limits<double>::infinity();
+            }
+        } else {
+            for(unsigned int i=0; i < conf->pvec.size(); ++i) {
+                if(i != target) {
+                    r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[target].pos);
+                    dotrcm = r_cm.dot(r_cm);
+                    if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[target].type].sigmaSq)
+                        return std::numeric_limits<double>::infinity();
+                }
+            }
+        }
+
+        return 0.0;
+    }
+
+    inline double oneToAll(int target) override { // before move, always 0.0 in a valid config
+        return 0.0;
+    }
+
+    inline double mol2others(Molecule &mol, vector<double> *changes) override {
+        return 0.0;
+    }
+
+    inline double mol2others(Molecule &mol) override {
+        return 0.0;
+    }
+};
+
+template<typename pairEFce>
+class TotalEHardSphereEMatrix : public TotalE<pairEFce>
+{
+public:
+    using TotalE<PairE>::mol2others;
+    using TotalE<PairE>::conf;
+    using TotalE<PairE>::pairE;
+    using TotalE<PairE>::pairListUpdate;
+
+    TotalEHardSphereEMatrix(Sim * sim, Conf * conf) : TotalE<PairE>(sim, conf) {}
+
+    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+        if(conf->pvec.empty()) return 0.0;
+        Vector r_cm;
+        double dotrcm;
+        double energy=0.0;
+        assert(energyMatrix != NULL);
+
+        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
+            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+                r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq) {
+                    (*energyMatrix)[i][j] = std::numeric_limits<double>::infinity();
+                    energy = std::numeric_limits<double>::infinity();
+                } else
+                    (*energyMatrix)[i][j] = 0.0;
+                (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
+            }
+        }
+        return energy;
+    }
+
+    double allToAll() override {
+        if(conf->pvec.empty()) return 0.0;
+
+        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
+            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+                if(conf->energyMatrix->operator [](i)[j] == std::numeric_limits<double>::infinity())
+                    return std::numeric_limits<double>::infinity();
+            }
+        }
+        return 0.0;
+    }
+
+    double oneToAll(int target, vector<double> *changes) override {
+        assert(target >= 0 && target < conf->pvec.size());
+        assert(changes != NULL);
+
+        Vector r_cm;
+        double dotrcm;
+        double energy=0.0;
+        long i;
+
+        if (pairListUpdate) {
+            for (i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[conf->neighborList[target].neighborID[i]].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[conf->neighborList[target].neighborID[i]].type].sigmaSq) {
+                    changes->push_back( std::numeric_limits<double>::infinity() );
+                    energy = std::numeric_limits<double>::infinity();
+                } else
+                    changes->push_back( 0.0 );
+            }
+        } else {
+            changes->resize(conf->pvec.size());
+            (*changes)[target] = 0.0;
+            for (i = 0; i < target; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[i].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].sigmaSq) {
+                    (*changes)[i] = std::numeric_limits<double>::infinity();
+                    energy = std::numeric_limits<double>::infinity();
+                }
+                else
+                    (*changes)[i] = 0.0;
+            }
+            for (i = target+1; i < (long)conf->pvec.size(); i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[i].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].sigmaSq) {
+                    (*changes)[i] = std::numeric_limits<double>::infinity();
+                    energy = std::numeric_limits<double>::infinity();
+                }
+                else
+                    (*changes)[i] = 0.0;
+            }
+        }
+
+        return energy;
+    }
+
+    double oneToAll(int target) override {
+        assert(target >=0 && target < conf->pvec.size());
+
+        if (pairListUpdate) {
+            for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                if(conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]] == std::numeric_limits<double>::infinity())
+                    return std::numeric_limits<double>::infinity();
+            }
+        } else {
+            for(unsigned int i=0; i < conf->pvec.size(); ++i) {
+                if(i != target) {
+                    if( conf->energyMatrix->operator [](target)[i] == std::numeric_limits<double>::infinity() )
+                        return std::numeric_limits<double>::infinity();
+                }
+            }
+        }
+
+        return 0.0;
+    }
+
+    double mol2others(Molecule &mol) override {
+        return 0.0;
+    }
+
+    double mol2others(Molecule &mol, vector<double> *changes) override {
+        return 0.0;
+    }
+};
+
+template<typename pairEFce>
+class TotalELJFull : public TotalE<pairEFce>
+{
+public:
+    using TotalE<pairEFce>::mol2others;
+    using TotalE<pairEFce>::conf;
+    using TotalE<pairEFce>::pairE;
+    using TotalE<pairEFce>::pairListUpdate;
+
+    TotalELJFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
+
+    inline double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+        return allToAll();
+    }
+
+    inline double allToAll() override { // just to check a valid config
+        if(conf->pvec.empty()) return 0.0;
+
+        Vector r_cm;
+        double dotrcm, energy = 0.0;
+        for(unsigned int i=0; i < conf->pvec.size()-1; ++i) {
+            for(unsigned int j= i+1; j < conf->pvec.size(); ++j) {
+                r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq*(6.25))
+                    energy += topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].A * pow(dotrcm, -6)
+                            - topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].B * pow(dotrcm, -3);
+            }
+        }
+
+        return energy;
+    }
+
+    inline double oneToAll(int target, vector<double> *changes) override {
+        Vector r_cm;
+        double dotrcm, energy = 0.0;
+
+        if (pairListUpdate) {
+            for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[ conf->neighborList[target].neighborID[i] ].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].sigmaSq*(6.25))
+                    energy += topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].A * pow(dotrcm, -6)
+                            - topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].B * pow(dotrcm, -3);
+            }
+        } else {
+            for(unsigned int i=0; i < conf->pvec.size(); ++i) {
+                if(i != target) {
+                    r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[target].pos);
+                    dotrcm = r_cm.dot(r_cm);
+                    if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[target].type].sigmaSq*(6.25))
+                        energy += topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].A * pow(dotrcm, -6)
+                                - topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].B * pow(dotrcm, -3);
+                }
+            }
+        }
+
+        return energy;
+    }
+
+    inline double oneToAll(int target) override {
+        Vector r_cm;
+        double dotrcm, energy = 0.0;
+
+        if (pairListUpdate) {
+            for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[ conf->neighborList[target].neighborID[i] ].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].sigmaSq*(6.25))
+                    energy += topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].A * pow(dotrcm, -6)
+                            - topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].B * pow(dotrcm, -3);
+            }
+        } else {
+            for(unsigned int i=0; i < conf->pvec.size(); ++i) {
+                if(i != target) {
+                    r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[target].pos);
+                    dotrcm = r_cm.dot(r_cm);
+                    if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[target].type].sigmaSq*(6.25))
+                        energy += topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].A * pow(dotrcm, -6)
+                                - topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].B * pow(dotrcm, -3);
+                }
+            }
+        }
+
+        return energy;
+    }
+
+    inline double mol2others(Molecule &mol, vector<double> *changes) override {
+        return 0.0;
+    }
+
+    inline double mol2others(Molecule &mol) override {
+        return 0.0;
+    }
+};
+
+template<typename pairEFce>
+class TotalELJEMatrix : public TotalE<pairEFce>
+{
+public:
+    using TotalE<PairE>::mol2others;
+    using TotalE<PairE>::conf;
+    using TotalE<PairE>::pairE;
+    using TotalE<PairE>::pairListUpdate;
+
+    TotalELJEMatrix(Sim * sim, Conf * conf) : TotalE<PairE>(sim, conf) {}
+
+    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+        if(conf->pvec.empty()) return 0.0;
+        Vector r_cm;
+        double dotrcm;
+        double energy=0.0;
+        assert(energyMatrix != NULL);
+
+        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
+            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+                r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq*(6.25))
+                    (*energyMatrix)[i][j] = topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].A * pow(dotrcm, -6)
+                        - topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].B * pow(dotrcm, -3);
+                else
+                    (*energyMatrix)[i][j] = 0.0;
+                (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
+                energy += (*energyMatrix)[i][j];
+            }
+        }
+        return energy;
+    }
+
+    double allToAll() override {
+        if(conf->pvec.empty()) return 0.0;
+        double energy = 0.0;
+
+        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
+            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+                energy += conf->energyMatrix->operator [](i)[j];
+            }
+        }
+        return energy;
+    }
+
+    double oneToAll(int target, vector<double> *changes) override {
+        assert(target >= 0 && target < conf->pvec.size());
+        assert(changes != NULL);
+
+        Vector r_cm;
+        double dotrcm;
+        double energy=0.0;
+
+        if (pairListUpdate) {
+            for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[conf->neighborList[target].neighborID[i]].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[conf->neighborList[target].neighborID[i]].type].sigmaSq*(6.25)) {
+                    changes->push_back( topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].A * pow(dotrcm, -6)
+                                      - topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].B * pow(dotrcm, -3) );
+                    energy += changes->back();
+                } else
+                    changes->push_back( 0.0 );
+            }
+        } else {
+            changes->resize(conf->pvec.size());
+            (*changes)[target] = 0.0;
+            for (int i = 0; i < target; i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[i].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].sigmaSq*(6.25)) {
+                    (*changes)[i] = topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].A * pow(dotrcm, -6)
+                                  - topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].B * pow(dotrcm, -3);
+                    energy += (*changes)[i];
+                }
+                else
+                    (*changes)[i] = 0.0;
+            }
+            for (int i = target+1; i < (long)conf->pvec.size(); i++) {
+                r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[i].pos);
+                dotrcm = r_cm.dot(r_cm);
+                if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].sigmaSq*(6.25)) {
+                    (*changes)[i] = topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].A * pow(dotrcm, -6)
+                                  - topo.ia_params[conf->pvec[target].type][conf->pvec[i].type].B * pow(dotrcm, -3);
+                    energy += (*changes)[i];
+                }
+                else
+                    (*changes)[i] = 0.0;
+            }
+        }
+
+        return energy;
+    }
+
+    double oneToAll(int target) override {
+        assert(target >=0 && target < conf->pvec.size());
+        double energy = 0.0;
+
+        if (pairListUpdate) {
+            for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                energy += conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+            }
+        } else {
+            for(unsigned int i=0; i < conf->pvec.size(); ++i) {
+                if(i != target) {
+                    energy += conf->energyMatrix->operator [](target)[i];
+                }
+            }
+        }
+
+        return energy;
+    }
+
+    double mol2others(Molecule &mol) override {
+        return 0.0;
+    }
+
+    double mol2others(Molecule &mol, vector<double> *changes) override {
+        return 0.0;
+    }
+};
+
+//
+//  Full-scope Total energy calculators
+//
 //typedef TotalEMatrix<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
-//typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
-//typedef TotalEFull<PairEnergyCalculator> TotalEnergyCalculator;                          // Full calculation
-typedef TestE<TotalEFull<PairE>, TotalEFull<PairEnergyCalculator> > TotalEnergyCalculator;         // Test of Pair energy
+typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
+//typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
+//typedef TestE<TotalEFull<PairE>, TotalEHardSphereEMatrix<PairE> > TotalEnergyCalculator;         // Test of Pair energy
 //typedef TotalEFullSymetry<PairEnergyCalculator> TotalEnergyCalculator;         // Test of Pair energy symetry
+
+//
+//  Specialized Total energy calculators
+//
+//typedef TotalEHardSphereFull<PairE> TotalEnergyCalculator;         // Hardspheres, full calculation
+//typedef TotalEHardSphereEMatrix<PairE> TotalEnergyCalculator;         // Hardspheres, energy matrix calculation
+//typedef TotalELJFull<PairE> TotalEnergyCalculator;         // LJ, full calculation //cut-off distance of rc = 2.5σ,
+//typedef TotalELJEMatrix<PairE> TotalEnergyCalculator;         // LJ, energy matrix calculation //cut-off distance of rc = 2.5σ,
+
+
 
 #endif // TOTALENERGYCALCULATOR_H

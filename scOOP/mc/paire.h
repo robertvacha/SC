@@ -3,6 +3,8 @@
 #ifndef PAIRE_H
 #define PAIRE_H
 
+#include <limits>
+
 #include "../structures/topo.h"
 #include "../structures/Conf.h"
 
@@ -354,6 +356,15 @@ class Lj : public EPotential {
 public:
     double operator() (double dist, const Ia_param& iaParam) override {
         return iaParam.A * pow(dist, -12) - iaParam.B * pow(dist, -6);
+    }
+};
+
+class HardSphere : public EPotential {
+public:
+    double operator() (double dist, const Ia_param& iaParam) override {
+        if(dist < iaParam.sigma)
+            return std::numeric_limits<double>::infinity();
+        return 0.0;
     }
 };
 
