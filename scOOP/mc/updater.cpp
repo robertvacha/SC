@@ -432,18 +432,20 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         if(sim->nGrandCanon != 0) {
             for(int i=0; i<conf->pvec.molTypeCount; i++) {
-                cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                     << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                     << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
+                if(sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej > 0) {
+                    cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                         << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                         << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
 
-                cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                     << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                     << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
+                    cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                         << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                         << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
 
-                cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
+                    cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
+                }
             }
         }
 
