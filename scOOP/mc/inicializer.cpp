@@ -757,6 +757,7 @@ int Inicializer::fillTypes(char **pline) {
     topo.ia_params[type][type].geotype[1] = geotype_i;
     topo.ia_params[type][type].epsilon = param[0];
     topo.ia_params[type][type].sigma = param[1];
+    topo.ia_params[type][type].sigmaSq   = topo.ia_params[type][type].sigma * topo.ia_params[type][type].sigma;
     topo.ia_params[type][type].A = 4 * topo.ia_params[type][type].epsilon * pow(topo.ia_params[type][type].sigma, 12 );
     topo.ia_params[type][type].B = 4 * topo.ia_params[type][type].epsilon * pow(topo.ia_params[type][type].sigma, 6 );
     topo.ia_params[type][type].rcutwca = (topo.ia_params[type][type].sigma)*pow(2.0,1.0/6.0);
@@ -1109,21 +1110,3 @@ int Inicializer::fillMol(char *molname, char *pline, MolIO *molecules) {
     fprintf (stderr, "TOPOLOGY ERROR: unknown parameter: %s.\n\n",molcommand);
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
