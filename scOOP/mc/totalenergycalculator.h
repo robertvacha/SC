@@ -25,18 +25,19 @@ public:
         energyMatrixTrial = &eMatrix2;
 
         try{
-            changes.reserve(1024 + conf->pvec.size());
-            energyMatrix->reserve(1024 + conf->pvec.size());
+            changes.reserve(conf->pvec.size());
+
+            energyMatrix->reserve(conf->pvec.size());
             energyMatrix->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                energyMatrix->operator [](i).reserve(1024 + conf->pvec.size());
+                energyMatrix->operator [](i).reserve(conf->pvec.size());
                 energyMatrix->operator [](i).resize(conf->pvec.size());
             }
 
-            energyMatrixTrial->reserve(1024 + conf->pvec.size());
+            energyMatrixTrial->reserve(conf->pvec.size());
             energyMatrixTrial->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                energyMatrixTrial->operator [](i).reserve(1024 + conf->pvec.size());
+                energyMatrixTrial->operator [](i).reserve(conf->pvec.size());
                 energyMatrixTrial->operator [](i).resize(conf->pvec.size());
             }
         } catch(std::bad_alloc& bad) {
@@ -51,25 +52,25 @@ public:
     std::vector< std::vector<double> >* energyMatrixTrial;
 
     void swapEMatrices() {
-        std::vector< std::vector<double> >*  temp;
-        temp = energyMatrix;
-        energyMatrix = energyMatrixTrial;
-        energyMatrixTrial = temp;
+        std::swap(energyMatrix, energyMatrixTrial);
     }
 
     void fixEMatrixSingle(bool pairlist_update, int target) {
-
         // FIX NEIGHBORLIST
         if(pairlist_update) {
             for(unsigned int i=0; i < changes.size(); i++) {
-                (*energyMatrix)[target][conf->neighborList[target].neighborID[i]] = changes[i];
-                energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target] = changes[i];
+                if(target < conf->neighborList[target].neighborID[i])
+                    (*energyMatrix)[target][conf->neighborList[target].neighborID[i]] = changes[i];
+                else
+                    energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target] = changes[i];
             }
         } else {
             assert(changes.size() == pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                energyMatrix->operator [](target)[i] = changes[i];
-                energyMatrix->operator [](i)[target] = changes[i];
+                if(target < i)
+                    energyMatrix->operator [](target)[i] = changes[i];
+                else
+                    energyMatrix->operator [](i)[target] = changes[i];
             }
         }
     }
@@ -86,9 +87,12 @@ public:
                         if(chain[k] == conf->neighborList[chain[i]].neighborID[j])
                             partOfChain = true;
 
-                    if(!partOfChain) {
-                        energyMatrix->operator [](chain[i])[conf->neighborList[chain[i]].neighborID[j]] = *it;
-                        energyMatrix->operator [](conf->neighborList[chain[i]].neighborID[j])[chain[i]] = *it;
+                    if ( chain.back() < conf->neighborList[chain[i]].neighborID[j]) {
+                        (*energyMatrix)[chain[i]] [conf->neighborList[chain[i]].neighborID[j]] = *it;
+                        it++;
+                    }
+                    if ( chain[0] > conf->neighborList[chain[i]].neighborID[j] ) {
+                        (*energyMatrix)[conf->neighborList[chain[i]].neighborID[j]][chain[i]] = *it;
                         it++;
                     }
                 }
@@ -306,16 +310,13 @@ public:
             conlist = conf->pvec.getConlist(i);
             for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
                 (*energyMatrix)[i][j] = (pairE)(&conf->pvec[i], &conf->pvec[j], &conlist);
-                (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
                 energy += (*energyMatrix)[i][j];
             }
-
-            if (topo.exter.exist) //for every particle add interaction with external potential
-                energy += this->exterE.extere2(&conf->pvec[i]);
         }
 
-        if (topo.exter.exist && !conf->pvec.empty()) //add interaction of last particle with external potential
-            energy += this->exterE.extere2(&conf->pvec.back());
+        if (topo.exter.exist) //for every particle add interaction with external potential
+            for (unsigned int i = 0; i < conf->pvec.size(); i++)
+                energy += this->exterE.extere2(&conf->pvec[i]);
 
         return energy;
     }
@@ -328,13 +329,11 @@ public:
             for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
                 energy += eMat.energyMatrix->operator [](i)[j];
             }
-
-            if (topo.exter.exist) //for every particle add interaction with external potential
-                energy += this->exterE.extere2(&conf->pvec[i]);
         }
 
-        if (topo.exter.exist && !conf->pvec.empty()) //add interaction of last particle with external potential
-            energy += this->exterE.extere2(&conf->pvec.back());
+        if (topo.exter.exist) //for every particle add interaction with external potential
+            for (unsigned int i = 0; i < conf->pvec.size(); i++)
+                energy += this->exterE.extere2(&conf->pvec[i]);
 
         return energy;
     }
@@ -342,17 +341,16 @@ public:
     double oneToAll(int target, vector<double> *changes) override {
         assert(target >= 0 && target < conf->pvec.size());
         assert(changes != NULL);
-        eMat.changes.clear();
-        assert(eMat.changes.empty());
 
         double energy=0.0;
         long i;
         ConList conlist = conf->pvec.getConlist(target);
 
         if (pairListUpdate) {
+            changes->resize( conf->neighborList[target].neighborCount );
             for (i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                changes->push_back(pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist));
-                energy += changes->back();
+                (*changes)[i] = pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist);
+                energy += (*changes)[i];
             }
         } else {
             changes->resize(conf->pvec.size());
@@ -379,7 +377,10 @@ public:
 
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                energy += eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                if(target < conf->neighborList[target].neighborID[i])
+                    energy += eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                else
+                    energy += eMat.energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target];
             }
         } else {
             for (long i = 0; i < (long)conf->pvec.size(); i++) {
@@ -398,19 +399,17 @@ public:
     double mol2others(Molecule &mol) override {
         double energy=0.0;
         long i = 0;
-        bool partOfChain;
 
         if (pairListUpdate) {
 
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
-                    partOfChain = false;
-                    for(unsigned int k=0; k<mol.size(); k++)
-                        if(mol[k] == conf->neighborList[mol[j]].neighborID[i])
-                            partOfChain = true;
-
-                    if(!partOfChain)
-                        energy += eMat.energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
+                    if( mol[0]     > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i] ) {
+                        if(mol[j] < conf->neighborList[mol[j]].neighborID[i])
+                            energy += eMat.energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
+                        else
+                            energy += eMat.energyMatrix->operator [](conf->neighborList[mol[j]].neighborID[i])[mol[j]];
+                    }
                 }
 
                 if (topo.exter.exist) //add interaction with external potential
@@ -419,10 +418,11 @@ public:
         } else {
 
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
-                for (i = 0; i < mol[0]; i++)  // pair potential with all particles from 0 to the first one in molecule
-                    energy += eMat.energyMatrix->operator [](mol[j])[i];
 
-                for (long i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
+                for (i = 0; i < mol[0]; i++)  // pair potential with all particles from 0 to the first one in molecule
+                    energy += eMat.energyMatrix->operator [](i)[mol[j]];
+
+                for (long i = mol.back() + 1; i < (long)conf->pvec.size(); i++)
                     energy += eMat.energyMatrix->operator [](mol[j])[i];
 
                 if (topo.exter.exist) //add interaction with external potential
@@ -438,7 +438,6 @@ public:
 
         double energy=0.0;
         long i = 0;
-        bool partOfChain;
 
         if (pairListUpdate) {
 
@@ -447,12 +446,7 @@ public:
             //
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
-                    partOfChain = false;
-                    for(unsigned int k=0; k<mol.size(); k++)
-                        if(mol[k] == conf->neighborList[mol[j]].neighborID[i])
-                            partOfChain = true;
-
-                    if(!partOfChain) {
+                    if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i]) {
                         changes->push_back( pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]) );
                         energy += changes->back();
                     }
@@ -511,13 +505,11 @@ public:
             for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
                 energy += (pairE)(&conf->pvec[i], &conf->pvec[j], &conlist);
             }
-
-            if (topo.exter.exist) //for every particle add interaction with external potential
-                energy += this->exterE.extere2(&conf->pvec[i]);
         }
 
-        if (topo.exter.exist && !conf->pvec.empty()) //add interaction of last particle with external potential
-            energy += this->exterE.extere2(&conf->pvec.back());
+        if (topo.exter.exist && !conf->pvec.empty()) //add interaction with external potential
+            for (unsigned int i = 0; i < conf->pvec.size(); i++)
+                energy += this->exterE.extere2(&conf->pvec[i]);
 
         return energy;
     }
@@ -531,9 +523,15 @@ public:
 
         double energy=0.0;
 
-        for (int i = 0; i < (int)conf->pvec.size(); i++) {
-            if(target != i)
-                energy += (pairE)(&conf->pvec[target], &conf->pvec[i], &conlist);
+        if (pairListUpdate) {
+            for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
+                energy += pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist);
+            }
+        } else {
+            for (int i = 0; i < (int)conf->pvec.size(); i++) {
+                if(target != i)
+                    energy += (pairE)(&conf->pvec[target], &conf->pvec[i], &conlist);
+            }
         }
 
         if (topo.exter.exist) //add interaction with external potential
@@ -550,15 +548,28 @@ public:
         double energy=0.0;
         long i = 0;
 
-        for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
-            for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
-                energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+        if (pairListUpdate) {
 
-            for (i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
-                energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+            for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
+                for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
+                    if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i])
+                        energy += pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]);
+                }
 
-            if (topo.exter.exist) //add interaction with external potential
-                energy += this->exterE.extere2(&conf->pvec[mol[j]]);
+                if (topo.exter.exist) //add interaction with external potential
+                    energy += this->exterE.extere2(&conf->pvec[mol[j]]);
+            }
+        } else {
+            for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
+                for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
+                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+
+                for (i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
+                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+
+                if (topo.exter.exist) //add interaction with external potential
+                    energy += this->exterE.extere2(&conf->pvec[mol[j]]);
+            }
         }
         return energy;
     }

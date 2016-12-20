@@ -53,9 +53,6 @@ void PairE::initIntFCE() {
             //
             //  SPHERE - SPHEROCYLINDER
             //
-            if( (geotype != SPN && other_geotype == SPN) || (geotype == SPN && other_geotype != SPN) ) {
-                eFce[i][j] = new MixSpSc<EPatchToSphere<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
-            }
             if((geotype == SCA && other_geotype == SPA) || (geotype == SPA && other_geotype == SCA) ) {
                 eFce[i][j] = new MixSpSc<ScaSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
@@ -67,7 +64,6 @@ void PairE::initIntFCE() {
                     || (geotype == SPA && (other_geotype == CPSC||other_geotype == CHCPSC || other_geotype == TCHCPSC || other_geotype == TCPSC)  )){
                 eFce[i][j] = new MixSpSc<CPscSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
-
         }
     }
 }
