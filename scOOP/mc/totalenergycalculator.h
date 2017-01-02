@@ -840,16 +840,16 @@ public:
         double energy=0.0;
         assert(energyMatrix != NULL);
 
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
                 r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
                 dotrcm = r_cm.dot(r_cm);
                 if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq) {
                     (*energyMatrix)[i][j] = std::numeric_limits<double>::infinity();
-                    energy = std::numeric_limits<double>::infinity();
-                } else
+                } else {
                     (*energyMatrix)[i][j] = 0.0;
-                (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
+                }
+                energy += (*energyMatrix)[i][j];
             }
         }
         return energy;
@@ -857,14 +857,14 @@ public:
 
     double allToAll() override {
         if(conf->pvec.empty()) return 0.0;
+        double energy = 0.0;
 
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
-                if(eMat.energyMatrix->operator [](i)[j] == std::numeric_limits<double>::infinity())
-                    return std::numeric_limits<double>::infinity();
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
+                energy += eMat.energyMatrix->operator [](i)[j];
             }
         }
-        return 0.0;
+        return energy;
     }
 
     double oneToAll(int target, vector<double> *changes) override {
@@ -877,14 +877,15 @@ public:
         long i;
 
         if (pairListUpdate) {
+            changes->resize( conf->neighborList[target].neighborCount );
             for (i = 0; i < conf->neighborList[target].neighborCount; i++) {
                 r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[conf->neighborList[target].neighborID[i]].pos);
                 dotrcm = r_cm.dot(r_cm);
                 if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[conf->neighborList[target].neighborID[i]].type].sigmaSq) {
-                    changes->push_back( std::numeric_limits<double>::infinity() );
-                    energy = std::numeric_limits<double>::infinity();
+                    (*changes)[i] = std::numeric_limits<double>::infinity();
+                    energy += std::numeric_limits<double>::infinity();
                 } else
-                    changes->push_back( 0.0 );
+                    (*changes)[i] = 0.0;
             }
         } else {
             changes->resize(conf->pvec.size());
@@ -917,10 +918,13 @@ public:
     double oneToAll(int target) override {
         assert(target >=0 && target < conf->pvec.size());
 
+        double energy = 0.0;
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                if(eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]] == std::numeric_limits<double>::infinity())
-                    return std::numeric_limits<double>::infinity();
+                if(target > conf->neighborList[target].neighborID[i])
+                    energy += eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                else
+                    energy += eMat.energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target];
             }
         } else {
             for(unsigned int i=0; i < conf->pvec.size(); ++i) {
@@ -1059,8 +1063,8 @@ public:
         double energy=0.0;
         assert(energyMatrix != NULL);
 
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
                 r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
                 dotrcm = r_cm.dot(r_cm);
                 if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq*(6.25))
@@ -1068,7 +1072,6 @@ public:
                         - topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].B * pow(dotrcm, -3);
                 else
                     (*energyMatrix)[i][j] = 0.0;
-                (*energyMatrix)[j][i] = (*energyMatrix)[i][j];
                 energy += (*energyMatrix)[i][j];
             }
         }
@@ -1079,8 +1082,8 @@ public:
         if(conf->pvec.empty()) return 0.0;
         double energy = 0.0;
 
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
                 energy += this->eMat.energyMatrix->operator [](i)[j];
             }
         }
@@ -1096,15 +1099,16 @@ public:
         double energy=0.0;
 
         if (pairListUpdate) {
+            changes->resize( conf->neighborList[target].neighborCount );
             for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
                 r_cm = conf->geo.image(&conf->pvec[target].pos, &conf->pvec[conf->neighborList[target].neighborID[i]].pos);
                 dotrcm = r_cm.dot(r_cm);
                 if(dotrcm < topo.ia_params[conf->pvec[target].type][conf->pvec[conf->neighborList[target].neighborID[i]].type].sigmaSq*(6.25)) {
-                    changes->push_back( topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].A * pow(dotrcm, -6)
-                                      - topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].B * pow(dotrcm, -3) );
-                    energy += changes->back();
+                    (*changes)[i] = topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].A * pow(dotrcm, -6)
+                                      - topo.ia_params[conf->pvec[target].type][conf->pvec[ conf->neighborList[target].neighborID[i] ].type].B * pow(dotrcm, -3);
+                    energy += (*changes)[i];
                 } else
-                    changes->push_back( 0.0 );
+                    (*changes)[i] = 0.0;
             }
         } else {
             changes->resize(conf->pvec.size());
@@ -1142,7 +1146,10 @@ public:
 
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                energy += this->eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                if(target > conf->neighborList[target].neighborID[i])
+                    energy += this->eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                else
+                    energy += this->eMat.energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target];
             }
         } else {
             for(unsigned int i=0; i < conf->pvec.size(); ++i) {
