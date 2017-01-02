@@ -485,18 +485,20 @@ double MoveCreator::replicaExchangeMove(long sweep) {
     double volume = conf->geo.volume();
     double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
 
-    int corr=0;  // correction for sended and receiving processes when clearing all messages
     int sizewl = 0, receiverRank = -1, receivedRank = -1;
+    int rank;
 
     //
     // TAGS for mpi communications
     //
-    int tagExchangeMPI = 1001, tagDouble = 2022, tagInt = 3333, tagStat = 654654;
+    int tagExchangeMPI = 1001, tagDouble = 2022, tagInt = 3333, tagStat = 54321;
 
     long localwl,receivedwl;
     bool reject=true;
 
-    MpiExchangeData localmpi, receivedmpi, exch;
+    MpiExchangeData localmpi, receivedmpi;
+    MpiExchangeData* locMpi;
+    MpiExchangeData* recMpi;
 
     Statistics localStat, recStat;
     localStat = sim->stat;
@@ -509,13 +511,12 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
     recwlweights = (double*) malloc( sizeof(double) * sizewl  );
 
-    MPI_Status status; // int count, int cancelled, int MPI_SOURCE, int MPI_TAG, int MPI_ERROR
-    MPI_Request myRequest[sim->mpinprocs];
+    MPI_Status status;
     MPI_Datatype MPI_exchange;
     MPI_Datatype MPI_vector2;
     MPI_Datatype MPI_stat;
 
-    exch.defDataType(&MPI_exchange, &MPI_vector2);
+    localmpi.defDataType(&MPI_exchange, &MPI_vector2);
     localStat.defDataType(&MPI_stat);
 
     //
@@ -535,32 +536,48 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
     for (int wli=0;wli<wl->wlmdim;wli++) {
         localmpi.wl_order[wli] = wl->currorder[wli];
-        //fprintf(stdout,"wli %d %ld  %ld\n\n", wli, localmpi.wl_order[wli], wl->currorder[wli] );
     }
 
     //
     //=== This is an attempt to switch replicas ===
     //
-
     int oddoreven;
 
-    if ( (sweep % (2*sim->nrepchange)) == 0)
-        // exchange odd ones with even ones
+    if ( (sweep % (2*sim->nrepchange)) == 0) // exchange odd ones with even ones
         oddoreven=1;
     else
-        // exchange even ones with odd ones
-        oddoreven=0;
+        oddoreven=0; // exchange even ones with odd ones
     if (sim->mpinprocs == 2)
         oddoreven=1;
 
+    if (sim->pseudoRank % 2 == oddoreven) {
+        if(sim->pseudoRank > 0 ) {  // all except for 0
+            localmpi.wantedTemp = sim->pTemp[sim->pseudoRank-1];
+        }
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &(rank) );
-    if(rank != sim->mpirank) {
-        cout << "THIS CAN NEVER HAPPEN!!!" << endl;
-        exit(0);
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+    assert(rank != sim->mpirank && "THIS CAN NEVER HAPPEN!!!");
+
+    locMpi = new MpiExchangeData[sim->mpinprocs];
+    recMpi = new MpiExchangeData[sim->mpinprocs];
+
+    for ( int i=0 ; i < sim->mpinprocs ; ++i ) {
+        locMpi[i] = localmpi;
     }
+
+    MPI_Alltoall(locMpi, 1, MPI_exchange, recMpi, 1, MPI_exchange, MPI_COMM_WORLD);
+
+    for ( int i=0 ; i < sim->mpinprocs ; ++i ) {
+        if(recMpi[i].wantedTemp == sim->temper)
+            receivedmpi = recMpi[i];
+    }
+
+    delete locMpi;
+    delete recMpi;
+
 
     //
     // SEND, OTHER_PROCESS_EVALUATES, WAIT, RECEIVE, END
@@ -570,17 +587,6 @@ double MoveCreator::replicaExchangeMove(long sweep) {
     if (sim->pseudoRank % 2 == oddoreven) {
         if(sim->pseudoRank > 0 )  { // all except for 0
 
-            localmpi.wantedTemp = sim->pTemp[sim->pseudoRank-1];
-
-            // sending NON-blocking, to all processes, only target process will respond based on tag, others just receive but do nothing
-            for(int j=0; j<sim->mpinprocs; j++) {
-                if(j != sim->mpirank) {
-                    MPI_Isend(&localmpi, 1, MPI_exchange, j, sim->pseudoRank-1, MPI_COMM_WORLD, &myRequest[j]);
-                }
-            }
-            corr=1;
-
-            // WAITING for response
             MPI_Recv(&receiverRank, 1, MPI_INT, MPI_ANY_SOURCE, sim->pseudoRank-1+tagInt, MPI_COMM_WORLD, &status); // receive from all processes, ONLY ONE RESPONDS
             MPI_Send(wl->weights, sizewl, MPI_DOUBLE, receiverRank, tagDouble, MPI_COMM_WORLD);
             MPI_Recv(&receivedmpi, 1, MPI_exchange, receiverRank, tagExchangeMPI, MPI_COMM_WORLD, &status);
@@ -623,11 +629,6 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         if (sim->pseudoRank+1 < sim->mpinprocs ) { // all except MAX
             //there is above process
 
-            MPI_Recv(&receivedmpi, 1, MPI_exchange, MPI_ANY_SOURCE, sim->pseudoRank, MPI_COMM_WORLD, &status);
-            corr = 1;
-
-            assert(sim->temper == receivedmpi.wantedTemp && "Wrong message received in MPI");
-
             receivedRank = receivedmpi.mpiRank;
 
             MPI_Send(&sim->mpirank, 1, MPI_INT, receivedRank, sim->pseudoRank+tagInt, MPI_COMM_WORLD); // respond to correct process so that it knows who is the correct receiver
@@ -650,7 +651,6 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
             // Canonical
             change = temp * ( (localmpi.energy - receivedmpi.energy) );
-            //printf("acceptance decision: change: %f localE: %f receivedE: %f tempf: %f \n",change,localmpi.energy,receivedmpi.energy,(1/sim->temper - 1/(sim->temper + sim->dtemp)));
 
             // ISOBARIC-ISOTERMAL
             change += (sim->press/sim->temper - (sim->press + sim->dpress)/(sim->temper + sim->dtemp)) * (localmpi.volume - receivedmpi.volume);
@@ -664,19 +664,13 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             if (wl->wlm[0] > 0) {
                 localwl = wl->currorder[0]+wl->currorder[1]*wl->length[0];
                 receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*wl->length[0];
-                //fprintf(stdout,"decide wl   %ld %ld %ld energychange: %f \n", receivedmpi.wl_order[0],  receivedmpi.wl_order[1], receivedwl, change );
-                //fprintf(stdout,"local weights %ld %f %ld %f \n",localwl,wl->weights[localwl],receivedwl,wl->weights[receivedwl]);
                 change += (-wl->weights[localwl] + wl->weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
-                //fprintf(stdout,"wlchange %f \n\n",change);
             }
 
             //
             // CRITERION FOR REPLICA EXCHANGE
             //
-            if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  ) ) {
-                // Exchange ACCEPTED send local stuff
-                //printf("exchange accepted \n");
-
+            if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  ) ) { // Exchange ACCEPTED send local stuff
                 localmpi.accepted = 1;
 
                 edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
@@ -696,7 +690,6 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                     wl->accept(wl->wlm[0]);
                 }
                 MPI_Send(&localmpi, 1, MPI_exchange, receivedRank, tagExchangeMPI, MPI_COMM_WORLD);
-
                 // exchange statistics
                 MPI_Send(&localStat, 1, MPI_stat, receivedRank, tagStat, MPI_COMM_WORLD);
                 MPI_Recv(&recStat, 1, MPI_stat, receivedRank, tagStat, MPI_COMM_WORLD, &status);
@@ -707,47 +700,25 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
             } else {
                 //if exchange rejected send back info
-                //printf("exchange rejected\n");
                 sim->stat.mpiexch.rej++;
+                localmpi.accepted = 0;
                 MPI_Send(&localmpi, 1, MPI_exchange, receivedRank, tagExchangeMPI, MPI_COMM_WORLD);
                 if ( wl->wlm[0] > 0 ) {
                     wl->weights[wl->currorder[0]+wl->currorder[1]*wl->length[0]] -= wl->alpha;
                     wl->hist[wl->currorder[0]+wl->currorder[1]*wl->length[0]]++;
                 }
-            }
+            }         
         }
     }
 
-    //
-    // CLEAN MESSAGES SENDED NON-BLOCKING WAY
-    //
-
-    // Receive all generated messages, MPI_cancel doesnt guarantee succesful cancel... (even with MPI_WAIT, MPI_request_free)
     MPI_Barrier(MPI_COMM_WORLD); // to ensure we dont read a message that was neccesary for replica exchange
-
-    int size = 0;
-    for(int i=0; i<sim->mpinprocs; i++) {
-        if (i % 2 == oddoreven) {
-            if( i > 0)  { // all except for MAX
-                size++;
-            }
-        }
-    }  // size is now how many processors sended messages
-
-    // determine if this process sended messages or received them;
-    if(size > 0)
-        size = size - corr; // we already received 1 message for odd/even processes and even/odd processes send 1 message
-    for(int i=0; i<size; i++) {
-        MPI_Recv(&receivedmpi, 1, MPI_exchange, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // i for tag, message from
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Type_free(&MPI_exchange);
     MPI_Type_free(&MPI_vector2);
+    MPI_Type_free(&MPI_stat);
 
     free(recwlweights);
 #endif
-
     return edriftchanges;
 }
 
