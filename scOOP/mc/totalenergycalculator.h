@@ -15,7 +15,7 @@ using namespace std;
 
 class EnergyMatrix {
 private:
-    std::vector< std::vector<double> > eMatrix;
+    std::vector< std::vector<double> > eMatrix; /// \brief Diagonal matrix[i][j], i > j
     std::vector< std::vector<double> > eMatrix2;
     Conf* conf;
 
@@ -27,18 +27,16 @@ public:
         try{
             changes.reserve(conf->pvec.size());
 
-            energyMatrix->reserve(conf->pvec.size());
+            energyMatrix->reserve(conf->pvec.size()+1024);
             energyMatrix->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                energyMatrix->operator [](i).reserve(conf->pvec.size());
-                energyMatrix->operator [](i).resize(conf->pvec.size());
+                energyMatrix->operator [](i).resize(i);
             }
 
-            energyMatrixTrial->reserve(conf->pvec.size());
+            energyMatrixTrial->reserve(conf->pvec.size()+1024);
             energyMatrixTrial->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                energyMatrixTrial->operator [](i).reserve(conf->pvec.size());
-                energyMatrixTrial->operator [](i).resize(conf->pvec.size());
+                energyMatrixTrial->operator [](i).resize(i);
             }
         } catch(std::bad_alloc& bad) {
             fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix");
@@ -59,7 +57,7 @@ public:
         // FIX NEIGHBORLIST
         if(pairlist_update) {
             for(unsigned int i=0; i < changes.size(); i++) {
-                if(target < conf->neighborList[target].neighborID[i])
+                if(target > conf->neighborList[target].neighborID[i])
                     (*energyMatrix)[target][conf->neighborList[target].neighborID[i]] = changes[i];
                 else
                     energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target] = changes[i];
@@ -67,9 +65,9 @@ public:
         } else {
             assert(changes.size() == pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
-                if(target < i)
+                if(target > i)
                     energyMatrix->operator [](target)[i] = changes[i];
-                else
+                if(target < i)
                     energyMatrix->operator [](i)[target] = changes[i];
             }
         }
@@ -77,22 +75,17 @@ public:
 
     void fixEMatrixChain(bool pairlist_update, Molecule chain) {
         // FIX ENERGY MATRIX
-        bool partOfChain;
         if(pairlist_update) {
             vector<double>::iterator it = changes.begin();
             for(unsigned int i=0; i < chain.size(); i++) {
                 for(int j=0; j < conf->neighborList[chain[i]].neighborCount; j++) {
-                    partOfChain = false;
-                    for(unsigned int k=0; k<chain.size(); k++)
-                        if(chain[k] == conf->neighborList[chain[i]].neighborID[j])
-                            partOfChain = true;
 
                     if ( chain.back() < conf->neighborList[chain[i]].neighborID[j]) {
-                        (*energyMatrix)[chain[i]] [conf->neighborList[chain[i]].neighborID[j]] = *it;
+                        (*energyMatrix)[  conf->neighborList[chain[i]].neighborID[j]  ] [  chain[i]  ] = *it;
                         it++;
                     }
                     if ( chain[0] > conf->neighborList[chain[i]].neighborID[j] ) {
-                        (*energyMatrix)[conf->neighborList[chain[i]].neighborID[j]][chain[i]] = *it;
+                        (*energyMatrix)[  chain[i]  ][  conf->neighborList[chain[i]].neighborID[j]  ] = *it;
                         it++;
                     }
                 }
@@ -116,13 +109,14 @@ public:
     }
 
     void resizeEMatrix() {
+        unsigned int oldSize = energyMatrix->size();
         energyMatrix->resize(conf->pvec.size());
-        for(unsigned int i=0; i<conf->pvec.size(); i++) {
-            energyMatrix->operator [](i).resize(conf->pvec.size());
+        for(unsigned int i=oldSize; i<conf->pvec.size(); ++i) {
+            energyMatrix->operator [](i).resize(i);
         }
 
         energyMatrixTrial->resize(conf->pvec.size());
-        for(unsigned int i=0; i<conf->pvec.size(); i++) {
+        for(unsigned int i=oldSize; i<conf->pvec.size(); ++i) {
             energyMatrixTrial->operator [](i).resize(conf->pvec.size());
         }
     }
@@ -298,7 +292,7 @@ public:
     using TotalE<pairEFce>::pairListUpdate;
     using TotalE<pairEFce>::eMat;
 
-    TotalEMatrix(Sim * sim, Conf * conf) : TotalE<PairE>(sim, conf) {}
+    TotalEMatrix(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
     double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
         if(conf->pvec.empty()) return 0.0;
@@ -306,16 +300,16 @@ public:
         ConList conlist;
         assert(energyMatrix != NULL);
 
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
             conlist = conf->pvec.getConlist(i);
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+            for (unsigned long j = 0; j < i; ++j) {
                 (*energyMatrix)[i][j] = (pairE)(&conf->pvec[i], &conf->pvec[j], &conlist);
                 energy += (*energyMatrix)[i][j];
             }
         }
 
         if (topo.exter.exist) //for every particle add interaction with external potential
-            for (unsigned int i = 0; i < conf->pvec.size(); i++)
+            for (unsigned int i = 0; i < conf->pvec.size(); ++i)
                 energy += this->exterE.extere2(&conf->pvec[i]);
 
         return energy;
@@ -325,14 +319,14 @@ public:
         if(conf->pvec.empty()) return 0.0;
 
         double energy = 0.0;
-        for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
-            for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
                 energy += eMat.energyMatrix->operator [](i)[j];
             }
         }
 
         if (topo.exter.exist) //for every particle add interaction with external potential
-            for (unsigned int i = 0; i < conf->pvec.size(); i++)
+            for (unsigned int i = 0; i < conf->pvec.size(); ++i)
                 energy += this->exterE.extere2(&conf->pvec[i]);
 
         return energy;
@@ -377,15 +371,18 @@ public:
 
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                if(target < conf->neighborList[target].neighborID[i])
+                if(target > conf->neighborList[target].neighborID[i])
                     energy += eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
                 else
                     energy += eMat.energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target];
             }
         } else {
             for (long i = 0; i < (long)conf->pvec.size(); i++) {
-                if(target != i) {
+                if(target > i) {
                     energy += eMat.energyMatrix->operator [](target)[i];
+                }
+                if(target < i) {
+                    energy += eMat.energyMatrix->operator [](i)[target];
                 }
             }
         }
@@ -402,10 +399,12 @@ public:
 
         if (pairListUpdate) {
 
-            for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
-                for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
-                    if( mol[0]     > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i] ) {
-                        if(mol[j] < conf->neighborList[mol[j]].neighborID[i])
+            for(unsigned int j=0; j<mol.size(); ++j) { // for all particles in molecule
+                for (i = 0; i < conf->neighborList[mol[j]].neighborCount; ++i) {
+                    // exclude interactions within molecule atoms
+                    if( mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i] ) {
+
+                        if(mol[j] > conf->neighborList[mol[j]].neighborID[i])
                             energy += eMat.energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
                         else
                             energy += eMat.energyMatrix->operator [](conf->neighborList[mol[j]].neighborID[i])[mol[j]];
@@ -417,13 +416,13 @@ public:
             }
         } else {
 
-            for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
+            for(unsigned int j=0; j<mol.size(); ++j) { // for all particles in molecule
 
                 for (i = 0; i < mol[0]; i++)  // pair potential with all particles from 0 to the first one in molecule
-                    energy += eMat.energyMatrix->operator [](i)[mol[j]];
+                    energy += eMat.energyMatrix->operator [](mol[j])[i];
 
                 for (long i = mol.back() + 1; i < (long)conf->pvec.size(); i++)
-                    energy += eMat.energyMatrix->operator [](mol[j])[i];
+                    energy += eMat.energyMatrix->operator [](i)[mol[j]];
 
                 if (topo.exter.exist) //add interaction with external potential
                     energy += this->exterE.extere2(&conf->pvec[mol[j]]);
@@ -666,28 +665,26 @@ public:
 };
 
 template<typename TotE, typename TotEControl>
-class TestE : public TotalE<PairE> {
+class TestE : public TotE {
 public:
-    using TotalE<PairE>::mol2others;
-    using TotalE<PairE>::eMat;
+    using TotE::mol2others;
 
-    TotE tested;
     TotEControl control;
 
-    TestE(Sim * sim, Conf * conf) : TotalE<PairE>(sim, conf), tested(sim, conf), control(sim, conf)  {}
+    TestE(Sim * sim, Conf * conf) : TotE(sim, conf), control(sim, conf)  {}
 
     bool test(double a, double b) {
-        return fabs(a - b) > 1e-4;
+        return fabs(a - b) > 1e-7;
     }
 
     double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.allToAll(energyMatrix);
+        e = TotE::allToAll(energyMatrix);
         eControl = control.allToAll(energyMatrix);
 
         if(test(e,eControl))
-            cout << std::setprecision(10) << "Error, allToAll energy: " << e << " control: " << eControl << endl;
+            cout << std::setprecision(10) << "Error(e), allToAll energy: " << e << " control: " << eControl << endl;
 
         return e;
     }
@@ -695,11 +692,11 @@ public:
     double allToAll() override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.allToAll();
+        e = TotE::allToAll();
         eControl = control.allToAll();
 
         if(test(e,eControl))
-            cout << std::setprecision(10) << "Error, allToAll energy: " << e << " control: " << eControl << endl;
+            cout << std::setprecision(10) << "Error(), allToAll energy: " << e << " control: " << eControl << endl;
 
         return e;
     }
@@ -707,11 +704,11 @@ public:
     double oneToAll(int target, vector<double> *changes) override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.oneToAll(target, changes);
+        e = TotE::oneToAll(target, changes);
         eControl = control.oneToAll(target, changes);
 
         if(test(e,eControl))
-            cout << std::setprecision(10) << "Error, oneToAll energy: " << e << " control: " << eControl << endl;
+            cout << std::setprecision(10) << "Error(c), oneToAll energy: " << e << " control: " << eControl << endl;
 
         return e;
     }
@@ -719,7 +716,7 @@ public:
     double oneToAll(int target) override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.oneToAll(target);
+        e = TotE::oneToAll(target);
         eControl = control.oneToAll(target);
 
         if(test(e,eControl))
@@ -731,7 +728,7 @@ public:
     double mol2others(Molecule &mol, vector<double> *changes) override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.mol2others(mol, changes);
+        e = TotE::mol2others(mol, changes);
         eControl = control.mol2others(mol, changes);
 
         if(test(e,eControl))
@@ -743,7 +740,7 @@ public:
     double mol2others(Molecule &mol) override {
         double e = 0.0, eControl = 0.0;
 
-        e = tested.mol2others(mol);
+        e = TotE::mol2others(mol);
         eControl = control.mol2others(mol);
 
         if(test(e,eControl))
@@ -863,7 +860,7 @@ public:
 
         for (unsigned int i = 0; i < conf->pvec.size() - 1; i++) {
             for (unsigned long j = i + 1; j < conf->pvec.size(); j++) {
-                if(conf->energyMatrix->operator [](i)[j] == std::numeric_limits<double>::infinity())
+                if(eMat.energyMatrix->operator [](i)[j] == std::numeric_limits<double>::infinity())
                     return std::numeric_limits<double>::infinity();
             }
         }
@@ -922,13 +919,13 @@ public:
 
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                if(conf->energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]] == std::numeric_limits<double>::infinity())
+                if(eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]] == std::numeric_limits<double>::infinity())
                     return std::numeric_limits<double>::infinity();
             }
         } else {
             for(unsigned int i=0; i < conf->pvec.size(); ++i) {
                 if(i != target) {
-                    if( conf->energyMatrix->operator [](target)[i] == std::numeric_limits<double>::infinity() )
+                    if( eMat.energyMatrix->operator [](target)[i] == std::numeric_limits<double>::infinity() )
                         return std::numeric_limits<double>::infinity();
                 }
             }
@@ -1170,10 +1167,11 @@ public:
 //
 //  Full-scope Total energy calculators
 //
+//typedef TotalE<PairE> TotalEnergyCalculator;                        // Empty Energy
 //typedef TotalEMatrix<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
 typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
 //typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
-//typedef TestE<TotalEFull<PairE>, TotalEHardSphereEMatrix<PairE> > TotalEnergyCalculator;         // Test of Pair energy
+//typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairE> > TotalEnergyCalculator;         // Test of Pair energy
 //typedef TotalEFullSymetry<PairEnergyCalculator> TotalEnergyCalculator;         // Test of Pair energy symetry
 
 //
