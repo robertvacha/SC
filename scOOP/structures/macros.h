@@ -19,7 +19,6 @@
 // DEFAULT CUBOID
 //#define WEDGE
 
-//#define TESTING
 #ifdef TESTING
     #define RAN2
 #else

@@ -124,13 +124,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double moveprobab;      // random number selecting the move
     double edriftstart = 0;
 
-    edriftstart = calcEnergy.allToAll(conf->energyMatrix);     // Energy drift calculation - start
+    edriftstart = calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);     // Energy drift calculation - start
 
     double volume = conf->geo.volume();          // volume of geo.box
     const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
-
-    //printf("starting energy: %.15f \n",calc_energy(0, intfce, 0, topo, conf, sim,0));
-    //printf("press: %.15f\n",sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper);
 
     /********************************************************/
     /*                 Simulation Loop                      */
@@ -148,10 +145,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
             time = clock();
         }
-
-#ifdef ENABLE_MPI
-    // receive MPI data
-#endif
 
         //____________Replica Exchange Move____________
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
@@ -171,7 +164,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftchanges += move.muVTMove();
 
             if(size != conf->pvec.size())
-                calcEnergy.allToAll(conf->energyMatrix);
+                calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);
 
             if(sim->pairlist_update) {
                 temp = clock();
@@ -345,7 +338,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             statf = fopen(files->statfile, "a");
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
-            fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy(0, 0, 0), alignmentOrder());
+            fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy.allToAll(), alignmentOrder());
             if (wl.wlm[0] > 0) {
                 wl.write(files->wloutfile);
             }
@@ -439,18 +432,20 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
         if(sim->nGrandCanon != 0) {
             for(int i=0; i<conf->pvec.molTypeCount; i++) {
-                cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                     << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                     << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
+                if(sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej > 0) {
+                    cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                         << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                         << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
 
-                cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                     << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                     << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
+                    cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                         << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                         << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
 
-                cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
-                     << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
+                    cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
+                         << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
+                }
             }
         }
 

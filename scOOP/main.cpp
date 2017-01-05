@@ -96,8 +96,6 @@ int main(int argc, char** argv) {
             topo.gcSpecies++;
     }
 
-    conf.initEMatrix();
-
     //
     // THESE REQUIRES SIM AND TOP DATA
     //

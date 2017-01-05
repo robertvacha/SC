@@ -13,14 +13,20 @@ extern Topo topo;
 
 using namespace std;
 
+
 class ConList {
 public:
-    ConList() : conlist() {}
-    Particle* conlist[4];    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+    ConList() : isEmpty(true) {}
 
-    inline Particle* operator[] (int j) {
-        return conlist[j];
-    }
+    bool isEmpty;
+
+    // these additional variables neccesary to unite Harmonic bond calculation
+    double sp;                          ///< \brief Harmonic bond equilibrium distance
+    double mod[2];
+    double c[2];
+    double eq[2];
+
+    Particle* conlist[4] = {nullptr};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 };
 
 
@@ -81,36 +87,60 @@ public:
     }
 
     inline ConList getConlist(int part1) {
-        ConList conlist; // all NULL already
-
         if(topo.moleculeParam[(*this)[part1].molType].isAtomic())  // particle not in any chain
-            return conlist;
+            return ConList();
 
-        int pos = (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize(); // position within chain
-
-        if(pos > 0)
-            conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
-        conlist.conlist[1] = &this->operator [](part1+1);
-        if(pos > 1)
-            conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < topo.moleculeParam[ (*this)[part1].molType ].molSize())
-            conlist.conlist[3] = &this->operator [](part1+2);
-
-        return conlist;
+        return getConlist(part1, (part1 - first[(*this)[part1].molType]) % topo.moleculeParam[ (*this)[part1].molType ].molSize());
     }
 
     inline ConList getConlist(int part1, int pos) {
         ConList conlist; // all NULL already
 
-        if(pos > 0)
-            conlist.conlist[0] = &this->operator [](part1-1);
-        if(pos+1 < topo.moleculeParam[(*this)[part1].molType].molSize())
-        conlist.conlist[1] = &this->operator [](part1+1);
-        if(pos > 1)
-            conlist.conlist[2] = &this->operator [](part1-2);
-        if(pos+2 < topo.moleculeParam[(*this)[part1].molType].molSize())
-            conlist.conlist[3] = &this->operator [](part1+2);
+        if (topo.moleculeParam[(*this)[part1].molType].bond1c >= 0.0 || topo.moleculeParam[(*this)[part1].molType].bonddc >= 0.0 || topo.moleculeParam[(*this)[part1].molType].bondhc >= 0.0) {
+            if(pos > 0) {
+                conlist.conlist[0] = &this->operator [](part1-1);
+            }
+            if(pos+1 < topo.moleculeParam[(*this)[part1].molType].molSize()) {
+                conlist.conlist[1] = &this->operator [](part1+1);
+            }
+
+            if (topo.moleculeParam[(*this)[part1].molType].bond1c >= 0.0) {
+                conlist.eq[0] = topo.moleculeParam[(*this)[part1].molType].bond1eq;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bond1c;
+
+                conlist.mod[0] = 0.0;
+                conlist.mod[1] = 0.0;
+                conlist.sp = 0.0;
+            }
+            if (topo.moleculeParam[(*this)[part1].molType].bonddc >= 0.0) {
+                conlist.eq[0] = 0.0;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bonddc;
+
+                conlist.mod[0] = topo.moleculeParam[(*this)[part1].molType].bonddeq;
+                conlist.mod[1] = 0.0;
+                conlist.sp = 0.0;
+            }
+            if (topo.moleculeParam[(*this)[part1].molType].bondhc >= 0.0) {
+                conlist.eq[0] = 0.0;
+                conlist.c[0] = topo.moleculeParam[(*this)[part1].molType].bondhc;
+
+                conlist.mod[0] = topo.moleculeParam[(*this)[part1].molType].bondheq;
+                conlist.mod[1] = topo.moleculeParam[(*this)[part1].molType].bondheq;
+                conlist.sp = topo.moleculeParam[(*this)[part1].molType].bondheq;
+            }
+            conlist.isEmpty = false;
+        }
+        if (topo.moleculeParam[(*this)[part1].molType].bond2c >= 0.0) {
+            if(pos > 1) {
+                conlist.conlist[2] = &this->operator [](part1-2);
+            }
+            if(pos+2 < topo.moleculeParam[(*this)[part1].molType].molSize()) {
+                conlist.conlist[3] = &this->operator [](part1+2);
+            }
+            conlist.eq[1] = topo.moleculeParam[(*this)[part1].molType].bond2eq;
+            conlist.c[1] = topo.moleculeParam[(*this)[part1].molType].bond2c;
+            conlist.isEmpty = false;
+        }
 
         return conlist;
     }
@@ -271,21 +301,17 @@ public:
 };
 
 
+
+
 /**
  * @brief Configuration of the system
  */
 class Conf {
-private:
-    std::vector< std::vector<double> > eMatrix;
-    std::vector< std::vector<double> > eMatrix2;
+
 public:  
     ParticleVector pvec;  ///< \brief Main store of all particles, grouped by Molecular types
     std::vector<Neighbors > neighborList;
-    vector<double> changes;
 
-    std::vector< std::vector<double> >* energyMatrix;
-    std::vector< std::vector<double> >* energyMatrixTrial;
-    //std::vector<ConList > conlist;
     ParticleVector pool; ///< \brief Store for chains for muVT insert of chain
 
     double sysvolume;                       ///< \brief Something like total mass -> for each += massOfParticle
@@ -305,8 +331,7 @@ public:
      * @brief Conf Constructor, initializing variables
      */
     Conf() : pairlist_update(false) {
-        energyMatrix = &eMatrix;
-        energyMatrixTrial = &eMatrix2;
+
 
         try{
             pvec.reserve(MAXN);
@@ -314,101 +339,6 @@ public:
             neighborList.reserve(MAXN);
         } catch(std::bad_alloc& bad) {
             fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for pvec, pool, conlist, neighborlist, conf inicializer");
-            exit(1);
-        }
-    }
-
-    void swapEMatrices() {
-        std::vector< std::vector<double> >*  temp;
-        temp = energyMatrix;
-        energyMatrix = energyMatrixTrial;
-        energyMatrixTrial = temp;
-    }
-
-    void fixEMatrixSingle(bool pairlist_update, int target) {
-
-        // FIX NEIGHBORLIST
-        if(pairlist_update) {
-            for(unsigned int i=0; i < changes.size(); i++) {
-                (*energyMatrix)[target][neighborList[target].neighborID[i]] = changes[i];
-                energyMatrix->operator [](neighborList[target].neighborID[i])[target] = changes[i];
-            }
-        } else {
-            assert(changes.size() == pvec.size());
-            for(unsigned int i=0; i < pvec.size(); i++) {
-                energyMatrix->operator [](target)[i] = changes[i];
-                energyMatrix->operator [](i)[target] = changes[i];
-            }
-        }
-    }
-
-    void fixEMatrixChain(bool pairlist_update, Molecule chain) {
-        // FIX ENERGY MATRIX
-        bool partOfChain;
-        if(pairlist_update) {
-            vector<double>::iterator it = changes.begin();
-            for(unsigned int i=0; i < chain.size(); i++) {
-                for(int j=0; j < neighborList[chain[i]].neighborCount; j++) {
-                    partOfChain = false;
-                    for(unsigned int k=0; k<chain.size(); k++)
-                        if(chain[k] == neighborList[chain[i]].neighborID[j])
-                            partOfChain = true;
-
-                    if(!partOfChain) {
-                        energyMatrix->operator [](chain[i])[neighborList[chain[i]].neighborID[j]] = *it;
-                        energyMatrix->operator [](neighborList[chain[i]].neighborID[j])[chain[i]] = *it;
-                        it++;
-                    }
-                }
-            }
-        } else {
-            for(unsigned int i=0; i<chain.size(); i++) { // for all particles in molecule
-                // for cycles => pair potential with all particles except those in molecule
-                for (int j = 0; j < chain[0]; j++) { // pair potential with all particles from 0 to the first one in molecule
-                    energyMatrix->operator [](chain[i])[j] = changes[i * pvec.size() + j];
-                    energyMatrix->operator [](j)[chain[i]] = changes[i * pvec.size() + j];
-                }
-
-                for (int j = chain[chain.size()-1] + 1; j < (long)pvec.size(); j++) {
-                    energyMatrix->operator [](chain[i])[j] = changes[i * pvec.size() + j];
-                    energyMatrix->operator [](j)[chain[i]] = changes[i * pvec.size() + j];
-                }
-
-            }
-        }
-
-    }
-
-    void resizeEMatrix() {
-        energyMatrix->resize(pvec.size());
-        for(unsigned int i=0; i<pvec.size(); i++) {
-            energyMatrix->operator [](i).resize(pvec.size());
-        }
-
-        energyMatrixTrial->resize(pvec.size());
-        for(unsigned int i=0; i<pvec.size(); i++) {
-            energyMatrixTrial->operator [](i).resize(pvec.size());
-        }
-    }
-
-    void initEMatrix() {
-        try{
-            changes.reserve(1024 + pvec.size());
-            energyMatrix->reserve(1024 + pvec.size());
-            energyMatrix->resize(pvec.size());
-            for(unsigned int i=0; i<pvec.size(); i++) {
-                energyMatrix->operator [](i).reserve(1024 + pvec.size());
-                energyMatrix->operator [](i).resize(pvec.size());
-            }
-
-            energyMatrixTrial->reserve(1024 + pvec.size());
-            energyMatrixTrial->resize(pvec.size());
-            for(unsigned int i=0; i<pvec.size(); i++) {
-                energyMatrixTrial->operator [](i).reserve(1024 + pvec.size());
-                energyMatrixTrial->operator [](i).resize(pvec.size());
-            }
-        } catch(std::bad_alloc& bad) {
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix");
             exit(1);
         }
     }

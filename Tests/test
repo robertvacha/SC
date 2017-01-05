@@ -11,7 +11,6 @@ function print {
 
 function clean {
     rm -f config.last config.last2 a.out SC
-    cd ../..
 }
 
 cd ../scOOP/
@@ -44,189 +43,35 @@ cd ..
 echo ""
 echo "testing..., warning: this could take up to 10 minutes"
 
-#
-# TEST normal
-#
-cp SC normal/new/
-cp a.out normal/new/
-cd normal/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "1) Basic Test, TCPSC"
-clean
+for name in `ls -d test_*`; do
+    cp SC $name/new/
+    cp a.out $name/new/
+    cd $name/new
+    ./a.out >/dev/null
+    mv config.last config.last2
+    ./SC > /dev/null
+    diff config.last config.last2 > /dev/null
+    print $name
+    clean
+    cd ../..
+done
 
-#
-# TEST normal with energy matrix, pairlist_update 1000
-#
-cp SC normal_w_EnergyMatrix/new/
-cp a.out normal_w_EnergyMatrix/new/
-cd normal_w_EnergyMatrix/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "1) Basic Test with energy matrix and pairlist(1000), TCPSC"
-clean
+echo "Pressure Tests: "
 
-#
-# TEST chain
-#
-cp SC chain_w_EnergyMatrix/new/
-cp a.out chain_w_EnergyMatrix/new/
-cd chain_w_EnergyMatrix/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "2) Chain Test with energy matrix and pairlist(1000), 5 TCPSC"
-clean
-
-#
-# TEST chain
-#
-cp SC chain/new/
-cp a.out chain/new/
-cd chain/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "2) Chain Test, 5 TCPSC"
-clean
-
-#
-# TEST mempore
-#
-cp SC mempore/new/
-cp a.out mempore/new/
-cd mempore/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "3) Mempore Test, pressure xy, wanglandau pore, chainmove, SPN-SPA-SPA"
-clean
-
-#
-# TEST wallfibril
-#
-cp SC wallfibril/new/
-cp a.out wallfibril/new/
-cd wallfibril/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "4) WallFibril Test, external wall, switchmove, CPSC"
-clean
-
-#
-# TEST pscthrough
-#
-cp SC pscthrough/new/
-cp a.out pscthrough/new/
-cd pscthrough/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "5) PSC-through Test, pressure xy, wanglandau z-direct, chainmove, SPN-SPA-SPA, CPSC"
-clean
-
-#
-# TEST volume change, high pressure, all options
-#
-cp SC volumeChange/0h/new/
-cp a.out volumeChange/0h/new/
-cd volumeChange/0h/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "6) volumeChange Test, anisotropic xyz, high pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/1h/new/
-cp a.out volumeChange/1h/new/
-cd volumeChange/1h/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "7) volumeChange Test, isotropic xyz, high pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/2h/new/
-cp a.out volumeChange/2h/new/
-cd volumeChange/2h/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "8) volumeChange Test, isotropic in xy z=const, high pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/3h/new/
-cp a.out volumeChange/3h/new/
-cd volumeChange/3h/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "9) volumeChange Test, isotropic in xy and V=const, high pressure, monomers"
-clean
-cd ..
-
-#
-# TEST volume change, low pressure, all options
-#
-cp SC volumeChange/0l/new/
-cp a.out volumeChange/0l/new/
-cd volumeChange/0l/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "10) volumeChange Test, anisotropic xyz, low pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/1l/new/
-cp a.out volumeChange/1l/new/
-cd volumeChange/1l/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "11) volumeChange Test, isotropic xyz, low pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/2l/new/
-cp a.out volumeChange/2l/new/
-cd volumeChange/2l/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "12) volumeChange Test, isotropic in xy z=const, low pressure, monomers"
-clean
-cd ..
-
-cp SC volumeChange/3l/new/
-cp a.out volumeChange/3l/new/
-cd volumeChange/3l/new
-./a.out >/dev/null
-mv config.last config.last2
-./SC > /dev/null
-diff config.last config.last2 > /dev/null
-print "13) volumeChange Test, isotropic in xy and V=const, low pressure, monomers"
-clean
+cp SC a.out volumeChange/
+cd volumeChange
+for name in `ls -d ?h ?l`; do
+    cp SC $name/new/
+    cp a.out $name/new/
+    cd $name/new
+    ./a.out >/dev/null
+    mv config.last config.last2
+    ./SC > /dev/null
+    diff config.last config.last2 > /dev/null
+    print $name
+    clean
+    cd ../..
+done
 cd ..
 
 rm -f a.out SC

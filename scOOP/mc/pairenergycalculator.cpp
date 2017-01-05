@@ -51,6 +51,7 @@ double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConLi
 }
 
 void PairEnergyCalculator::initIntFCE() {
+    cout << "\nInitializing energy functions...\n";
     // NB
     // Fill in the names of the functions for calculating the
     // interaction energy
@@ -67,7 +68,7 @@ void PairEnergyCalculator::initIntFCE() {
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
                   ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC)  &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) )  {
-                intFCE[i][j] = &PairEnergyCalculator::ePscPsc;
+                intFCE[i][j] = &PairEnergyCalculator::ePscCpsc;
             }
             if ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ){
@@ -265,12 +266,13 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec1.x = part1->pos.x + part1->dir.x * halfl / pbc->box.x;
                     vec1.y = part1->pos.y + part1->dir.y * halfl / pbc->box.y;
                     vec1.z = part1->pos.z + part1->dir.z * halfl / pbc->box.z;
 
-                    if (geotype[0] < SP)
-                        halfl =topo.ia_params[part1->type][part2->type].half_len[0];
+                    if (geotype[1] < SP)
+                        halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                     else
                         halfl = 0.0;
 
@@ -320,6 +322,7 @@ double PairEnergyCalculator::bondEnergy() {
                     halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                 else
                     halfl = 0.0;
+
                 vec1.x = part1->pos.x - part1->dir.x * halfl / pbc->box.x;
                 vec1.y = part1->pos.y - part1->dir.y * halfl / pbc->box.y;
                 vec1.z = part1->pos.z - part1->dir.z * halfl / pbc->box.z;
@@ -327,6 +330,7 @@ double PairEnergyCalculator::bondEnergy() {
                     halfl =topo.ia_params[part1->type][part2->type].half_len[1];
                 else
                     halfl = 0.0;
+
                 vec2.x = part2->pos.x + part2->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
                 vec2.y = part2->pos.y + part2->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
                 vec2.z = part2->pos.z + part2->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
@@ -344,6 +348,7 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec1.x = part1->pos.x + part1->dir.x * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.x ;
                     vec1.y = part1->pos.y + part1->dir.y * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.y ;
                     vec1.z = part1->pos.z + part1->dir.z * (halfl + topo.moleculeParam[part1->molType].bonddeq) / pbc->box.z ;
@@ -351,6 +356,7 @@ double PairEnergyCalculator::bondEnergy() {
                         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
                     else
                         halfl = 0.0;
+
                     vec2.x = part2->pos.x - part2->dir.x * halfl / pbc->box.x;
                     vec2.y = part2->pos.y - part2->dir.y * halfl / pbc->box.y;
                     vec2.z = part2->pos.z - part2->dir.z * halfl / pbc->box.z;
@@ -456,7 +462,7 @@ double PairEnergyCalculator::ePscPsc() {
         }
         atrenergy = eattractivePscPsc(0,0);
 
-        /*addition of interaction of second patches*/
+        //addition of interaction of second patches
         if ( (topo.ia_params[part1->type][part2->type].geotype[0] == TPSC) || (topo.ia_params[part1->type][part2->type].geotype[0] == TCHPSC) ||
           (topo.ia_params[part1->type][part2->type].geotype[1] == TPSC) ||(topo.ia_params[part1->type][part2->type].geotype[1] == TCHPSC) ) {
             bool firstT=false, secondT=false;
@@ -472,6 +478,7 @@ double PairEnergyCalculator::ePscPsc() {
             }
             atrenergy += eattractivePscPsc(1,0);
             }
+
             if ( (firstT) && (secondT) ) {
             if (secondCH) {
                 part2->dir = part2->chdir[1];
@@ -479,7 +486,12 @@ double PairEnergyCalculator::ePscPsc() {
             }
             atrenergy += eattractivePscPsc(1,1);
             }
+
             if (secondT) {
+                if (secondCH) {
+                    part2->dir = part2->chdir[1];
+                    closestDist();
+                }
             if (firstT && firstCH ) {
                 part1->dir = part1->chdir[0];
                 closestDist();
@@ -580,7 +592,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) { /
     /*5- scaling function2: angular dependence of patch1*/
     vec1 = 1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,-1.0);
-    vec1=vecPerpProject(&vec1, &part1->dir);
+    vec1 = vec1.perpProject(part1->dir);
     vec1.normalise();
     a = DOT(vec1,part1->patchdir[patchnum1]);
     f1 = fanglScale(a, 0+2*patchnum1);
@@ -588,7 +600,7 @@ double PairEnergyCalculator::eattractivePscPsc(int patchnum1, int patchnum2) { /
     /*6- scaling function3: angular dependence of patch2*/
     vec1 = -1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,1.0);
-    vec1=vecPerpProject(&vec1, &part2->dir);
+    vec1 = vec1.perpProject(part2->dir);
     vec1.normalise();
     a = DOT(vec1,part2->patchdir[patchnum2]);
     f2 = fanglScale(a, 1+2*patchnum2);
@@ -660,6 +672,10 @@ double PairEnergyCalculator::eCpscCpsc() {
             atrenergy += eattractiveCpscCpsc(1,1);
             }
             if (secondT) {
+                if (secondCH) {
+                    part2->dir = part2->chdir[1];
+                    closestDist();
+                }
             if (firstT && firstCH ) {
                 part1->dir = part1->chdir[0];
                 closestDist();
@@ -776,7 +792,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     /*5- scaling function2: angular dependence of patch1*/
     vec1 = 1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,-1.0);
-    vec1=vecPerpProject(&vec1, &part1->dir);
+    vec1 = vec1.perpProject(part1->dir);
     vec1.normalise();
     a = DOT(vec1,part1->patchdir[patchnum1]);
     f1 = fanglScale(a, 0+2*patchnum1);
@@ -784,7 +800,7 @@ double PairEnergyCalculator::eattractiveCpscCpsc(int patchnum1, int patchnum2) {
     /*6- scaling function3: angular dependence of patch2*/
     vec1 = -1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,1.0);
-    vec1=vecPerpProject(&vec1, &part2->dir);
+    vec1 = vec1.perpProject(part2->dir);
     vec1.normalise();
     a = DOT(vec1, part2->patchdir[patchnum2]);
     f2 = fanglScale(a, 1+2*patchnum2);
@@ -863,6 +879,10 @@ double PairEnergyCalculator::ePscCpsc() {
             atrenergy += eattractivePscCpsc(1,1);
             }
             if (secondT) {
+                if (secondCH) {
+                    part2->dir = part2->chdir[1];
+                    closestDist();
+                }
             if (firstT && firstCH ) {
                 part1->dir = part1->chdir[0];
                 closestDist();
@@ -994,7 +1014,7 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) { 
     /*5- scaling function2: angular dependence of patch1*/
     vec1 = 1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,-1.0);
-    vec1=vecPerpProject(&vec1, &part1->dir);
+    vec1 = vec1.perpProject(part1->dir);
     vec1.normalise();
     a = DOT(vec1, part1->patchdir[patchnum1]);
     f1 = fanglScale(a, 0+2*patchnum1);
@@ -1002,7 +1022,7 @@ double PairEnergyCalculator::eattractivePscCpsc(int patchnum1, int patchnum2) { 
     /*6- scaling function3: angular dependence of patch2*/
     vec1 = -1.0 * vec_intrs;
     //vec1=vecScale(vec_mindist,1.0);
-    vec1 = vecPerpProject(&vec1, &part2->dir);
+    vec1 = vec1.perpProject(part2->dir);
     vec1.normalise();
     a = DOT(vec1,part2->patchdir[patchnum2]);
     f2 = fanglScale(a, 1+2*patchnum2);
@@ -1067,6 +1087,7 @@ double PairEnergyCalculator::ePscSpa() {
     //DEBUG_SIM("do energy 211") ;
     closestDist();
     repenergy = eRepulsive();
+
     //DEBUG_SIM("got the rep. energy");
     if ( ( dist >topo.ia_params[part1->type][part2->type].rcut ) ||
          (topo.ia_params[part1->type][part2->type].epsilon == 0.0 ) ||
@@ -1104,7 +1125,7 @@ double PairEnergyCalculator::ePscSpa() {
                 part1->dir = part1->chdir[1];
                 closestDist();
             }
-            atrenergy += eattractivePscSpa(1);
+            atrenergy += eattractivePscSpa(1);           
             }
             if (secondT) {
             if(secondCH) {
@@ -1142,13 +1163,13 @@ double PairEnergyCalculator::eattractivePscSpa(int patchnum1) {
     /*scaling function: angular dependence of patch1*/
     if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) {
         which = 0;
-        vec1=vecPerpProject(&distvec, &part1->dir);
+        vec1 = distvec.perpProject(part1->dir);
         vec1.normalise();
         a = DOT(vec1, part1->patchdir[patchnum1]);
         halfl=topo.ia_params[part1->type][part2->type].half_len[0];
     } else {
         which = 1;
-        vec1 = vecPerpProject(&distvec, &part2->dir);
+        vec1 = distvec.perpProject(part2->dir);
         vec1.normalise();
         a = DOT(vec1, part2->patchdir[patchnum1]);
         halfl=topo.ia_params[part1->type][part2->type].half_len[1];
@@ -1265,13 +1286,13 @@ double PairEnergyCalculator::eattractiveCpscSpa(int patchnum1) {
     /*scaling function: angular dependence of patch1*/
     if (topo.ia_params[part1->type][part2->type].geotype[0] < SP) {
         which = 0;
-        vec1 = vecPerpProject(&distvec, &part1->dir);
+        vec1 = distvec.perpProject(part1->dir);
         vec1.normalise();
         a = DOT(vec1, part1->patchdir[patchnum1]);
         halfl =topo.ia_params[part1->type][part2->type].half_len[0];
     } else {
         which = 1;
-        vec1 = vecPerpProject(&distvec, &part2->dir);
+        vec1 = distvec.perpProject(part2->dir);
         vec1.normalise();
         a = DOT(vec1,part2->patchdir[patchnum1]);
         halfl =topo.ia_params[part1->type][part2->type].half_len[1];
@@ -1616,8 +1637,8 @@ int PairEnergyCalculator::pscIntersect(Particle *part1, Particle *part2, double 
     /*1b- test intersection with cylinder - it is at distance C*/
     if (intrs < 2 )  {
         cm21 = -1.0 * r_cm;
-        vec1 = vecCrossProduct(&cm21,&part1->dir);
-        vec2 = vecCrossProduct(&part2->dir,&part1->dir);
+        vec1 = vecCrossProduct(cm21,part1->dir);
+        vec2 = vecCrossProduct(part2->dir,part1->dir);
         a = DOT(vec2,vec2);
         b = 2*DOT(vec1,vec2);
         c = -rcut2 + DOT(vec1,vec1);
@@ -1784,7 +1805,7 @@ int PairEnergyCalculator::testIntrPatch(Particle *part1, Vector vec, double cosp
     intrs=0;
     /*test if we have intersection*/
     /* do projection to patch plane*/
-    vec = vecPerpProject(&vec,&part1->dir);
+    vec = vec.perpProject(part1->dir);
     vec.normalise();
     /* test angle distance from patch*/
     a = DOT(part1->patchdir[patchnum],vec);
@@ -1807,7 +1828,7 @@ int PairEnergyCalculator::findIntersectPlane(Particle *part1, Particle *part2, d
                                              Vector r_cm, Vector w_vec, double cospatch, double intersections[]) {
     int i, intrs;
     double a, c, d, ti, disti;
-    Vector d_vec, nplane = vecCrossProduct(&part1->dir,&w_vec);
+    Vector d_vec, nplane = vecCrossProduct(part1->dir,w_vec);
 
     nplane.normalise();
     w_vec.normalise();
@@ -1848,18 +1869,7 @@ int PairEnergyCalculator::findIntersectPlane(Particle *part1, Particle *part2, d
 
 
 
-Vector PairEnergyCalculator::vecPerpProject(Vector *A, Vector *B) {
-    Vector pp;
-    double dp;
 
-    dp=DOT((*A),(*B));
-
-    pp.x = A->x - B->x*dp;
-    pp.y = A->y - B->y*dp;
-    pp.z = A->z - B->z*dp;
-    //    fprintf (stderr, "pp x: %.8f y: %.8f z: %.8f \n",pp.x,pp.y,pp.z);
-    return pp;
-}
 
 
 int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double halfl1, double halfl2,
@@ -1878,7 +1888,7 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
     /* plane1 */
     /* find intersections of part2 with plane by par1 and part1->patchsides[0] */
     intrs += findIntersectPlanec(part1,part2,halfl2,r_cm,part1->patchsides[0+2*patchnum],
-           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);
+           topo.ia_params[part1->type][part2->type].pcanglsw[which+2*patchnum],intersections);   
     //	    printf("plane1 %d\n", intrs);
     /* plane2 */
     /* find intersections of part2 with plane by par1 and part1->patchsides[1] */
@@ -1894,8 +1904,8 @@ int PairEnergyCalculator::cpscIntersect(Particle *part1, Particle *part2, double
     /*1b- test intersection with cylinder - it is at distance C*/
     if (intrs < 2 )  {
         cm21 = -1.0 * r_cm;
-        vec1 = vecCrossProduct(&cm21,&part1->dir);
-        vec2 = vecCrossProduct(&part2->dir,&part1->dir);
+        vec1 = vecCrossProduct(cm21,part1->dir);
+        vec2 = vecCrossProduct(part2->dir,part1->dir);
         a = DOT(vec2,vec2);
         b = 2*DOT(vec1,vec2);
         c = -rcut2 + DOT(vec1,vec1);
@@ -2021,7 +2031,7 @@ int PairEnergyCalculator::findIntersectPlanec(Particle *part1, Particle *part2, 
     double a, c, d, ti, disti;
     Vector nplane, d_vec;
 
-    nplane=vecCrossProduct(&part1->dir,&w_vec);
+    nplane=vecCrossProduct(part1->dir,w_vec);
     nplane.normalise();
     w_vec.normalise();
     a =  DOT(nplane, part2->dir);

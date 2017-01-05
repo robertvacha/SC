@@ -61,7 +61,7 @@ public:
     void simulate(long nsweeps, long adjust, long paramfrq, long report);
 
 private:
-    void initEnergyMatrix() {
+    /*void initEnergyMatrix() {
         if(conf->pvec.empty())
             return;
 
@@ -71,7 +71,7 @@ private:
                 conf->energyMatrix->operator [](j)[i] = conf->energyMatrix->operator [](i)[j];
             }
         }
-    }
+    }*/
 
     /**
      * @brief testEnergyMatrix
@@ -83,10 +83,12 @@ private:
 
         for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
             for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
-                if( !(conf->energyMatrix->operator [](i)[j] + 0.0000001 >= calcEnergy.p2p(i,j)
-                        && conf->energyMatrix->operator [](i)[j] - 0.0000001 <= calcEnergy.p2p(i,j)  )
-                        || conf->energyMatrix->operator [](j)[i] != conf->energyMatrix->operator [](i)[j] ) {
-                    cout << "[i][j]= " << conf->energyMatrix->operator [](i)[j] << ", [j][i]=  " << conf->energyMatrix->operator [](j)[i] << ", calc= " << calcEnergy.p2p(i,j) << endl;
+                if( !(calcEnergy.eMat.energyMatrix->operator [](i)[j] + 0.0000001 >= calcEnergy.p2p(i,j)
+                        && calcEnergy.eMat.energyMatrix->operator [](i)[j] - 0.0000001 <= calcEnergy.p2p(i,j)  )
+                        || calcEnergy.eMat.energyMatrix->operator [](j)[i] != calcEnergy.eMat.energyMatrix->operator [](i)[j] ) {
+                    cout << "[i][j]= " << calcEnergy.eMat.energyMatrix->operator [](i)[j] << ", "
+                         << "[j][i]= " << calcEnergy.eMat.energyMatrix->operator [](j)[i]
+                         << ", calc= " << calcEnergy.p2p(i,j) << endl;
                     return false;
                 }
             }

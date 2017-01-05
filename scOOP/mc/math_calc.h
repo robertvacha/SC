@@ -25,6 +25,10 @@ inline double anInt(double arg)  {
     }*/
 }
 
+inline bool isSame(double a, double b, double c=1e-7) {
+    return fabs((a-b)) < c;
+}
+
 
 /**
  * @brief vec cross_product
@@ -32,8 +36,8 @@ inline double anInt(double arg)  {
  * @param B
  * @return
  */
-inline Vector vecCrossProduct(Vector* A, Vector* B) {
-    return Vector(A->y*B->z - A->z*B->y, -A->x*B->z + A->z*B->x, A->x*B->y - A->y*B->x);
+inline Vector vecCrossProduct(const Vector& A, const Vector& B) {
+    return Vector(A.y*B.z - A.z*B.y, -A.x*B.z + A.z*B.x, A.x*B.y - A.y*B.x);
 }
 
 /**
