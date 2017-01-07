@@ -61,18 +61,6 @@ public:
     void simulate(long nsweeps, long adjust, long paramfrq, long report);
 
 private:
-    /*void initEnergyMatrix() {
-        if(conf->pvec.empty())
-            return;
-
-        for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
-            for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
-                conf->energyMatrix->operator [](i)[j] = calcEnergy.p2p(i,j);
-                conf->energyMatrix->operator [](j)[i] = conf->energyMatrix->operator [](i)[j];
-            }
-        }
-    }*/
-
     /**
      * @brief testEnergyMatrix
      * @return TRUE - Energy matrix is fine
