@@ -36,23 +36,6 @@ void Updater::initValues() {
     //nem = vol = shapex = shapey = shapez = nullstat;
     //for (i=0; i<MAXF; i++) smec[i] = nullstat;
 
-    wl.wl_meshsize = 0;
-    wl.radiushole = NULL;
-    wl.radiusholeold = NULL;
-    wl.radiusholemax = 0;
-    wl.partincontactold = 0;
-    wl.partincontact = 0;
-    wl.wlmdim = 0;
-    wl.wlmdim = 0;
-    wl.length[0]=0;
-    wl.length[1]=0;
-    wl.currorder[0]=0;
-    wl.currorder[1]=0;
-    wl.neworder[0]=0;
-    wl.neworder[1]=0;
-    wl.weights = NULL;
-    wl.hist = NULL;
-
     conf->massCenter();
 }
 
@@ -110,7 +93,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     initValues();
 
-    wl.init(files->wlinfile);
+    move.wl.init(files->wlinfile);
     //do moves - START OF REAL MC
     if(sim->pairlist_update){
         temp = clock();
@@ -240,7 +223,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             next_adjust += adjust;
         }
 
-        if ( (wl.wlm[0] > 0) && (wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
+        if ( (move.wl.wlm[0] > 0) && (move.wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
             // recalculate system CM to be sure there is no accumulation of errors by +- rejection moves
             /* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
               can be calculated from CM movements of individual particles
@@ -249,43 +232,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
              if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
                   masscenter(topo.npart,topo.ia_params, conf);
             */
-            wl.min = wl.hist[0];
-            wl.max = wl.hist[0];
-            for (i=0;i < wl.length[0];i++) {
-                j=0;
-                if ( wl.hist[i+j*wl.length[0]] > wl.max ) wl.max = wl.hist[i+j*wl.length[0]];
-                if ( wl.hist[i+j*wl.length[0]] < wl.min ) wl.min = wl.hist[i+j*wl.length[0]];
-                for (j=1;j < wl.length[1];j++) {
-                    if ( wl.hist[i+j*wl.length[0]] > wl.max ) wl.max = wl.hist[i+j*wl.length[0]];
-                    if ( wl.hist[i+j*wl.length[0]] < wl.min ) wl.min = wl.hist[i+j*wl.length[0]];
-                }
-            }
-            if ( wl.min > WL_MINHIST ) {
-                if ( sim->temper * log(wl.max/wl.min) < WL_GERR ) {
-                    /*DEBUG
-                      for (i=1;i<wl.length;i++) {
-                      printf (" %15.8e %15ld %15.8f\n",wl.weights[i],wl.hist[i],pvec[0].pos.z);
-                      fflush(stdout);
-                      }
-                     */
-                    if ( wl.alpha < WL_ALPHATOL) break;
-                    wl.alpha/=2;
-                    printf("%f \n", wl.alpha);
-                    fflush (stdout);
-                    wl.wmin = wl.weights[0];
-
-                    for (i=0;i < wl.length[0];i++) {
-                        j=0;
-                        wl.hist[i+j*wl.length[0]] = 0;
-                        wl.weights[i+j*wl.length[0]] -= wl.wmin;
-                        for (j=1;j < wl.length[1];j++) {
-                            wl.hist[i+j*wl.length[0]] = 0;
-                            wl.weights[i+j*wl.length[0]] -= wl.wmin;
-                        }
-                    }
-
-                }
-            }
+            if(move.wl.update(sim->temper))
+                break;
         }
 
         if (!(sweep % 100000)) { //reinitialize patch vectors to avoid cummulation of errors
@@ -339,8 +287,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy.allToAll(), alignmentOrder());
-            if (wl.wlm[0] > 0) {
-                wl.write(files->wloutfile);
+            if (move.wl.wlm[0] > 0) {
+                move.wl.write(files->wloutfile);
             }
             //print mesh distribution
             //mesh_findholesdistrib(&wl.mesh);
@@ -461,7 +409,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     fflush(stdout);
 
-    wl.endWangLandau(files->wloutfile);
+    move.wl.endWangLandau(files->wloutfile);
 }
 
 

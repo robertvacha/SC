@@ -12,22 +12,16 @@ class Updater
 public:
     Updater(Sim* sim, Conf* conf, FileNames* files) :
         sim(sim), conf(conf), files(files),
-        calcEnergy(sim, conf), move(sim, conf, &calcEnergy, &wl), clust(conf, sim, &calcEnergy, files) {
-
-        wl.conf = conf;
-        wl.wlmtype = sim->wlmtype;
-        wl.wlm[0] = sim->wlm[0];
-        wl.wlm[1] = sim->wlm[1];
-
-        if ( wl.wlm[0] > 0 ) {
+        calcEnergy(sim, conf), move(sim, conf, &calcEnergy), clust(conf, sim, &calcEnergy, files) {
+            if ( sim->wlm[0] > 0 ) {
             FILE* outfile = fopen(files->wlinfile, "r");
             if (outfile == NULL) {
                 printf ("ERROR: Cannot open file for Wang-Landau method (%s).\n",files->wlinfile);
                 exit(1);
             }
             fclose (outfile);
+            }
         }
-    }
 
 private:
     Sim* sim;            ///< \brief contains the simulation options.
@@ -36,7 +30,6 @@ private:
 
     TotalEnergyCalculator calcEnergy;   ///< \brief energy calculations
     MoveCreator move;                   ///< \brief move calculations
-    WangLandau wl;
 
     ClusterSampler clust;
 
@@ -61,18 +54,6 @@ public:
     void simulate(long nsweeps, long adjust, long paramfrq, long report);
 
 private:
-    /*void initEnergyMatrix() {
-        if(conf->pvec.empty())
-            return;
-
-        for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
-            for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
-                conf->energyMatrix->operator [](i)[j] = calcEnergy.p2p(i,j);
-                conf->energyMatrix->operator [](j)[i] = conf->energyMatrix->operator [](i)[j];
-            }
-        }
-    }*/
-
     /**
      * @brief testEnergyMatrix
      * @return TRUE - Energy matrix is fine

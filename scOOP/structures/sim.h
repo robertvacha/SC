@@ -4,7 +4,7 @@
 #define SIM_H
 
 #include "structures.h"
-#include "../mc/wanglandau.h"
+#include "Conf.h"
 #include "../mc/mygetline.h"
 #include "../structures/statistics.h"
 

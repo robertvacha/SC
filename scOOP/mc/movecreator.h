@@ -4,6 +4,7 @@
 #define MOVECREATOR_H
 
 #include "totalenergycalculator.h"
+#include "wanglandau.h"
 
 extern Topo topo;
 
@@ -11,8 +12,8 @@ extern Topo topo;
 class MoveCreator
 {
 public:
-    MoveCreator(Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy, WangLandau* wl)
-        :  sim(sim), conf(conf), wl(wl), calcEnergy(calcEnergy) {
+    MoveCreator(Sim* sim, Conf* conf, TotalEnergyCalculator* calcEnergy)
+        :  sim(sim), conf(conf), wl(conf, sim), calcEnergy(calcEnergy) {
 
         try{
             insert.reserve(MAXCHL);
@@ -24,13 +25,13 @@ public:
 
 private:
     Sim* sim;                  // Should contain the simulation options.
-    Conf* conf;                // Should contain fast changing particle and box(?) information
-    WangLandau* wl;
+    Conf* conf;                // Should contain fast changing particle and box(?) information  
 
     std::vector<Particle > insert;  // insert vector for muVt -> malloc() error when in muVTmove()
     Particle chorig[MAXCHL];
 
 public:
+    WangLandau wl;
     TotalEnergyCalculator* calcEnergy;
 
     /**

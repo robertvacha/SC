@@ -3,6 +3,7 @@
 #ifndef WANGLANDAU_H
 #define WANGLANDAU_H
 
+#include "../structures/sim.h"
 #include "mesh.h"
 #include "simlib.h"
 #include <cstring>
@@ -15,7 +16,11 @@
 class WangLandau
 {
 public:
-    WangLandau() {}
+    WangLandau(Conf* conf, Sim* sim) : conf(conf) {
+        wlmtype = sim->wlmtype;
+        wlm[0] = sim->wlm[0];
+        wlm[1] = sim->wlm[1];
+    }
 
     Conf* conf;
 
@@ -44,6 +49,49 @@ public:
     long  partincontactold;    ///< \brief Number of particles in contact - old for move
 
 public:
+
+    bool update(double temper) {
+        min = hist[0];
+        max = hist[0];
+        int j;
+        for (int i=0;i < length[0];i++) {
+            j=0;
+            if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
+            if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+            for (j=1;j < length[1];j++) {
+                if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
+                if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+            }
+        }
+        if ( min > WL_MINHIST ) {
+            if ( temper * log(max/min) < WL_GERR ) {
+                /*DEBUG
+                      for (i=1;i<wl.length;i++) {
+                      printf (" %15.8e %15ld %15.8f\n",wl.weights[i],wl.hist[i],pvec[0].pos.z);
+                      fflush(stdout);
+                      }
+                     */
+                if ( alpha < WL_ALPHATOL)
+                    return true;
+                alpha/=2;
+                printf("%f \n", alpha);
+                fflush (stdout);
+                wmin = weights[0];
+
+                for (int i=0;i < length[0];i++) {
+                    j=0;
+                    hist[i+j*length[0]] = 0;
+                    weights[i+j*length[0]] -= wmin;
+                    for (j=1;j < length[1];j++) {
+                        hist[i+j*length[0]] = 0;
+                        weights[i+j*length[0]] -= wmin;
+                    }
+                }
+
+            }
+        }
+        return false;
+    }
 
     inline double runRot(int& reject, int target) {
         double wlener = 0.0;

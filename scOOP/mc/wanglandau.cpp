@@ -47,6 +47,23 @@ long WangLandau::meshOrderMoveMolecule(Molecule &target, Particle chorig[], Mesh
 }
 
 void WangLandau::init(char wlinfile[30]) {
+    wl_meshsize = 0;
+    radiushole = NULL;
+    radiusholeold = NULL;
+    radiusholemax = 0;
+    partincontactold = 0;
+    partincontact = 0;
+    wlmdim = 0;
+    wlmdim = 0;
+    length[0]=0;
+    length[1]=0;
+    currorder[0]=0;
+    currorder[1]=0;
+    neworder[0]=0;
+    neworder[1]=0;
+    weights = NULL;
+    hist = NULL;
+
     if ( wlm[0] >0 ) {
         if (initCalc(wlinfile) != 0)
             return;
