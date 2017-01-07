@@ -16,7 +16,7 @@ typedef struct{
     long * particles;
 } Cluster;
 
-class Clusters {
+class ClusterSampler {
 public:
     Conf* conf;
     Sim* sim;
@@ -32,7 +32,7 @@ public:
     long num_cluster;           ///< \brief number of single clusters
     long max_clust;             ///< \brief maximal clustersize
 
-    Clusters(Conf* conf, Sim* sim, TotalEnergyCalculator* calcEnergy, FileNames* files) : conf(conf),
+    ClusterSampler(Conf* conf, Sim* sim, TotalEnergyCalculator* calcEnergy, FileNames* files) : conf(conf),
     sim(sim), calcEnergy(calcEnergy), files(files) {
 
         clusterstat = (long int*) malloc(sizeof(long) * max_clust);
@@ -49,7 +49,7 @@ public:
         clusters = NULL;
     }
 
-    ~Clusters() {
+    ~ClusterSampler() {
         if (clusterstat != NULL)
             free(clusterstat);
 

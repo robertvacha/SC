@@ -38,7 +38,7 @@ private:
     MoveCreator move;                   ///< \brief move calculations
     WangLandau wl;
 
-    Clusters clust;
+    ClusterSampler clust;
 
     long nsweeps;
     long adjust;

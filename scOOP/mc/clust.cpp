@@ -4,7 +4,7 @@
 
 
 
-int Clusters::writeCluster(bool decor, long sweep) {
+int ClusterSampler::writeCluster(bool decor, long sweep) {
 
     FILE *cl_stat = NULL;
     FILE *cl = NULL;
@@ -48,7 +48,7 @@ int Clusters::writeCluster(bool decor, long sweep) {
     return 0;
 }
 
-int Clusters::sameCluster(long fst, long snd) {
+int ClusterSampler::sameCluster(long fst, long snd) {
 
     ConList conFst = conf->pvec.getConlist(fst);
     ConList conSnd = conf->pvec.getConlist(snd);
@@ -96,7 +96,7 @@ int Clusters::sameCluster(long fst, long snd) {
     }
 }
 
-int Clusters::genClusterList() {
+int ClusterSampler::genClusterList() {
     bool change = true; /* does it still change? */
     //long neighbour;
     long i, j, fst, snd, tmp, minnumber, maxnumber;
@@ -162,7 +162,7 @@ int Clusters::genClusterList() {
     return 0;
 }
 
-int Clusters::sortClusterList() {
+int ClusterSampler::sortClusterList() {
     long cluster_indices[(long)conf->pvec.size()];   /* holds the different cluster indices.
                         (currently too much memory) */
     long num_cluster = 0;                /* number of clusters, temporary needed */
