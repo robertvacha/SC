@@ -365,11 +365,11 @@ private:
             printf("ERROR: Paralllel tempering at single core does not work.\n\n");
             exit(1);
         }
-        dtemp = (paraltemper - temper )/(mpinprocs-1);
+        dtemp = ((1.0/temper)-(1.0/paraltemper))/(mpinprocs-1);
         for(int i=0; i<mpinprocs; i++) {
-            pTemp.push_back(temper + (dtemp * i));
+            pTemp.push_back( temper/(1.0-i*temper*dtemp) );
         }
-        temper += dtemp * mpirank;
+        temper =  temper/(1.0-mpirank*temper*dtemp);
         if ( (press != paralpress) && (mpinprocs <2) ) {
             printf("ERROR: Pressure replica exchange at single core does not work.\n\n");
             exit(1);
