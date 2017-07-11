@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <limits>
 
-#include "../half-1.12.0/include/half.hpp"
 #include "pairenergycalculator.h"
 #include "paire.h"
 #include "externalenergycalculator.h"
