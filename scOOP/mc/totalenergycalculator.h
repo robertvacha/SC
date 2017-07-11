@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <limits>
 
+#include "../half-1.12.0/include/half.hpp"
 #include "pairenergycalculator.h"
 #include "paire.h"
 #include "externalenergycalculator.h"
@@ -13,14 +14,18 @@
 
 using namespace std;
 
-class EnergyMatrix {
+template<typename TFloat>
+class EnergyMatrixF {
 private:
-    std::vector< std::vector<double> > eMatrix; /// \brief Diagonal matrix[i][j], i > j
-    std::vector< std::vector<double> > eMatrix2;
+    std::vector< std::vector<TFloat> > eMatrix; /// \brief Diagonal matrix[i][j], i > j
+    std::vector< std::vector<TFloat> > eMatrix2;
     Conf* conf;
 
 public:
-    EnergyMatrix(Conf* conf) : conf(conf) {
+    typedef TFloat TEMFloat;
+    typedef std::vector< std::vector<TFloat> > TEmVector;
+
+    EnergyMatrixF(Conf* conf) : conf(conf) {
         energyMatrix = &eMatrix;
         energyMatrixTrial = &eMatrix2;
 
@@ -32,22 +37,23 @@ public:
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
                 energyMatrix->operator [](i).resize(i);
             }
+            cout << "Alloc of EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
 
             energyMatrixTrial->reserve(conf->pvec.size()+1024);
             energyMatrixTrial->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
                 energyMatrixTrial->operator [](i).resize(i);
             }
+            cout << "Alloc of trial EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
         } catch(std::bad_alloc& bad) {
             fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix");
-            exit(1);
         }
     }
 
     vector<double> changes;
 
-    std::vector< std::vector<double> >* energyMatrix;
-    std::vector< std::vector<double> >* energyMatrixTrial;
+    std::vector< std::vector<TFloat> >* energyMatrix;
+    std::vector< std::vector<TFloat> >* energyMatrixTrial;
 
     void swapEMatrices() {
         std::swap(energyMatrix, energyMatrixTrial);
@@ -75,6 +81,8 @@ public:
 
     void fixEMatrixChain(bool pairlist_update, Molecule chain) {
         // FIX ENERGY MATRIX
+        if(chain.empty())
+            return;
         if(pairlist_update) {
             vector<double>::iterator it = changes.begin();
             for(unsigned int i=0; i < chain.size(); i++) {
@@ -95,11 +103,9 @@ public:
                 // for cycles => pair potential with all particles except those in molecule
                 for (int j = 0; j < chain[0]; j++) { // pair potential with all particles from 0 to the first one in molecule
                     energyMatrix->operator [](chain[i])[j] = changes[i * conf->pvec.size() + j];
-                    energyMatrix->operator [](j)[chain[i]] = changes[i * conf->pvec.size() + j];
                 }
 
                 for (int j = chain[chain.size()-1] + 1; j < (long)conf->pvec.size(); j++) {
-                    energyMatrix->operator [](chain[i])[j] = changes[i * conf->pvec.size() + j];
                     energyMatrix->operator [](j)[chain[i]] = changes[i * conf->pvec.size() + j];
                 }
 
@@ -117,10 +123,15 @@ public:
 
         energyMatrixTrial->resize(conf->pvec.size());
         for(unsigned int i=oldSize; i<conf->pvec.size(); ++i) {
-            energyMatrixTrial->operator [](i).resize(conf->pvec.size());
+            energyMatrixTrial->operator [](i).resize(i);
         }
     }
 };
+
+// half_float::half
+typedef EnergyMatrixF<double> EnergyMatrix;
+
+
 
 template<typename pairEFce>
 class TotalE {
@@ -143,7 +154,7 @@ public:
      * @param energyMatrix - We want to set either trial(for move) or actual matrix(re-initialization)
      * @return
      */
-    virtual double allToAll(std::vector< std::vector<double> >* energyMatrix) {return 0.0;}
+    virtual double allToAll(EnergyMatrix::TEmVector* energyMatrix) {return 0.0;}
 
     /**
      * @brief allToAll - Calculation with the use of energy matrix
@@ -294,7 +305,7 @@ public:
 
     TotalEMatrix(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         if(conf->pvec.empty()) return 0.0;
         double energy=0.0;
         ConList conlist;
@@ -405,9 +416,9 @@ public:
                     if( mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i] ) {
 
                         if(mol[j] > conf->neighborList[mol[j]].neighborID[i])
-                            energy += eMat.energyMatrix->operator [](mol[j])[conf->neighborList[mol[j]].neighborID[i]];
+                            energy += (*eMat.energyMatrix)[ mol[j] ][ conf->neighborList[mol[j]].neighborID[i] ];
                         else
-                            energy += eMat.energyMatrix->operator [](conf->neighborList[mol[j]].neighborID[i])[mol[j]];
+                            energy += (*eMat.energyMatrix)[ conf->neighborList[mol[j]].neighborID[i] ][ mol[j] ];
                     }
                 }
 
@@ -419,10 +430,10 @@ public:
             for(unsigned int j=0; j<mol.size(); ++j) { // for all particles in molecule
 
                 for (i = 0; i < mol[0]; i++)  // pair potential with all particles from 0 to the first one in molecule
-                    energy += eMat.energyMatrix->operator [](mol[j])[i];
+                    energy += (*eMat.energyMatrix)[ mol[j] ][ i ];
 
                 for (long i = mol.back() + 1; i < (long)conf->pvec.size(); i++)
-                    energy += eMat.energyMatrix->operator [](i)[mol[j]];
+                    energy += (*eMat.energyMatrix)[ i ][ mol[j] ];
 
                 if (topo.exter.exist) //add interaction with external potential
                     energy += this->exterE.extere2(&conf->pvec[mol[j]]);
@@ -490,7 +501,7 @@ public:
 
     TotalEFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         return allToAll();
     }
 
@@ -590,7 +601,7 @@ public:
         return fabs(a - b) > 1e-10;
     }
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         return allToAll();
     }
 
@@ -677,7 +688,7 @@ public:
         return fabs(a - b) > 1e-7;
     }
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         double e = 0.0, eControl = 0.0;
 
         e = TotE::allToAll(energyMatrix);
@@ -762,7 +773,7 @@ public:
 
     TotalEHardSphereFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    inline double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    inline double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         return allToAll();
     }
 
@@ -833,7 +844,7 @@ public:
 
     TotalEHardSphereEMatrix(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         if(conf->pvec.empty()) return 0.0;
         Vector r_cm;
         double dotrcm;
@@ -959,7 +970,7 @@ public:
 
     TotalELJFull(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    inline double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    inline double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         return allToAll();
     }
 
@@ -1056,7 +1067,7 @@ public:
 
     TotalELJEMatrix(Sim * sim, Conf * conf) : TotalE<pairEFce>(sim, conf) {}
 
-    double allToAll(std::vector< std::vector<double> >* energyMatrix) override {
+    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
         if(conf->pvec.empty()) return 0.0;
         Vector r_cm;
         double dotrcm;
@@ -1067,7 +1078,7 @@ public:
             for (unsigned long j = 0; j < i; ++j) {
                 r_cm = conf->geo.image(&conf->pvec[i].pos, &conf->pvec[j].pos);
                 dotrcm = r_cm.dot(r_cm);
-                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq*(6.25))
+                if(dotrcm < topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].sigmaSq*(6.25)) // 2.5 sigma cutoff
                     (*energyMatrix)[i][j] = topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].A * pow(dotrcm, -6)
                         - topo.ia_params[conf->pvec[i].type][conf->pvec[j].type].B * pow(dotrcm, -3);
                 else
@@ -1147,14 +1158,14 @@ public:
         if (pairListUpdate) {
             for (long i = 0; i < conf->neighborList[target].neighborCount; i++) {
                 if(target > conf->neighborList[target].neighborID[i])
-                    energy += this->eMat.energyMatrix->operator [](target)[conf->neighborList[target].neighborID[i]];
+                    energy += (*eMat.energyMatrix)[ target ][ conf->neighborList[target].neighborID[i] ];
                 else
-                    energy += this->eMat.energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target];
+                    energy += (*eMat.energyMatrix)[ conf->neighborList[target].neighborID[i] ][ target ];
             }
         } else {
             for(unsigned int i=0; i < conf->pvec.size(); ++i) {
                 if(i != target) {
-                    energy += this->eMat.energyMatrix->operator [](target)[i];
+                    energy += (*eMat.energyMatrix)[target][i];
                 }
             }
         }
