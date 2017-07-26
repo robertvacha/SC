@@ -288,6 +288,7 @@ public:
 
         double currangle, halfl;
         Vector vec1, vec2;
+        double energy = 0.0;
         int * geotype = topo.ia_params[part1->type][part2->type].geotype;
 
         // angle interaction with nearest neighbours -harmonic
@@ -317,7 +318,7 @@ public:
                 }
 
                 currangle = acos(DOT(vec1,vec2));
-                return harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
+                energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
             }
         }
 
@@ -327,11 +328,11 @@ public:
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                     // num1 is connected to num2 by tail : // num1 is connected to num2 by head
                     currangle = ( (part2 == conlist->conlist[0]) ? angleEnergyAngle2( part2, part1 ) : angleEnergyAngle2( part1, part2 ) );
-                    return harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle2eq,topo.moleculeParam[part1->molType].angle2c);
+                    energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle2eq,topo.moleculeParam[part1->molType].angle2c);
                 }
             }
         }
-        return 0.0;
+        return energy;
     }
 
 private:
