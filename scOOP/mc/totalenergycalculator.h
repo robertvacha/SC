@@ -68,7 +68,7 @@ public:
                     energyMatrix->operator [](conf->neighborList[target].neighborID[i])[target] = changes[i];
             }
         } else {
-            assert(changes.size() == pvec.size());
+            assert(changes.size() == conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
                 if(target > i)
                     energyMatrix->operator [](target)[i] = changes[i];
@@ -210,6 +210,7 @@ public:
      * @return
      */
     double mol2others(vector<Particle> &mol) {
+        ConList conlist; // empty conlist
         double energy=0.0;
         unsigned int i=0;
 
@@ -218,7 +219,7 @@ public:
                 energy += this->exterE.extere2(&mol[i]);
 
             for(unsigned int j=0; j < conf->pvec.size(); j++)
-                energy += pairE(&mol[i], &conf->pvec[j]);
+                energy += pairE(&mol[i], &conf->pvec[j], &conlist);
         }
         return energy;
     }
@@ -442,6 +443,7 @@ public:
     }
 
     double mol2others(Molecule &mol, vector<double> *changes) override {
+        ConList conlist;
         eMat.changes.clear();
         assert(eMat.changes.empty());
 
@@ -456,7 +458,7 @@ public:
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
                     if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i]) {
-                        changes->push_back( pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]) );
+                        changes->push_back( pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]], &conlist) );
                         energy += changes->back();
                     }
                 }
@@ -470,12 +472,12 @@ public:
             changes->resize( mol.size() * conf->pvec.size() );
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < mol[0]; i++) { // pair potential with all particles from 0 to the first one in molecule
-                    (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+                    (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
                     energy += (*changes)[j*conf->pvec.size() + i];
                 }
 
                 for (long i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++) {
-                    (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+                    (*changes)[j*conf->pvec.size() + i] = pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
                     energy += (*changes)[j*conf->pvec.size() + i];
                 }
 
@@ -534,7 +536,7 @@ public:
 
         if (pairListUpdate) {
             for (int i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                energy += pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist);
+                energy += pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
             }
         } else {
             for (int i = 0; i < (int)conf->pvec.size(); i++) {
@@ -554,6 +556,7 @@ public:
     }
 
     double mol2others(Molecule &mol) override {
+        ConList conlist; // Empty conlist
         double energy=0.0;
         long i = 0;
 
@@ -562,7 +565,7 @@ public:
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
                     if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i])
-                        energy += pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]]);
+                        energy += pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]], &conlist);
                 }
 
                 if (topo.exter.exist) //add interaction with external potential
@@ -571,10 +574,10 @@ public:
         } else {
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < mol[0]; i++) // pair potential with all particles from 0 to the first one in molecule
-                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
 
                 for (i = mol[mol.size()-1] + 1; i < (long)conf->pvec.size(); i++)
-                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i]);
+                    energy += pairE(&conf->pvec[mol[j]], &conf->pvec[i], &conlist);
 
                 if (topo.exter.exist) //add interaction with external potential
                     energy += this->exterE.extere2(&conf->pvec[mol[j]]);
@@ -718,7 +721,7 @@ public:
         eControl = control.oneToAll(target, changes);
 
         if(test(e,eControl))
-            cout << std::setprecision(10) << "Error(c), oneToAll energy: " << e << " control: " << eControl << endl;
+            cout << std::setprecision(10) << "Error(c), oneToAll(change) energy: " << e << " control: " << eControl << endl;
 
         return e;
     }
@@ -729,8 +732,12 @@ public:
         e = TotE::oneToAll(target);
         eControl = control.oneToAll(target);
 
-        if(test(e,eControl))
-            cout << std::setprecision(10) << "Error, oneToAll energy: " << e << " control: " << eControl << endl;
+        if(test(e,eControl)) {
+            vector<double> *changes;
+            changes = new vector<double>();
+            cout << std::setprecision(10) << "Error, oneToAll() energy: " << e << " control: " << eControl << ", itself calculated: " << TotE::oneToAll(target, changes) << endl;
+            delete changes;
+        }
 
         return e;
     }
@@ -1189,7 +1196,7 @@ public:
 typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
 //typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
 //typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairE> > TotalEnergyCalculator;         // Test of Pair energy
-//typedef TotalEFullSymetry<PairEnergyCalculator> TotalEnergyCalculator;         // Test of Pair energy symetry
+//typedef TotalEFullSymetry<PairE> TotalEnergyCalculator;         // Test of Pair energy symetry
 
 //
 //  Specialized Total energy calculators

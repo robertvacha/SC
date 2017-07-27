@@ -827,14 +827,14 @@ public:
 template<typename EPotential>
 class Scn : public EPatch<EPotential> {
 public:
-    double operator() (const Ia_param& iaParam, const Vector& p1Dir, const Vector& p2Dir, const Patch p1P, const Patch p2P, const Vector& r_cm,
+    /*double operator() (const Ia_param& iaParam, const Vector& p1Dir, const Vector& p2Dir, const Patch p1P, const Patch p2P, const Vector& r_cm,
                        int patchnum1, int patchnum2) override {
         return 0.0;
     }
 
     void getGeoTypes(const Ia_param& iaParam, bool& firstCH, bool& secondCH, bool& firstT, bool& secondT) override {
         firstCH = false; secondCH = false; firstT = false; secondT = false;
-    }
+    }*/
 };
 
 template<typename EPotential>
@@ -1109,7 +1109,7 @@ template <typename PatchE, typename BondE, typename AngleE>
 class SpheroCylinder : public EBasic {
     PatchE patchE;
     BondE bondE;
-    AngleE angleE; 
+    AngleE angleE;
 public:
     SpheroCylinder(GeoBase* pbc) : bondE(pbc), angleE(pbc) {}
 
@@ -1194,16 +1194,17 @@ public:
 
 
 class PairE {
-    GeoBase* pbc;                   // box size
     EBasic* eFce[MAXT][MAXT];
 public:
+    GeoBase* pbc;                   // box size
+    bool verbose = false;
     PairE(GeoBase* pbc) : pbc(pbc) { initIntFCE(); }
 
-    double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL) {
+    double operator() (Particle* part1, Particle* part2, ConList* conlist) {
         Vector r_cm = pbc->image(&part1->pos, &part2->pos);
         double dotrcm = r_cm.dot(r_cm);
 
-        if (dotrcm > topo.sqmaxcut)
+        if (dotrcm > topo.sqmaxcut && conlist->isEmpty)
             return 0.0;  // distance so far that even spherocylinders cannot be within cutoff
 
         double dist = sqrt(dotrcm);

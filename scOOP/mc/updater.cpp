@@ -53,7 +53,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 #ifdef ENABLE_MPI
     mpi = true;
 #endif
-    long i,j;
+    long i;
 
     size_t time = 0;
     size_t temp = 0;
@@ -65,11 +65,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     long step;         // Step number within a given sweep
     long sweep;        // Current sweep number
-
-    //struct stat nem;   // Nematic order parameter
-    //struct stat vol;   // Volume statistic
-    //struct stat shapex, shapey, shapez;   // geo.box shape statistics
-    //struct stat smec[MAXF];       // Smectic order parameters (Fourier coeeficients)
 
     emptyFiles();
 
@@ -117,6 +112,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /********************************************************/
     time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
+
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
@@ -203,6 +199,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             //    cout<<"OVERLAP DETECTED"<<endl;
             //}
         } // End of step loop for this sweep
+
+        //if(sweep%100 == 0) {
+        //    cout << sweep << " NEIGHBORS: " << calcEnergy.neighAvg/calcEnergy.div << " " << calcEnergy.interAvg/calcEnergy.div << " " << calcEnergy.interAvg2/calcEnergy.div << endl;
+        //}
 
         //=== Start of end-of-sweep housekeeping ===
         // Adjustment of maximum step sizes during equilibration
@@ -510,7 +510,9 @@ double Updater::alignmentOrder() {
 
 void Updater::genSimplePairList() {
     Vector r_cm;
+    int pos=-1;
     double r_cm2;
+    bool bonded = false;
     // Set the pairlist to zero
     //DEBUG_INIT("Gen Pairlist")
     for(unsigned int i = 0; i < conf->neighborList.size(); i++){
@@ -540,15 +542,29 @@ void Updater::genSimplePairList() {
 #endif
             assert(max_dist == sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]);
 
-            if (r_cm2 <= sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type]){
+            // Are bonds, Angles defined?
+            if(i+2 >= j) {
+                pos = (i - conf->pvec.first[conf->pvec[i].molType]) % topo.moleculeParam[ conf->pvec[i].molType ].molSize();
+
+                if (topo.moleculeParam[conf->pvec[i].molType].bond1c >= 0.0 || topo.moleculeParam[conf->pvec[i].molType].bonddc >= 0.0 || topo.moleculeParam[conf->pvec[i].molType].bondhc >= 0.0) {
+                    if(pos+1 < topo.moleculeParam[conf->pvec[i].molType].molSize() && i+1 == j) {
+                        bonded = true;
+                    }
+                }
+                if (topo.moleculeParam[conf->pvec[i].molType].bond2c >= 0.0) {
+                    if(pos+2 < topo.moleculeParam[conf->pvec[i].molType].molSize() && i+2 == j ) {
+                        bonded = true;
+                    }
+                }
+            }
+
+            if (r_cm2 <= sim->max_dist_squared[conf->pvec[i].type][conf->pvec[j].type] || bonded){
                 conf->neighborList[i].neighborID[conf->neighborList[i].neighborCount] = j;
                 conf->neighborList[j].neighborID[conf->neighborList[j].neighborCount] = i;
 
-                /*conf->neighborList[i].energyID[conf->neighborList[i].neighborCount] = calcEnergy.p2p(i,j);
-                conf->neighborList[j].energyID[conf->neighborList[j].neighborCount] = conf->neighborList[i].energyID[conf->neighborList[i].neighborCount];*/
-
                 conf->neighborList[i].neighborCount++;
                 conf->neighborList[j].neighborCount++;
+                bonded = false;
             }
         }
     }

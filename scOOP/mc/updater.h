@@ -62,13 +62,11 @@ private:
         if(conf->pvec.empty())
             return true;
 
-        for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
-            for(unsigned int j = i + 1; j < conf->pvec.size(); j++){
+        for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
+            for (unsigned long j = 0; j < i; ++j) {
                 if( !(calcEnergy.eMat.energyMatrix->operator [](i)[j] + 0.0000001 >= calcEnergy.p2p(i,j)
-                        && calcEnergy.eMat.energyMatrix->operator [](i)[j] - 0.0000001 <= calcEnergy.p2p(i,j)  )
-                        || calcEnergy.eMat.energyMatrix->operator [](j)[i] != calcEnergy.eMat.energyMatrix->operator [](i)[j] ) {
-                    cout << "[i][j]= " << calcEnergy.eMat.energyMatrix->operator [](i)[j] << ", "
-                         << "[j][i]= " << calcEnergy.eMat.energyMatrix->operator [](j)[i]
+                        && calcEnergy.eMat.energyMatrix->operator [](i)[j] - 0.0000001 <= calcEnergy.p2p(i,j)  ) ) {
+                    cout << "[" << i << "][" << j << "]= " << calcEnergy.eMat.energyMatrix->operator [](i)[j] << ", "
                          << ", calc= " << calcEnergy.p2p(i,j) << endl;
                     return false;
                 }

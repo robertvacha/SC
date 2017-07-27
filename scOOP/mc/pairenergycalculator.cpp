@@ -27,7 +27,7 @@ double PairEnergyCalculator::operator ()(Particle *part1, Particle *part2, ConLi
     //if(dotrcm >= 1.0) return 0.0;
     //if(dotrcm < 1.0) return INFINITY;
 
-    if (dotrcm > topo.sqmaxcut) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
+    if (dotrcm > topo.sqmaxcut && conlist->isEmpty) return 0.0;  /* distance so far that even spherocylinders cannot be within cutoff  */
 
     contt = 0;
     distvec.x = 0;
