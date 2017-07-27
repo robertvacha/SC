@@ -141,7 +141,7 @@ void Topo::genTopoParams() {
             maxlength = ia_params[i][i].len[0];
     }
 
-    sqmaxcut += maxlength+2;
+    sqmaxcut += maxlength;
     sqmaxcut *= 1.1;
     maxcut = sqmaxcut;
     sqmaxcut = sqmaxcut*sqmaxcut;
