@@ -1200,11 +1200,11 @@ class PairE {
 public:
     PairE(GeoBase* pbc) : pbc(pbc) { initIntFCE(); }
 
-    double operator() (Particle* part1, Particle* part2, ConList* conlist=NULL) {
+    double operator() (Particle* part1, Particle* part2, ConList* conlist=nullptr) {
         Vector r_cm = pbc->image(&part1->pos, &part2->pos);
         double dotrcm = r_cm.dot(r_cm);
 
-        if (dotrcm > topo.sqmaxcut)
+        if (dotrcm > topo.sqmaxcut && conlist == nullptr)
             return 0.0;  // distance so far that even spherocylinders cannot be within cutoff
 
         double dist = sqrt(dotrcm);
