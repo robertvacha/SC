@@ -270,7 +270,7 @@ public:
     /**
      * @brief Calculates energy between particle "target" and the rest, conlist and neighbor list can be null, for GrandCanonical mainly
      */
-    double oneToAll(Particle* target, ConList* conlist=NULL, Neighbors* neighborList=NULL) {
+    double oneToAll(Particle* target, ConList* conlist=ConList(), Neighbors* neighborList=NULL) {
         double energy=0.0;
         unsigned long i;
 
@@ -354,7 +354,7 @@ public:
         if (pairListUpdate) {
             changes->resize( conf->neighborList[target].neighborCount );
             for (i = 0; i < conf->neighborList[target].neighborCount; i++) {
-                (*changes)[i] = pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], (conlist.isEmpty) ? nullptr : &conlist);
+                (*changes)[i] = pairE(&conf->pvec[target], &conf->pvec[ conf->neighborList[target].neighborID[i] ], &conlist);
                 energy += (*changes)[i];
             }
         } else {
