@@ -483,7 +483,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
     double change; // energy
     double *recwlweights;
     double volume = conf->geo.volume();
-    double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+    double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
 
     int sizewl = 0, receiverRank = -1, receivedRank = -1;
     int rank;
@@ -604,14 +604,14 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
                 localmpi.accepted = receivedmpi.accepted;
 
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) * sim->temper;
 
                 sim->temper = receivedmpi.temperature;
                 sim->press = receivedmpi.press;
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
-                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper) - entrophy;
 
             } else {
                 sim->stat.mpiexch.rej++;
@@ -673,7 +673,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  ) ) { // Exchange ACCEPTED send local stuff
                 localmpi.accepted = 1;
 
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) * sim->temper;
 
                 // change temperature and pseudorank
                 sim->temper = receivedmpi.temperature;
@@ -681,7 +681,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
-                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper) - entrophy;
 
                 if ( wl.wlm[0] > 0 ) {
                     for (int wli=0;wli<wl.wlmdim;wli++) {
@@ -730,7 +730,7 @@ double MoveCreator::muVTMove() {
 
     Molecule target;
     double volume = conf->geo.volume();
-    double entrophy = log(volume)/sim->temper;
+    double entrophy = log(volume)*sim->temper;
     double energy = 0.0;
     unsigned int molSize=0;
     Vector displace;

@@ -105,7 +105,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     edriftstart = calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);     // Energy drift calculation - start
 
     double volume = conf->geo.volume();          // volume of geo.box
-    const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;    // PV drift calculation - start
+    const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;    // PV drift calculation - start
 
     /********************************************************/
     /*                 Simulation Loop                      */
@@ -116,7 +116,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
-            pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+            pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
             time = clock()-time;
             cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
                  << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
@@ -315,7 +315,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //do energy drift check - at the end calculation
     volume = conf->geo.volume();
     edriftend = calcEnergy.allToAll();
-    pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+    pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
     if(sim->mpinprocs > 1) {
         printf("%d Energy drift: %.5e \n", sim->pseudoRank, edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
         /*printf("%d Starting energy: %.8f \n", sim->pseudoRank, edriftstart);
