@@ -146,15 +146,15 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 #endif
     if (conf->geo.box.x < maxlength * 2.0 + 2.0) {
         printf ("WARNING: x (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.x, maxlength * 2.0 + 2.0);
-        exit(1);
+        //exit(1);
     }
     if (conf->geo.box.y < maxlength * 2.0 + 2.0) {
         printf ("WARNING: y (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.y, maxlength * 2.0 + 2.0);
-        exit(1);
+        //exit(1);
     }
     if (conf->geo.box.z < maxlength * 2.0 + 2.0) {
         printf ("WARNING: z (%f) geo.box length is less than two spherocylinders long (%f).\n\n", conf->geo.box.z, maxlength * 2.0 + 2.0);
-        exit(1);
+        //exit(1);
     }
 
     DEBUG_INIT("Position of the particle");
@@ -216,7 +216,7 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
             pvec[i].dir.normalise();
         }
 
-        if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
+        if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP && topo.ia_params[pvec[i].type][pvec[i].type].geotype[0] != SCN )&&( DOT(pvec[i].patchdir[0], pvec[i].patchdir[0]) < ZEROTOL )) {
             fprintf (stderr,
                     "ERROR: Null patch vector supplied for particle %u.\n\n", i+1);
             free(line);
@@ -318,14 +318,13 @@ void Inicializer::testChains() {
 }
 
 void Inicializer::initNeighborList() {
-    cout << "\nAllocating memory for pairlist..." << endl;
-    //sim->pairlist = (Pairs*) xMalloc(sizeof(Pairs) * topo.npart); // deprecated, see Conf->neighborlist
+    cout << "\nAllocating memory for pairlist, " << (double) conf->neighborList.size() * sizeof(long) * MAXNEIGHBORS / (1024 *1024) << " MB" << endl;
 
     // Highest guess: Every particle interacts with the others
     // TODO: Make it more sophisticated
     conf->neighborList.resize(conf->pvec.size());
     for(unsigned long i = 0; i < conf->neighborList.size(); i++){
-        conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * MAXN);
+        conf->neighborList[i].neighborID = (long int*) malloc(sizeof(long) * MAXNEIGHBORS);
         conf->neighborList[i].neighborCount = 0;
     }
 }
@@ -364,7 +363,6 @@ void Inicializer::initGroupLists() {
                 }
 
                 empty = false;
-                //cout << type << "=" << i << endl;
                 break;
             }
             i++;

@@ -26,6 +26,7 @@ public:
     double c[2];
     double eq[2];
 
+    // tail, head, second neighbor tail, second neighbor head
     Particle* conlist[4] = {nullptr};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 };
 

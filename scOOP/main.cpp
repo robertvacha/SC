@@ -35,7 +35,6 @@ int main(int argc, char** argv) {
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &procs );
     MPI_Comm_rank(MPI_COMM_WORLD, &rank );
-
 #endif
 
 #ifdef EXTRA_HYDROPHOBIC_ALL_BODY_ATTRACTION
@@ -108,7 +107,7 @@ int main(int argc, char** argv) {
             sim.max_dist_squared[i][j] = AVER(sim.stat.trans[i].mx, sim.stat.trans[j].mx);
             sim.max_dist_squared[i][j] *= (1 + sim.pairlist_update) * 2;
             sim.max_dist_squared[i][j] += topo.maxcut;
-            sim.max_dist_squared[i][j] *= sim.max_dist_squared[i][j]; /* squared */
+            sim.max_dist_squared[i][j] *= sim.max_dist_squared[i][j]; // squared
             if(sim.cell < sim.max_dist_squared[i][j])
                 sim.cell = sim.max_dist_squared[i][j];
         }

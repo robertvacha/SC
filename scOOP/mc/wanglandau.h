@@ -15,8 +15,18 @@
  */
 class WangLandau
 {
+#ifdef ENABLE_MPI
+    MPI_Win _winInt;
+    MPI_Win _winDouble;
+    MPI_Win _winShared;
+    MPI_Aint _sizeInt;
+    MPI_Aint _sizeDouble;
+    MPI_Aint _sizeShared;
+#endif
 public:
-    WangLandau(Conf* conf, Sim* sim) : conf(conf) {
+    const int mpirank;
+
+    WangLandau(Conf* conf, Sim* sim) : conf(conf), mpirank(sim->mpirank) {
         wlmtype = sim->wlmtype;
         wlm[0] = sim->wlm[0];
         wlm[1] = sim->wlm[1];
@@ -28,10 +38,12 @@ public:
 
     double *weights;           ///< \brief Array of weights for wl method
     long   *hist;              ///< \brief Array of histogram for wl method
+    double *shared;             ///< \brief Alpha, min, wmin
     long   length[2];          ///< \brief Length of above arrays
     double dorder[2];          ///< \brief Increments of order parameter
     double minorder[2];        ///< \brief Minimum order parameter
     double alpha;              ///< \brief Current modifier of weights
+
     long   currorder[2];       ///< \brief Walue of current order parameter
     long   neworder[2];        ///< \brief wl order parameter in new step
     long   max;                ///< \brief wl maximum of histogram
@@ -51,45 +63,61 @@ public:
 public:
 
     bool update(double temper) {
-        min = hist[0];
-        max = hist[0];
-        int j;
-        for (int i=0;i < length[0];i++) {
-            j=0;
-            if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
-            if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
-            for (j=1;j < length[1];j++) {
+        if(mpirank == 0) {
+            min = hist[0];
+            max = hist[0]; // only local
+            int j;
+            for (int i=0;i < length[0];i++) {
+                j=0;
                 if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
                 if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+                for (j=1;j < length[1];j++) {
+                    if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
+                    if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+                }
             }
-        }
-        if ( min > WL_MINHIST ) {
-            if ( temper * log(max/min) < WL_GERR ) {
-                /*DEBUG
+            if ( min > WL_MINHIST ) {
+                if ( temper * log(max/min) < WL_GERR ) {
+                    /*DEBUG
                       for (i=1;i<wl.length;i++) {
                       printf (" %15.8e %15ld %15.8f\n",wl.weights[i],wl.hist[i],pvec[0].pos.z);
                       fflush(stdout);
                       }
                      */
-                if ( alpha < WL_ALPHATOL)
-                    return true;
-                alpha/=2;
-                printf("%f \n", alpha);
-                fflush (stdout);
-                wmin = weights[0];
+                    if ( alpha < WL_ALPHATOL)
+                        return true;
+                    alpha/=2;
+                    printf("%f \n", alpha);
+                    fflush (stdout);
+                    wmin = weights[0];
 
-                for (int i=0;i < length[0];i++) {
-                    j=0;
-                    hist[i+j*length[0]] = 0;
-                    weights[i+j*length[0]] -= wmin;
-                    for (j=1;j < length[1];j++) {
+                    for (int i=0;i < length[0];i++) {
+                        j=0;
                         hist[i+j*length[0]] = 0;
                         weights[i+j*length[0]] -= wmin;
+                        for (j=1;j < length[1];j++) {
+                            hist[i+j*length[0]] = 0;
+                            weights[i+j*length[0]] -= wmin;
+                        }
                     }
-                }
 
+                }
             }
+            shared[0] = alpha;
+            shared[1] = min;
+            shared[2] = wmin;
         }
+#ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+        if(mpirank != 0){
+            alpha = shared[0];
+            min = shared[1];
+            wmin = shared[2];
+        }
+#ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
         return false;
     }
 
@@ -516,10 +544,18 @@ private:
      * @return
      */
     int end() {
+#ifdef ENABLE_MPI
+        MPI_Win_free(&_winDouble);
+        MPI_Win_free(&_winInt);
+        MPI_Win_free(&_winShared);
+#else
         free(weights);
         weights = NULL;
         free(hist);
+        free(shared);
         hist = NULL;
+        shared = NULL;
+#endif
         return 0;
     }
 

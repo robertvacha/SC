@@ -285,6 +285,7 @@ public:
     AngleSc(GeoBase* pbc) : EBond(pbc) {}
 
     double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
+        assert(conlist != nullptr);
 
         double currangle, halfl;
         Vector vec1, vec2;
@@ -1202,6 +1203,7 @@ public:
     PairE(GeoBase* pbc) : pbc(pbc) { initIntFCE(); }
 
     double operator() (Particle* part1, Particle* part2, ConList* conlist) {
+        assert(conlist != nullptr);
         Vector r_cm = pbc->image(&part1->pos, &part2->pos);
         double dotrcm = r_cm.dot(r_cm);
 

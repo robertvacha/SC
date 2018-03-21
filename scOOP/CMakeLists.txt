@@ -26,7 +26,7 @@ endif()
 #   OPEN_MP PARALELLIZATION
 # ----=--------------------------------
 if(ENABLE_OPENMP)
-    add_definitions(-DOMP1)
+    add_definitions(-DOMP)
     find_package(OpenMP)
     if (OPENMP_FOUND)
         set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -62,7 +62,7 @@ if(ENABLE_MPI)
   endif()
 endif()
 
-add_executable (SC main.cpp 
+add_executable (SC main.cpp
 #
 # STRUCTURES
 #
