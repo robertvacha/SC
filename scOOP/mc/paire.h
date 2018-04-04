@@ -989,6 +989,8 @@ public:
     }
 };
 
+
+
 template<typename EPotential>
 class CPscSpa : public PscSpa<EPotential> {
 public:
@@ -1009,7 +1011,6 @@ public:
 
 
 
-
 template <typename PatchE, typename BondE, typename AngleE>
 class MixSpSc : public EBasic {
     PatchE patchE;
@@ -1019,7 +1020,7 @@ public:
     MixSpSc(GeoBase* pbc) : bondE(pbc), angleE(pbc) {}
 
     double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
-        double atrenergy, repenergy = 0.0, contt=0.0, abE = 0.0;
+        double atrenergy = 0.0, repenergy = 0.0, contt=0.0, abE = 0.0;
         Vector distvec;
         bool isp1Spc = (topo.ia_params[part1->type][part2->type].geotype[0] < SP);
         const Particle* spc = (isp1Spc) ? part1 : part2;
@@ -1059,6 +1060,7 @@ public:
                                                (Patch(spc->patchdir[1], spc->patchsides[2], spc->patchsides[3])) );
             }
         }
+
         return abE+repenergy+atrenergy;
     }
 

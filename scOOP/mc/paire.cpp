@@ -16,19 +16,28 @@ void PairE::initIntFCE() {
             geotype = topo.ia_params[i][j].geotype[0];
             other_geotype = topo.ia_params[i][j].geotype[1];
 
+            // spherocylinder: SC SCN SCA PSC CPSC CHPSC CHCPSC TPSC TCPSC TCHPSC TCHCPSC
+            // Any PSC (PSC, CHPSC, TPSC, TCHPSC)
+            // Any CPSC (CPSC, CHCPSC, TCPSC, TCHCPSC)
+            // sphere: SP SPN SPA
+
             //
             //  BOTH PARTICLES ARE SPHEROCYLINDERS
             //
+
+            //  Any CPSC WITH Any PSC
             if ( ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) ||
                   ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC)  &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) )  {
                 eFce[i][j] = new SpheroCylinder<PscCPsc<WcaTruncSq>,HarmonicSc, AngleSc>(pbc);
             }
+            // Any CPSC WITH Any CPSC
             if ( (geotype == CHCPSC || geotype == CPSC || geotype == TCHCPSC || geotype == TCPSC) &&
                     (other_geotype == CHCPSC || other_geotype == CPSC || other_geotype == TCHCPSC || other_geotype == TCPSC) ) {
                 eFce[i][j] = new SpheroCylinder<CPsc<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
+            // Any PSC WITH Any PSC
             if ( (geotype == CHPSC || geotype == PSC || geotype == TCHPSC || geotype == TPSC) &&
                  (other_geotype == CHPSC || other_geotype == PSC || other_geotype == TCHPSC || other_geotype == TPSC) ) {
                 eFce[i][j] = new SpheroCylinder<Psc<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
@@ -46,7 +55,7 @@ void PairE::initIntFCE() {
             if( geotype == SPN || other_geotype == SPN ) {
                 eFce[i][j] = new Sphere<WcaTrunc, HarmonicSp>(pbc);
             }
-            if( geotype == SPA && other_geotype == SPA ) {
+            if( geotype == SPA && other_geotype == SPA ) {  // Taylor polynomial overestimates the potential by 10^-6 at values close to ATTRACT_DIST + ATTRACT_SWITCH
                 eFce[i][j] = new Sphere<WcaCos2Taylor, HarmonicSp>(pbc);
             }
 
@@ -56,12 +65,14 @@ void PairE::initIntFCE() {
             if((geotype == SCA && other_geotype == SPA) || (geotype == SPA && other_geotype == SCA) ) {
                 eFce[i][j] = new MixSpSc<ScaSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
-            if(( (geotype == PSC || geotype == CHPSC || geotype == TCHPSC || geotype == TPSC) && other_geotype == SPA)
-                    || (geotype == SPA && (other_geotype == PSC||other_geotype == CHPSC || other_geotype == TCHPSC || other_geotype == TPSC) )){
+            // Any PSC WITH SPA + SPN, NOTE: iaParam.rcutSq == 0 for SPN
+            if(( (geotype == PSC || geotype == CHPSC || geotype == TCHPSC || geotype == TPSC) && ( other_geotype == SPA || other_geotype == SPN ))
+                    || ( ( geotype == SPA || geotype == SPN ) && (other_geotype == PSC||other_geotype == CHPSC || other_geotype == TCHPSC || other_geotype == TPSC) )){
                 eFce[i][j] = new MixSpSc<PscSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
-            if(( (geotype == CPSC ||geotype == CHCPSC || geotype == TCHCPSC || geotype == TCPSC) && other_geotype == SPA)
-                    || (geotype == SPA && (other_geotype == CPSC||other_geotype == CHCPSC || other_geotype == TCHCPSC || other_geotype == TCPSC)  )){
+            // Any CPSC WITH SPA + SPN, NOTE: iaParam.rcutSq == 0 for SPN
+            if(( (geotype == CPSC ||geotype == CHCPSC || geotype == TCHCPSC || geotype == TCPSC) && ( other_geotype == SPA || other_geotype == SPN ) )
+                    || ( ( geotype == SPA || geotype == SPN ) && (other_geotype == CPSC||other_geotype == CHCPSC || other_geotype == TCHCPSC || other_geotype == TCPSC)  )){
                 eFce[i][j] = new MixSpSc<CPscSpa<WcaTruncSq>, HarmonicSc, AngleSc>(pbc);
             }
         }

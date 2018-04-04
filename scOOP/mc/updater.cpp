@@ -66,14 +66,17 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     long step;         // Step number within a given sweep
     long sweep;        // Current sweep number
 
+    //
+    // Erase content of energy.dat, stat.dat, clusterstat and clusterfile
+    //
     emptyFiles();
 
     FILE* ef;
-    FILE* statf;
     ef = fopen(files->energyfile, "a");
     fprintf (ef, "# sweep    energy\n");
     fclose(ef);
 
+    FILE* statf;
     statf = fopen(files->statfile, "a");
     fprintf (statf, "# sweep    volume\n");
     fclose(statf);
@@ -87,6 +90,23 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     }
 
     initValues();
+
+    if(showPairInteractions) {
+        for(int i=0; i< conf->pvec.size(); ++i) {
+            conf->pvec[i].testInit(PSC, i);
+        }
+        double e;
+        for(int i=0; i< conf->pvec.size()-1; ++i) {
+            for(int j=i+1; j< conf->pvec.size(); ++j) {
+                e = calcEnergy.p2p(i,j);
+                if(e < 1000.0)
+                    printf("%lf\n", e);
+                else printf("%lf\n", 1000.0);
+            }
+            printf("\n");
+        }
+        exit(0);
+    }
 
     move.wl.init(files->wlinfile);
     //do moves - START OF REAL MC
@@ -396,7 +416,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
                 }
             }
         }
-
         //printf("EdriftChanges: %.5e\n", edriftchanges);
     }
 

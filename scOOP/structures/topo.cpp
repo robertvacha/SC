@@ -91,7 +91,12 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
                     ia_params[i][j].pdis = AVER(ia_params[i][i].pdis - ia_params[i][i].rcutwca,
                                                       ia_params[j][j].pdis - ia_params[j][j].rcutwca) + ia_params[i][j].rcutwca;
                     ia_params[i][j].pdisSq = ia_params[i][j].pdis * ia_params[i][j].pdis;
-                    ia_params[i][j].rcut = ia_params[i][j].pswitch+ia_params[i][j].pdis;
+
+                    if( ia_params[i][j].geotype[0] == SPN || ia_params[i][j].geotype[1] == SPN)
+                        ia_params[i][j].rcut = 0.0;
+                    else
+                        ia_params[i][j].rcut = ia_params[i][j].pswitch+ia_params[i][j].pdis;
+
                     ia_params[i][j].rcutSq = ia_params[i][j].rcut * ia_params[i][j].rcut;
 
                     // if not non-attractive == if attractive

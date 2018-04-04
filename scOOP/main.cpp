@@ -336,8 +336,6 @@ int main(int argc, char** argv) {
     /*                   MEMORY DEALLOC                     */
     /********************************************************/
 
-    //sim.~Sim(); topo.~Topo(); conf.~Conf(); // note: called automatically at end of main
-
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

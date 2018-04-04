@@ -768,7 +768,11 @@ int Inicializer::fillTypes(char **pline) {
         topo.ia_params[type][type].pdisSq = topo.ia_params[type][type].pdis * topo.ia_params[type][type].pdis;
         topo.ia_params[type][type].pswitch = param[3];
         topo.ia_params[type][type].pswitchINV = 1.0/param[3];
-        topo.ia_params[type][type].rcut = topo.ia_params[type][type].pswitch+topo.ia_params[type][type].pdis;
+        if(geotype_i != SPN)
+            topo.ia_params[type][type].rcut = topo.ia_params[type][type].pswitch+topo.ia_params[type][type].pdis;
+        else
+            topo.ia_params[type][type].rcut = 0.0;
+
         topo.ia_params[type][type].rcutSq = topo.ia_params[type][type].rcut * topo.ia_params[type][type].rcut;
         fprintf(stdout, " | %g %g",topo.ia_params[type][type].pdis,topo.ia_params[type][type].pswitch);
     }

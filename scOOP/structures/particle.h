@@ -82,27 +82,64 @@ public:
 
     }
 
+
+
     /**
      * @brief testInit - dir, patchdir and chdir must be unit vectors
      * @return
      */
-    bool testInit(int geotype) {
+    bool testInit(int geotype, int i) {
 
-        if( ( dir.dot(dir) > 1.000001 || dir.dot(dir) < 0.999999 ) && !((geotype == SCA) || (geotype == SCN)) ) {
-            cout << "Vector dir is not an unit Vector" << endl;
+//#define PSC SC+2          /*spherocylinder with patchy attraction*/
+//#define CPSC SC+3         /*spherocylinder with cylindrical patchy attraction*/
+//#define CHPSC SC+4        /* chiral psc */
+//#define CHCPSC SC+5       /* chiral cpsc */
+//#define TPSC SC+6          /*spherocylinder with two patches*/
+//#define TCPSC SC+7         /*spherocylinder with two cylindrical patches*/
+//#define TCHPSC SC+8        /* chiral 2psc */
+//#define TCHCPSC SC+9       /* chiral 2cpsc */
+
+        // Spheres -> do nothing
+        if( ((geotype == SPN) || (geotype == SPA)) ) {
+            return true;
+        }
+
+        // all spherocylinder types, test dir unit length
+        if( !dir.isUnit() ) {
+            cerr << "Vector dir is not an unit Vector, particle: " << i << endl;
             return false;
         }
 
-        if(patchdir[0].dot(patchdir[0]) > 1.000001 || patchdir[0].dot(patchdir[0]) < 0.999999 ) {
-            cout << "Vector patchdir[0] is not an unit Vector" << endl;
+        if( (geotype == SCA) || (geotype == SCN) )
+            return true;
+
+        // all patchy spherocylinder types, test patchdir unit length, and if it is perpendicular to dir
+        if( !patchdir[0].isUnit() ) {
+            cout << "Vector patchdir[0] is not an unit Vector, particle: " << i << endl;
             return false;
         }
+        if( fabs( patchdir[0].dot(dir) ) >= 0.00001) {
+            cout << "Vector patchdir[0] is not perpendicular to dir, particle: " << i << endl;
+            return false;
+        }
+
+        if( (geotype == CHPSC) || (CHCPSC == geotype) ) {
+            if( !chdir[0].isUnit() ) {
+                cout << "Vector chdir[0] is not an unit Vector, particle: " << i << endl;
+                return false;
+            }
+        }
+
+        if( (geotype == PSC) || (geotype == CPSC) || (geotype == CHPSC) || (CHCPSC == geotype) )
+            return true;
+
+
 
         // calculate second patchdir
         if ( (geotype == TPSC) || (geotype == TCPSC) ||
           (geotype == TCHPSC) || (geotype == TCHCPSC)) {
 
-            if(patchdir[1].dot(patchdir[1]) > 1.000001 || patchdir[1].dot(patchdir[1]) < 0.999999 ) {
+            if( !patchdir[1].isUnit() ) {
                 cout << "Vector patchdir[1] is not an unit Vector" << endl;
                 return false;
             }
@@ -112,7 +149,7 @@ public:
         if ( (geotype == CHPSC) || (geotype == CHCPSC)
           || (geotype == TCHPSC) || (geotype == TCHCPSC)) {
 
-            if(chdir[0].dot(chdir[0]) > 1.000001 || chdir[0].dot(chdir[0]) < 0.999999) {
+            if( !chdir[0].isUnit() ) {
                 cout << "Vector chdir[0] is not an unit Vector" << endl;
                 return false;
             }
@@ -121,18 +158,12 @@ public:
         // calculate chdir vector for seond patch
         if ( (geotype == TCHPSC) || (geotype == TCHCPSC) ) {
 
-            if(fabs(chdir[1].dot(chdir[1]) - 1.0) > 1e-13) {
+            if( chdir[1].isUnit() ) {
                 cout << "Vector chdir[1] is not an unit Vector" << endl;
                 return false;
             }
         }
 
-        /*if(pos.x < 0.0 || pos.x > 1.0)
-            return false;
-        if(pos.y < 0.0 || pos.y > 1.0)
-            return false;
-        if(pos.z < 0.0 || pos.z > 1.0)
-            return false;*/
         return true;
     }
 
