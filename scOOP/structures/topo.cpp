@@ -135,8 +135,6 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
             ia_params[i][j].exclude = exclusions[i][j];
         }
     }
-
-    cout << "\n\n\n check pdis and rcutWCA validity - NOT DONE\n\n" << endl;
 }
 
 void Topo::genTopoParams() {
@@ -243,8 +241,6 @@ int Topo::fillTypes(char **pline) {
     fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le %le",
                     name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4],
             &param[5], &param[6], &param[7], &param[8], &param[9], &param[10], &param[11]);
-
-    cout << "Fields:" << fields << " " << param[11] << endl;
 
     fields -= 5; // number of parameter fields => I am too lazy to adjust everywhere below the numbers
     //DEBUG    fprintf (stdout, "Topology read geotype: %ld with parameters fields %d, str:%s and %s in pline %s\n",geotype,fields,geotypestr,paramstr,pline);

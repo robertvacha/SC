@@ -5,6 +5,7 @@
 #include "topo.h"
 
 extern Topo topo;
+extern MpiCout mcout;
 
 class Patch {
 public:

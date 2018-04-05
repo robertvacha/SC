@@ -4,7 +4,7 @@
 
 
 void PairE::initIntFCE() {
-    cout << "\nInitializing energy functors...\n";
+    mcout.get() << "\nInitializing energy functors...\n";
     // NB
     // Fill in the names of the functions for calculating the
     // interaction energy

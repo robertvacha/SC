@@ -36,16 +36,16 @@ public:
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
                 energyMatrix->operator [](i).resize(i);
             }
-            cout << "Alloc of EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
+            mcout.get() << "Alloc of EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
 
             energyMatrixTrial->reserve(conf->pvec.size()+1024);
             energyMatrixTrial->resize(conf->pvec.size());
             for(unsigned int i=0; i < conf->pvec.size(); i++) {
                 energyMatrixTrial->operator [](i).resize(i);
             }
-            cout << "Alloc of trial EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
+            mcout.get() << "Alloc of trial EM " << conf->pvec.size() * sizeof(TFloat) * conf->pvec.size() / (2 * 1024 * 1024) << " MB" << endl;
         } catch(std::bad_alloc& bad) {
-            fprintf(stderr, "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix");
+            cerr << "\nTOPOLOGY ERROR: Could not allocate memory for Energy matrix" << endl;
         }
     }
 
@@ -1192,10 +1192,10 @@ public:
 //  Full-scope Total energy calculators
 //
 //typedef TotalE<PairE> TotalEnergyCalculator;                        // Empty Energy
-//typedef TotalEMatrix<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
+//typedef TotalEFull<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
 typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
 //typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
-//typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairE> > TotalEnergyCalculator;         // Test of Pair energy
+//typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairEnergyCalculator> > TotalEnergyCalculator;         // Test of Pair energy
 //typedef TotalEFullSymetry<PairE> TotalEnergyCalculator;         // Test of Pair energy symetry
 
 //

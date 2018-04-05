@@ -5,6 +5,9 @@
 #include "structures.h"
 #include "../mc/simlib.h"
 #include "../mc/mygetline.h"
+#include "mpicout.h"
+
+extern MpiCout mcout;
 
 /* It would be nice, if this struct would contain all the topo stuff in the end*/
 class Topo
@@ -32,8 +35,6 @@ public:
     }
 
     ~Topo() {
-        printf ("Deallocating Topo...\n");
-
         for(int i=0; i<MAXMT; i++) {
             free(moleculeParam[i].name);
         }
@@ -89,9 +90,7 @@ private:
             exit (1);
         }
 
-        if(SILENT == 1)
-            cout << "Reading topology...\n"
-                 << "Species:" << endl;
+        mcout.get() << "Reading topology...\n" << "Species:" << endl;
 
         molname[0] = ' ';
 

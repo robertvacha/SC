@@ -273,8 +273,8 @@ int WangLandau::initCalc(char filename[]) {
         return 1;
     }
     /*DEBUG*/
-    printf("Wang-Landau method init:\n");
-    printf("alpha: %f\n",alpha);
+    mcout.get() << "Wang-Landau method init:" << endl;
+    mcout.get() << "alpha: " << alpha << endl;
     /*int j=0;
     if (length[1] == 0) {
         for (i=0; i<length[0]; i++) {
@@ -289,8 +289,6 @@ int WangLandau::initCalc(char filename[]) {
         }
     }*/
     fclose(infile);
-    fflush(stdout);
-
     return 0;
 }
 

@@ -66,6 +66,7 @@ add_executable (SC main.cpp
 #
 # STRUCTURES
 #
+structures/mpicout.h     			  # mpicout
 structures/macros.h                               # MACROS
 structures/Vector.h                               # VECTOR
 structures/quaternion.h                           # QUATERNION

@@ -345,8 +345,6 @@ public:
     }
 
     ~Conf() {
-        printf ("Deallocating Conf...\n");
-
         for(unsigned int i=0; i < neighborList.size(); i++){
             delete neighborList[i].neighborID;
             neighborList[i].neighborID = NULL;

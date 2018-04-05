@@ -96,7 +96,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             conf->pvec[i].testInit(PSC, i);
         }
         double e;
-        for(int i=0; i< conf->pvec.size()-1; ++i) {
+        for(int i=0; i< 1/* conf->pvec.size()-1*/; ++i) {
             for(int j=i+1; j< conf->pvec.size(); ++j) {
                 e = calcEnergy.p2p(i,j);
                 if(e < 1000.0)
@@ -138,10 +138,10 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
             time = clock()-time;
-            cout << "sweep: " << sweep << " particles: " << conf->pvec.size()
+            mcout.get() << "sweep: " << sweep << " particles: " << conf->pvec.size()
                  << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
-            cout <<"\nInteractionEnergy: " << edriftend;
-            cout << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
+            mcout.get() <<"\nInteractionEnergy: " << edriftend;
+            mcout.get() << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
             time = clock();
         }
 
@@ -336,103 +336,92 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     volume = conf->geo.volume();
     edriftend = calcEnergy.allToAll();
     pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-    if(sim->mpinprocs > 1) {
-        printf("%d Energy drift: %.5e \n", sim->pseudoRank, edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
-        /*printf("%d Starting energy: %.8f \n", sim->pseudoRank, edriftstart);
-        printf("%d Ending energy: %.8f \n", sim->pseudoRank, edriftend);
-        printf("%d EdriftChanges: %.5e\n", sim->pseudoRank, edriftchanges);
-        printf("%d Starting pV: %.8f \n", sim->pseudoRank, pvdriftstart);
-        printf("%d Ending pV: %.8f \n", sim->pseudoRank, pvdriftend);*/
+
+    mcout.get() << "\nEnergy drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << endl;
+    mcout.get() << "Starting energy+pv: " << edriftstart+pvdriftstart << endl;
+    mcout.get() << "Starting energy: " << edriftstart << endl;
+    mcout.get() << "Ending energy: " << edriftend << endl;
+
+    mcout.get() << std::setprecision(2) << std::left;
+    mcout.get() << "\n\n******************************************************************************" << endl;
+    mcout.get() << "*                               Moves Statistics                             *" << endl;
+    mcout.get() << "******************************************************************************" << endl;
+    mcout.get() << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
+
+    if(sim->stat.stepsSTrans() > 0) {
+        mcout.get() << setw(30) << "Single particle translation: "
+                    << setw(10) <<  (double)sim->stat.accSTrans()/sim->stat.stepsSTrans()*100.0
+                    << setw(10) << (double)sim->stat.rejSTrans()/sim->stat.stepsSTrans()*100.0
+                    << setw(10) << sim->stat.stepsSTrans() << endl;
     }
-    else {
-        printf("Energy drift: %.5e \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
-        printf("Starting energy+pv: %.8f \n",edriftstart+pvdriftstart);
-        printf("Starting energy: %.8f \n",edriftstart);
-        printf("Ending energy: %.8f \n",edriftend);
 
-        cout << std::setprecision(2) << std::left;
-        cout << "\n\n******************************************************************************" << endl;
-        cout << "*                               Moves Statistics                             *" << endl;
-        cout << "******************************************************************************" << endl;
-        cout << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
+    if(sim->stat.stepsSRot() > 0) {
+        mcout.get() << setw(30) << "Single particle rotation: "
+                    << setw(10) << 100.0*sim->stat.accSRot()/sim->stat.stepsSRot()
+                    << setw(10) << (double)sim->stat.rejSRot()/sim->stat.stepsSRot()*100.0
+                    << setw(10) << sim->stat.stepsSRot() << endl;
+    }
 
-        if(sim->stat.stepsSTrans() > 0) {
-            cout << setw(30) << "Single particle translation: "
-                 << setw(10) <<  (double)sim->stat.accSTrans()/sim->stat.stepsSTrans()*100.0
-                 << setw(10) << (double)sim->stat.rejSTrans()/sim->stat.stepsSTrans()*100.0
-                 << setw(10) << sim->stat.stepsSTrans() << endl;
-        }
+    if(sim->stat.stepsCTrans() > 0) {
+        mcout.get() << setw(30) << "Chain translation: "
+                    << setw(10) <<  (double)sim->stat.accCTrans()/sim->stat.stepsCTrans()*100.0
+                    << setw(10) << (double)sim->stat.rejCTrans()/sim->stat.stepsCTrans()*100.0
+                    << setw(10) << sim->stat.stepsCTrans() << endl;
+    }
 
-        if(sim->stat.stepsSRot() > 0) {
-            cout << setw(30) << "Single particle rotation: "
-                 << setw(10) << 100.0*sim->stat.accSRot()/sim->stat.stepsSRot()
-                 << setw(10) << (double)sim->stat.rejSRot()/sim->stat.stepsSRot()*100.0
-                 << setw(10) << sim->stat.stepsSRot() << endl;
-        }
+    if(sim->stat.stepsCRot() > 0) {
+        mcout.get() << setw(30) << "Chain rotation: "
+                    << setw(10) <<  (double)sim->stat.accCRot()/sim->stat.stepsCRot()*100.0
+                    << setw(10) << (double)sim->stat.rejCRot()/sim->stat.stepsCRot()*100.0
+                    << setw(10) << sim->stat.stepsCRot() << endl;
+    }
 
-        if(sim->stat.stepsCTrans() > 0) {
-            cout << setw(30) << "Chain translation: "
-                 << setw(10) <<  (double)sim->stat.accCTrans()/sim->stat.stepsCTrans()*100.0
-                 << setw(10) << (double)sim->stat.rejCTrans()/sim->stat.stepsCTrans()*100.0
-                 << setw(10) << sim->stat.stepsCTrans() << endl;
-        }
+    if(sim->stat.edge.acc + sim->stat.edge.rej > 0) {
+        mcout.get() << setw(30) << "Pressure move: "
+                    << setw(10) << (double)sim->stat.edge.acc / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
+                    << setw(10) << (double)sim->stat.edge.rej / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
+                    << setw(10) << (sim->stat.edge.acc + sim->stat.edge.rej) << endl;
+    }
 
-        if(sim->stat.stepsCRot() > 0) {
-            cout << setw(30) << "Chain rotation: "
-                 << setw(10) <<  (double)sim->stat.accCRot()/sim->stat.stepsCRot()*100.0
-                 << setw(10) << (double)sim->stat.rejCRot()/sim->stat.stepsCRot()*100.0
-                 << setw(10) << sim->stat.stepsCRot() << endl;
-        }
+    if(sim->stat.stepsSwitch() > 0) {
+        mcout.get() << setw(30) << "Switch type move: "
+                    << setw(10) <<  (double)sim->stat.accSwitch()/sim->stat.stepsSwitch()*100.0
+                    << setw(10) << (double)sim->stat.rejSwitch()/sim->stat.stepsSwitch()*100.0
+                    << setw(10) << sim->stat.stepsSwitch() << endl;
+    }
 
-        if(sim->stat.edge.acc + sim->stat.edge.rej > 0) {
-            cout << setw(30) << "Pressure move: "
-                 << setw(10) << (double)sim->stat.edge.acc / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
-                 << setw(10) << (double)sim->stat.edge.rej / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
-                 << setw(10) << (sim->stat.edge.acc + sim->stat.edge.rej) << endl;
-        }
+    if(sim->nGrandCanon != 0) {
+        for(int i=0; i<conf->pvec.molTypeCount; i++) {
+            if(sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej > 0) {
+                mcout.get() << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
+                            << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                            << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
+                            << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
 
-        if(sim->stat.stepsSwitch() > 0) {
-            cout << setw(30) << "Switch type move: "
-                 << setw(10) <<  (double)sim->stat.accSwitch()/sim->stat.stepsSwitch()*100.0
-                 << setw(10) << (double)sim->stat.rejSwitch()/sim->stat.stepsSwitch()*100.0
-                 << setw(10) << sim->stat.stepsSwitch() << endl;
-        }
+                mcout.get() << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
+                            << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                            << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
+                            << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
 
-        if(sim->nGrandCanon != 0) {
-            for(int i=0; i<conf->pvec.molTypeCount; i++) {
-                if(sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej > 0) {
-                    cout << setw(20) << "Insert move of type " << setw(10) << topo.moleculeParam[i].name
-                         << setw(10) << (double) sim->stat.grand[i].insAcc / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                         << setw(10) << (double) sim->stat.grand[i].insRej / (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej)*100.0
-                         << setw(10) << (sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej) << endl;
-
-                    cout << setw(20) << "Remove move of type " << setw(10) << topo.moleculeParam[i].name
-                         << setw(10) << (double) sim->stat.grand[i].delAcc / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                         << setw(10) << (double) sim->stat.grand[i].delRej / (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej)*100.0
-                         << setw(10) << (sim->stat.grand[i].delAcc + sim->stat.grand[i].delRej) << endl;
-
-                    cout << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
-                         << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
-                }
+                mcout.get() << setw(20) << "Average particles of type " << setw(10) << topo.moleculeParam[i].name
+                            << setw(10) << (double) sim->stat.grand[i].muVtAverageParticles / sim->stat.grand[i].muVtSteps << endl;
             }
         }
-        //printf("EdriftChanges: %.5e\n", edriftchanges);
     }
+    //printf("EdriftChanges: %.5e\n", edriftchanges);
 
-//    printf("PVChanges: %.5e\n", pvdriftend -pvdriftstart);
 
-    printf("System:\n");
+    //    printf("PVChanges: %.5e\n", pvdriftend -pvdriftstart);
+
+    mcout.get() << "\nSystem:" << endl;
 
     for(i=0; i < conf->pvec.molTypeCount; i++)
-        printf("%s %d\n", topo.moleculeParam[i].name, conf->pvec.molCountOfType(i));
+        mcout.get() << topo.moleculeParam[i].name << " " << conf->pvec.molCountOfType(i) << endl;
 
-    fflush(stdout);
+    mcout.get() << endl;
 
     move.wl.endWangLandau(files->wloutfile);
 }
-
-
-
 
 
 
