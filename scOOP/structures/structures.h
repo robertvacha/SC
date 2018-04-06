@@ -63,7 +63,8 @@ typedef enum {
     Int,
     Int2,
     Long,
-    Double
+    Double,
+    Tuple
 } Type;
 
 

@@ -3,6 +3,7 @@
 #ifndef SIM_H
 #define SIM_H
 
+#include <tuple>
 #include "structures.h"
 #include "Conf.h"
 #include "../mc/mygetline.h"
@@ -125,9 +126,10 @@ private:
 
         int num_options = -1;
         double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
+        std::vector<tuple<int,double>> transmx_type;
         long int seed;
 
-        char *id, *value, *tokLine, *line;
+        char *id, *value, *num, *tokLine, *line;
         FILE *infile;
 
         // for new options add before the last line
@@ -156,6 +158,7 @@ private:
             {"temper",              Double, false, &temper},
             {"paraltemper",         Double, false, &paraltemper},
             {"transmx",             Double, false, &transmx},
+            {"transmx_type",        Tuple, false, &transmx_type},
             {"rotmx",               Double, false, &rotmx},
             {"coneAngle",           Double, true, &coneAngle}, // default value given in constructor of sim
             {"chainmmx",            Double, false, &chainmmx},
@@ -208,18 +211,45 @@ private:
                         options[i].set = true;
                         break;
                     }
-                    if(options[i].type == Int){
+                    if(options[i].type == Int) {
                         *((int *) options[i].var) = readi2(value);
                         options[i].set = true;
                         break;
                     }
-                    else if(options[i].type == Long){
+                    else if(options[i].type == Long) {
                         *((long *) options[i].var) = readl2(value);
                         options[i].set = true;
                         break;
                     }
-                    else if(options[i].type == Double){
+                    else if(options[i].type == Double) {
                         *((double *) options[i].var) = readd2(value);
+                        options[i].set = true;
+                        break;
+                    }
+                    else if(options[i].type == Tuple) {
+                        int val_int=0;
+                        double val_double = 0.0;
+
+                        num = strtok(value, " "); // we must start with value, but then only use NULL... stupid stupid stupid
+                        val_int = readl2(num);
+
+                        num = strtok(NULL, " ");
+                        val_double = readd2(num);
+
+                        transmx_type.push_back( tuple<int,double>( val_int, val_double ) );
+
+                        while(num != NULL) {
+                            num = strtok(NULL, " ");
+                            if(num == NULL) // ugly, but meh...
+                                break;
+                            val_int = readl2(num);
+
+                            num = strtok(NULL, " ");
+                            val_double = readd2(num);
+
+                            transmx_type.push_back( tuple<int,double>( val_int, val_double ) );
+                        }
+
                         options[i].set = true;
                         break;
                     }
@@ -339,6 +369,9 @@ private:
             stat.trans[i].mx = transmx;
             stat.rot[i].mx = rotmx;
             stat.rot[i].angle = angle;
+        }
+        for(unsigned int i = 0; i<transmx_type.size(); ++i) {
+            stat.trans[ std::get<0>(transmx_type[i]) ].mx = std::get<1>(transmx_type[i]);
         }
         for (int i=0;i<MAXMT;i++) {
             stat.chainm[i].mx = chainmmx;

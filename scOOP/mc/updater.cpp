@@ -337,53 +337,9 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     mcout.get() << "Starting energy: " << edriftstart << endl;
     mcout.get() << "Ending energy: " << edriftend << endl;
 
-    mcout.get() << std::setprecision(2) << std::left;
-    mcout.get() << "\n\n******************************************************************************" << endl;
-    mcout.get() << "*                               Moves Statistics                             *" << endl;
-    mcout.get() << "******************************************************************************" << endl;
-    mcout.get() << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
+    sim->stat.print();
 
-    if(sim->stat.stepsSTrans() > 0) {
-        mcout.get() << setw(30) << "Single particle translation: "
-                    << setw(10) <<  (double)sim->stat.accSTrans()/sim->stat.stepsSTrans()*100.0
-                    << setw(10) << (double)sim->stat.rejSTrans()/sim->stat.stepsSTrans()*100.0
-                    << setw(10) << sim->stat.stepsSTrans() << endl;
-    }
 
-    if(sim->stat.stepsSRot() > 0) {
-        mcout.get() << setw(30) << "Single particle rotation: "
-                    << setw(10) << 100.0*sim->stat.accSRot()/sim->stat.stepsSRot()
-                    << setw(10) << (double)sim->stat.rejSRot()/sim->stat.stepsSRot()*100.0
-                    << setw(10) << sim->stat.stepsSRot() << endl;
-    }
-
-    if(sim->stat.stepsCTrans() > 0) {
-        mcout.get() << setw(30) << "Chain translation: "
-                    << setw(10) <<  (double)sim->stat.accCTrans()/sim->stat.stepsCTrans()*100.0
-                    << setw(10) << (double)sim->stat.rejCTrans()/sim->stat.stepsCTrans()*100.0
-                    << setw(10) << sim->stat.stepsCTrans() << endl;
-    }
-
-    if(sim->stat.stepsCRot() > 0) {
-        mcout.get() << setw(30) << "Chain rotation: "
-                    << setw(10) <<  (double)sim->stat.accCRot()/sim->stat.stepsCRot()*100.0
-                    << setw(10) << (double)sim->stat.rejCRot()/sim->stat.stepsCRot()*100.0
-                    << setw(10) << sim->stat.stepsCRot() << endl;
-    }
-
-    if(sim->stat.edge.acc + sim->stat.edge.rej > 0) {
-        mcout.get() << setw(30) << "Pressure move: "
-                    << setw(10) << (double)sim->stat.edge.acc / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
-                    << setw(10) << (double)sim->stat.edge.rej / (sim->stat.edge.acc + sim->stat.edge.rej)*100.0
-                    << setw(10) << (sim->stat.edge.acc + sim->stat.edge.rej) << endl;
-    }
-
-    if(sim->stat.stepsSwitch() > 0) {
-        mcout.get() << setw(30) << "Switch type move: "
-                    << setw(10) <<  (double)sim->stat.accSwitch()/sim->stat.stepsSwitch()*100.0
-                    << setw(10) << (double)sim->stat.rejSwitch()/sim->stat.stepsSwitch()*100.0
-                    << setw(10) << sim->stat.stepsSwitch() << endl;
-    }
 
     if(sim->nGrandCanon != 0) {
         for(int i=0; i<conf->pvec.molTypeCount; i++) {
