@@ -132,7 +132,7 @@ int WangLandau::write(char filename[]) {
 
     outfile = fopen(filename, "w");
     if (outfile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n",filename);
+        cerr << "\nERROR: Could not open " << filename << " file.\n" << endl;
         return 1;
     }
     fprintf (outfile, "%15.8e \n",alpha);
@@ -163,7 +163,7 @@ int WangLandau::initCalc(char filename[]) {
 
     infile = fopen(filename, "r");
     if (infile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n",filename);
+        cerr << "\nERROR: Could not open " << filename << " file.\n" << endl;
         return 1;
     }
     length=0;
@@ -203,6 +203,7 @@ int WangLandau::initCalc(char filename[]) {
 #else
     weights = (double*) malloc( sizeof(double) * length );
     hist = (long*) malloc( sizeof(long) * length );
+    shared = new double[3];
 #endif
 
     this->length[1] = 0;

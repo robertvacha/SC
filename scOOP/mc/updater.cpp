@@ -49,11 +49,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //cout << calcEnergy.allToAll()/(4*sim->temper) << " kT" << endl;
     //cout << calcEnergy.allToAll()/sim->temper << endl;
     //cout << calcEnergy.allToAll() << endl;
-    bool mpi = false;
-#ifdef ENABLE_MPI
-    mpi = true;
-#endif
-    long i;
 
     size_t time = 0;
     size_t temp = 0;
@@ -133,7 +128,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
-        if(nsweeps>=10 && sweep%(nsweeps/10) == 0 && !mpi) {
+        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
@@ -227,13 +222,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         //=== Start of end-of-sweep housekeeping ===
         // Adjustment of maximum step sizes during equilibration
         if (sweep == next_adjust) {
-            for (i = 0; i < MAXT ;i++) {
+            for (int i = 0; i < MAXT ;i++) {
                 if ((sim->stat.trans[i].acc > 0)||(sim->stat.trans[i].rej >0))
                     optimizeStep (sim->stat.trans + i, 1.5, 0.0);
                 if ((sim->stat.rot[i].acc > 0)||(sim->stat.rot[i].rej >0))
                     optimizeRot (sim->stat.rot + i, 5.0, 0.01);
             }
-            for (i = 0; i < MAXMT; i++) {
+            for (int i = 0; i < MAXMT; i++) {
                 if ((sim->stat.chainm[i].acc > 0)||(sim->stat.chainm[i].rej > 0))
                     optimizeStep (sim->stat.chainm + i, 1.5, 0.0);
                 if ((sim->stat.chainr[i].acc > 0)||(sim->stat.chainr[i].rej > 0))
@@ -415,7 +410,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     mcout.get() << "\nSystem:" << endl;
 
-    for(i=0; i < conf->pvec.molTypeCount; i++)
+    for(int i=0; i < conf->pvec.molTypeCount; i++)
         mcout.get() << topo.moleculeParam[i].name << " " << conf->pvec.molCountOfType(i) << endl;
 
     mcout.get() << endl;

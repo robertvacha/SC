@@ -768,7 +768,7 @@ int Inicializer::fillTypes(char **pline) {
             topo.ia_params[type][type].rcut = 0.0;
 
         topo.ia_params[type][type].rcutSq = topo.ia_params[type][type].rcut * topo.ia_params[type][type].rcut;
-        mcout.get() << " | pdis=" << topo.ia_params[type][type].pdis << " pswitch=" << topo.ia_params[type][type].pswitch << endl;
+        mcout.get() << " | pdis=" << topo.ia_params[type][type].pdis << " pswitch=" << topo.ia_params[type][type].pswitch;
     }
     if(fields == 1) { // SCN
         for(int i = 0; i < 2; i++){

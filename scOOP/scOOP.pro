@@ -8,6 +8,7 @@ QMAKE_CXXFLAGS += -Ofast -march=native -std=c++11 -Wno-unused-parameter #-fno-in
 #QMAKE_CXXFLAGS+= -fopenmp
 #QMAKE_LFLAGS +=  -fopenmp
 
+############################################### MPI RUN
 #QMAKE_CXXFLAGS += -DENABLE_MPI
 
 #QMAKE_CXX = mpicxx
@@ -20,7 +21,7 @@ QMAKE_CXXFLAGS += -Ofast -march=native -std=c++11 -Wno-unused-parameter #-fno-in
 #QMAKE_LFLAGS += $$system(mpicxx --showme:link)
 #QMAKE_CXXFLAGS += $$system(mpicxx --showme:compile) -DMPICH_IGNORE_CXX_SEEK
 #QMAKE_CXXFLAGS_RELEASE += $$system(mpicxx --showme:compile) -DMPICH_IGNORE_CXX_SEEK
-
+###############################################
 
 SOURCES += main.cpp \
     mc/wanglandau.cpp \
@@ -83,7 +84,8 @@ HEADERS += \
     mc/analysis.h \
     mc/paire.h \
     structures/statistics.h \
-    mc/clust.h
+    mc/clust.h \
+    structures/mpicout.h
 
 OTHER_FILES += \
     mc/dSFMT-src-2.2.3/FILES.txt \

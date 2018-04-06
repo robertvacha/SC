@@ -552,7 +552,7 @@ private:
         free(weights);
         weights = NULL;
         free(hist);
-        free(shared);
+        delete shared;
         hist = NULL;
         shared = NULL;
 #endif
