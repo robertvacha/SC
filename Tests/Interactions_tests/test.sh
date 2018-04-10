@@ -91,24 +91,22 @@ done
 ##
 for ix in ${!spherocylinder_n[*]}; do
   for jx in ${!sphere[*]}; do
-    if [ $jx -ge $ix ]; then
 
-      cat top.init_prescript > top.init_new
-      echo $nameA ${spherocylinder_n[$ix]} >> top.init_new
-      echo $nameB ${sphere[$jx]} >> top.init_new
-      cat top.init_postscript >> top.init_new
+    cat top.init_prescript > top.init_new
+    echo $nameA ${spherocylinder_n[$ix]} >> top.init_new
+    echo $nameB ${sphere[$jx]} >> top.init_new
+    cat top.init_postscript >> top.init_new
 
-      cat top.init_prescript > top.init_old
-      echo $nameA ${spherocylinder_o[$ix]} >> top.init_old
-      echo $nameB ${sphere[$jx]} >> top.init_old
-      cat top.init_postscript >> top.init_old
+    cat top.init_prescript > top.init_old
+    echo $nameA ${spherocylinder_o[$ix]} >> top.init_old
+    echo $nameB ${sphere[$jx]} >> top.init_old
+    cat top.init_postscript >> top.init_old
 
-      type_i=`printf ${spherocylinder_n[$ix]} | awk '{print $1}'`
-      type_j=`printf ${sphere[$jx]} | awk '{print $1}'`
-      ./Grid_energy_test_Spherocylinder_Sphere.sh "TEST_${type_i}_${type_j}" 1.11
-      print "TEST_${type_i}_${type_j}"
+    type_i=`printf ${spherocylinder_n[$ix]} | awk '{print $1}'`
+    type_j=`printf ${sphere[$jx]} | awk '{print $1}'`
+    ./Grid_energy_test_Spherocylinder_Sphere.sh "TEST_${type_i}_${type_j}" 0.77
+    print "TEST_${type_i}_${type_j}"
 
-    fi
   done
 done
 exit
