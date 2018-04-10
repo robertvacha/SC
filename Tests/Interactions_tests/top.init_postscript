@@ -1,0 +1,18 @@
+[Molecules]
+# Molecules letter
+#  bond1 - harmonic bond between nearest neighbours
+#  bond2 - harmonic bond between second nearest neighbours
+#  angle1 - angle between two spherocylinders -nearest neighbours
+#  angle2 - angle between two spherocylinder patches -nearest neighbours
+#  particles - types as they go in chain in molecule
+A: {
+#what:       TYPE     SWITCHTYPE  DELTA_MU
+particles:   1
+}
+B: {
+#what:       TYPE     SWITCHTYPE  DELTA_MU
+particles:   2
+}
+[System]
+A 1
+B 
