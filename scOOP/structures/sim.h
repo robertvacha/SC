@@ -158,7 +158,7 @@ private:
             {"temper",              Double, false, &temper},
             {"paraltemper",         Double, false, &paraltemper},
             {"transmx",             Double, false, &transmx},
-            {"transmx_type",        Tuple, false, &transmx_type},
+            {"transmx_type",        Tuple, true, &transmx_type}, // default se by transmx
             {"rotmx",               Double, false, &rotmx},
             {"coneAngle",           Double, true, &coneAngle}, // default value given in constructor of sim
             {"chainmmx",            Double, false, &chainmmx},

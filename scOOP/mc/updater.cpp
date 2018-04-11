@@ -95,7 +95,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             for(int j=i+1; j< conf->pvec.size(); ++j) {
                 e = calcEnergy.p2p(i,j);
                 if(e < 1000.0)
-                    printf("%lf\n", e);
+                    printf("%.5lf\n", e);
                 else printf("%lf\n", 1000.0);
             }
             printf("\n");

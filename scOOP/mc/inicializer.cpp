@@ -660,11 +660,12 @@ int Inicializer::fillSystem(char *pline, char *sysnames[], long **sysmoln, char*
 int Inicializer::fillTypes(char **pline) {
     int type;
     int geotype_i;
+
     int fields;
     char name[SMSTR];
     char geotype[SMSTR];
 
-    double param[12];
+    double param[12] = {};
     /* 0: epsilon
      * 1: sigma
      * 2: attraction dist
@@ -719,6 +720,7 @@ int Inicializer::fillTypes(char **pline) {
     if (( (geotype_i == PSC) || (geotype_i == CPSC) ) && (fields != 6)) {
         cerr << "TOPOLOGY ERROR: wrong number of parameters for " << geotype << endl;
         cerr << "Parameters are:\n" << "#NAME NUMBER GEOTYPE EPSILON SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS" << endl;
+        cerr << "Parameters are:\n" << param[0] << " " << param[1] << " " << param[2] << " " << param[3] << " " << param[4] << " " << param[5] << endl;
         return 0;
     }
     if (( (geotype_i == CHPSC) || (geotype_i == CHCPSC) )&& ( fields != 7)) {

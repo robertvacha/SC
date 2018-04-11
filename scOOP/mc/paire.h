@@ -1049,14 +1049,16 @@ public:
             }
 
             dist = sqrt(distSq);
-            atrenergy = patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[0] : spc->dir,
+            if(dist < iaParam.rcut)
+                atrenergy = patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[0] : spc->dir,
                                            (Patch(spc->patchdir[0], spc->patchsides[0], spc->patchsides[1])) );
 
             //addition of interaction of second patches
             if(sec) {
                 distSq = closestDist((isp1Spc) ? std::move(r_cm) : -1.0*r_cm, (chiral) ? spc->chdir[1] : spc->dir, iaParam.half_len[0], contt, distvec);
                 dist = sqrt(distSq);
-                atrenergy += patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[1] : spc->dir,
+                if(dist < iaParam.rcut)
+                    atrenergy += patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[1] : spc->dir,
                                                (Patch(spc->patchdir[1], spc->patchsides[2], spc->patchsides[3])) );
             }
         }

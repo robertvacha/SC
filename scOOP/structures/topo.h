@@ -28,11 +28,11 @@ public:
 
     Topo():sqmaxcut(0), maxcut(0), gcSpecies(0) {}
 
-    Topo(FileNames* files) : sqmaxcut(0), maxcut(0), gcSpecies(0)  {
+    /*Topo(FileNames* files) : sqmaxcut(0), maxcut(0), gcSpecies(0)  { // Eventually transition from Inicializer to Topo constructor
         bool exclusions[MAXT][MAXT] = {false};
 
         readTopoFile(exclusions, files); // EXCLUDE LOADED CORRECTLY 7.8. 2015
-    }
+    }*/
 
     ~Topo() {
         for(int i=0; i<MAXMT; i++) {
