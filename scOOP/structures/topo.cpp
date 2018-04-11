@@ -91,7 +91,12 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
                     ia_params[i][j].pdis = AVER(ia_params[i][i].pdis - ia_params[i][i].rcutwca,
                                                       ia_params[j][j].pdis - ia_params[j][j].rcutwca) + ia_params[i][j].rcutwca;
                     ia_params[i][j].pdisSq = ia_params[i][j].pdis * ia_params[i][j].pdis;
-                    ia_params[i][j].rcut = ia_params[i][j].pswitch+ia_params[i][j].pdis;
+
+                    if( ia_params[i][j].geotype[0] == SPN || ia_params[i][j].geotype[1] == SPN)
+                        ia_params[i][j].rcut = 0.0;
+                    else
+                        ia_params[i][j].rcut = ia_params[i][j].pswitch+ia_params[i][j].pdis;
+
                     ia_params[i][j].rcutSq = ia_params[i][j].rcut * ia_params[i][j].rcut;
 
                     // if not non-attractive == if attractive
@@ -130,8 +135,6 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
             ia_params[i][j].exclude = exclusions[i][j];
         }
     }
-
-    cout << "\n\n\n check pdis and rcutWCA validity - NOT DONE\n\n" << endl;
 }
 
 void Topo::genTopoParams() {
@@ -238,8 +241,6 @@ int Topo::fillTypes(char **pline) {
     fields = sscanf(paramstr, "%s %d %s %le %le %le %le %le %le %le %le %le %le %le %le",
                     name, &type, geotype, &param[0], &param[1], &param[2], &param[3], &param[4],
             &param[5], &param[6], &param[7], &param[8], &param[9], &param[10], &param[11]);
-
-    cout << "Fields:" << fields << " " << param[11] << endl;
 
     fields -= 5; // number of parameter fields => I am too lazy to adjust everywhere below the numbers
     //DEBUG    fprintf (stdout, "Topology read geotype: %ld with parameters fields %d, str:%s and %s in pline %s\n",geotype,fields,geotypestr,paramstr,pline);

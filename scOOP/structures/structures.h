@@ -63,7 +63,8 @@ typedef enum {
     Int,
     Int2,
     Long,
-    Double
+    Double,
+    Tuple
 } Type;
 
 
@@ -158,7 +159,9 @@ public:
 
         // topology out file -> change only for grand  canonical paralel tempering
         sprintf(moviefile, "%dmovie", rank);
-        sprintf(wloutfile, "%dwl-new.dat", rank);
+        if(false /* Multiple walkers Wang-Landau */) {
+            sprintf(wloutfile, "%dwl-new.dat", rank);
+        }
         sprintf(statfile, "%dstat.dat", rank);
         sprintf(clusterfile, "%dcluster.dat", rank);
         sprintf(clusterstatfile, "%dcluster_stat.dat", rank);

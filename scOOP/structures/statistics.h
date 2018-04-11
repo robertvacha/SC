@@ -3,6 +3,8 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
+#include <iomanip>
+
 #include "macros.h"
 
 class StatsGrand {
@@ -110,6 +112,65 @@ public:
     Disp chainm[MAXMT];         ///< \brief Maximum translation for chain  and statistics
     Disp chainr[MAXMT];         ///< \brief Maximum rotation for chain and statistics
     Disp mpiexch;               ///< \brief MPI statistics
+
+    void print() {
+        mcout.get() << std::setprecision(2) << std::left;
+        mcout.get() << "\n\n******************************************************************************" << endl;
+        mcout.get() << "*                               Moves Statistics                             *" << endl;
+        mcout.get() << "******************************************************************************" << endl;
+        mcout.get() << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
+
+        if(stepsSTrans() > 0) {
+            mcout.get() << setw(30) << "Single particle translation: "
+                        << setw(10) <<  (double)accSTrans()/stepsSTrans()*100.0
+                        << setw(10) << (double)rejSTrans()/stepsSTrans()*100.0
+                        << setw(10) << stepsSTrans() << endl;
+        }
+
+        if(stepsSRot() > 0) {
+            mcout.get() << setw(30) << "Single particle rotation: "
+                        << setw(10) << 100.0*accSRot()/stepsSRot()
+                        << setw(10) << (double)rejSRot()/stepsSRot()*100.0
+                        << setw(10) << stepsSRot() << endl;
+        }
+
+        if(stepsCTrans() > 0) {
+            mcout.get() << setw(30) << "Chain translation: "
+                        << setw(10) <<  (double)accCTrans()/stepsCTrans()*100.0
+                        << setw(10) << (double)rejCTrans()/stepsCTrans()*100.0
+                        << setw(10) << stepsCTrans() << endl;
+        }
+
+        if(stepsCRot() > 0) {
+            mcout.get() << setw(30) << "Chain rotation: "
+                        << setw(10) <<  (double)accCRot()/stepsCRot()*100.0
+                        << setw(10) << (double)rejCRot()/stepsCRot()*100.0
+                        << setw(10) << stepsCRot() << endl;
+        }
+
+        if(edge.acc + edge.rej > 0) {
+            mcout.get() << setw(30) << "Pressure move: "
+                        << setw(10) << (double)edge.acc / (edge.acc + edge.rej)*100.0
+                        << setw(10) << (double)edge.rej / (edge.acc + edge.rej)*100.0
+                        << setw(10) << (edge.acc + edge.rej) << endl;
+        }
+
+        if(stepsSwitch() > 0) {
+            mcout.get() << setw(30) << "Switch type move: "
+                        << setw(10) <<  (double)accSwitch()/stepsSwitch()*100.0
+                        << setw(10) << (double)rejSwitch()/stepsSwitch()*100.0
+                        << setw(10) << stepsSwitch() << endl;
+        }
+
+        for(int i=0; i<MAXT; ++i) {
+            if(trans[i].acc + trans[i].rej > 0) {
+                mcout.get() << setw(30) << "Single particle translation:"
+                            << setw(10) << (double) trans[i].acc / (trans[i].acc + trans[i].rej) * 100.0
+                            << setw(10) << (double) trans[i].rej / (trans[i].acc + trans[i].rej) * 100.0
+                            << setw(10) << (trans[i].acc + trans[i].rej) << " type " << i << " name.get()" << endl;
+            }
+        }
+    }
 
     int accSwitch() {
         int var=0;

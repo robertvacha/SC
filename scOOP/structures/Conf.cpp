@@ -17,7 +17,7 @@ void Conf::insertMolecule(std::vector<Particle>& molecule) {
     if(pairlist_update) {
         for(unsigned int i = 0; i<molecule.size(); i++) {
             neighborList.push_back(Neighbors() );
-            neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXN);
+            neighborList.back().neighborID = (long int*) malloc(sizeof(long) * MAXNEIGHBORS);
         }
     }
 

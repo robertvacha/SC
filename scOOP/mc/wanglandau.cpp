@@ -132,7 +132,7 @@ int WangLandau::write(char filename[]) {
 
     outfile = fopen(filename, "w");
     if (outfile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n",filename);
+        cerr << "\nERROR: Could not open " << filename << " file.\n" << endl;
         return 1;
     }
     fprintf (outfile, "%15.8e \n",alpha);
@@ -163,7 +163,7 @@ int WangLandau::initCalc(char filename[]) {
 
     infile = fopen(filename, "r");
     if (infile == NULL) {
-        fprintf (stderr, "\nERROR: Could not open %s file.\n\n",filename);
+        cerr << "\nERROR: Could not open " << filename << " file.\n" << endl;
         return 1;
     }
     length=0;
@@ -176,8 +176,36 @@ int WangLandau::initCalc(char filename[]) {
         }
     }
     length--; /*there is alpha at the first line*/
+
+#ifdef ENABLE_MPI
+    if (mpirank == 0)
+    {
+       _sizeInt = length * sizeof(long int);
+       _sizeDouble = length * sizeof(double);
+       _sizeShared = 1 * sizeof(double);
+       MPI_Win_allocate_shared(_sizeDouble, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &weights, &_winDouble);
+       MPI_Win_allocate_shared(_sizeInt, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &hist, &_winInt);
+       MPI_Win_allocate_shared(_sizeShared, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared, &_winShared);
+    }
+    else
+    {
+       int disp_unitInt, disp_unitDouble, disp_shared;
+       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &weights, &_winDouble);
+       MPI_Win_allocate_shared(0, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &hist, &_winInt);
+       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared, &_winShared);
+
+       MPI_Win_shared_query(_winDouble, 0, &_sizeDouble, &disp_unitDouble, &weights);
+       MPI_Win_shared_query(_winInt, 0, &_sizeInt, &disp_unitInt, &hist);
+       MPI_Win_shared_query(_winShared, 0, &_sizeShared, &disp_shared, &shared);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+#else
     weights = (double*) malloc( sizeof(double) * length );
     hist = (long*) malloc( sizeof(long) * length );
+    shared = new double[3];
+#endif
+
     this->length[1] = 0;
     dorder[1] = 0;
 
@@ -199,8 +227,12 @@ int WangLandau::initCalc(char filename[]) {
                 if ( fields == 3 ) {
                     if (i==1)
                         minorder[0] = field[0];
-                    weights[i-1] = field[1];
-                    hist[i-1] = field[2];
+
+                    if (mpirank == 0) {
+                        weights[i-1] = field[1];
+                        hist[i-1] = field[2];
+                    }
+
                     this->length[0]++;
                     i++;
                 } else if (fields == 4 ) {
@@ -209,9 +241,13 @@ int WangLandau::initCalc(char filename[]) {
                         minorder[1] = field[1];
                     }
                     if ( minorder[1] == field[1] )
-                          this->length[0]++;
-                    weights[i-1] = field[2];
-                    hist[i-1] = field[3];
+                        this->length[0]++;
+
+                    if (mpirank == 0) {
+                        weights[i-1] = field[2];
+                        hist[i-1] = field[3];
+                    }
+
                     i++;
                 } else {
                     fprintf (stderr, "ERROR: Could not read order parameter at line %ld.\n\n", i);
@@ -238,8 +274,8 @@ int WangLandau::initCalc(char filename[]) {
         return 1;
     }
     /*DEBUG*/
-    printf("Wang-Landau method init:\n");
-    printf("alpha: %f\n",alpha);
+    mcout.get() << "Wang-Landau method init:" << endl;
+    mcout.get() << "alpha: " << alpha << endl;
     /*int j=0;
     if (length[1] == 0) {
         for (i=0; i<length[0]; i++) {
@@ -254,8 +290,6 @@ int WangLandau::initCalc(char filename[]) {
         }
     }*/
     fclose(infile);
-    fflush(stdout);
-    /**/
     return 0;
 }
 

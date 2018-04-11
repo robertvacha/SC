@@ -285,6 +285,7 @@ public:
     AngleSc(GeoBase* pbc) : EBond(pbc) {}
 
     double operator() (double dist, const Particle* part1, const Particle* part2, const ConList* conlist) override {
+        assert(conlist != nullptr);
 
         double currangle, halfl;
         Vector vec1, vec2;
@@ -988,6 +989,8 @@ public:
     }
 };
 
+
+
 template<typename EPotential>
 class CPscSpa : public PscSpa<EPotential> {
 public:
@@ -1008,7 +1011,6 @@ public:
 
 
 
-
 template <typename PatchE, typename BondE, typename AngleE>
 class MixSpSc : public EBasic {
     PatchE patchE;
@@ -1018,7 +1020,7 @@ public:
     MixSpSc(GeoBase* pbc) : bondE(pbc), angleE(pbc) {}
 
     double operator() (double dist, const Vector& r_cm, const Particle* part1, const Particle* part2, const ConList* conlist) {
-        double atrenergy, repenergy = 0.0, contt=0.0, abE = 0.0;
+        double atrenergy = 0.0, repenergy = 0.0, contt=0.0, abE = 0.0;
         Vector distvec;
         bool isp1Spc = (topo.ia_params[part1->type][part2->type].geotype[0] < SP);
         const Particle* spc = (isp1Spc) ? part1 : part2;
@@ -1047,17 +1049,20 @@ public:
             }
 
             dist = sqrt(distSq);
-            atrenergy = patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[0] : spc->dir,
+            if(dist < iaParam.rcut)
+                atrenergy = patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[0] : spc->dir,
                                            (Patch(spc->patchdir[0], spc->patchsides[0], spc->patchsides[1])) );
 
             //addition of interaction of second patches
             if(sec) {
                 distSq = closestDist((isp1Spc) ? std::move(r_cm) : -1.0*r_cm, (chiral) ? spc->chdir[1] : spc->dir, iaParam.half_len[0], contt, distvec);
                 dist = sqrt(distSq);
-                atrenergy += patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[1] : spc->dir,
+                if(dist < iaParam.rcut)
+                    atrenergy += patchE(dist, contt, distvec, iaParam, (chiral) ? spc->chdir[1] : spc->dir,
                                                (Patch(spc->patchdir[1], spc->patchsides[2], spc->patchsides[3])) );
             }
         }
+
         return abE+repenergy+atrenergy;
     }
 
@@ -1202,6 +1207,7 @@ public:
     PairE(GeoBase* pbc) : pbc(pbc) { initIntFCE(); }
 
     double operator() (Particle* part1, Particle* part2, ConList* conlist) {
+        assert(conlist != nullptr);
         Vector r_cm = pbc->image(&part1->pos, &part2->pos);
         double dotrcm = r_cm.dot(r_cm);
 

@@ -31,6 +31,7 @@ private:
     Particle chorig[MAXCHL];
 
 public:
+    bool verbose = false;
     WangLandau wl;
     TotalEnergyCalculator* calcEnergy;
 

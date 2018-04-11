@@ -15,7 +15,7 @@ double MoveCreator::particleMove() {
     /*=== This is a particle move step ===*/
     target = ran2() * (long)conf->pvec.size();
 
-    if ( !( ((wl.wlm[0] == 3) || (wl.wlm[1] == 3) ) && (target == 0) ) && \
+    if ( /*!( ((wl.wlm[0] == 3) || (wl.wlm[1] == 3) ) && (target == 0) ) && chceme at se hybe*/ \
          ((ran2() < 0.5) || (topo.ia_params[conf->pvec[target].type][conf->pvec[target].type].geotype[0] >= SP)) ) { // no rotation for spheres
         edriftchanges = partDisplace(target);
     } else {
@@ -304,6 +304,10 @@ double MoveCreator::switchTypeMove() {
 
 double MoveCreator::chainMove() {
 
+    //
+    //  TODO: Check that moves dont change intenal chain energy
+    //
+
     double edriftchanges =0.0;
     long target;
 
@@ -483,7 +487,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
     double change; // energy
     double *recwlweights;
     double volume = conf->geo.volume();
-    double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
+    double entrophy = sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
 
     int sizewl = 0, receiverRank = -1, receivedRank = -1;
     int rank;
@@ -604,14 +608,14 @@ double MoveCreator::replicaExchangeMove(long sweep) {
 
                 localmpi.accepted = receivedmpi.accepted;
 
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) * sim->temper;
 
                 sim->temper = receivedmpi.temperature;
                 sim->press = receivedmpi.press;
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
-                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper) - entrophy;
 
             } else {
                 sim->stat.mpiexch.rej++;
@@ -673,7 +677,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             if ( (!(reject)) && ( (change > 0) || (ran2() < exp(change))  ) ) { // Exchange ACCEPTED send local stuff
                 localmpi.accepted = 1;
 
-                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) / sim->temper;
+                edriftchanges += sim->press * (receivedmpi.volume - localmpi.volume) - (double)conf->pvec.size() * log(receivedmpi.volume / localmpi.volume) * sim->temper;
 
                 // change temperature and pseudorank
                 sim->temper = receivedmpi.temperature;
@@ -681,7 +685,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 sim->pseudoRank = receivedmpi.pseudoMpiRank;
 
                 volume = conf->geo.volume();
-                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper) - entrophy;
+                edriftchanges += (sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper) - entrophy;
 
                 if ( wl.wlm[0] > 0 ) {
                     for (int wli=0;wli<wl.wlmdim;wli++) {
@@ -730,7 +734,7 @@ double MoveCreator::muVTMove() {
 
     Molecule target;
     double volume = conf->geo.volume();
-    double entrophy = log(volume)/sim->temper;
+    double entrophy = log(volume)*sim->temper;
     double energy = 0.0;
     unsigned int molSize=0;
     Vector displace;
@@ -991,9 +995,11 @@ double MoveCreator::partAxialRotate(long target){
 
     if (moveTry(energyold, energynew, sim->temper)){
         // move was rejected
+        sim->stat.rot[conf->pvec[target].type].rej++;
         conf->pvec[target] = origpart; // return to old configuration
     } else {
         // move was accepted
+        sim->stat.rot[conf->pvec[target].type].acc++;
         edriftchanges = energynew - energyold;
 
         calcEnergy->eMat.fixEMatrixSingle(sim->pairlist_update, target);
@@ -1076,29 +1082,91 @@ double MoveCreator::chainRotate(long target) {
     //=== Rotation step of cluster/chain ===
     for(unsigned int j=0; j<chain.size(); j++) { // store old configuration calculate energy
         chorig[j] = conf->pvec[chain[j]];
-        /*We have chains whole! don't have to do PBC*/
-        /*r_cm.x = conf->pvec[current].pos.x - conf->particle[first].pos.x;
-         r_cm.y = conf->pvec[current].pos.y - conf->particle[first].pos.y;
-         r_cm.z = conf->pvec[current].pos.z - conf->particle[first].pos.z;
-         if ( r_cm.x < 0  )
-         r_cm.x -= (double)( (long)(r_cm.x-0.5) );
-         elsechain
-         r_cm.x -= (double)( (long)(r_cm.x+0.5) );
-         if ( r_cm.y < 0  )
-         r_cm.y -= (double)( (long)(r_cm.y-0.5) );
-         else
-         r_cm.y -= (double)( (long)(r_cm.y+0.5) );
-         if ( r_cm.z < 0  )
-         r_cm.z -= (double)( (long)(r_cm.z-0.5) );
-         else
-         r_cm.z -= (double)( (long)(r_cm.z+0.5) );
-         */
     }
 
     energy += calcEnergy->mol2others(chain);
+/*double test=0.0;
+    if(verbose) {
+        cout << "\n\nNEW\n" << endl;
+        calcEnergy->pairE.verbose=true;
+        test = calcEnergy->p2p(23,20);
+        calcEnergy->pairE.verbose=false;
+
+    }
+    Particle p1 = conf->pvec[20];
+    Particle p2 = conf->pvec[23];*/
 
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
+
+    /*if(verbose) {
+        calcEnergy->pairE.verbose=true;
+        double test2 = calcEnergy->p2p(23,20);
+        calcEnergy->pairE.verbose=false;
+        Particle p3 = conf->pvec[20];
+        Particle p4 = conf->pvec[23];
+
+        //////////////////////////////////////////
+
+        cout << "\n BOX: " << calcEnergy->pairE.pbc->box.x << " " << calcEnergy->pairE.pbc->box.y << " " << calcEnergy->pairE.pbc->box.z << "\n"<< endl;
+
+        Vector r1 = p1.pos;
+        Vector r2 = p2.pos;
+        cout << r1.info() << endl;
+        cout << r2.info() << endl;
+        Vector r_cm( r1.x - r2.x, r1.y - r2.y, r1.z - r2.z );
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << round(r_cm.x) << " " << round(r_cm.y) << " " << round(r_cm.z) << endl;
+
+        r_cm.x = (r_cm.x - round(r_cm.x) );
+        r_cm.y = (r_cm.y - round(r_cm.y) );
+        r_cm.z = (r_cm.z - round(r_cm.z) );
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << r_cm.dot(r_cm) << endl;
+
+        r_cm.x *= calcEnergy->pairE.pbc->box.x;
+        r_cm.y *= calcEnergy->pairE.pbc->box.y;
+        r_cm.z *= calcEnergy->pairE.pbc->box.z;
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << r_cm.dot(r_cm) << endl;
+
+        ////////////////////////////////////////////
+
+        cout << endl;
+
+        r1 = p3.pos;
+        r2 = p4.pos;
+        cout << r1.info() << endl;
+        cout << r2.info() << endl;
+        r_cm = Vector( r1.x - r2.x, r1.y - r2.y, r1.z - r2.z );
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << round(r_cm.x) << " " << round(r_cm.y) << " " << round(r_cm.z) << endl;
+
+        r_cm.x = (r_cm.x - round(r_cm.x) );
+        r_cm.y = (r_cm.y - round(r_cm.y) );
+        r_cm.z = (r_cm.z - round(r_cm.z) );
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << r_cm.dot(r_cm) << endl;
+
+        r_cm.x *= calcEnergy->pairE.pbc->box.x;
+        r_cm.y *= calcEnergy->pairE.pbc->box.y;
+        r_cm.z *= calcEnergy->pairE.pbc->box.z;
+
+        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
+        cout << r_cm.dot(r_cm) << endl;
+
+        ////////////////////////////////////////////
+
+        if(fabs(test-test2) > 0.000000001) {
+            cout << "Energy: " << test << " " << test2 << endl;
+        }
+        assert(fabs(test-test2) < 0.000000001 );
+    }*/
 
     if(wl.wlm[0] > 0)
         wlener = wl.runChainRot(reject, chorig, radiusholemax_orig, chain);
