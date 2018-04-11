@@ -3,6 +3,7 @@
 #ifndef SIM_H
 #define SIM_H
 
+#include <tuple>
 #include "structures.h"
 #include "Conf.h"
 #include "../mc/mygetline.h"
@@ -74,38 +75,29 @@ public:
         readOptions(files);
     }
 
-    ~Sim() {
-        printf ("Deallocating Sim...\n");
-
-        /*if (pairlist_update) {
-            if(deallocPairlist()) {
-                return 1;
-            }
-        }*/
-    }
-
     void info() {
-        printf (" Pressure coupling type:                             %d\n", ptype);
-        printf (" Pressure:                                           %.8f\n", press);
-        printf (" Replica exchange pressure:                          %.8f\n", paralpress);
-        printf (" Average volume change attempts per sweep:           %.8f\n", shave);
-        printf (" Equilibration sweeps:                               %ld\n", nequil);
-        printf (" Sweeps between step size adjustments:               %ld\n", adjust);
-        printf (" Production sweeps:                                  %ld\n", nsweeps);
-        printf (" Sweeps between statistics samples:                  %ld\n", paramfrq);
-        printf (" Sweeps between statistics reports:                  %ld\n", report);
-        printf (" Average chain move attempts per sweep:              %.8f\n", chainprob);
-        printf (" Inititial maximum box edge change:                  %.8f\n", stat.edge.mx);
-        printf (" Temperature in kT/e:                                %.8f\n", temper);
-        printf (" Parallel tempering temperature in kT/e:             %.8f\n", paraltemper);
-        printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
-        printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
-        printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
-        printf (" Wang-Landau method:                                 %d %d\n", wlm[0],wlm[1]);
-        printf (" Calculate the Wang-Landau method for atom type:     %d\n", wlmtype);
-        printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
-        printf (" Number of Sweeps per pairlist update:               %d\n", pairlist_update);
-        printf (" Number of sweeps per writing out cluster info:      %ld\n", write_cluster);
+        mcout.get() << " Pressure coupling type:                             " << ptype << endl;
+        mcout.get() << " Pressure:                                           " << press << endl;
+        mcout.get() << " Replica exchange pressure:                          " << paralpress << endl;
+        mcout.get() << " Average volume change attempts per sweep:           " << shave << endl;
+        mcout.get() << " Equilibration sweeps:                               " << nequil << endl;
+        mcout.get() << " Sweeps between step size adjustments:               " << adjust << endl;
+        mcout.get() << " Production sweeps:                                  " << nsweeps << endl;
+        mcout.get() << " Sweeps between statistics samples:                  " << paramfrq << endl;
+        mcout.get() << " Sweeps between statistics reports:                  " << report << endl;
+        mcout.get() << " Average chain move attempts per sweep:              " << chainprob << endl;
+        mcout.get() << " Inititial maximum angular cone angle (degrees):     " << coneAngle << endl;
+        mcout.get() << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
+        mcout.get() << " Temperature in kT/e:                                " << temper << endl;
+        mcout.get() << " Parallel tempering temperature in kT/e:             " << paraltemper << endl;
+        mcout.get() << " Sweeps between replica exchange:                    " << nrepchange << endl;
+        mcout.get() << " Sweeps between Grand-Canonical move:                " << nGrandCanon << endl;
+        mcout.get() << " Sweeps between Cluster moves:                       " << nClustMove << endl;
+        mcout.get() << " Wang-Landau method:                                 " << wlm[0] << " "  << wlm[1] << endl;
+        mcout.get() << " Calculate the Wang-Landau method for atom type:     " << wlmtype << endl;
+        mcout.get() << " Average type switch attempts per sweep:             " << switchprob << endl;
+        mcout.get() << " Number of Sweeps per pairlist update:               " << pairlist_update << endl;
+        mcout.get() << " Number of sweeps per writing out cluster info:      " << write_cluster << endl;
     }
 
 private:
@@ -130,14 +122,14 @@ private:
      */
     void readOptions(FileNames* files) {
 
-        if(mpirank == 0)
-            cout << "Reading options..." << endl;
+        mcout.get() << "Reading options..." << endl;
 
         int num_options = -1;
         double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
+        std::vector<tuple<int,double>> transmx_type;
         long int seed;
 
-        char *id, *value, *tokLine, *line;
+        char *id, *value, *num, *tokLine, *line;
         FILE *infile;
 
         // for new options add before the last line
@@ -166,6 +158,7 @@ private:
             {"temper",              Double, false, &temper},
             {"paraltemper",         Double, false, &paraltemper},
             {"transmx",             Double, false, &transmx},
+            {"transmx_type",        Tuple, true, &transmx_type}, // default se by transmx
             {"rotmx",               Double, false, &rotmx},
             {"coneAngle",           Double, true, &coneAngle}, // default value given in constructor of sim
             {"chainmmx",            Double, false, &chainmmx},
@@ -218,18 +211,45 @@ private:
                         options[i].set = true;
                         break;
                     }
-                    if(options[i].type == Int){
+                    if(options[i].type == Int) {
                         *((int *) options[i].var) = readi2(value);
                         options[i].set = true;
                         break;
                     }
-                    else if(options[i].type == Long){
+                    else if(options[i].type == Long) {
                         *((long *) options[i].var) = readl2(value);
                         options[i].set = true;
                         break;
                     }
-                    else if(options[i].type == Double){
+                    else if(options[i].type == Double) {
                         *((double *) options[i].var) = readd2(value);
+                        options[i].set = true;
+                        break;
+                    }
+                    else if(options[i].type == Tuple) {
+                        int val_int=0;
+                        double val_double = 0.0;
+
+                        num = strtok(value, " "); // we must start with value, but then only use NULL... stupid stupid stupid
+                        val_int = readl2(num);
+
+                        num = strtok(NULL, " ");
+                        val_double = readd2(num);
+
+                        transmx_type.push_back( tuple<int,double>( val_int, val_double ) );
+
+                        while(num != NULL) {
+                            num = strtok(NULL, " ");
+                            if(num == NULL) // ugly, but meh...
+                                break;
+                            val_int = readl2(num);
+
+                            num = strtok(NULL, " ");
+                            val_double = readd2(num);
+
+                            transmx_type.push_back( tuple<int,double>( val_int, val_double ) );
+                        }
+
                         options[i].set = true;
                         break;
                     }
@@ -259,47 +279,44 @@ private:
         // Density of close-packed spherocylinders
         //   rho_cp = 2.0/(sqrt(2.0) + *length * sqrt(3.0));
 
-        if(mpirank == 0 && SILENT == 1) {
-            printf (" Pressure coupling type:                             %d\n", ptype);
-            printf (" Pressure:                                           %.8f\n", press);
-            printf (" Replica exchange pressure:                          %.8f\n", paralpress);
-            printf (" Average volume change attempts per sweep:           %.8f\n", shave);
-            printf (" Equilibration sweeps:                               %ld\n", nequil);
-            printf (" Sweeps between step size adjustments:               %ld\n", adjust);
-            printf (" Production sweeps:                                  %ld\n", nsweeps);
-            printf (" Sweeps between statistics samples:                  %ld\n", paramfrq);
-            printf (" Sweeps between statistics reports:                  %ld\n", report);
-            printf (" Average chain move attempts per sweep:              %.8f\n", chainprob);
-            printf (" Initial maximum displacement:                       %.8f\n", transmx);
-            printf (" Inititial maximum angular change (degrees):         %.8f\n", rotmx);
-            printf (" Inititial maximum angular cone angle (degrees):     %.8f\n", coneAngle);
-            printf (" Inititial maximum geo.box edge change:              %.8f\n", stat.edge.mx);
-            printf (" Initial maximum chain displacement:                 %.8f\n", chainmmx);
-            printf (" Inititial maximum chain angular change (degrees):   %.8f\n", chainrmx);
-            printf (" Temperature in kT/e:                                %.8f\n", temper);
-            printf (" Parallel tempering temperature in kT/e:             %.8f\n", paraltemper);
-            printf (" Sweeps between replica exchange:                    %ld\n", nrepchange);
-            printf (" Sweeps between Grand-Canonical move:                %ld\n", nGrandCanon);
-            printf (" Sweeps between Cluster moves:                       %ld\n", nClustMove);
-            printf (" Wang-Landau method:                                 %d %d\n", wlm[0],wlm[1]);
-            printf (" Calculate the Wang-Landau method for atom type:     %d\n", wlmtype);
-            printf (" Average type switch attempts per sweep:             %.8f\n", switchprob);
-            printf (" Number of Sweeps per pairlist update:               %d\n", pairlist_update);
-            printf (" Random number seed:                                 %ld\n", seed);
-            printf (" Number of sweeps per writing out cluster info:      %ld\n", write_cluster);
+        mcout.get() << " Pressure coupling type:                             " << ptype << endl;
+        mcout.get() << " Pressure:                                           " << press << endl;
+        mcout.get() << " Replica exchange pressure:                          " << paralpress << endl;
+        mcout.get() << " Average volume change attempts per sweep:           " << shave << endl;
+        mcout.get() << " Equilibration sweeps:                               " << nequil << endl;
+        mcout.get() << " Sweeps between step size adjustments:               " << adjust << endl;
+        mcout.get() << " Production sweeps:                                  " << nsweeps << endl;
+        mcout.get() << " Sweeps between statistics samples:                  " << paramfrq << endl;
+        mcout.get() << " Sweeps between statistics reports:                  " << report << endl;
+        mcout.get() << " Average chain move attempts per sweep:              " << chainprob << endl;
+        mcout.get() << " Initial maximum displacement:                       " << transmx << endl;
+        mcout.get() << " Inititial maximum angular change (degrees):         " << rotmx << endl;
+        mcout.get() << " Inititial maximum angular cone angle (degrees):     " << coneAngle << endl;
+        mcout.get() << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
+        mcout.get() << " Initial maximum chain displacement:                 " << chainmmx << endl;
+        mcout.get() << " Inititial maximum chain angular change (degrees):   " << chainrmx << endl;
+        mcout.get() << " Temperature in kT/e:                                " << temper << endl;
+        mcout.get() << " Parallel tempering temperature in kT/e:             " << paraltemper << endl;
+        mcout.get() << " Sweeps between replica exchange:                    " << nrepchange << endl;
+        mcout.get() << " Sweeps between Grand-Canonical move:                " << nGrandCanon << endl;
+        mcout.get() << " Sweeps between Cluster moves:                       " << nClustMove << endl;
+        mcout.get() << " Wang-Landau method:                                 " << wlm[0] << " "  << wlm[1] << endl;
+        mcout.get() << " Calculate the Wang-Landau method for atom type:     " << wlmtype << endl;
+        mcout.get() << " Average type switch attempts per sweep:             " << switchprob << endl;
+        mcout.get() << " Number of Sweeps per pairlist update:               " << pairlist_update << endl;
+        mcout.get() << " Random number seed:                                 " << seed << endl;
+        mcout.get() << " Number of sweeps per writing out cluster info:      " << write_cluster << endl;
 
-            if (movie > 0) {
-                printf (" Sweeps between movie frames:                      %ld\n", movie);
-            } else {
-                printf (" No movie\n");
-            }
-            printf ("\n");
+        if (movie > 0) {
+            mcout.get() << " Sweeps between movie frames:                      " << movie << endl;
+        } else {
+            mcout.get() <<" No movie" << endl;
+        }
+        mcout.get() << endl;
 
-            if(pairlist_update){
-                printf(" A pairlist will be generated every %d steps. This is a greedy"
-                       " algorithm; make sure you don't have big chains etc.!\n",
-                       pairlist_update);
-            }
+        if(pairlist_update){
+            mcout.get() << " A pairlist will be generated every " << pairlist_update << " steps. This is a greedy"
+                                                                                        " algorithm; make sure you don't have big chains etc.!\n" << endl;
         }
 
         //--- 3. Validity checks ---
@@ -353,6 +370,9 @@ private:
             stat.rot[i].mx = rotmx;
             stat.rot[i].angle = angle;
         }
+        for(unsigned int i = 0; i<transmx_type.size(); ++i) {
+            stat.trans[ std::get<0>(transmx_type[i]) ].mx = std::get<1>(transmx_type[i]);
+        }
         for (int i=0;i<MAXMT;i++) {
             stat.chainm[i].mx = chainmmx;
             stat.chainr[i].mx = chainrmx;
@@ -362,7 +382,7 @@ private:
         //parallel tempering
 #ifdef ENABLE_MPI
         if ( (temper != paraltemper) && (mpinprocs <2) ) {
-            printf("ERROR: Paralllel tempering at single core does not work.\n\n");
+            cerr << "ERROR: Paralllel tempering at single core does not work.\n" << endl;
             exit(1);
         }
         dtemp = ((1.0/temper)-(1.0/paraltemper))/(mpinprocs-1);
@@ -371,7 +391,7 @@ private:
         }
         temper =  temper/(1.0-mpirank*temper*dtemp);
         if ( (press != paralpress) && (mpinprocs <2) ) {
-            printf("ERROR: Pressure replica exchange at single core does not work.\n\n");
+            cerr << "ERROR: Pressure replica exchange at single core does not work.\n" << endl;
             exit(1);
         }
         dpress = (paralpress - press )/(mpinprocs-1);

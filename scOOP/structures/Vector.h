@@ -64,6 +64,16 @@ public:
     }
 
     /**
+     * @brief isUnit is vector unit vector
+     * @return
+     */
+    bool isUnit() {
+        if ( this->size() > 1.000001 || this->size() < 0.999999 )
+            return false;
+        return true;
+    }
+
+    /**
      * @brief dotProduct == Scallar product
      * @param other
      * @return
@@ -125,8 +135,9 @@ public:
     }
 
     // using Vector&, double, double instead of Quat -> circular include
-    inline void rotate(Vector& vec, double vc, double vs) {
-        double t2,t3,t4,t5,t6,t7,t8,t9,t10,newx,newy,newz, qw(vc), qx(vec.x * vs), qy(vec.y * vs), qz(vec.z * vs);
+    inline void rotate(Vector& axis, double cosAngle, double sinAngle) {
+        double t2,t3,t4,t5,t6,t7,t8,t9,t10,newx,newy,newz;
+        double qw = cosAngle, qx = (axis.x * sinAngle), qy = (axis.y * sinAngle), qz = (axis.z * sinAngle);
 
         /*    t1 = quat.w * quat.w; */
         t2 =  qw * qx;

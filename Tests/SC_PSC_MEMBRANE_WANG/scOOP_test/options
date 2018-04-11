@@ -1,0 +1,33 @@
+#
+#
+#	PSC MEMBRANE WANG-LANDAU TEST
+#
+#	FOR SINGLE CORE ~100m, ON 32+ CORES ~10m ENOUGH, EXPECT 300K SWEEPS / HOUR
+#
+#
+paralpress = 0          #  Parallel pressure for replica exchange
+shave = 1               #  Average number of volume change attempts per sweep (usually 1)
+nequil = 0              #  Number of equilibration sweeps
+adjust = 0              #  Number of equilibration sweeps between step size adjustments
+nsweeps  = 100000000    #  Number of production sweeps, 
+paramfrq = 100000       #  Number of sweeps between order parameter samples
+report   = 1000         #  Number of sweeps between statistics reports
+nrepchange = 0          #  Number of sweeps between replica exchanges
+nGrandCanon = 0
+nClustMove = 0
+movie    = 0            #  Number of sweeps between movie frames (0 = no movie)
+chainprob = 0.1         #  Probability of chain move attempts per sweep (0.25/number of particles in chain)
+transmx = 0.05           #  Initial maximum displacement, Default value for all types
+transmx_type = 3 0.5 # Type specific displacement, transmx_type = type displacement type displacement ...
+rotmx = 10.0             #  Initial maximum orientation change (degrees)
+edge_mx = 0.1           #  Initial maximum box length change
+chainmmx = 0.05          #  Initial maximum chain displacement
+chainrmx = 7.0          #  Initial maximum chain rotation change (degrees)
+temper = 1.0            #  Temperature in units kT/e
+paraltemper = 1.0       #  Temperature for parallel tempering in kT/e 
+wlm = 1 3               #  Wang-Landau method
+wlmtype = 3             #  For which atomic type (from top.init) should the Wang-Landau method be calculated?
+switchprob = 0.00       #  Probability of type switch attempts per sweep
+pairlist_update = 0     #  Number of sweeps after which the pairlist should be updated
+seed = 206          #  Random number seed
+write_cluster = 0       #  Number of sweeps per writing out cluster info

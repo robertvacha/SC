@@ -1,3 +1,21 @@
+/*MODIFICATIONS:
+when wl=3 .. rotation of 0th particle it is allowed to move
+
+pokousime se odstranit bug ze castice pri wl=1 se obcas zasekne
+je to kvuli pohybu center of mass
+
+zrejme je chybou tim ze kvuli akumulaci numerickych chyb se cas od casu prepocita centrum hmotnosti systemu
+u toho se pouziji periodicke okrajove podminky, ktere to cele mohou zkazit protoze castice co odletela do druheho boxu
+pri navratu od primarniho boxu (-z/2 do z/2) posune stred hmostnosti
+
+testujeme - odstranili jsme prepocet stredu hmotnosti z obav z numerickych chyb
+
+
+vypis "F I N I S H E D" do stdout po splneni wl podminek
+
+*/
+
+
 /*TODO in future s
   - Non-equilibrium candidate moves
   - check scaling of particles of different sizes - should scale with contact area!
@@ -8,7 +26,6 @@
   - better cluster algorithm - put in wang-landau 
   - cluster list work for spherocylinders only now
  */
-
 
 /*------------------------------------------------------------------------------
  Version 3.5
@@ -241,7 +258,6 @@ MM 9.v.02
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdbool.h>
 
 #ifdef MACOS
 # include "getline.h"
@@ -614,8 +630,6 @@ long seed = 6;             /* Seed for random number generator */
 
 /*..............................................................................*/
 
-
-
 int main(int argc, char **argv)
 {
 	DEBUG("start");
@@ -758,11 +772,7 @@ int main(int argc, char **argv)
 	printf ("   MPI replica changeT / changeP / acceptance ratio: \t %.6lf   /   %.6lf  /  %.6lf\n\n", sim.mpiexch.mx,sim.mpiexch.angle,RATIO(sim.mpiexch));
 #endif
 	outfile = fopen(files.configurationoutfile, "w");
-#ifdef TESTING
-    fprintf (outfile, "%15.6le %15.6le %15.6le\n", conf.box.x, conf.box.y, conf.box.z);
-#else
-    fprintf (outfile, "%15.8le %15.8le %15.8le\n", conf.box.x, conf.box.y, conf.box.z);
-#endif
+	fprintf (outfile, "%15.8le %15.8le %15.8le\n", conf.box.x, conf.box.y, conf.box.z);
 	draw (outfile, &conf, &topo);
 	fclose (outfile);
 
@@ -860,6 +870,10 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 	long radiushole_position(double, struct sim *,int);
 	long contparticles_all(struct topo *topo, struct conf *conf, struct sim * sim,int wli);
 	double alignment_order(struct conf * conf, struct topo * topo);
+    int memorydealloc(struct conf * conf, struct topo * topo, struct sim * sim);
+
+    double paire(long, long, double (* intfce[MAXT][MAXT])(struct interacts *),
+                    struct topo * topo, struct conf * conf);
 
 	/* Opening files for cluster statistics */
 	cl_stat = cl = cl_list = ef = statf = NULL;
@@ -874,7 +888,7 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 		cl = fopen(files->clusterfile, "a");
 	}
 	/* write energy*/
-	if (report < nsweeps){
+	if (report <= nsweeps){
 		// Empty file
 		ef = fopen(files->energyfile, "w");
 		fclose(ef);
@@ -999,12 +1013,28 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 				printf("Error: starting Wang-Landau method with order parameter %f out of range(%f - %f)\n\n", sim->wl.dorder[wli]*sim->wl.currorder[wli] + \
 				   sim->wl.minorder[wli], sim->wl.minorder[wli], sim->wl.minorder[wli]+sim->wl.dorder[wli]*sim->wl.length[wli]  );
 				wlend(&sim->wl);
+				if (memorydealloc(conf, topo, sim))  
+		            exit(1);
+				exit(2);
 				return;
 			}
 		}
 		if (sim->wl.alpha < WL_ALPHATOL/100) sim->wl.alpha = WL_ZERO;
 		fflush (stdout);
 	}
+
+double e,e2;
+        for(int i=0; i< 1/*topo->npart-1*/; ++i) {
+            for(int j=i+1; j< topo->npart; ++j) {
+                e = paire(i, j, intfce, topo, conf);
+                e2 = paire(j, i, intfce, topo, conf);
+                if(e < 1000.0)
+                    printf("%.5lf %.5lf\n", e, e2);
+                else printf("%lf\n", 1000.0);
+            }
+            printf("\n");
+        }
+        exit(0);
 
 
 	/*do moves - START OF REAL MC*/
@@ -1033,7 +1063,6 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 		//normal moves
 		for (step=1; step <= topo->npart; step++) {
 			moveprobab = ran2(&seed);
-
 			if ( moveprobab < sim->shprob) {
 				/* pressure moves*/
 				edriftchanges += pressuremove(topo,sim,conf,intfce);
@@ -1076,15 +1105,6 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 		}
 
 		if ( (sim->wlm[0] > 0) && (sim->wl.alpha > WL_ZERO) && !(sweep % 1000) ) {
-			/* recalculate system CM to be sure there is no accumulation of errors by +- rejection moves*/
-			/* BUG - not used any longer: caused problems with PBC normal moves systemCM movement
-			  can be calculated from CM movements of individual particles
-			  present center of mass calculation use pbc and thus particles that moved across the box
-			  is in this calculation used in pripary box but in other moves in in in the particles position
-			 if ( (sim->wlm[0] == 1) || (sim->wlm[1] == 1) )
-			      masscenter(topo->npart,topo->ia_params, conf);
-			      
-			*/
 			sim->wl.min = sim->wl.hist[0];
 			sim->wl.max = sim->wl.hist[0];
 			for (i=0;i < sim->wl.length[0];i++) {
@@ -1104,7 +1124,11 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 					  fflush(stdout);
 					  }
 					 */
-					if ( sim->wl.alpha < WL_ALPHATOL) break;
+					if ( sim->wl.alpha < WL_ALPHATOL) {
+						printf("\nF I N I S H E D\n\n");
+						fflush (stdout);
+						break;
+					}
 					sim->wl.alpha/=2;
 					printf("%f \n", sim->wl.alpha);
 					fflush (stdout);
@@ -1199,7 +1223,7 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 	edriftend = calc_energy(0, intfce, 0, topo, conf, sim,0); 
 	pvdriftend =  sim->press * volume - (double)topo->npart * log(volume) / sim->temper;
 	printf("Energy drift: %.15lf \n",edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart);
-	printf("Starting energy+pv: %.8lf \n",edriftstart+pvdriftstart);
+        printf("Starting energy+pv: %.8lf \n",edriftstart+pvdriftstart);
 	printf("Starting energy: %.8lf \n",edriftstart);
 	fflush(stdout);
 
@@ -1265,8 +1289,7 @@ double particlemove(struct topo * topo, struct sim * sim, struct conf * conf,
 	
 	/*=== This is a particle move step ===*/
 	target = ran2(&seed) * topo->npart;
-	if ( !( ((sim->wlm[0] == 3) || (sim->wlm[1] == 3) ) && (target == 0) ) && \
-	((ran2(&seed) < 0.5) || (topo->ia_params[conf->particle[target].type][conf->particle[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
+	if ( ((ran2(&seed) < 0.5) || (topo->ia_params[conf->particle[target].type][conf->particle[target].type].geotype[0] >= SP)) ) { /* no rotation for spheres */
 		//target = 1;
 		//printf ("displacement\n\n");
 		edriftchanges = partdisplace(topo,sim,conf,intfce,target);
@@ -1318,11 +1341,6 @@ double partdisplace(struct topo * topo, struct sim * sim, struct conf * conf,
 	dr.x *= sim->trans[conf->particle[target].type].mx/conf->box.x; 
 	dr.y *= sim->trans[conf->particle[target].type].mx/conf->box.y;
 	dr.z *= sim->trans[conf->particle[target].type].mx/conf->box.z;
-	if ( ((sim->wlm[0] == 3)||(sim->wlm[1] == 3)) && (target == 0) ) {
-		dr.z = 0;
-		dr.y = 0;
-		dr.x = 0;
-	}
 	conf->particle[target].pos.x += dr.x;
 	conf->particle[target].pos.y += dr.y;
 	conf->particle[target].pos.z += dr.z;
@@ -1456,7 +1474,7 @@ double partrotate(struct topo * topo, struct sim * sim, struct conf * conf,
 	if ( reject || movetry(energy,enermove,sim->temper) ) {  /* probability acceptance */
 		conf->particle[target] = origpart;
 		sim->rot[conf->particle[target].type].rej++;
-        wlreject(sim,sim->wl.radiusholemax);
+		wlreject(sim,sim->wl.radiusholemax);
 	} else { /* move was accepted */
 		// DEBUG
 		//fprintf(fenergy, "%lf\t%lf\n", conf->particle[1].pos.x * conf->box.x , enermove);
@@ -1662,11 +1680,6 @@ double chaindisplace(struct topo * topo, struct sim * sim, struct conf * conf,
 	dr.y *= sim->chainm[conf->particle[target].chaint].mx/conf->box.y;
 	dr.z *= sim->chainm[conf->particle[target].chaint].mx/conf->box.z;
 	i=0;
-	if ( ((sim->wlm[0] == 3)||(sim->wlm[1] == 3)) && (target == 0) ) {
-		dr.z = 0;
-		dr.y = 0;
-		dr.x = 0;
-	}
 	current = topo->chainlist[target][0];
 	while (current >=0 ) { /* move chaine to new position  */
 		if ( (sim->wlm[0] == 1) || (sim->wlm[0] == 5) || (sim->wlm[1] == 1) || (sim->wlm[1] == 5) ) { /* calculate move of center of mass  */
@@ -1686,20 +1699,19 @@ double chaindisplace(struct topo * topo, struct sim * sim, struct conf * conf,
 	if (sim->wlm[0] > 0) {  /* get new neworder for wang-landau */
 		for (wli=0;wli<sim->wl.wlmdim;wli++) {
 			switch (sim->wlm[wli]) {
-                case 1: origsyscm = conf->syscm;
+				case 1: origsyscm = conf->syscm;
 					conf->syscm.x += cluscm.x / conf->sysvolume;
 					conf->syscm.y += cluscm.y / conf->sysvolume;
 					conf->syscm.z += cluscm.z / conf->sysvolume;
 					sim->wl.neworder[wli] = z_order(&sim->wl, conf,wli);
 					break;
-                case 2:
-                    mesh_cpy(&sim->wl.origmesh,&sim->wl.mesh);
+				case 2: mesh_cpy(&sim->wl.origmesh,&sim->wl.mesh);
 					sim->wl.neworder[wli] = meshorder_movechain(topo->chainlist[target], &sim->wl.mesh, topo->npart, conf, sim, chorig,wli);
 					break;
-                case 4:
+				case 4:
 					sim->wl.neworder[wli] = twopartdist(&sim->wl,conf,wli);
 					break;
-                case 5:
+				case 5: 
 					radiusholemax_orig = sim->wl.radiusholemax;
 					origsyscm = conf->syscm;
 					conf->syscm.x += cluscm.x / conf->sysvolume;
@@ -1708,7 +1720,7 @@ double chaindisplace(struct topo * topo, struct sim * sim, struct conf * conf,
 					longarray_cpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
 					sim->wl.neworder[wli] = radiushole_all(topo,conf,sim,wli,&(conf->syscm));
 					break;
-                case 6:
+				case 6: 
 					radiusholemax_orig = sim->wl.radiusholemax;
 					longarray_cpy(&sim->wl.radiusholeold,&sim->wl.radiushole,sim->wl.radiusholemax,sim->wl.radiusholemax);
 					if ( target == 0 )
@@ -1716,23 +1728,22 @@ double chaindisplace(struct topo * topo, struct sim * sim, struct conf * conf,
 					else 
 					  sim->wl.neworder[wli] = radiusholeorder_movechain(topo->chainlist[target], conf, sim, chorig,wli,&(conf->particle[0].pos));
 					break;
-                case 7:
+				case 7:
 					sim->wl.partincontactold = sim->wl.partincontact;
 					if ( target == 0 )
 						sim->wl.neworder[wli] = contparticles_all(topo,conf,sim,wli);
 					else 
 						sim->wl.neworder[wli] = contparticles_movechain(topo->chainlist[target],conf,sim,chorig,wli);
 					break;
-                default:
+				default: 
 					sim->wl.neworder[wli] = sim->wl.currorder[wli];
 					break;
 			}
 			if ( (sim->wl.neworder[wli] < 0) || (sim->wl.neworder[wli] >= sim->wl.length[wli]) ) reject = 1;
 		}
 		if (!reject) { 
-            wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]]
-                     - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
-            energy += wlener;
+			wlener += sim->wl.weights[sim->wl.neworder[0]+sim->wl.neworder[1]*sim->wl.length[0]] - sim->wl.weights[sim->wl.currorder[0]+sim->wl.currorder[1]*sim->wl.length[0]];
+			energy += wlener;
 		}
 	}
 	if (!reject) { /* wang-landaou ok, try move - calcualte energy */
@@ -2611,16 +2622,18 @@ double e_psc_psc(struct interacts * interact)
 		BOOL firstCH=FALSE, secondCH=FALSE;
 		struct vector olddir1 = interact->part1->dir;
 		struct vector olddir2 = interact->part2->dir;
-		if ( (interact->param->geotype[0] == CHPSC)||(interact->param->geotype[0] == TCHPSC) )
+
+                if ( (interact->param->geotype[0] == CHPSC) || (interact->param->geotype[0] == TCHPSC) )
 			firstCH = TRUE;
-		if ( (interact->param->geotype[1] == CHPSC)||(interact->param->geotype[1] == TCHPSC) )
+                if ( (interact->param->geotype[1] == CHPSC) || (interact->param->geotype[1] == TCHPSC) )
 			secondCH = TRUE;
+
 		if (firstCH)
 			interact->part1->dir = interact->part1->chdir[0];
 		if (secondCH)
 			interact->part2->dir = interact->part2->chdir[0];
 		
-		if ((firstCH) || (secondCH) ) { 
+                if ( (firstCH) || (secondCH) ) {
 		    closestdist(interact);
 		}
 		atrenergy = eattractive_psc_psc(interact,0,0);
@@ -2633,28 +2646,60 @@ double e_psc_psc(struct interacts * interact)
 			firstT = TRUE;
 		    if ( (interact->param->geotype[1] == TPSC) ||(interact->param->geotype[1] == TCHPSC)  )
 			secondT = TRUE;
-		    
-		    if (firstT) {
-			if (firstCH) {
-			    interact->part1->dir = interact->part1->chdir[1];
-			    closestdist(interact);
-			}
+
+                    if (firstT) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
 			atrenergy += eattractive_psc_psc(interact,1,0);
-		    }
+                    }
+
 		    if ( (firstT) && (secondT) ) {
-			if (secondCH) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
 			    interact->part2->dir = interact->part2->chdir[1];
 			    closestdist(interact);
 			}
 			atrenergy += eattractive_psc_psc(interact,1,1);
 		    }
+
 		    if (secondT) {
-			if (firstT && firstCH ) {
-			    interact->part1->dir = interact->part1->chdir[0];
-			    closestdist(interact);
-			}
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = olddir2;
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part1->dir = olddir1;
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+
 			atrenergy += eattractive_psc_psc(interact,0,1);
-		    }
+                    }
 		}
 		
 		if (firstCH) 
@@ -3019,27 +3064,59 @@ double e_psc_cpsc(struct interacts * interact)
 			    (interact->param->geotype[1] == TPSC) || (interact->param->geotype[1] == TCHPSC) )
 			secondT = TRUE;
 		    
-		    if (firstT) {
-			if (firstCH) {
-			    interact->part1->dir = interact->part1->chdir[1];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,1,0);
-		    }
-		    if ( (firstT) && (secondT) ) {
-			if (secondCH) {
-			    interact->part2->dir = interact->part2->chdir[1];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,1,1);
-		    }
-		    if (secondT) {
-			if (firstT && firstCH ) {
-			    interact->part1->dir = interact->part1->chdir[0];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,0,1);
-		    }
+                    if (firstT) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
+                        atrenergy += eattractive_psc_cpsc(interact,1,0);
+                    }
+
+                    if ( (firstT) && (secondT) ) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        atrenergy += eattractive_psc_cpsc(interact,1,1);
+                    }
+
+                    if (secondT) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = olddir2;
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part1->dir = olddir1;
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+
+                        atrenergy += eattractive_psc_cpsc(interact,0,1);
+                    }
 		}
 		
 		if (firstCH) 
@@ -3236,20 +3313,21 @@ double e_spa_sca(struct interacts * interact)
  */
 double e_psc_spa(struct interacts * interact)
 {
-	double atrenergy, repenergy;
+        double atrenergy = 0.0, repenergy;
 
 	void closestdist(struct interacts *);
 	double erepulsive(struct interacts *);
 	double eattractive_psc_spa(struct interacts *, int);
 
 	//DEBUG_SIM("do energy 211") ;
-	closestdist(interact);
+        closestdist(interact);
 	repenergy = erepulsive(interact);
+
 	//DEBUG_SIM("got the rep. energy");
 	if ( ( interact->dist > interact->param->rcut ) || ( interact->param->epsilon == 0.0 ) ) 
 		atrenergy = 0.0;
 	else {
-		BOOL firstCH=FALSE, secondCH=FALSE;
+                BOOL firstCH=FALSE, secondCH=FALSE;
 		struct vector olddir1 = interact->part1->dir;
 		struct vector olddir2 = interact->part2->dir;
 		if ( (interact->param->geotype[0] == CHPSC) || (interact->param->geotype[0] == TCHPSC) )
@@ -3263,11 +3341,12 @@ double e_psc_spa(struct interacts * interact)
 		
 		if ((firstCH) || (secondCH) ) {
 		    closestdist(interact);
-		}
-		atrenergy = eattractive_psc_spa(interact,0);
+                }
+                if(interact->dist < interact->param->rcut)
+                    atrenergy = eattractive_psc_spa(interact,0);
 		
-		/*addition of interaction of second patches*/
-		if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) || 
+                //addition of interaction of second patches
+                if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) ||
 		  (interact->param->geotype[1] == TPSC) ||(interact->param->geotype[1] == TCHPSC) ) {
 		    BOOL firstT=FALSE, secondT=FALSE;
 		    if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) )
@@ -3279,30 +3358,29 @@ double e_psc_spa(struct interacts * interact)
 			if (firstCH) {
 			    interact->part1->dir = interact->part1->chdir[1];
 			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_spa(interact,1);
+                        }
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_psc_spa(interact,1);
 		    }
 		    if (secondT) {
 			if(secondCH) {
 			    interact->part2->dir = interact->part2->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_psc_spa(interact,1);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_psc_spa(interact,1);
 		    }
 		    if ( (firstT) && (secondT) ) {
 		      fprintf (stderr, "ERROR PSC should interact s SPA but got two PSC \n");
 		      exit(1);
 		    }
-		}
-		
+                }
 
-		if (firstCH) 
-		    interact->part1->dir = olddir1;
-		if (secondCH)
-		    interact->part2->dir = olddir2;
-		
-	}
-	return repenergy+atrenergy;
+                interact->part1->dir = olddir1;
+                interact->part2->dir = olddir2;
+
+        }
+        return repenergy+atrenergy;
 }
 /* 
  * Determines attractive energy of spherocylinder type 2 and sphere type 11 
@@ -3325,6 +3403,7 @@ double eattractive_psc_spa(struct interacts * interact, int patchnum1)
 		atrenergy = cos(PIH*(interact->dist-interact->param->pdis)/interact->param->pswitch);
 		atrenergy *= -atrenergy*interact->param->epsilon ;
 	}
+
 	/*scaling function: angular dependence of patch1*/
 	if (interact->param->geotype[0] < SP) {
 		which = 0;
@@ -3339,17 +3418,19 @@ double eattractive_psc_spa(struct interacts * interact, int patchnum1)
 		a = DOT(vec1,interact->part2->patchdir[patchnum1]);
         halfl=interact->param->half_len[1];
 	}
-	/*scaling function for the length of spherocylinder within cutoff*/
 
-	b = sqrt(interact->param->rcut*interact->param->rcut-interact->dist*interact->dist);
+        // caling function for the length of spherocylinder within cutoff
+        b = sqrt(interact->param->rcut*interact->param->rcut - interact->dist*interact->dist);
 	if ( interact->contt + b > halfl ) 
 		f0 = halfl;
 	else 
 		f0 = interact->contt + b;
+
 	if ( interact->contt - b < -halfl ) 
 		f0 -= -halfl;
 	else 
 		f0 -= interact->contt - b;
+
 	atrenergy *= fanglscale(a,interact->param, which)*f0;
 	//if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
 	//fprintf (stderr, "attraction211  %.8f x: %.8f y: %.8f z: %.8f \n",atrenergy,vec1.x,vec1.y,vec1.z);
@@ -3400,7 +3481,9 @@ double e_cpsc_spa(struct interacts * interact)
 		if ((firstCH) || (secondCH) ) {
 		    closestdist(interact);
 		}
-		atrenergy = eattractive_cpsc_spa(interact,0);
+
+                if(interact->dist < interact->param->rcut)
+                    atrenergy = eattractive_cpsc_spa(interact,0);
 		
 		/*addition of interaction of second patches*/
 		if ( (interact->param->geotype[0] == TCPSC) || (interact->param->geotype[0] == TCHCPSC) || 
@@ -3416,14 +3499,16 @@ double e_cpsc_spa(struct interacts * interact)
 			    interact->part1->dir = interact->part1->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_cpsc_cpsc(interact,1,0);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_cpsc_spa(interact,1);
 		    }
 		    if (secondT) {
 			if(secondCH) {
 			    interact->part2->dir = interact->part2->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_cpsc_cpsc(interact,0,1);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_cpsc_spa(interact,1);
 		    }
 		    if ( (firstT) && (secondT) ) {
 			fprintf (stderr, "ERROR PSC should interact s SPA but got two PSC \n");
@@ -3525,10 +3610,6 @@ double e_2sca_or_2spa(struct interacts * interact)
 	}
 
 	return repenergy+atrenergy;
-
-	// LJ
-        //double en6 = pow((interact->param->sigma / interact->dist),6);
-        //return 4*en6*(en6-1);
 }
 
 
@@ -3564,9 +3645,10 @@ double erepulsive(struct interacts * interact)
 	if (interact->dist > interact->param->rcutwca) repenergy = 0.0;
 	else {
             en6 = pow((interact->param->sigma/interact->dist),6);
-            repenergy = 4*en6*(en6-1) + 1.0;
+            repenergy = interact->param->epsilon * ( 4*en6*(en6-1) + 1.0);
 	}
-	//printf("repenergy: %f dist: %f\n",repenergy, interact->dist);
+        //int Digs = 20;
+        //printf("dist: %.*e, repenergy: %.*e\n",Digs, interact->dist, Digs, repenergy);
 
 	return repenergy;
 }
@@ -3955,7 +4037,6 @@ double paire(long num1, long num2, double (* intfce[MAXT][MAXT])(struct interact
 	interact.part1 = &conf->particle[num1];
 	interact.part2 = &conf->particle[num2];
 	interact.param = topo->ia_params[conf->particle[num1].type] + conf->particle[num2].type;
-	
 	
 	if(intfce[conf->particle[num1].type][conf->particle[num2].type] == NULL){
 		fprintf(stderr, "interaction function for type %d and %d not defined!\n",
@@ -4726,15 +4807,12 @@ int movetry(double energyold, double energynew, double temperature)
 
 	/*DEBUG   printf ("   Move trial:    %13.8lf %13.8lf %13.8lf %13.8lf\n",
 	  energynew, energyold, temperature, ran2(&seed));*/
-    if (energynew <= energyold ) {
+	if (energynew <= energyold ) 
 		return 0;
-    } else {
-        if (exp(-1.0*(energynew-energyold)/temperature) > ran2(&seed)) {
-            return 0;
-        } else {
-            return 1;
-        }
-    }
+	else if (exp(-1.0*(energynew-energyold)/temperature) > ran2(&seed)) 
+		return 0;
+	else 
+		return 1;
 }
 /*..............................................................................*/
 
@@ -7861,9 +7939,8 @@ void draw(FILE *outfile, /*struct vector box, long npart,
 	double anint(double);
 
 	//fprintf (outfile, "%15.8le %15.8le %15.8le\n", box.x, box.y, box.z);
-#ifdef TESTING
 	for (i = 0; i < topo->npart; i++) {
-        fprintf (outfile, "%15.6le %15.6le %15.6le   %15.6le %15.6le %15.6le   %15.6le %15.6le %15.6le %d\n",
+		fprintf (outfile, "%15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le %d\n",
 				conf->box.x * ((conf->particle[i].pos.x) - anint(conf->particle[i].pos.x)),
 				conf->box.y * ((conf->particle[i].pos.y) - anint(conf->particle[i].pos.y)),
 				conf->box.z * ((conf->particle[i].pos.z) - anint(conf->particle[i].pos.z)),
@@ -7871,17 +7948,6 @@ void draw(FILE *outfile, /*struct vector box, long npart,
 				conf->particle[i].patchdir[0].x, conf->particle[i].patchdir[0].y, conf->particle[i].patchdir[0].z,
 				conf->particle[i].switched);
 	}
-#else
-    for (i = 0; i < topo->npart; i++) {
-        fprintf (outfile, "%15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le   %15.8le %15.8le %15.8le %d\n",
-                conf->box.x * ((conf->particle[i].pos.x) - anint(conf->particle[i].pos.x)),
-                conf->box.y * ((conf->particle[i].pos.y) - anint(conf->particle[i].pos.y)),
-                conf->box.z * ((conf->particle[i].pos.z) - anint(conf->particle[i].pos.z)),
-                conf->particle[i].dir.x, conf->particle[i].dir.y, conf->particle[i].dir.z,
-                conf->particle[i].patchdir[0].x, conf->particle[i].patchdir[0].y, conf->particle[i].patchdir[0].z,
-                conf->particle[i].switched);
-    }
-#endif
 }
 /*............................................................................*/
 
@@ -8642,12 +8708,12 @@ long z_order(struct wls *wl, struct conf * conf,int wli)
 	//    printf("%f %ld\n",particle[0].pos.z * box.z,lround(particle[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]));
 	/* Because older C compilators do not know lround we can use ceil as well
 	   return lround(particle[0].pos.z * box.z / wl.dorder[wli] - wl.minorder[wli]);*/
-
-    /*printf("pos Z %f ",conf->particle[0].pos.z );
+	/*
+	printf("%f ",conf->particle[0].pos.z );
 	printf("%f ",conf->syscm.z);
 	printf("%f ",conf->box.z);
 	printf("%f ", wl->minorder[wli]);
-    printf("dorder %f \n", wl->dorder[wli] );*/
+	printf("%f \n", wl->dorder[wli] );*/
 	
 	return (long) ceil( ((conf->particle[0].pos.z - conf->syscm.z) * conf->box.z- wl->minorder[wli]) / wl->dorder[wli]  );
 }
@@ -8748,22 +8814,21 @@ long meshorder_movechain(long chain[MAXN], struct meshs *mesh,
 	int mesh_addpart(double, double, int **, int [2]);
 	int mesh_removepart(double, double, int **, int [2]);
 
+
 	change= 1;
 	i = 0;
 	current = chain[0];
 	while ( (current >=0 ) && (change) ) {
-        if ( conf->particle[current].type == sim->wl.wlmtype ) {
+		if ( conf->particle[current].type == sim->wl.wlmtype )
 			change = mesh_addpart(conf->particle[current].pos.x, conf->particle[current].pos.y, &(*mesh).data, (*mesh).dim);
-        }
 		i++;
 		current = chain[i];
 	}
 	i = 0;
 	current = chain[0];
 	while ( (current >=0 ) && (change) ) {
-        if ( conf->particle[current].type == sim->wl.wlmtype ) {
+		if ( conf->particle[current].type == sim->wl.wlmtype )
 			change = mesh_removepart(chorig[i].pos.x, chorig[i].pos.y, &(*mesh).data, (*mesh).dim);
-        }
 		i++;
 		current = chain[i];
 	}
@@ -8773,7 +8838,6 @@ long meshorder_movechain(long chain[MAXN], struct meshs *mesh,
 		mesh_fill(mesh,npart,conf->particle, sim);
 		return (long) (mesh_findholes(mesh) - sim->wl.minorder[wli]);
 	}
-
 	return sim->wl.currorder[wli];
 }
 
@@ -9656,6 +9720,7 @@ double linemin(double criterion, double halfl)
 #define NDIV (1+IMM1/NTAB)
 #define EPS 1.2e-7
 #define RNMX (1.0-EPS)
+
 double ran2(long *idum)
 {
 	int j;
@@ -9688,9 +9753,7 @@ double ran2(long *idum)
 	iv[j] = *idum;
 	if (iy < 1) iy += IMM1;
 	if ((temp=AM*iy) > RNMX) return RNMX;
-    else {
-        return temp;
-    }
+	else return temp;
 }
 #undef IM1
 #undef IM2
@@ -9873,7 +9936,7 @@ void normalise(struct vector *u)
 
 	tot = sqrt( DOT(*u,*u) );
 	if (tot !=0.0) {
-		tot=1.0/tot;
+		tot=1/tot;
 		(*u).x *= tot;
 		(*u).y *= tot;
 		(*u).z *= tot;

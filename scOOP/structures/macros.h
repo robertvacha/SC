@@ -57,7 +57,8 @@
 #endif
 /* End of DEBUG macros */
 
-#define MAXN 14000           /* Maximum number of particles */
+#define MAXN 30003           /* Maximum number of particles */
+#define MAXNEIGHBORS 3000   // Maximum number of neighbors
 #define MAXCHL 20          /* Maximum length of chain */
 #define ZEROTOL 1.0e-12     /* Dot products below ZEROTOL are deemed zero */
 #define ZEROTOL2 1.0e-8     /* numbers below ZEROTOL are deemed zero */
@@ -100,7 +101,7 @@
 
 /* Wang Landau method */
 #define WL_GERR 0.0001           /* Max roughnes in histogram */
-#define WL_ALPHATOL 0.000001     /* Covergence crietria for detailed balance */
+#define WL_ALPHATOL 1.0e-8     /* Covergence crietria for detailed balance */
 #define WL_MINHIST 1000         /* Minimum histogram sampling for considering roughness */
 #define WL_ZERO 0.000000000000  /* Zero for histogram with current weights*/
 #define WL_CONTACTS 36.0          /* Square distance under which are particles in contact */

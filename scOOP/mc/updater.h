@@ -10,6 +10,8 @@
 class Updater
 {
 public:
+    bool showPairInteractions = false;
+
     Updater(Sim* sim, Conf* conf, FileNames* files) :
         sim(sim), conf(conf), files(files),
         calcEnergy(sim, conf), move(sim, conf, &calcEnergy), clust(conf, sim, &calcEnergy, files) {
