@@ -1023,12 +1023,13 @@ void simulate(long nsweeps, long adjust, long paramfrq, long report,
 		fflush (stdout);
 	}
 
-double e;
+double e,e2;
         for(int i=0; i< 1/*topo->npart-1*/; ++i) {
             for(int j=i+1; j< topo->npart; ++j) {
                 e = paire(i, j, intfce, topo, conf);
+                e2 = paire(j, i, intfce, topo, conf);
                 if(e < 1000.0)
-                    printf("%.5lf\n", e);
+                    printf("%.5lf %.5lf\n", e, e2);
                 else printf("%lf\n", 1000.0);
             }
             printf("\n");
@@ -2621,16 +2622,18 @@ double e_psc_psc(struct interacts * interact)
 		BOOL firstCH=FALSE, secondCH=FALSE;
 		struct vector olddir1 = interact->part1->dir;
 		struct vector olddir2 = interact->part2->dir;
-		if ( (interact->param->geotype[0] == CHPSC)||(interact->param->geotype[0] == TCHPSC) )
+
+                if ( (interact->param->geotype[0] == CHPSC) || (interact->param->geotype[0] == TCHPSC) )
 			firstCH = TRUE;
-		if ( (interact->param->geotype[1] == CHPSC)||(interact->param->geotype[1] == TCHPSC) )
+                if ( (interact->param->geotype[1] == CHPSC) || (interact->param->geotype[1] == TCHPSC) )
 			secondCH = TRUE;
+
 		if (firstCH)
 			interact->part1->dir = interact->part1->chdir[0];
 		if (secondCH)
 			interact->part2->dir = interact->part2->chdir[0];
 		
-		if ((firstCH) || (secondCH) ) { 
+                if ( (firstCH) || (secondCH) ) {
 		    closestdist(interact);
 		}
 		atrenergy = eattractive_psc_psc(interact,0,0);
@@ -2643,8 +2646,8 @@ double e_psc_psc(struct interacts * interact)
 			firstT = TRUE;
 		    if ( (interact->param->geotype[1] == TPSC) ||(interact->param->geotype[1] == TCHPSC)  )
 			secondT = TRUE;
-		    
-		    if (firstT) {
+
+                    if (firstT) {
                         if (firstCH && secondCH) {
                             interact->part1->dir = interact->part1->chdir[1];
                             interact->part2->dir = interact->part2->chdir[0];
@@ -2686,14 +2689,17 @@ double e_psc_psc(struct interacts * interact)
                         }
                         if (firstCH && !secondCH) {
                             interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = olddir2;
                             closestdist(interact);
                         }
                         if (!firstCH && secondCH) {
-                            interact->part2->dir = interact->part2->chdir[0];
+                            interact->part1->dir = olddir1;
+                            interact->part2->dir = interact->part2->chdir[1];
                             closestdist(interact);
                         }
+
 			atrenergy += eattractive_psc_psc(interact,0,1);
-		    }
+                    }
 		}
 		
 		if (firstCH) 
@@ -3058,27 +3064,59 @@ double e_psc_cpsc(struct interacts * interact)
 			    (interact->param->geotype[1] == TPSC) || (interact->param->geotype[1] == TCHPSC) )
 			secondT = TRUE;
 		    
-		    if (firstT) {
-			if (firstCH) {
-			    interact->part1->dir = interact->part1->chdir[1];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,1,0);
-		    }
-		    if ( (firstT) && (secondT) ) {
-			if (secondCH) {
-			    interact->part2->dir = interact->part2->chdir[1];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,1,1);
-		    }
-		    if (secondT) {
-			if (firstT && firstCH ) {
-			    interact->part1->dir = interact->part1->chdir[0];
-			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_cpsc(interact,0,1);
-		    }
+                    if (firstT) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part2->dir = interact->part2->chdir[0];
+                            closestdist(interact);
+                        }
+                        atrenergy += eattractive_psc_cpsc(interact,1,0);
+                    }
+
+                    if ( (firstT) && (secondT) ) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        atrenergy += eattractive_psc_cpsc(interact,1,1);
+                    }
+
+                    if (secondT) {
+                        if (firstCH && secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+                        if (firstCH && !secondCH) {
+                            interact->part1->dir = interact->part1->chdir[0];
+                            interact->part2->dir = olddir2;
+                            closestdist(interact);
+                        }
+                        if (!firstCH && secondCH) {
+                            interact->part1->dir = olddir1;
+                            interact->part2->dir = interact->part2->chdir[1];
+                            closestdist(interact);
+                        }
+
+                        atrenergy += eattractive_psc_cpsc(interact,0,1);
+                    }
 		}
 		
 		if (firstCH) 
@@ -3275,20 +3313,21 @@ double e_spa_sca(struct interacts * interact)
  */
 double e_psc_spa(struct interacts * interact)
 {
-	double atrenergy, repenergy;
+        double atrenergy = 0.0, repenergy;
 
 	void closestdist(struct interacts *);
 	double erepulsive(struct interacts *);
 	double eattractive_psc_spa(struct interacts *, int);
 
 	//DEBUG_SIM("do energy 211") ;
-	closestdist(interact);
+        closestdist(interact);
 	repenergy = erepulsive(interact);
+
 	//DEBUG_SIM("got the rep. energy");
 	if ( ( interact->dist > interact->param->rcut ) || ( interact->param->epsilon == 0.0 ) ) 
 		atrenergy = 0.0;
 	else {
-		BOOL firstCH=FALSE, secondCH=FALSE;
+                BOOL firstCH=FALSE, secondCH=FALSE;
 		struct vector olddir1 = interact->part1->dir;
 		struct vector olddir2 = interact->part2->dir;
 		if ( (interact->param->geotype[0] == CHPSC) || (interact->param->geotype[0] == TCHPSC) )
@@ -3302,11 +3341,12 @@ double e_psc_spa(struct interacts * interact)
 		
 		if ((firstCH) || (secondCH) ) {
 		    closestdist(interact);
-		}
-		atrenergy = eattractive_psc_spa(interact,0);
+                }
+                if(interact->dist < interact->param->rcut)
+                    atrenergy = eattractive_psc_spa(interact,0);
 		
-		/*addition of interaction of second patches*/
-		if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) || 
+                //addition of interaction of second patches
+                if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) ||
 		  (interact->param->geotype[1] == TPSC) ||(interact->param->geotype[1] == TCHPSC) ) {
 		    BOOL firstT=FALSE, secondT=FALSE;
 		    if ( (interact->param->geotype[0] == TPSC) || (interact->param->geotype[0] == TCHPSC) )
@@ -3318,30 +3358,29 @@ double e_psc_spa(struct interacts * interact)
 			if (firstCH) {
 			    interact->part1->dir = interact->part1->chdir[1];
 			    closestdist(interact);
-			}
-			atrenergy += eattractive_psc_spa(interact,1);
+                        }
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_psc_spa(interact,1);
 		    }
 		    if (secondT) {
 			if(secondCH) {
 			    interact->part2->dir = interact->part2->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_psc_spa(interact,1);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_psc_spa(interact,1);
 		    }
 		    if ( (firstT) && (secondT) ) {
 		      fprintf (stderr, "ERROR PSC should interact s SPA but got two PSC \n");
 		      exit(1);
 		    }
-		}
-		
+                }
 
-		if (firstCH) 
-		    interact->part1->dir = olddir1;
-		if (secondCH)
-		    interact->part2->dir = olddir2;
-		
-	}
-	return repenergy+atrenergy;
+                interact->part1->dir = olddir1;
+                interact->part2->dir = olddir2;
+
+        }
+        return repenergy+atrenergy;
 }
 /* 
  * Determines attractive energy of spherocylinder type 2 and sphere type 11 
@@ -3364,6 +3403,7 @@ double eattractive_psc_spa(struct interacts * interact, int patchnum1)
 		atrenergy = cos(PIH*(interact->dist-interact->param->pdis)/interact->param->pswitch);
 		atrenergy *= -atrenergy*interact->param->epsilon ;
 	}
+
 	/*scaling function: angular dependence of patch1*/
 	if (interact->param->geotype[0] < SP) {
 		which = 0;
@@ -3378,17 +3418,19 @@ double eattractive_psc_spa(struct interacts * interact, int patchnum1)
 		a = DOT(vec1,interact->part2->patchdir[patchnum1]);
         halfl=interact->param->half_len[1];
 	}
-	/*scaling function for the length of spherocylinder within cutoff*/
 
-	b = sqrt(interact->param->rcut*interact->param->rcut-interact->dist*interact->dist);
+        // caling function for the length of spherocylinder within cutoff
+        b = sqrt(interact->param->rcut*interact->param->rcut - interact->dist*interact->dist);
 	if ( interact->contt + b > halfl ) 
 		f0 = halfl;
 	else 
 		f0 = interact->contt + b;
+
 	if ( interact->contt - b < -halfl ) 
 		f0 -= -halfl;
 	else 
 		f0 -= interact->contt - b;
+
 	atrenergy *= fanglscale(a,interact->param, which)*f0;
 	//if (atrenergy < 0) printf ("atraction %f\n",atrenergy);
 	//fprintf (stderr, "attraction211  %.8f x: %.8f y: %.8f z: %.8f \n",atrenergy,vec1.x,vec1.y,vec1.z);
@@ -3439,7 +3481,9 @@ double e_cpsc_spa(struct interacts * interact)
 		if ((firstCH) || (secondCH) ) {
 		    closestdist(interact);
 		}
-		atrenergy = eattractive_cpsc_spa(interact,0);
+
+                if(interact->dist < interact->param->rcut)
+                    atrenergy = eattractive_cpsc_spa(interact,0);
 		
 		/*addition of interaction of second patches*/
 		if ( (interact->param->geotype[0] == TCPSC) || (interact->param->geotype[0] == TCHCPSC) || 
@@ -3455,14 +3499,16 @@ double e_cpsc_spa(struct interacts * interact)
 			    interact->part1->dir = interact->part1->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_cpsc_cpsc(interact,1,0);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_cpsc_spa(interact,1);
 		    }
 		    if (secondT) {
 			if(secondCH) {
 			    interact->part2->dir = interact->part2->chdir[1];
 			    closestdist(interact);
 			}
-			atrenergy += eattractive_cpsc_cpsc(interact,0,1);
+                        if(interact->dist < interact->param->rcut)
+                            atrenergy += eattractive_cpsc_spa(interact,1);
 		    }
 		    if ( (firstT) && (secondT) ) {
 			fprintf (stderr, "ERROR PSC should interact s SPA but got two PSC \n");
