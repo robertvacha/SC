@@ -1,0 +1,8 @@
+#!/bin/bash
+
+module add mpich
+module add cmake
+
+rm -rf CMakeCache.txt CMakeFiles/
+cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
+make -j 4
