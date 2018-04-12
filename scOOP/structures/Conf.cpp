@@ -27,10 +27,10 @@ void Conf::insertMolecule(std::vector<Particle>& molecule) {
     assert(pvec.checkConsistency() && "ParticleVector::first has invalid values, after the insertion");
     assert(pvec.size() == molecule.size() + size && "ParticleVector did not change correctly");
     assert(pvec.molCountOfType(molecule[0].molType) == molTypeSize + 1 && "Molecule didnt insert correctly");
-    for(unsigned int i=0; i<pTemp.size(); i++) {
+    /*for(unsigned int i=0; i<pTemp.size(); i++) {
         assert(pTemp[i].pos == pvec[i].pos && "GrandCanonical, Insertion, other than planned changes to paticle vector occured, ONLY TRUE FOR SINGLE MOLECULAR TYPE SIMULATIONS");
     }
-    assert(pvec[pTemp.size()].pos == molecule[0].pos && "GrandCanonical, Insertion, last particle isnt correct, ONLY TRUE FOR SINGLE MOLECULAR TYPE SIMULATIONS");
+    assert(pvec[pTemp.size()].pos == molecule[0].pos && "GrandCanonical, Insertion, last particle isnt correct, ONLY TRUE FOR SINGLE MOLECULAR TYPE SIMULATIONS");*/
 #endif
 }
 

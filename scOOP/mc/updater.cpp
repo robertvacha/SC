@@ -44,6 +44,14 @@ void Updater::initValues() {
 
 void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
+    if(sim->nGrandCanon != 0) {
+        cout << "\n!!!!!!!!!!!! WARNING !!!!!!!!!!!!\n" << endl;
+        cout << "Energy matrix for GrandCanonical move is not implemented efficiently" << endl;
+        cout << "Go to end of file totalenergycalculator.h" << endl;
+        cout << "Comment out typedef TotalEMatrix<PairE> TotalEnergyCalculator" << endl;
+        cout << "Uncomment typedef TotalEFull<PairE> TotalEnergyCalculator for Full calculation\n" << endl;
+    }
+
     //cout << (calcEnergy.allToAll()/sim->temper) / (4.0 / 1.38064852 / 6.02214086 *1e3) / 7.5 *300  << " kJ/mol" << endl;
     //cout << calcEnergy.allToAll()/(4*sim->temper) * 1.38064852 * 6.02214086 /1000 / 7.5   << " kJ/mol" << endl;
     //cout << calcEnergy.allToAll()/(4*sim->temper) << " kT" << endl;
@@ -117,7 +125,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     double moveprobab;      // random number selecting the move
     double edriftstart = 0;
 
-    edriftstart = calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);     // Energy drift calculation - start
+    calcEnergy.initEM();
+    edriftstart = calcEnergy.allToAll();     // Energy drift calculation - start
 
     double volume = conf->geo.volume();          // volume of geo.box
     const double pvdriftstart = sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;    // PV drift calculation - start
@@ -157,8 +166,13 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             unsigned int size = conf->pvec.size();
             edriftchanges += move.muVTMove();
 
+            //
+            // Quick and dirty recalc of energy matrix, TODO: make it more efficient
+            //
             if(size != conf->pvec.size())
-                calcEnergy.allToAll(calcEnergy.eMat.energyMatrix);
+                calcEnergy.initEM();
+
+            assert(testEnergyMatrix() && "muVT move is messing up energy matrix");
 
             if(sim->pairlist_update) {
                 temp = clock();
@@ -330,8 +344,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     //do energy drift check - at the end calculation
     volume = conf->geo.volume();
     edriftend = calcEnergy.allToAll();
-    pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) / sim->temper;
-
+    pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
     mcout.get() << "\nEnergy drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << endl;
     mcout.get() << "Starting energy+pv: " << edriftstart+pvdriftstart << endl;
     mcout.get() << "Starting energy: " << edriftstart << endl;
