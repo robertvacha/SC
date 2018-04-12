@@ -33,9 +33,13 @@ Testing:
     $ cd Interactions_tests/
     $ ./test.sh
 
-Comprehensive comparisons to past versions (doi 10.1063/1.4933229)
+--------------------------------------------------------------------------------
 
-folders : SC_PSC_MEMBRANE_WANG and System_averages_tests
+Extensive pair interaction comparisons to past versions
+(namely SC version used in doi 10.1063/1.4933229)
+
+Comprehensive tests:
+  folders : SC_PSC_MEMBRANE_WANG and System_averages_tests
 
 Use scripts/movie-scripts/python 2.x/sc35-movie.py for vmd openable movie
 Use scripts/movie-scripts/python 2.x/sc35-movie.py -g 1 for grandCanonical
