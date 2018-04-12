@@ -9,13 +9,17 @@ This manual is divided in the following sections:
 - \subpage Usage
 - \subpage Scripts
 - \subpage Versions
-- \subpage Todo
 - \subpage theory "Theory behind energy functions"
 */
 
 //-----------------------------------------------------------
 
 /*! \page Intro Introduction
+C++ code for Monte Carlo simulations of patchy spherocylinders
+
+SC 4.0
+==
+
 C++ code for Monte Carlo simulations of patchy spherocylinders
 
 Compiling
@@ -25,28 +29,17 @@ in scOOP/ directory:
 
     $ module add cmake
     $ cmake .
-    $ make
+    $ make -j number_of_cores
 
 executable SC will be created.
 
-Parallel tempering (enabling MPI) compile with:
+Parallel tempering or Multiple Walker Wang-Landau:
+Enable MPI, compile with:
 
     $ module add mpich
     $ cmake . -DENABLE_MPI=ON -DENABLE_OPENMP=OFF
-    $ make
-    $ mpirun -np x SC
-
-, where x is the number of threads
-
-Parallel acceleration (enabling OPENMP) compile with:
-
-    $ module add openmpi
-    $ cmake . -DENABLE_OPENMP=ON -DENABLE_MPI=OFF
-    $ make
-    $ export OMP_NUM_THREADS=x
-    $ ./SC
-
-, where x is the number of threads
+    $ make -j number_of_cores
+    $ mpirun -np number_of_threads SC
 
 Generating documentation:
 
@@ -56,17 +49,21 @@ Testing:
 
     $ cd Tests/
     $ ./test
+    $ cd Interactions_tests/
+    $ ./test.sh
 
-GrandCanonical finished.
+--------------------------------------------------------------------------------
 
-Use scripts/movie-scripts/python 2.x/sc35-movie.py -g 1 for grandCanonical movie
+Extensive pair interaction comparisons to past versions
+(namely SC version used in doi 10.1063/1.4933229)
 
-Version tested against old *.c program. All test succesful.
+Comprehensive tests:
+  folders : SC_PSC_MEMBRANE_WANG and System_averages_tests
 
-NOTE: to submit a job with grandCanonically active species use runGrand
+Use scripts/movie-scripts/python 2.x/sc35-movie.py for vmd openable movie
+Use scripts/movie-scripts/python 2.x/sc35-movie.py -g 1 for grandCanonical
 
-NOTE: dont use GrandCanonical with:
-    Replica Exchange!!!
+
 */
 
 //-----------------------------------------------------------
@@ -90,17 +87,28 @@ The following is an excerpt from a topology file and the energy function which t
 /*! \page Usage Usage
 - \subpage Config
 - \subpage Types
-- \subpage Grand
-- \subpage NPT
+- \subpage Topo
+- \subpage Options
+- \subpage Example_muVT
+- \subpage Example_MultipleWalker
+- \subpage Example_ReplicaExchange
+- \subpage Example_NPT
 */
 
 /*! \page Config Config.init format
-- first three are simulation box dimensions
-- next 11 variables are required by the SC program to define a particle:
-- x y z dirX dirY dirZ patchX patchY patchZ switched moltype
+- Line 1: three numbers representing simulation box dimensions
+- From line 2: 11 variables required to define a particle:
+- [x, y, z]  [dirX, dirY, dirZ]  [patchX, patchY, patchZ]  [switched]  optional:[moltype]
+  ==============================================================================
+
 - meaning:
-- [position vector]   [orientation of particle]   [orientation of patch]   [0 or 1 indicating switched particle]   [molecular type]
-- Example file:
+- [x, y, z] = position vector
+- [dirX, dirY, dirZ] = orientation of particle, unit vector
+- [patchX, patchY, patchZ] = orientation of patch, unit vector perpendicular to dir vector
+- [switched] = 0 or 1 indicating switched particle
+- [moltype] = molecular type, required for the correct visualization of grand canonical simulation
+
+Example file:
 @include config.init
 - NOTE: The older SC program required only 10 variables and this is still suported, the 11th variable is only required for the correct visualization of grand canonical simulation
 - NOTE: You are not required to specify the molType(11th variable), the information about molecular types is loaded from top.init
@@ -130,7 +138,20 @@ The following is an excerpt from a topology file and the energy function which t
 @include top.tchpsc
 */
 
-/*! \page Grand Grandcanonical ensemble
+/*! \page Topo Topology file format
+- Topology file MUST BE NAMED "top.init"
+                              ==========
+- In a GrandCanonical simulation top.last will be produced when simulation finishes
+@include top.init
+*/
+
+/*! \page Options Options file format
+- Options file MUST BE NAMED "options"
+                             =========
+@include options
+*/
+
+/*! \page Example_muVT Grandcanonical ensemble
 - Grandcanonical ensemble in MoveCreator::muVTMove()
   - insertion and deletion moves
   - set activity in topology and nGrandCanon in options
@@ -141,6 +162,14 @@ The following is an excerpt from a topology file and the energy function which t
 @include optionsGrand
 */
 
+/*! \page Example_MultipleWalker Config.init format
+
+*/
+
+/*! \page Example_ReplicaExchange Config.init format
+
+*/
+
 /*! \page NPT NPT ensemble
 - NPT ensemble in MoveCreator::pressureMove()
   - Volume exchange move
@@ -149,14 +178,21 @@ The following is an excerpt from a topology file and the energy function which t
 @include optionsNPT
 */
 
-/*! \page Scripts Useful scripts (thanks Mirek)
-- go to mirek git, in construction
+/*! \page Scripts Scripts
+Submitting a job to batch system
+================================
+- scripts/precycle_sc for using Infinity (Torque submitting system addon)
+
+Visualize trajectory with vmd
+=============================
+- /scripts/movie-scripts/python 2.x/sc35-movie.py
+- /scripts/movie-scripts/python 2.x/usefulmath.py
 */
 
 //-----------------------------------------------------------
 
 /*! \page Versions Versions
-\section verOOP scOOP 1.0
+\section ver4.0
  - Grandcanonical ensemble added MoveCreator::muVTMove()
  - Cluster move added MoveCreator::clusterMove() and MoveCreator::clusterMoveGeom()
  - conversion to c++ changes:
@@ -419,17 +455,4 @@ MM 9.v.02
 */
 
 //-----------------------------------------------------------
-
-/*! \page Todo Todo
-
-  - Non-equilibrium candidate moves
-  - check scaling of particles of different sizes - should scale with contact area!
-  - cell list - divide simulation box in cells where
-  particles interact with each other and outside is definitely 0 - safe time
-  better scaling with system size, possibly long spherovylinders could be in several
-  celles to keep good scaling
-  - better cluster algorithm - put in wang-landau
-  - cluster list work for spherocylinders only now
-
- */
 

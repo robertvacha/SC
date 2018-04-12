@@ -1,8 +1,8 @@
 [Types]
 # NAME  NUMBER    GEOTYPE  EPSILON  SIGMA ATTRACT_DIST ATTRACT_SWITCH PATCH_ANGLE PATCH_SWITCH SC_LENGTH PARALLEL_EPS  (Optional second patch: PATCH_ROTATION PATCH_ANGLE PATCH_SWITCH )CHIRAL_ANGLE
 A 1 SPN 1.0 1.0
-A 1 SPN 1.0 1.0
-A 1 SPN 1.0 1.0
+B 2 SPN 1.0 1.0
+C 3 SPN 1.0 1.0
 [Molecules]
 # Molecules letter
 #  bond1 - harmonic bond between nearest neighbours
@@ -17,14 +17,11 @@ particles:   1
 activity: 0.05
 }
 B: {
-particles:   1
-particles:   1
+particles:   2
 activity: 0.05
 }
 C: {
-particles:   1
-particles:   1
-particles:   1
+particles:   3
 activity: 0.05
 }
 [System] # any number will do for grandcanonical provided enaugh lines of coordinates are set in config.init
