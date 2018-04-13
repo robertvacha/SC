@@ -36,9 +36,10 @@ public:
 
     int wlm[2];                ///< \brief Wang landau method (wl)
 
-    double *weights;           ///< \brief Array of weights for wl method
-    long   *hist;              ///< \brief Array of histogram for wl method
-    double *shared;             ///< \brief Alpha, min, wmin
+    double *shared_weights;           ///< \brief Array of weights for wl method
+    long   *shared_hist;              ///< \brief Array of histogram for wl method
+    double *shared_A_min_wmin;             ///< \brief Alpha, min, wmin
+
     long   length[2];          ///< \brief Length of above arrays
     double dorder[2];          ///< \brief Increments of order parameter
     double minorder[2];        ///< \brief Minimum order parameter
@@ -64,16 +65,16 @@ public:
 
     bool update(double temper) {
         if(mpirank == 0) {
-            min = hist[0];
-            max = hist[0]; // only local
+            min = shared_hist[0];
+            max = shared_hist[0]; // only local
             int j;
             for (int i=0;i < length[0];i++) {
                 j=0;
-                if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
-                if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+                if ( shared_hist[i+j*length[0]] > max ) max = shared_hist[i+j*length[0]];
+                if ( shared_hist[i+j*length[0]] < min ) min = shared_hist[i+j*length[0]];
                 for (j=1;j < length[1];j++) {
-                    if ( hist[i+j*length[0]] > max ) max = hist[i+j*length[0]];
-                    if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+                    if ( shared_hist[i+j*length[0]] > max ) max = shared_hist[i+j*length[0]];
+                    if ( shared_hist[i+j*length[0]] < min ) min = shared_hist[i+j*length[0]];
                 }
             }
             if ( min > WL_MINHIST ) {
@@ -89,31 +90,31 @@ public:
                     alpha/=2;
                     printf("%f \n", alpha);
                     fflush (stdout);
-                    wmin = weights[0];
+                    wmin = shared_weights[0];
 
                     for (int i=0;i < length[0];i++) {
                         j=0;
-                        hist[i+j*length[0]] = 0;
-                        weights[i+j*length[0]] -= wmin;
+                        shared_hist[i+j*length[0]] = 0;
+                        shared_weights[i+j*length[0]] -= wmin;
                         for (j=1;j < length[1];j++) {
-                            hist[i+j*length[0]] = 0;
-                            weights[i+j*length[0]] -= wmin;
+                            shared_hist[i+j*length[0]] = 0;
+                            shared_weights[i+j*length[0]] -= wmin;
                         }
                     }
 
                 }
             }
-            shared[0] = alpha;
-            shared[1] = min;
-            shared[2] = wmin;
+            shared_A_min_wmin[0] = alpha;
+            shared_A_min_wmin[1] = min;
+            shared_A_min_wmin[2] = wmin;
         }
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
         if(mpirank != 0){
-            alpha = shared[0];
-            min = shared[1];
-            wmin = shared[2];
+            alpha = shared_A_min_wmin[0];
+            min = shared_A_min_wmin[1];
+            wmin = shared_A_min_wmin[2];
         }
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -132,7 +133,7 @@ public:
             if ( (neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener += weights[neworder[0]+neworder[1]*length[0]] - weights[currorder[0]+currorder[1]*length[0]];
+            wlener += shared_weights[neworder[0]+neworder[1]*length[0]] - shared_weights[currorder[0]+currorder[1]*length[0]];
         }
 
         return wlener;
@@ -158,7 +159,7 @@ public:
             if ( (neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener += weights[neworder[0]+neworder[1]*length[0]] - weights[currorder[0]+currorder[1]*length[0]];
+            wlener += shared_weights[neworder[0]+neworder[1]*length[0]] - shared_weights[currorder[0]+currorder[1]*length[0]];
         }
 
         return wlener;
@@ -185,7 +186,7 @@ public:
             if ( (neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener = weights[neworder[0]+neworder[1]*length[0]] - weights[currorder[0]+currorder[1]*length[0]];
+            wlener = shared_weights[neworder[0]+neworder[1]*length[0]] - shared_weights[currorder[0]+currorder[1]*length[0]];
         }
 
         return wlener;
@@ -206,7 +207,7 @@ public:
             if ( (neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener += weights[neworder[0]+neworder[1]*length[0]] - weights[currorder[0]+currorder[1]*length[0]];
+            wlener += shared_weights[neworder[0]+neworder[1]*length[0]] - shared_weights[currorder[0]+currorder[1]*length[0]];
         }
 
         return wlener;
@@ -228,7 +229,7 @@ public:
             if ( ( neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
-            wlener += weights[neworder[0]+neworder[1]*length[0]] - weights[currorder[0]+currorder[1]*length[0]];
+            wlener += shared_weights[neworder[0]+neworder[1]*length[0]] - shared_weights[currorder[0]+currorder[1]*length[0]];
         }
 
         return wlener;
@@ -259,8 +260,8 @@ public:
      */
     void reject(long oldlength, int wlm[2]) {
         if ( wlm[0] > 0 ) {
-            weights[currorder[0]+currorder[1]*length[0]] -= alpha;
-            hist[currorder[0]+currorder[1]*length[0]]++;
+            shared_weights[currorder[0]+currorder[1]*length[0]] -= alpha;
+            shared_hist[currorder[0]+currorder[1]*length[0]]++;
             if ( (wlm[0] == 2) || (wlm[1] == 2) )
                 this->mesh = this->origmesh;
             if ( (wlm[0] == 5) || (wlm[1] == 5)||(wlm[0] == 6) || (wlm[1] == 6) ) {
@@ -279,8 +280,8 @@ public:
         if ( wlm > 0 ) {
             for (int i=0;i<2;i++)
                 currorder[i] = neworder[i];
-            weights[ currorder[0] + currorder[1] * length[0]] -= alpha;
-            hist[ currorder[0] + currorder[1] * length[0]]++;
+            shared_weights[ currorder[0] + currorder[1] * length[0]] -= alpha;
+            shared_hist[ currorder[0] + currorder[1] * length[0]]++;
         }
     }
 
@@ -549,12 +550,12 @@ private:
         MPI_Win_free(&_winInt);
         MPI_Win_free(&_winShared);
 #else
-        free(weights);
-        weights = NULL;
-        free(hist);
-        delete shared;
-        hist = NULL;
-        shared = NULL;
+        free(shared_weights);
+        shared_weights = NULL;
+        free(shared_hist);
+        delete shared_A_min_wmin;
+        shared_hist = NULL;
+        shared_A_min_wmin = NULL;
 #endif
         return 0;
     }

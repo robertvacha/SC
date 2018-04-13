@@ -61,8 +61,11 @@ void WangLandau::init(char wlinfile[30]) {
     currorder[1]=0;
     neworder[0]=0;
     neworder[1]=0;
-    weights = NULL;
-    hist = NULL;
+
+    if(mpirank == 0) {
+        shared_weights = NULL;
+        shared_hist = NULL;
+    }
 
     if ( wlm[0] >0 ) {
         if (initCalc(wlinfile) != 0)
@@ -138,12 +141,12 @@ int WangLandau::write(char filename[]) {
     fprintf (outfile, "%15.8e \n",alpha);
     if (length[1] == 0) {
         for (i=0; i<length[0]; i++) {
-            fprintf (outfile, "%15.8e %15.8e %ld \n",minorder[0] + i * dorder[0], weights[i], hist[i]);
+            fprintf (outfile, "%15.8e %15.8e %ld \n",minorder[0] + i * dorder[0], shared_weights[i], shared_hist[i]);
         }
     } else {
         for (j=0; j<length[1]; j++) {
             for (i=0; i<length[0]; i++) {
-                fprintf (outfile, "%15.8e %15.8e %15.8e %ld \n",minorder[0] + i * dorder[0], minorder[1]+j*dorder[1], weights[i+length[0]*j], hist[i+length[0]*j]);
+                fprintf (outfile, "%15.8e %15.8e %15.8e %ld \n",minorder[0] + i * dorder[0], minorder[1]+j*dorder[1], shared_weights[i+length[0]*j], shared_hist[i+length[0]*j]);
             }
             fprintf (outfile, " \n");
         }
@@ -201,9 +204,9 @@ int WangLandau::initCalc(char filename[]) {
 
     MPI_Barrier(MPI_COMM_WORLD);
 #else
-    weights = (double*) malloc( sizeof(double) * length );
-    hist = (long*) malloc( sizeof(long) * length );
-    shared = new double[3];
+    shared_weights = (double*) malloc( sizeof(double) * length );
+    shared_hist = (long*) malloc( sizeof(long) * length );
+    shared_A_min_wmin = new double[3];
 #endif
 
     this->length[1] = 0;
@@ -229,8 +232,8 @@ int WangLandau::initCalc(char filename[]) {
                         minorder[0] = field[0];
 
                     if (mpirank == 0) {
-                        weights[i-1] = field[1];
-                        hist[i-1] = field[2];
+                        shared_weights[i-1] = field[1];
+                        shared_hist[i-1] = field[2];
                     }
 
                     this->length[0]++;
@@ -244,8 +247,8 @@ int WangLandau::initCalc(char filename[]) {
                         this->length[0]++;
 
                     if (mpirank == 0) {
-                        weights[i-1] = field[2];
-                        hist[i-1] = field[3];
+                        shared_weights[i-1] = field[2];
+                        shared_hist[i-1] = field[3];
                     }
 
                     i++;
@@ -392,23 +395,24 @@ long WangLandau::meshOrderMoveChain(Molecule chain, Mesh *mesh, long npart, Part
 void WangLandau::endWangLandau(char wloutfile[30]) {
     long i=0,j=0;
     if (wlm[0] > 0) {
-        min = hist[0];
-        for (i=0;i < length[0];i++) {
-            j=0;
-            if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
-            for (j=1;j < length[1];j++) {
-                if ( hist[i+j*length[0]] < min ) min = hist[i+j*length[0]];
+        if(mpirank == 0) {
+            min = shared_hist[0];
+            for (i=0;i < length[0];i++) {
+                for (j=0;j < length[1];j++) {
+                    if ( shared_hist[i+j*length[0]] < min )
+                        min = shared_hist[i+j*length[0]];
+                }
             }
-        }
-        wmin = weights[0];
-        for (i=0;i < length[0];i++) {
-            j=0;
-            weights[i+j*length[0]] -= wmin;
-            for (j=1;j < length[1];j++) {
-                weights[i+j*length[0]] -= wmin;
+
+            wmin = shared_weights[0];
+            for (i=0;i < length[0];i++) {
+                for (j=0;j < length[1];j++) {
+                    shared_weights[i+j*length[0]] -= wmin;
+                }
             }
+
+            write(wloutfile);
         }
-        write(wloutfile);
         end();
         if ( (wlm[0] == 2)||(wlm[1] == 2) ) {
             mesh.end();

@@ -316,7 +316,8 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
             fprintf (statf, " %ld; %.10f\n", sweep, conf->geo.box.x * conf->geo.box.y * conf->geo.box.z);
             fprintf (ef, " %ld; %.10f  %f \n", sweep, calcEnergy.allToAll(), alignmentOrder());
-            if (move.wl.wlm[0] > 0) {
+
+            if (move.wl.wlm[0] > 0 && mcout.rank == 0) { // Write WL file only for rank 0 file
                 move.wl.write(files->wloutfile);
             }
             //print mesh distribution
