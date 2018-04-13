@@ -93,3 +93,6 @@ OTHER_FILES += \
     mc/dSFMT-src-2.2.3/README.jp.txt \
     mc/dSFMT-src-2.2.3/README.txt
 
+DISTFILES += \
+    doc.dox
+

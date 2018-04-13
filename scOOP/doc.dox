@@ -92,7 +92,6 @@ The following is an excerpt from a topology file and the energy function which t
 - \subpage Example_muVT
 - \subpage Example_MultipleWalker
 - \subpage Example_ReplicaExchange
-- \subpage Example_NPT
 */
 
 /*! \page Config Config.init format
@@ -151,7 +150,7 @@ Example file:
 @include options
 */
 
-/*! \page Example_muVT Grandcanonical ensemble
+/*! \page Example_muVT Grandcanonical ensemble example
 - Grandcanonical ensemble in MoveCreator::muVTMove()
   - insertion and deletion moves
   - set activity in topology and nGrandCanon in options
@@ -162,20 +161,40 @@ Example file:
 @include optionsGrand
 */
 
-/*! \page Example_MultipleWalker Config.init format
+/*! \page Example_MultipleWalker Wang-Landau Multiple walker example
 
-*/
+Multiple Walker WangLandau Simulation in NpT ensemble example
+=============================================================
 
-/*! \page Example_ReplicaExchange Config.init format
-
-*/
-
-/*! \page NPT NPT ensemble
+NPT ensemble example
+- define [ptype], [press], [shave] and [edge_mx] in options
 - NPT ensemble in MoveCreator::pressureMove()
-  - Volume exchange move
-  - set edge_mx, shave and press in options
-  - example options:
-@include optionsNPT
+
+Multiple Walker Wang-Landau
+- define [wlm] and [wlmtype] in options
+- create wl.dat file
+
+Compile with MPI support to activate Multiple Walker WangLandau
+
+Undefined behavior will occur if Multiple Walker used with Parallel Tempering
+
+Options
+=======
+@include WL_NPT_options
+
+wl.dat
+======
+- Line 1: [Value of Alpha]
+- Rest: [Colective variable 1] [Colective variable 2] [Free energy - history dependent] [Histogram dependent of current alpha - can be omited]
+@include wl.dat
+
+top.init
+========
+@include WLtop.init
+*/
+
+/*! \page Example_ReplicaExchange Parallel tempering example
+
 */
 
 /*! \page Scripts Scripts
@@ -191,8 +210,11 @@ Visualize trajectory with vmd
 
 //-----------------------------------------------------------
 
-/*! \page Versions Versions
-\section ver4.0
+/*! \page Versions Versions Log
+
+\section ver40 Version 4.0
+ - Energy matrix acceleration scheme implemented
+ - Multiple Walker Wang-Landau added
  - Grandcanonical ensemble added MoveCreator::muVTMove()
  - Cluster move added MoveCreator::clusterMove() and MoveCreator::clusterMoveGeom()
  - conversion to c++ changes:
@@ -204,10 +226,10 @@ Visualize trajectory with vmd
      - simple functions acting on Particle data moved here
    - static array[MAXN] of particles converted to ParticleVector
      - functionality for GrandCanonical ensemble added
-   - struct interacts converted to class PairEnergyCalculator
+   - struct interacts converted to class PairE
      - energy functions moved here
      - intfce (array of interaction functions) also here
-     - called by TotalEnergyCalculator
+     - called by TotalE
    - class TotalEnergyCalculator created
      - several functions added besides the original calc_energy() function
    - class ExternalEnergyCalculator created

@@ -75,7 +75,7 @@ public:
      * @brief pressuremove
      *  Probability criterion for accepting the volume change:
      *
-     *  probability(old -> new) = min[ 1, exp{-(E_new - E_old)/(kT) + (p*(V_new - V_old) - NkT* ln(V_new / V_old))/(kT) ]}
+     *  probability(old -> new) = min[ 1, exp{-(E_new - E_old)/(kT) + (p*(V_new - V_old) - NkT* ln(V_new / V_old)) ) / (kT) ]}
      *
      * @return
      */

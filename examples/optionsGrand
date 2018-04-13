@@ -21,12 +21,12 @@ edge_mx = 0.0           #  Initial maximum box length change
 ### Wang-Landau method: with constant decrease of bias addition by factor of 2, until less than WL_ALPHATOL -> structures/macros.h
 ###
 wlm = 0                 # O = none
-                        # 1 = z-direction of 1st paticle
+                        # 1 = z-distance of 1st paticle with respect toward center of mass of all particles
                         # 2 = hole in xyplane
-                        # 3 = z-orientation of 0th particle 
+                        # 3 = z-orientation of 1st particle, angle between z-axis and spherocylinder direction, cos(angle) => 0 ot 1.0, Spherocylinder model is symetrical 
                         # 4 = distance of first two particles
                         # 5 = pore around z axis and above CM
-                        # 6 = pore around z axis and above 0th particle
+                        # 6 = pore around z axis and above 1st particle
                         # 7 = number of particles in contact (within distance sqrt(WL_CONTACTS -> structures/macros.h))
 wlmtype = 0             #  For which atomic type (from top.init) should the Wang-Landau method be calculated?
 ###
