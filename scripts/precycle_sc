@@ -3,10 +3,10 @@
 # INFINITY start   1
 # INFINITY stop    5
 # INFINITY format  mc%03d
-# INFINITY afix    .init
+# INFINITY afix    .state
 # INFINITY archive storage
 
-NSWEEPS=1000
+NSWEEPS=100
 
 function getOptions {
 SWEEP=`printf "%-12d" ${1}`
@@ -25,7 +25,7 @@ nequil = 0              #  Number of equilibration sweeps
 adjust = 0              #  Number of equilibration sweeps between step size adjustments
 nsweeps  = ${SWEEP}      #  Number of production sweeps
 paramfrq = 100000       #  Number of sweeps between order parameter samples
-report   = 1000         #  Number of sweeps between statistics reports
+report   = 100         #  Number of sweeps between statistics reports
 nrepchange = 0          #  Number of sweeps between replica exchanges
 nGrandCanon = 0
 nClustMove = 0
@@ -63,6 +63,7 @@ NEXT="`printf $INF_LOOP_FORMAT $(($INF_LOOP_CURRENT+1))`"
 #
 module add cmake
 cd scOOP/
+  rm -rf CMakeFiles/ CMakeCache.txt Makefile cmake_install.cmake
   if [ $INF_NCPU -eq 1 ]; then 
     cmake .
     make -j $INF_NCPU 
@@ -75,7 +76,8 @@ cd ..
 cp scOOP/SC .
 if [ $? -ne 0 ]; then exit 2; fi  # exit if this fails
 
-
+var=$INF_NCPU
+let "var-=1"
 
 #
 # PREPARE RUN: get starting coordinates / options file
@@ -104,13 +106,25 @@ else
       WL=""
     fi
 
-    # obtain init files
-    parchive get ${CURR}.init ${WL}
-    if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+    if [ $INF_NCPU -eq 1 ]; then 
+      # obtain init files
+      parchive get ${CURR}.init ${WL}
+      if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
 
-    # rename input files
-    mv ${CURR}.init config.init
-    if [ -f ${CURR}.wl ]; then mv ${CURR}.wl wl.dat; fi
+      # rename input files
+      mv ${CURR}.init config.init
+      if [ -f ${CURR}.wl ]; then mv ${CURR}.wl wl.dat; fi
+    else
+      rm -f config.init
+      parchive get ${WL}
+      if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+
+      for i in `seq 0 1 $var`; do 
+        parchive get ${i}${CURR}.init
+        if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+        mv ${i}${CURR}.init ${i}config.init
+      done
+    fi
 
     # generate options file
     getOptions ${NSWEEPS}
@@ -121,8 +135,12 @@ fi
 #
 # PERFORM RUN
 #
-./SC &> sc.log
-if [ $? -ne 0 ]; then exit 2; fi  # exit if this fails
+if [ $INF_NCPU -eq 1 ]; then 
+  ./SC &> sc.log
+  if [ $? -ne 0 ]; then exit 2; fi  # exit if this fails
+else 
+  mpirun -np $INF_NCPU ./SC &> sc.log
+fi
 
 
 
@@ -135,24 +153,54 @@ if [ ${FIN} -gt 0 ]; then exit 0; fi
 #
 # POST-RUN SAVE OF FILES: rename output files for archivation
 #
-mv config.last ${NEXT}.init
-mv energy.dat ${CURR}.engy
-mv movie ${CURR}.movie
-mv options ${CURR}.opts
-mv sc.log ${CURR}.log
-mv stat.dat ${CURR}.stat
-if [ -f wl-new.dat ]; then WL="${NEXT}.wl"; mv wl-new.dat ${WL}; else WL=""; fi
+if [ $INF_NCPU -eq 1 ]; then 
+  mv config.last ${NEXT}.init
+  mv energy.dat ${CURR}.engy
+  mv movie ${CURR}.movie
+  mv options ${CURR}.opts
+  mv sc.log ${CURR}.log
+  mv stat.dat ${CURR}.stat
+  if [ -f wl-new.dat ]; then WL="${NEXT}.wl"; mv wl-new.dat ${WL}; else WL=""; fi
+else 
+  for i in `seq 0 1 $var`; do 
+    mv ${i}config.last ${i}${NEXT}.init
+    mv ${i}energy.dat ${i}${CURR}.engy
+    mv ${i}movie ${i}${CURR}.movie
+    mv ${i}stat.dat ${i}${CURR}.stat 
+  done
+  mv options ${CURR}.opts
+  mv sc.log ${CURR}.log
+  if [ -f wl-new.dat ]; then WL="${NEXT}.wl"; mv wl-new.dat ${WL}; else WL=""; fi
+fi
+
+touch ${NEXT}.state
 
 #
 # archive produced data and restart files for the next run
 #
-parchive move ${NEXT}.init ${CURR}.engy ${CURR}.movie ${CURR}.opts ${CURR}.log ${CURR}.stat ${WL}
-if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+if [ $INF_NCPU -eq 1 ]; then 
+  parchive move ${NEXT}.init ${CURR}.engy ${CURR}.movie ${CURR}.opts ${CURR}.log ${CURR}.stat ${WL} ${NEXT}.state
+  if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+else
+  for i in `seq 0 1 $var`; do 
+    parchive move ${i}${NEXT}.init ${i}${CURR}.engy ${i}${CURR}.movie ${i}${CURR}.stat
+    if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+  done
+  parchive move ${CURR}.opts ${CURR}.log ${WL} ${NEXT}.state
+  if [ $? -ne 0 ]; then exit 1; fi  # exit if this fails
+fi
 
 #
 # clean already archived and other temporary data
 #
-rm -f ${CURR}.* ${NEXT}.* sc
+if [ $INF_NCPU -eq 1 ]; then 
+  rm -f ${CURR}.* ${NEXT}.* SC
+else
+  for i in `seq 0 1 $var`; do 
+    rm -f ${i}${CURR}.* ${i}${NEXT}.*
+  done
+  rm -f ${CURR}.* ${NEXT}.* SC
+fi
 
 #
 # resubmit job
