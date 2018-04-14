@@ -29,7 +29,12 @@ cd ../Tests/
 
 echo ""
 echo "Building comparison version..."
+
+mkdir scOOP
 cd scOOP/
+git clone https://github.com/robertvacha/SC
+cd SC/scOOP/
+git checkout 8e594d5cf4444af0e6246a15222f2a277585077e
 
 rm -f CMakeCache.txt
 rm -rf CMakeFiles/
@@ -37,8 +42,9 @@ rm -rf CMakeFiles/
 cmake . -DTESTING=ON > /dev/null
 
 make -j4 > /dev/null
-mv SC ../a.out
-cd ..
+
+mv SC ../../../a.out
+cd ../../..
 
 echo ""
 echo "testing..., warning: this could take up to 10 minutes"
