@@ -186,20 +186,20 @@ int WangLandau::initCalc(char filename[]) {
        _sizeInt = length * sizeof(long int);
        _sizeDouble = length * sizeof(double);
        _sizeShared = 1 * sizeof(double);
-       MPI_Win_allocate_shared(_sizeDouble, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &weights, &_winDouble);
-       MPI_Win_allocate_shared(_sizeInt, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &hist, &_winInt);
-       MPI_Win_allocate_shared(_sizeShared, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared, &_winShared);
+       MPI_Win_allocate_shared(_sizeDouble, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_weights, &_winDouble);
+       MPI_Win_allocate_shared(_sizeInt, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_hist, &_winInt);
+       MPI_Win_allocate_shared(_sizeShared, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_A_min_wmin, &_winShared);
     }
     else
     {
        int disp_unitInt, disp_unitDouble, disp_shared;
-       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &weights, &_winDouble);
-       MPI_Win_allocate_shared(0, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &hist, &_winInt);
-       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared, &_winShared);
+       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_weights, &_winDouble);
+       MPI_Win_allocate_shared(0, sizeof(long int), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_hist, &_winInt);
+       MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &shared_A_min_wmin, &_winShared);
 
-       MPI_Win_shared_query(_winDouble, 0, &_sizeDouble, &disp_unitDouble, &weights);
-       MPI_Win_shared_query(_winInt, 0, &_sizeInt, &disp_unitInt, &hist);
-       MPI_Win_shared_query(_winShared, 0, &_sizeShared, &disp_shared, &shared);
+       MPI_Win_shared_query(_winDouble, 0, &_sizeDouble, &disp_unitDouble, &shared_weights);
+       MPI_Win_shared_query(_winInt, 0, &_sizeInt, &disp_unitInt, &shared_hist);
+       MPI_Win_shared_query(_winShared, 0, &_sizeShared, &disp_shared, &shared_A_min_wmin);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);

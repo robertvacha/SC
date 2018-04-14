@@ -598,7 +598,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
         if(sim->pseudoRank > 0 )  { // all except for 0
 
             MPI_Recv(&receiverRank, 1, MPI_INT, MPI_ANY_SOURCE, sim->pseudoRank-1+tagInt, MPI_COMM_WORLD, &status); // receive from all processes, ONLY ONE RESPONDS
-            MPI_Send(wl.weights, sizewl, MPI_DOUBLE, receiverRank, tagDouble, MPI_COMM_WORLD);
+            MPI_Send(wl.shared_weights, sizewl, MPI_DOUBLE, receiverRank, tagDouble, MPI_COMM_WORLD);
             MPI_Recv(&receivedmpi, 1, MPI_exchange, receiverRank, tagExchangeMPI, MPI_COMM_WORLD, &status);
 
             if (receivedmpi.accepted == 1) { //decision of accepting or rejecting the exchange was done on other process
@@ -626,8 +626,8 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             } else {
                 sim->stat.mpiexch.rej++;
                 if ( wl.wlm[0] > 0 ) {
-                    wl.weights[wl.currorder[0]+wl.currorder[1]*wl.length[0]] -= wl.alpha;
-                    wl.hist[wl.currorder[0]+wl.currorder[1]*wl.length[0]]++;
+                    wl.shared_weights[wl.currorder[0]+wl.currorder[1]*wl.length[0]] -= wl.alpha;
+                    wl.shared_hist[wl.currorder[0]+wl.currorder[1]*wl.length[0]]++;
                 }
             }
         }
@@ -674,7 +674,7 @@ double MoveCreator::replicaExchangeMove(long sweep) {
             if (wl.wlm[0] > 0) {
                 localwl = wl.currorder[0]+wl.currorder[1]*wl.length[0];
                 receivedwl = receivedmpi.wl_order[0] + receivedmpi.wl_order[1]*wl.length[0];
-                change += (-wl.weights[localwl] + wl.weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
+                change += (-wl.shared_weights[localwl] + wl.shared_weights[receivedwl] )/sim->temper + ( -recwlweights[receivedwl] + recwlweights[localwl])/(sim->temper + sim->dtemp) ;
             }
 
             //
@@ -714,8 +714,8 @@ double MoveCreator::replicaExchangeMove(long sweep) {
                 localmpi.accepted = 0;
                 MPI_Send(&localmpi, 1, MPI_exchange, receivedRank, tagExchangeMPI, MPI_COMM_WORLD);
                 if ( wl.wlm[0] > 0 ) {
-                    wl.weights[wl.currorder[0]+wl.currorder[1]*wl.length[0]] -= wl.alpha;
-                    wl.hist[wl.currorder[0]+wl.currorder[1]*wl.length[0]]++;
+                    wl.shared_weights[wl.currorder[0]+wl.currorder[1]*wl.length[0]] -= wl.alpha;
+                    wl.shared_hist[wl.currorder[0]+wl.currorder[1]*wl.length[0]]++;
                 }
             }         
         }
