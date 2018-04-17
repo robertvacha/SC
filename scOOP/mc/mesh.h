@@ -19,22 +19,29 @@ public:
     double alpha_init;
 
 private:
+    bool verbose;
     int _hist[200] = {0};
 
 public:
 
-    Mesh() {}
+    Mesh(bool verbose) : verbose(verbose) {}
     ~Mesh() {
-        ofstream myfile;
-        myfile.open ("pore_distrib", std::fstream::app);
+        if(verbose) {
+            ofstream myfile;
+            string file= "pore_distrib";
+            string num = std::to_string(mcout.rank);
+            file.insert(0, num);
 
-        if( myfile.is_open() ) { // histogram of holes
+            myfile.open (file, std::fstream::app);
 
-            for(int i=0; i<200; i++){
-                myfile << _hist[i] << " \t";
+            if( myfile.is_open() ) { // histogram of holes
+
+                for(int i=0; i<200; i++){
+                    myfile << _hist[i] << " ";
+                }
+                myfile << endl;
+                myfile.close();
             }
-            myfile << endl;
-            myfile.close();
         }
     }
 

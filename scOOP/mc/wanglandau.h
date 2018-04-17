@@ -26,7 +26,7 @@ class WangLandau
 public:
     const int mpirank;
 
-    WangLandau(Conf* conf, Sim* sim) : conf(conf), mpirank(sim->mpirank) {
+    WangLandau(Conf* conf, Sim* sim) : conf(conf), mpirank(sim->mpirank), mesh(true), origmesh(false) {
         wlmtype = sim->wlmtype;
         wlm[0] = sim->wlm[0];
         wlm[1] = sim->wlm[1];
