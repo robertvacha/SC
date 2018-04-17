@@ -18,7 +18,25 @@ public:
     int* tmp;   ///< \@brief tempporary list for hole search
     double alpha_init;
 
+private:
+    int _hist[200] = {0};
+
+public:
+
     Mesh() {}
+    ~Mesh() {
+        ofstream myfile;
+        myfile.open ("pore_distrib", std::fstream::app);
+
+        if( myfile.is_open() ) { // histogram of holes
+
+            for(int i=0; i<200; i++){
+                myfile << _hist[i] << " \t";
+            }
+            myfile << endl;
+            myfile.close();
+        }
+    }
 
     /*..............................................................................*/
     /*........................HOLE IN MESH-MEMBRANE ORDER PARAM.....................*/

@@ -241,31 +241,24 @@ int Mesh::findHolesDistrib() {
         }
 
         if(alpha_init == WL_ZERO) {
-            ofstream myfile;
-            myfile.open ("pore_distrib", std::fstream::app);
 
-            if( myfile.is_open() ) { // histogram of holes
-
-                for(i=0; i<1000; i++) {
-                    j=size[i];
-                    if ( j > 0) {
-                        hist[j]++;
-                    }
+            for(i=0; i<1000; i++) {
+                j=size[i];
+                if ( j > 0) {
+                    hist[j]++;
                 }
+            }
 
-                bool zero = true;
-                for(i=0; i<200; i++){
-                    if( hist[i] != 0 ) {
-                        zero = false;
-                        break;
-                    }
+            bool zero = true;
+            for(i=0; i<200; i++){
+                if( hist[i] != 0 ) {
+                    zero = false;
+                    break;
                 }
+            }
 
-                for(i=0; i<200; i++){
-                    myfile << ( (i==0 && zero) ? 1 : hist[i] ) << " \t";
-                }
-                myfile << endl;
-                myfile.close();
+            for(i=0; i<200; i++){
+                _hist[i] += ( (i==0 && zero) ? 1 : hist[i] );
             }
         }
 
