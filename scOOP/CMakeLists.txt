@@ -41,6 +41,14 @@ if(TESTING)
     add_definitions(-DTESTING)
 endif()
 
+#
+# BARREL HACK
+#
+
+if(NO_REP_IN_CHAIN_ALLSPC)
+    add_definitions(-DNO_REP_IN_CHAIN_ALLSPC)
+endif()
+
 # -----------------------
 #   Link with MPI
 # -----------------------

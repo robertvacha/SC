@@ -16,6 +16,7 @@ public:
     int dim[2]; ///< \@brief Mesh dimensions
     int* data;  ///< \@brief Mesh data
     int* tmp;   ///< \@brief tempporary list for hole search
+    double alpha_init;
 
     Mesh() {}
 

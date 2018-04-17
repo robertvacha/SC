@@ -123,7 +123,8 @@ void WangLandau::init(char wlinfile[30]) {
                 exit(0);
             }
         }
-        if (alpha < WL_ALPHATOL/100) alpha = WL_ZERO;
+        if (alpha < WL_ALPHATOL/100)
+            alpha = WL_ZERO;
         fflush (stdout);
     }
 }
@@ -279,6 +280,7 @@ int WangLandau::initCalc(char filename[]) {
     /*DEBUG*/
     mcout.get() << "Wang-Landau method init:" << endl;
     mcout.get() << "alpha: " << alpha << endl;
+    mesh.alpha_init = alpha;
     /*int j=0;
     if (length[1] == 0) {
         for (i=0; i<length[0]; i++) {

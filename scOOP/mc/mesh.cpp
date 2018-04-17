@@ -133,7 +133,8 @@ void Mesh::meshNeighbors(int pos, int neighbors[]) {
 }
 
 int Mesh::findHoles() {
-    int i,j, k, n, size, li, maxsize;
+    return findHolesDistrib();
+    /*int i,j, n, size, li, maxsize;
     int neighbors[4];
 
     n=0;
@@ -146,8 +147,9 @@ int Mesh::findHoles() {
     // go through all mesh points
     while ( i < (dim[0] * dim[1]) ) {
         // test if mesh point is occupied
-        if ( data[i] != 0 ) { i++; }
-        else {
+        if ( data[i] != 0 ) {
+            ++i;
+        } else {
             // mesh point is free, create a new cluster
             n++;
             data[i] = n;
@@ -161,7 +163,7 @@ int Mesh::findHoles() {
                 //go through all neighbors
                 j =  tmp[li];
                 meshNeighbors(j, neighbors);
-                for ( k=0; k<4; k++ ) {
+                for ( int k=0; k<4; k++ ) {
                     // test if status is free and append it to the cluster
                     if ( data[ neighbors[k] ] == 0 ) {
                         data[ neighbors[k] ] = n;
@@ -170,22 +172,104 @@ int Mesh::findHoles() {
                         size++;
                     }
                     if (  data[ neighbors[k] ] > 0 &&  data[ neighbors[k] ]<n ) {
-                        fprintf(stderr,"Error: Mesh cluster out of range, propably going infinite through pbc.");
-                        fflush(stderr);
+                        cerr << "Error: Mesh cluster out of range, propably going infinite through pbc." << endl;
                     }
                 }
                 li++;
             }
-            if (size > maxsize) maxsize = size;
+            if (size > maxsize)
+                maxsize = size;
         }
 
     }
 
-    return maxsize;
+    return maxsize;*/
 }
 
 int Mesh::findHolesDistrib() {
-    return 0;
+    int i,j, k, n, li, maxsize;
+        int neighbors[4], size[1000];
+        int hist[200] = {0};
+
+        n=0;
+        maxsize = 0;
+
+        for (i=0;i<1000;i++){
+            size[i]=0;
+            }
+        for (i=0;i<(dim[0] * dim[1]);i++) {
+            tmp[i] = 0;
+            if ( data[i] > 0 ) data[i] = 0;
+        }
+        i=0;
+        // go through all mesh points
+        while ( i < (dim[0] * dim[1]) ) {
+            // test if mesh point is occupied
+            if ( data[i] != 0 ) { i++; }
+            else {
+                // mesh point is free, create a new cluster
+                n++;
+                data[i] = n;
+                // start new cluster, put mesh point as first element, and set list pointer on first element
+                //DEBUG      if (n >= mesh.dim[0]*mesh.dim[1]) printf ("Error: trying to write to sizes position %d\n",n);
+                size[n] = 1;
+                tmp[0] = i;
+                li = 0;
+                // go through all elements of the cluster
+                while ( li < size[n] ) {
+                    //go through all neighbors
+                    j =  tmp[li];
+                    meshNeighbors(j, neighbors);
+                    for ( k=0; k<4; k++ ) {
+                        // test if status is free and append it to the cluster
+                        if ( data[ neighbors[k] ] == 0 ) {
+                            data[ neighbors[k] ] = n;
+                            // append mesh point as element in the list
+                            tmp[size[n]] = neighbors[k];
+                            size[n]++;
+                        }
+                        if (  data[ neighbors[k] ] > 0 &&  data[ neighbors[k] ]<n ) {
+                            fprintf(stderr,"Error: Mesh cluster out of range, propably going infinite through pbc.");
+                            fflush(stderr);
+                        }
+                    }
+                    li++;
+                }
+                if (size[n] > maxsize) maxsize = size[n];
+            }
+
+        }
+
+        if(alpha_init == WL_ZERO) {
+            ofstream myfile;
+            myfile.open ("pore_distrib");
+
+            if( myfile.is_open() ) { // histogram of holes
+
+                for(i=0; i<1000; i++) {
+                    j=size[i];
+                    if ( j > 0) {
+                        hist[j]++;
+                    }
+                }
+
+                bool zero = true;
+                for(i=0; i<200; i++){
+                    if( hist[i] != 0 ) {
+                        zero = false;
+                        break;
+                    }
+                }
+
+                for(i=0; i<200; i++){
+                    myfile << ( (i==0 && zero) ? 1 : hist[i] ) << " \t";
+                }
+                myfile << endl;
+                myfile.close();
+            }
+        }
+
+        return maxsize;
 }
 
 void Mesh::print() {

@@ -319,6 +319,11 @@ public:
                 }
 
                 currangle = acos(DOT(vec1,vec2));
+
+#ifdef NO_REP_IN_CHAIN_ALLSPC
+                if(currangle > 2.09)
+                    return INFINITY;
+#endif
                 energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle1eq,topo.moleculeParam[part1->molType].angle1c);
             }
         }
@@ -389,6 +394,13 @@ public:
             return 0.0;
         else
             return iaParam.epsilon + iaParam.A * pow(distSq, -6)- iaParam.B * pow(distSq, -3);
+    }
+};
+
+class NoRepulsion : public EPotential {
+public:
+    double operator() (double distSq, const Ia_param& iaParam) override {
+        return 0.0;
     }
 };
 
@@ -1125,6 +1137,9 @@ public:
         if(conlist != nullptr) {
             abE = bondE(dist, part1, part2, conlist);
             abE += angleE(dist, part1, part2, conlist);
+#ifdef NO_REP_IN_CHAIN_ALLSPC
+            return abE;
+#endif
         }
 
         distSq = patchE.closestDist(r_cm, part1->dir, part2->dir, topo.ia_params[part1->type][part2->type]);
