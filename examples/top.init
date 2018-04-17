@@ -1,0 +1,49 @@
+[Types]
+#NAME    NUMBER GEOTYPE EPSILON SIGMA ATTRACTION_DIST ATTRACTION_SWITCH PATCH_ANGLE PATCH_SWITCH PATCH_LENGTH PARALLEL_EPS  CHIRAL_ANGLE
+mem_head 1      SPN     1.0     0.95
+mem_tail 2      SPA     1.0     1.0   1.12246205      1.6
+prot1    3      PSC     1.0     1.0   1.12246205     1.0                170.0       5.0          6.0          0.0
+[Molecules]
+#NAME_MOL: {
+# Define Molecule:
+# Keywords:
+# particles: number_of_atom_type switchtype delta_mu # can omit [switchtype] and [delta_mu]
+#
+# bond1 - harmonic bond between nearest neighbours (end points for spherocylinders)
+# bond2 - harmonic bond between second nearest neighbours (their center of mass)
+# bondd - directional harmonic bond between nearest neighbours (end point of the second spherocylinder is attached to the point of bondlength extension of the first spherocylinder)
+#
+# angle1 - angle between two spherocylinders -nearest neighbours
+# angle2 - angle between two spherocylinder patches -nearest neighbours
+#
+# activity: activity_constant # GrandCanonical ensemble activity 
+#}
+A: {
+#what:     TYPE   	SWITCHTYPE  	DELTA_MU, DEFAULT: NO SWITCHTYPE
+particles: 3
+}
+B: {
+#KEYWORD ENERGY_CONSTANT (EQUILIBRIUM_DISTANCE | EQUILIBRIUM_ANGLE)
+bond1:   90.0            0.4
+bond2:   10.0            4.0
+particles: 1
+particles: 2
+particles: 2
+}
+[System]
+#NAME_MOL NUMBER_OF_MOLECULES
+A 1
+B 200
+[EXTER]
+# wall interaction
+#THICKNESS EPSILON ATTRACTION_SWITCH 
+5.0        1.0     1.0
+[EXCLUDE]
+#set pair types for which attraction will be excluded  (reversepair is automaticaly added)
+ 1  2
+ 1  3
+[POOL]
+#NAME_MOL NUMBER_OF_MOLECULES
+#
+# Supply a "pool" configuration file for GrandCanonical chain insertion
+#

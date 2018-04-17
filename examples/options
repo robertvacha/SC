@@ -1,0 +1,64 @@
+###
+### Equilibration setting
+###
+nequil = 0              #  Number of equilibration sweeps
+adjust = 0              #  Number of equilibration sweeps between step size adjustments
+###
+### Production setting
+###
+nsweeps  = 500          #  Number of production sweeps
+temper = 0.1            #  Temperature in units kT/e
+pairlist_update = 10    #  Number of sweeps after which the pairlist should be updated
+seed = 145658           #  Random number seed
+###
+### Barostat == Pressure moves
+###
+ptype = 1               #  Pressure coupling type (0-anisotropic xyz, 1-isotropic xyz, 2 - isotropic in xy z=const, 3 - isotropic in xy and V=const)
+press = 0               #  Pressure
+shave = 0               #  Average number of volume change attempts per sweep (usually 1), 0 -> no barostatting
+edge_mx = 0.0           #  Initial maximum box length change
+###
+### Wang-Landau method: with constant decrease of bias addition by factor of 2, until less than WL_ALPHATOL -> structures/macros.h
+###
+wlm = 0                 # O = none
+                        # 1 = z-distance of 1st paticle with respect toward center of mass of all particles
+                        # 2 = hole in xyplane
+                        # 3 = z-orientation of 1st particle, angle between z-axis and spherocylinder direction, cos(angle) => 0 ot 1.0, Spherocylinder model is symetrical
+                        # 4 = distance of first two particles
+                        # 5 = pore around z axis and above CM
+                        # 6 = pore around z axis and above 1st particle
+                        # 7 = number of particles in contact (within distance sqrt(WL_CONTACTS -> structures/macros.h))
+wlmtype = 0             #  For which atomic type (from top.init) should the Wang-Landau method be calculated?
+###
+### Parallel Tempering setting
+###
+nrepchange = 0          #  Number of sweeps between replica exchanges
+paraltemper = 0.1       #  Temperature for parallel tempering in kT/e 
+paralpress = 0          #  Parallel pressure for replica exchange
+###
+### GrandCanonical setting
+###
+nGrandCanon = 0         #  Number of sweeps between Grand canonical move in sweeps
+###
+### Simulation settings
+###
+nClustMove = 0          #  Number of sweeps between cluster move
+switchprob = 0.00       #  Probability of type switch attempts per sweep
+chainprob = 0.125       #  Probability of chain move attempts per sweep ( 0.25/number of particles in chain)
+chainmmx = 0.1          #  Initial maximum chain displacement
+chainrmx = 0.1          #  Initial maximum chain rotation change (degrees)
+transmx = 0.212         #  Initial maximum displacement
+transmx_type = 3 0.5    # Type specific displacement, transmx_type = type displacement type displacement ...
+rotmx = 7.5             #  Initial maximum orientation change (degrees)
+###
+### Output setting
+###
+paramfrq = 0            #  Number of sweeps between order parameter samples
+report   = 0            #  Number of sweeps between statistics reports
+movie    = 1            #  Number of sweeps between movie frames (0 = no movie)
+write_cluster = 0       #  Number of sweeps per writing out cluster info
+
+
+
+
+
