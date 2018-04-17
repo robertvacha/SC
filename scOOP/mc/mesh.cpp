@@ -242,7 +242,7 @@ int Mesh::findHolesDistrib() {
 
         if(alpha_init == WL_ZERO) {
             ofstream myfile;
-            myfile.open ("pore_distrib");
+            myfile.open ("pore_distrib", std::fstream::app);
 
             if( myfile.is_open() ) { // histogram of holes
 
