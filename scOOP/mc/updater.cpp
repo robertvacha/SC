@@ -99,6 +99,16 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
             conf->pvec[i].testInit(PSC, i);
         }
         double e;
+        // chain
+        int len = 2;
+        for(int i=0; i< conf->pvec.size()-1; i += len) {
+            e = calcEnergy.p2p(i,i+1);
+            /*if(e < 1000.0)
+                printf("%.5lf\n", e);
+            else printf("%lf\n", 1000.0);*/
+        }
+        exit(0);
+        //single part
         for(int i=0; i< 1/* conf->pvec.size()-1*/; ++i) {
             for(int j=i+1; j< conf->pvec.size(); ++j) {
                 e = calcEnergy.p2p(i,j);

@@ -78,7 +78,7 @@ public:
      * @param other
      * @return
      */
-    inline double dot(const Vector& other)  {
+    inline double dot(const Vector& other) const {
         return x*other.x + y*other.y + z*other.z;
     }
 
@@ -136,6 +136,32 @@ public:
 
     // using Vector&, double, double instead of Quat -> circular include
     inline void rotate(Vector& axis, double cosAngle, double sinAngle) {
+        double t2,t3,t4,t5,t6,t7,t8,t9,t10,newx,newy,newz;
+        double qw = cosAngle, qx = (axis.x * sinAngle), qy = (axis.y * sinAngle), qz = (axis.z * sinAngle);
+
+        /*    t1 = quat.w * quat.w; */
+        t2 =  qw * qx;
+        t3 =  qw * qy;
+        t4 =  qw * qz;
+        t5 = -qx * qx;
+        t6 =  qx * qy;
+        t7 =  qx * qz;
+        t8 = -qy * qy;
+        t9 =  qy * qz;
+        t10 = -qz * qz;
+
+        newx = 2.0 * ( (t8+t10) * x + (t6-t4)  * y + (t3+t7) * z ) + x;
+        newy = 2.0 * ( (t4+t6)  * x + (t5+t10) * y + (t9-t2) * z ) + y;
+        newz = 2.0 * ( (t7-t3)  * x + (t2+t9)  * y + (t5+t8) * z ) + z;
+
+        x = newx;
+        y = newy;
+        z = newz;
+    }
+
+    inline void rotate(Vector& axis, double angle) {
+        double cosAngle = cos(angle);
+        double sinAngle = sin(angle);
         double t2,t3,t4,t5,t6,t7,t8,t9,t10,newx,newy,newz;
         double qw = cosAngle, qx = (axis.x * sinAngle), qy = (axis.y * sinAngle), qz = (axis.z * sinAngle);
 

@@ -1224,8 +1224,8 @@ public:
 //
 //typedef TotalE<PairE> TotalEnergyCalculator;                        // Empty Energy
 //typedef TotalEFull<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
-typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
-//typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
+//typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
+typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
 //typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairE> > TotalEnergyCalculator;         // Test of Pair energy
 //typedef TotalEFullSymetry<PairE> TotalEnergyCalculator;         // Test of Pair energy symetry
 

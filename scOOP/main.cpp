@@ -330,21 +330,6 @@ int main(int argc, char** argv) {
         fclose (inFile);
     }
 
-    /// For testing the pairlist
-    //gen_pairlist(&topo, &sim, &conf);
-    //FILE * fpairlist;
-    //fpairlist = fopen("pairlist.dat", "w");
-    //print_pairlist(fpairlist, &sim, &topo);
-    //fclose(fpairlist);
-    //printf("sqmaxcut = %f\n", topo.sqmaxcut);
-
-    /// For testing the cluster algorithm
-    //gen_clusterlist(&topo, &sim, &conf);
-    //print_clusterlist(stdout, TRUE, &topo, &sim, &conf);
-    //sort_clusterlist(&topo, &sim);
-    //print_clusters(stdout, TRUE, &sim);
-    //print_clusterstat(stdout, TRUE, &sim);
-
     /********************************************************/
     /*                   MEMORY DEALLOC                     */
     /********************************************************/

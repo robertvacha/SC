@@ -4,6 +4,10 @@
 
 
 void PairE::initIntFCE() {
+    /*cout << "Testing angle2 calc" << endl;
+    AngleSc test(pbc);
+    test.test();*/
+
     mcout.get() << "\nInitializing energy functors...\n";
     // NB
     // Fill in the names of the functions for calculating the

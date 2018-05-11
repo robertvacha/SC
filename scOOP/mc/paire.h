@@ -4,6 +4,7 @@
 #define PAIRE_H
 
 #include <limits>
+#include <iomanip>
 
 #include "../structures/topo.h"
 #include "../structures/Conf.h"
@@ -333,7 +334,7 @@ public:
             if (part2 == conlist->conlist[0] || part2 == conlist->conlist[1]) {
                 if ( (geotype[0] < SP) && (geotype[1] < SP) ) {
                     // num1 is connected to num2 by tail : // num1 is connected to num2 by head
-                    currangle = ( (part2 == conlist->conlist[0]) ? angleEnergyAngle2( part2, part1 ) : angleEnergyAngle2( part1, part2 ) );
+                    currangle = ( (part2 == conlist->conlist[0]) ? mirAngle2( part2, part1 ) : mirAngle2( part1, part2 ) );
                     energy += harmonicPotential(currangle,topo.moleculeParam[part1->molType].angle2eq,topo.moleculeParam[part1->molType].angle2c);
                 }
             }
@@ -341,19 +342,211 @@ public:
         return energy;
     }
 
-private:
-    inline double angleEnergyAngle2(  const Particle* p1,  const Particle* p2 ){
-        Vector localAxis, localX1, localX2;
-        localAxis = p1->dir.cross(p2->dir);
+    bool test() {
+        Particle a(Vector(14,10,10), Vector(1,0,0), Vector(0,0,1), 0, 0);
+        Particle b(Vector(10,10,10), Vector(1,0,0), Vector(0,0,1), 0, 0);
+        Particle dir = b;
+        Particle dir2 = b;
+        Particle rot = b;
+        Vector axisXY(0,0,1);
 
-        localX1 = p1->dir.cross(localAxis);
-        localX2 = p2->dir.cross(localAxis);
+        double patchLen = 3.0;
+
+        ofstream myfile;
+        myfile.open ("config", ios::out);
+        myfile << "20 20 20" << endl;
+        int angl=90;
+        int ii,jj;
+
+        for(int i = -180; i<=180; i+=30) { // rotating in YZ plane, rotate position as well
+            ii=i;
+            dir = b;
+            if(i>=0)
+                dir.pscRotate(DEGTORAD*i*0.5, TPSC, axisXY, 1);
+            else
+                dir.pscRotate(DEGTORAD*i*0.5, TPSC, axisXY, 3);
+
+            for(int j = -90; j <= 90; j+=30) { // Rotating the second PSC
+                jj=j;
+                dir2 = dir;
+
+                if(j >= 0)
+                    dir2.pscRotate(DEGTORAD*j*0.5, TPSC, dir.patchdir[0].cross(dir.dir), 1);
+                else
+                    dir2.pscRotate(fabs( DEGTORAD*j*0.5 ), TPSC, dir.patchdir[0].cross(dir.dir), 3);
+
+                //cout << i << " " << j << " " << j*i/90.0  << " " << ( j + i*i/(180+j) ) << " " << endl;
+
+                /*if(i >= 0) {
+                    if(i>90) {
+                        ii = i;
+                        if(j >= 0)
+                            // i == 180, j == whatever -> rotate by 180 deg
+                            // i == 90 -> rotate by j*i/90.0 -> 0 to 90 based on j
+                            dir2.pscRotate(DEGTORAD*( j + i*i/(180+j) )*0.5, TPSC, dir2.dir, 1);
+                        else
+                            dir2.pscRotate(DEGTORAD*j*i*0.5/90.0, TPSC, dir2.dir, 3);
+                    } else {
+                        if(j >= 0)
+                            dir2.pscRotate(DEGTORAD*j*i*0.5/90.0, TPSC, dir2.dir, 1);
+                        else
+                            dir2.pscRotate(DEGTORAD*j*i*0.5/90.0, TPSC, dir2.dir, 3);
+                    }
+                } else {
+                    if(i<90) {
+                        ii = i-180;
+                        if(j >= 0)
+                            dir2.pscRotate(fabs(DEGTORAD*j*ii*0.5/90.0 ), TPSC, dir2.dir, 3);
+                        else
+                            dir2.pscRotate(fabs(DEGTORAD*j*ii*0.5/90.0 ), TPSC, dir2.dir, 1);
+                    } else {
+                        if(j >= 0)
+                            dir2.pscRotate(fabs(DEGTORAD*j*i*0.5/90.0 ), TPSC, dir2.dir, 3);
+                        else
+                            dir2.pscRotate(fabs(DEGTORAD*j*i*0.5/90.0 ), TPSC, dir2.dir, 1);
+                    }
+                }*/
+
+
+                dir2.pos.z += patchLen * 0.5 * sin(j*DEGTORAD); // only j contributes to z position
+                dir2.pos.x -= patchLen * 0.5 * cos(j*DEGTORAD) * cos(i*DEGTORAD);
+                dir2.pos.y -= patchLen * 0.5 * cos(j*DEGTORAD) * sin(i*DEGTORAD);
+
+                for(int k=-180; k <= 180; k+=1) { // rotating of patch
+                    rot = dir2;
+                    if(k >= 0)
+                        rot.pscRotate(DEGTORAD*k*0.5, TPSC, dir2.dir, 1);
+                    else
+                        rot.pscRotate(DEGTORAD*k*0.5, TPSC, dir2.dir, 3);
+
+
+                    /*if(test(k*DEGTORAD, robAngle2(&a, &rot))) {
+                        cout << "XY: " << i << "itself: " << j << " corr:" << ( j*(((double)i)/90.0) ) << " rotate: " << k << endl;
+                        cerr << "Rob incorect " << k << " != " << robAngle2(&a, &rot) / DEGTORAD << endl;
+                    }*/
+                    /*if(test(k*DEGTORAD, mirAngle2(&a, &rot))) {
+                        cout << "XY: " << i << "itself: " << j << " rotate: " << k << endl;
+                        cerr << "Mir incorect " << k << " != " << mirAngle2(&a, &rot) / DEGTORAD << endl;
+                    }*/
+                    /*if(test(k*DEGTORAD, angle2(&a, &rot))) {
+                        cout << "XY: " << i << "itself: " << j << " corr:" << ( j*(((double)i)/90.0) ) << " rotate: " << k << endl;
+                        cerr << "Luk incorect " << k << " != " << angle2(&a, &rot) / DEGTORAD << endl;
+                    }*/
+
+                    //cout << "XY: " << i << "itself: " << j << " rotate: " << k << endl;
+                    //cout << "Mir " << mirAngle2(&a, &rot) / DEGTORAD << endl;
+
+                    ii=i;
+                    jj=j;
+
+                    if(angl > 90) {
+                        angl -= abs(angl-180);
+                    if(ii > 0)
+                        ii = abs(ii-180);
+                    else
+                        ii = -abs(ii+180);
+                    }
+
+                    if( !test(0*DEGTORAD, mirAngle2(&a, &rot)) ) {
+                        myfile << a.print() << endl;
+                        myfile << rot.print() << endl;
+                    }
+
+                    //if( (ii*ii+jj*jj < angl*angl && ii*ii+jj*jj > (angl*angl - angl) ) || (ii==0 && abs(jj)==angl) || (jj==0 && abs(ii)==angl) ) {
+                        //myfile << a.print() << endl;
+                        //myfile << rot.print() << endl;
+                    //}
+                }
+            }
+        }
+        exit(0);
+    }
+
+private:
+    inline double mirAngle2( const Particle* p1, const Particle* p2 ) const {
+        /*
+         * If part1 and part 2 parallel:
+         * localAxis = (0,0,0)
+         * localX1 = localX2 = (0,0,0)
+         * */
+        Vector localAxis = p1->dir.cross(p2->dir);
+
+        if( localAxis.x == 0.0 && localAxis.y == 0.0 && localAxis.z == 0.0 ) {
+            return acos( p1->patchdir[0].dot(p2->patchdir[0]) );
+        }
+
+        Vector localX1 = p1->dir.cross(localAxis);
+        Vector localX2 = p2->dir.cross(localAxis);
+
         double  v1x = localX1.dot(p1->patchdir[0]),
                 v1y = localAxis.dot(p1->patchdir[0]),
                 v2x = localX2.dot(p2->patchdir[0]),
                 v2y = localAxis.dot(p2->patchdir[0]);
 
-        return acos( (v1x * v2x + v1y * v2y) / ( sqrt( (v1x * v1x + v1y * v1y) * (v2x * v2x + v2y * v2y) )));//angle is in radians
+        return acos( (v1x * v2x + v1y * v2y) / ( sqrt( (v1x * v1x + v1y * v1y) * (v2x * v2x + v2y * v2y) ) ) );//angle is in radians
+    }
+
+    inline double robAngle2( const Particle* p1, const Particle* p2 ) const {
+        return acos( p2->patchdir[0].dot(p1->patchdir[0]) - p2->dir.dot(p1->patchdir[0]) );
+    }
+
+    /**
+     * @brief angle2 - Calculate angle between 2 patches of partile p1 and particle p2
+     *
+     * Notation: p1->dir = d1
+     *           p2->dir = d2
+     *           p1->patchdir[0] = p1
+     *           p2->patchdir[0] = p2
+     *
+     * p1 x d2 => calculate the angle of p2 towards this plane
+     * second => need plane perpendicular to (p1 x d2) for angle determination
+     *
+     * corr - based on d1 x d2 angle in plane p1 and plane (d1 x p1),
+     *        we determine a shift of 0deg angle from the above mentioned planes
+     *
+     * @param p1
+     * @param p2
+     * @return
+     */
+    inline double angle2( const Particle* p1, const Particle* p2 ) const {
+
+        Vector p1Cd2,second; // Plane normal Vectors for Patch angle calc
+        double cosP1D2;      // size of d1
+        double cosD1D2;      // size of d2
+        double corr;         // correction angle for 0deg patch
+        double acos_sp2;
+        double dotsp2;
+
+        cosD1D2 = p1->dir.dot(p2->dir); // d2 projection in d1 -> size cos Alpha
+
+        if(cosD1D2 == 1.0) // parallel particles -> return dir between the patches
+            return acos( p2->patchdir[0].dot(p1->patchdir[0]) );
+
+        cosP1D2 = p2->dir.dot(p1->patchdir[0]); // size of d2 projection in p1 -> cos Phi
+
+        if(cosP1D2 == 0.0) {
+            cosD1D2 = 1;
+            corr = 0;
+        } else {
+            cosD1D2 = cosD1D2 / sqrt(1-cosP1D2*cosP1D2);
+            corr = acos(cosD1D2) * (acos(cosP1D2) - PIH) * (1.0/PIH) ;
+        }
+
+        p1Cd2 = p2->dir.cross(p1->patchdir[0]);
+        p1Cd2.normalise();
+        second = p1Cd2.cross(p2->dir);
+        second.normalise();
+
+        dotsp2 = second.dot(p2->patchdir[0]);
+
+        if( dotsp2 >= 0 ) // acos( dotsp2 ) < 90*DEGTORAD
+            return acos( dotsp2 ) - corr;
+        else
+            return acos( p1Cd2.dot(p2->patchdir[0]) ) + 90*DEGTORAD - corr;
+    }
+
+    bool test(double a, double b) {
+        return fabs(a - b) > 1e-1;
     }
 };
 

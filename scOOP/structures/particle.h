@@ -36,6 +36,7 @@ public:
     int switched;           ///< \brief 0: in initial stat; 1: in the switched stat
 
 
+
     Particle() {}
     Particle(Vector pos, Vector dir, Vector patchDir, int molType, int type) {
         this->pos = pos;
@@ -79,6 +80,15 @@ public:
     string info() {
         std::ostringstream o;
         o << "pos:" << pos.info() << "\ndir:" << dir.info() << "\npatchdir1:" << patchdir[0].info() << "\npatchdir2:" << patchdir[1].info()<<endl;
+        return o.str();
+    }
+
+    string print() {
+        std::ostringstream o;
+        o << pos.x << " " << pos.y << " " << pos.z << " ";
+        o << dir.x << " " << dir.y << " " << dir.z << " ";
+        o << patchdir[0].x << " " << patchdir[0].y << " " << patchdir[0].z << " ";
+        o << " 0 0";
         return o.str();
 
     }
@@ -177,7 +187,7 @@ public:
        maxcos(cosine of angle half), we do everything on site for speed
      * @param part
      * @param angle (radians)
-     * @param clockWise
+     * @param clockWise - 0 - counterclockwise, 1 - clockwise, 2 - random
      */
     void pscRotate(double angle, int geotype, Vector newaxis, int clockwise=2) {
         double vc, vs, t2, t3, t4, t5, t6, t7, t8, t9, t10;
@@ -194,6 +204,9 @@ public:
         if ( (ran2()<0.5 && clockwise==2) || clockwise==1 )
             vs = sqrt(1.0 - vc*vc);
         else vs = -sqrt(1.0 - vc*vc); /*randomly choose orientation of direction of rotation clockwise or counterclockwise*/
+
+        if(clockwise==3)
+            vs = -sqrt(1.0 - vc*vc);
 
         Quat newquat(vc, newaxis.x*vs, newaxis.y*vs, newaxis.z*vs);
 
