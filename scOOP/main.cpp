@@ -48,8 +48,7 @@ int main(int argc, char** argv) {
     cout << "\n!!! Extra hydrophobic interaction in e_cpsc_cpsc added, strenght: " << E_ISO << endl;
 #endif
 
-
-    if(argc==2) {
+    if(argc==2) { // Future testing done by arguments given to executable
         string str1(argv[1]);
     }
 

@@ -7,6 +7,8 @@
 #include "../mc/mygetline.h"
 #include "mpicout.h"
 
+#include <array>
+
 extern MpiCout mcout;
 
 /* It would be nice, if this struct would contain all the topo stuff in the end*/
@@ -17,28 +19,40 @@ public:
     double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
     int gcSpecies;
 
-    MoleculeParams moleculeParam[MAXMT];   ///< \brief parameters for Molecules
+    std::array<MoleculeParams, MAXMT>  moleculeParam;   ///< \brief parameters for Molecules
 
-    Ia_param ia_params[MAXT][MAXT];     ///< \brief parametrization of particles for all interations
+    // Multidimensional array not supported yet
+    std::array<Ia_param, MAXT> ia_params[MAXT];     ///< \brief parametrization of particles for all interations
     Exters exter;                       ///< \brief external potential - wall
 
-    //
-    //  METHODS
-    //
+
+
 
     Topo():sqmaxcut(0), maxcut(0), gcSpecies(0) {}
 
-    /*Topo(FileNames* files) : sqmaxcut(0), maxcut(0), gcSpecies(0)  { // Eventually transition from Inicializer to Topo constructor
+    Topo(FileNames* files) : sqmaxcut(0), maxcut(0), gcSpecies(0)  { // Eventually transition from Inicializer to Topo constructor
         bool exclusions[MAXT][MAXT] = {false};
 
         readTopoFile(exclusions, files); // EXCLUDE LOADED CORRECTLY 7.8. 2015
-    }*/
+    }
 
     ~Topo() {
         for(int i=0; i<MAXMT; i++) {
             free(moleculeParam[i].name);
         }
     }
+
+    bool operator==(Topo& o) const {
+        bool same = true;
+        for(int i=0; i< MAXT; ++i) {
+            if(this->ia_params[i] != o.ia_params[i])
+                same = false;
+        }
+
+        return same && (this->sqmaxcut == o.sqmaxcut) && (this->maxcut == o.maxcut) && (this->gcSpecies == o.gcSpecies)
+                && (this->moleculeParam == o.moleculeParam) && (this->exter == o.exter);
+    }
+
 
     /**
      * @brief generate interations pairs

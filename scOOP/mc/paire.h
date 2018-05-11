@@ -246,7 +246,7 @@ public:
         assert(conlist != nullptr);
         double bondlength, halfl1, halfl2;
         Vector vec1, vec2;
-        int * geotype = topo.ia_params[part1->type][part2->type].geotype;
+        std::array<int, 2> geotype = topo.ia_params[part1->type][part2->type].geotype;
 
         if (part2 == conlist->conlist[1] || part2 == conlist->conlist[0]) {
             if (geotype[0] < SP)
@@ -291,7 +291,7 @@ public:
         double currangle, halfl;
         Vector vec1, vec2;
         double energy = 0.0;
-        int * geotype = topo.ia_params[part1->type][part2->type].geotype;
+        std::array<int, 2> geotype = topo.ia_params[part1->type][part2->type].geotype;
 
         // angle interaction with nearest neighbours -harmonic
         if ((topo.moleculeParam[part1->molType]).angle1c >= 0) {

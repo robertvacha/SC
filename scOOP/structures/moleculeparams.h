@@ -45,6 +45,28 @@ public:
     }
 
     /**
+     * @brief operator ==
+     * @param o
+     * @return
+     */
+    bool operator==(const MoleculeParams& o) const {
+        //
+        // operator== on std::vector: Compares the contents of two containers.
+        //   Checks if the contents of lhs and rhs are equal, that is, whether lhs.size() == rhs.size() and each element in lhs has equivalent element in rhs at the same position.
+        //
+        return (this->particleTypes == o.particleTypes) && (this->switchTypes == o.switchTypes)
+                && (this->deltaMu == o.deltaMu) && (this->molType == o.molType)
+                && (this->bond1eq == o.bond1eq) && (this->bond1c == o.bond1c)
+                && (this->bond2eq == o.bond2eq) && (this->bond2c == o.bond2c)
+                && (this->bonddeq == o.bonddeq) && (this->bonddc == o.bonddc)
+                && (this->bondheq == o.bondheq) && (this->bondhc == o.bondhc)
+                && (this->angle1eq == o.angle1eq) && (this->angle1c == o.angle1c)
+                && (this->angle2eq == o.angle2eq) && (this->angle2c == o.angle2c)
+                && (this->activity == o.activity) && (this->chemPot == o.chemPot)
+                && (this->switchCount == o.switchCount);
+    }
+
+    /**
      * @return True if Molecule of only one particle
      */
     bool isAtomic() {return (particleTypes.size() == 1);}

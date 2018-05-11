@@ -10,6 +10,7 @@
 #include "moleculeparams.h"
 
 #include <cstdio>
+#include <array>
 
 
 class Molecule : public vector<int > {
@@ -159,9 +160,11 @@ public:
 
         // topology out file -> change only for grand  canonical paralel tempering
         sprintf(moviefile, "%dmovie", rank);
+
         if(false /* Multiple walkers Wang-Landau */) {
             sprintf(wloutfile, "%dwl-new.dat", rank);
         }
+
         sprintf(statfile, "%dstat.dat", rank);
         sprintf(clusterfile, "%dcluster.dat", rank);
         sprintf(clusterstatfile, "%dcluster_stat.dat", rank);
@@ -188,7 +191,7 @@ class Ia_param{
 public:
     char name[SMSTR];           ///< \brief The name of the particle type
     char other_name[SMSTR];     ///< \brief The name of the particle type
-    int geotype[2];             ///< \brief The geometrical type:
+     std::array<int, 2> geotype;             ///< \brief The geometrical type:
                                 /// spherocylinder (0-repulsive, 1-isotropic, 2-patchy, 3-cylindrical)
                                 /// or sphere (0-repulsive, 1-isotropic)
     double sigma;               ///< \brief Repulsion wca
@@ -200,24 +203,28 @@ public:
     double pdisSq;              ///< \brief Interaction distance of patch squared
     double pswitch;             ///< \brief Switch of distance of patch
     double pswitchINV;          ///< \brief Inverted Switch of distance of patch
-    double pangl[4];            ///< \brief angular size of patch as was specifid in input
-    double panglsw[4];          ///< \brief angular size of patchswitch as was specifid in input
-    double pcangl[4];           ///< \brief cosine of half size angle - rotation from patch direction to side
-    double pcanglsw[4];         ///< \brief cosine of half size angle plus switch - rotation from patch direction to side
+    std::array<double, 4> pangl;    ///< \brief angular size of patch as was specifid in input
+    std::array<double, 4> panglsw;          ///< \brief angular size of patchswitch as was specifid in input
+    std::array<double, 4> pcangl;           ///< \brief cosine of half size angle - rotation from patch direction to side
+    std::array<double, 4> pcanglsw;         ///< \brief cosine of half size angle plus switch - rotation from patch direction to side
+
     double rcut;                ///< \brief Cutoff for attraction
     double rcutSq;              ///< \brief Cutoff for attraction squared
     double rcutwca;             ///< \brief Cutoff for repulsion
     double rcutwcaSq;           ///< \brief Cutoff for repulsion squared
-    double pcoshalfi[4];        ///< \brief Cosine of half angle going to side of interaction
-    double psinhalfi[4];        ///< \brief Sine of half angle going to side of interaction -useful for quaterion rotation
-    double csecpatchrot[2];     ///< \brief Cosine of Rotation of second patches in 2psc models
-    double ssecpatchrot[2];     ///< \brief Sine of Rotation of second patches in 2psc models
+
+    std::array<double, 4> pcoshalfi;        ///< \brief Cosine of half angle going to side of interaction
+    std::array<double, 4> psinhalfi;        ///< \brief Sine of half angle going to side of interaction -useful for quaterion rotation
+    std::array<double, 2> csecpatchrot;     ///< \brief Cosine of Rotation of second patches in 2psc models
+    std::array<double, 2> ssecpatchrot;     ///< \brief Sine of Rotation of second patches in 2psc models
     double volume;              ///< \brief Volume of particle for geometrical center calculations
     double pvolscale;           ///< \brief Scale of patch volume size
-    double len[2];              ///< \brief Length of the PSC
-    double half_len[2];         ///< \brief Half length of the PSC
-    double chiral_cos[2];       ///< \brief Coctains the cosinus for the chiral rotation of the patch
-    double chiral_sin[2];       ///< \brief Contains the sinus for the chiral rotation of the patch
+
+    std::array<double, 2> len;              ///< \brief Length of the PSC
+    std::array<double, 2> half_len;         ///< \brief Half length of the PSC
+    std::array<double, 2> chiral_cos;       ///< \brief Coctains the cosinus for the chiral rotation of the patch
+    std::array<double, 2> chiral_sin;       ///< \brief Contains the sinus for the chiral rotation of the patch
+
     double parallel;            ///< \brief additional epsilon directional interactions parallel(>0), isotpropic(0), or antiparallel(<0)
 
     bool exclude;
@@ -251,6 +258,19 @@ public:
         parallel = 0.0;
         exclude = false;
     }
+
+    bool operator==(const Ia_param& o) const {
+        return (this->geotype == o.geotype) && (this->sigma == o.sigma)
+                && (this->sigmaSq == o.sigmaSq) && (this->sigmaSq == o.sigmaSq) && (this->epsilon == o.epsilon)
+                && (this->A == o.A) && (this->B == o.B) && (this->pdis == o.pdis) && (this->pdisSq == o.pdisSq)
+                && (this->pswitch == o.pswitch) && (this->pswitchINV == o.pswitchINV) && (this->pangl == o.pangl)
+                && (this->panglsw == o.panglsw) && (this->pcangl == o.pcangl) && (this->pcanglsw == o.pcanglsw)
+                && (this->rcut == o.rcut) && (this->rcutSq == o.rcutSq) && (this->rcutwca == o.rcutwca) && (this->rcutwcaSq == o.rcutwcaSq)
+                && (this->pcoshalfi == o.pcoshalfi) && (this->psinhalfi == o.psinhalfi) && (this->csecpatchrot == o.csecpatchrot)
+                && (this->ssecpatchrot == o.ssecpatchrot) && (this->volume == o.volume) && (this->pvolscale == o.pvolscale)
+                && (this->len == o.len) && (this->half_len == o.half_len) && (this->chiral_cos == o.chiral_cos) && (this->chiral_sin == o.chiral_sin)
+                && (this->parallel == o.parallel) && (this->exclude == o.exclude);
+    }
 };
 
 
@@ -263,7 +283,7 @@ public:
     double epsilon;                ///< \brief depth of attraction
     double attraction;             ///< \brief distance of attraction
     double sqmaxcut;               ///< \brief distance when nothing can interact
-    Ia_param interactions[MAXT];   ///< \brief Interaction parameters with particle types generated from above params
+    std::array<Ia_param, MAXT>  interactions;   ///< \brief Interaction parameters with particle types generated from above params
 
     Exters() {
         exist = false;
@@ -271,6 +291,11 @@ public:
         epsilon = 0.0;
         attraction = 0.0;
         sqmaxcut = 0.0;
+    }
+
+    bool operator==(Exters& o) const {
+        return (this->exist == o.exist) && (this->thickness == o.thickness) && (this->epsilon == o.epsilon)
+                && (this->attraction == o.attraction) && (this->sqmaxcut == o.sqmaxcut) && (this->interactions == o.interactions);
     }
 };
 

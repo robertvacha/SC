@@ -121,7 +121,7 @@ double PairEnergyCalculator::angleEnergyAngle2(  Particle &p1,  Particle &p2 ){ 
 double PairEnergyCalculator::angleEnergy() {
     double energy=0.0, currangle, halfl;
     Vector vec1, vec2;
-    int * geotype = topo.ia_params[part1->type][part2->type].geotype;
+    std::array<int, 2> geotype = topo.ia_params[part1->type][part2->type].geotype;
 
     /*angle interaction with nearest neighbours -harmonic*/
     if ((topo.moleculeParam[part1->molType]).angle1c >= 0) {
@@ -225,7 +225,7 @@ double PairEnergyCalculator::angleEnergy() {
 double PairEnergyCalculator::bondEnergy() {
     double energy=0.0, bondlength, halfl;
     Vector vec1, vec2, vecbond;
-    int * geotype = topo.ia_params[part1->type][part2->type].geotype;
+    std::array<int, 2> geotype = topo.ia_params[part1->type][part2->type].geotype;
 
     /*interaction with nearest neighbours -harmonic*/
     if ((topo.moleculeParam[part1->molType]).bond1c >= 0) {
