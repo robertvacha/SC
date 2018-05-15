@@ -11,13 +11,89 @@
 
 extern MpiCout mcout;
 
+/**
+ * @brief The System class
+ * [SYSTEM]
+ * moleculeName[i] moleculeCount[i]
+ */
+class System {
+public:
+    System(string name) : name(name) {}
+
+    string name;
+    vector<string> moleculeName;
+    vector<int> moleculeCount;
+
+    /**
+     * @brief filling the system parameters
+     * @param pline
+     * @param sysnames
+     * @param sysmoln
+     * @return
+     */
+    int fillSystem(char *pline, char* namee) {
+
+        long number;
+        int fields;
+        char zz[STRLEN];
+
+        trim(pline);
+        if (!pline) {
+            fprintf (stderr, "TOPOLOGY ERROR: obtained empty line in fil system.\n\n");
+            return 0;
+        }
+
+        fields = sscanf(pline, "%s %ld", zz, &number);
+
+        if (fields != 2) {
+            cerr << "TOPOLOGY ERROR: failed reading system from " << pline << ".\n" << endl;
+            return 0;
+        }
+
+        cout << namee << " " << zz << " " << number << endl;
+
+        moleculeName.push_back(zz);
+        moleculeCount.push_back(number);
+
+        return 1;
+    }
+
+    bool operator==(const System& o) const {
+        return (this->moleculeCount == o.moleculeCount) && (this->moleculeName == o.moleculeName);
+    }
+
+    string toString() {
+        stringstream ss;
+        ss << name << endl;
+        for(unsigned int i; i<moleculeName.size(); ++i) {
+            ss << moleculeName[i] << " " << moleculeCount[i] << endl;
+        }
+        return ss.str();
+    }
+
+    void print() {
+        cout << toString();
+    }
+};
+
 /* It would be nice, if this struct would contain all the topo stuff in the end*/
 class Topo
 {
 public:
-    double sqmaxcut;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
-    double maxcut;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
-    int gcSpecies;
+    System system = System("[System]");
+    System pool = System("[Pool]");
+
+    MolIO* molecules;    ///< @brief List of AtomType parameters read from init.top
+
+    bool poolConfig = false;
+    bool switchSpecies  = false;
+    bool gcSpecies      = false;
+    bool existExclusion = false;
+    bool exclusions[MAXT][MAXT] = {{false}};
+
+    double sqmaxcut     = 0;    ///< \brief square of distance over which even spherocylinders cannot interact (distance between CM)
+    double maxcut       = 0;      ///< \brief distance over which even spherocylinders cannot interact (distance between CM)
+    int gcSpeciesCount  = 0;
 
     std::array<MoleculeParams, MAXMT>  moleculeParam;   ///< \brief parameters for Molecules
 
@@ -25,32 +101,84 @@ public:
     std::array<Ia_param, MAXT> ia_params[MAXT];     ///< \brief parametrization of particles for all interations
     Exters exter;                       ///< \brief external potential - wall
 
+    Topo() { molecules = new MolIO[MAXMT]; }
 
+    Topo(bool switchSpecies, bool gcSpecies, FileNames* files) : switchSpecies(switchSpecies), gcSpecies(gcSpecies) {
 
+        molecules = new MolIO[MAXMT];
 
-    Topo():sqmaxcut(0), maxcut(0), gcSpecies(0) {}
+        readTopoFile(files);
+        genParamPairs();
+        genTopoParams();
 
-    Topo(FileNames* files) : sqmaxcut(0), maxcut(0), gcSpecies(0)  { // Eventually transition from Inicializer to Topo constructor
-        bool exclusions[MAXT][MAXT] = {false};
+        if(switchSpecies)
+            initSwitchList();
 
-        readTopoFile(exclusions, files); // EXCLUDE LOADED CORRECTLY 7.8. 2015
+        if(gcSpecies)
+            initGCList();
     }
 
-    ~Topo() {
-        for(int i=0; i<MAXMT; i++) {
-            free(moleculeParam[i].name);
+    string toString() {
+        stringstream ss;
+
+        ss << "[Types]" << endl;
+        ss << "#NAME NUM GEOTYP EPS SIGMA ATTR_DIST ATTR_SW PATCH_ANGLE PATCH_SW SC_LEN Para_EPS angle2 Patch_ANGLE2 PASW2 Chiral" << endl;
+        for(int i=0; i<MAXT; ++i) {
+            if( !ia_params[i][i].name.empty() )
+                ss << ia_params[i][i].toString() << endl;
         }
+
+        ss << "[Molecules]" << endl;
+        for(int i=0; i<MAXMT; ++i) {
+            if( !moleculeParam[i].name.empty() ) {
+                ss << moleculeParam[i].toString() << endl;
+            }
+        }
+
+        ss << system.toString();
+        if(poolConfig)
+            ss << pool.toString();
+
+        if(existExclusion) {
+            ss << "[EXCLUDE]" << endl;
+            for(int i=0; i < MAXT; ++i)
+                for(int j=i; j<MAXT; ++j)
+                    if( exclusions[i][j] )
+                        ss << i << " " << j << endl;
+        }
+
+        ss << ((exter.exist) ? exter.toString() : string());
+
+        return ss.str();
     }
 
     bool operator==(Topo& o) const {
         bool same = true;
         for(int i=0; i< MAXT; ++i) {
-            if(this->ia_params[i] != o.ia_params[i])
+            if( !(this->ia_params[i] == o.ia_params[i]) ) {
                 same = false;
+                cerr << "this->ia_params[" << i << "] != o.ia_params[" << i << "]" << endl;
+            }
         }
 
-        return same && (this->sqmaxcut == o.sqmaxcut) && (this->maxcut == o.maxcut) && (this->gcSpecies == o.gcSpecies)
-                && (this->moleculeParam == o.moleculeParam) && (this->exter == o.exter);
+        if( !(this->moleculeParam == o.moleculeParam) )
+            cerr << "this->moleculeParam != o.moleculeParam" << endl;
+
+        if( !(this->exter == o.exter) ) {
+            cerr << "this->exter != o.exter" << endl;
+        }
+
+        if( !( (this->sqmaxcut == o.sqmaxcut) && (this->maxcut == o.maxcut) && (this->gcSpeciesCount == o.gcSpeciesCount) ) )
+            cerr << "this->sqmaxcut != o.sqmaxcut || this->maxcut != o.maxcut || this->gcSpecies != o.gcSpecies" << endl;
+
+        if(!(this->system == o.system) )
+            cerr << "this->system != o.system" << endl;
+
+        if(!(this->pool == o.pool) )
+            cerr << "this->pool != o.pool" << endl;
+
+        return same && (this->sqmaxcut == o.sqmaxcut) && (this->maxcut == o.maxcut) && (this->gcSpeciesCount == o.gcSpeciesCount)
+                && (this->moleculeParam == o.moleculeParam) && (this->exter == o.exter) && (this->system == o.system) && (this->pool == o.pool);
     }
 
 
@@ -58,14 +186,14 @@ public:
      * @brief generate interations pairs
      * @param (*exlusions)[][]
      */
-    void genParamPairs(bool exclusions[MAXT][MAXT]);
+    void genParamPairs();
 
     void genTopoParams();
 
     void info() {
         cout << "Topology:\n";
         int i=0;
-        while(moleculeParam[i].name != NULL) {
+        while(!moleculeParam[i].name.empty()) {
             cout << moleculeParam[i].name << ", activity:" << moleculeParam[i].activity << endl;
             i++;
         }
@@ -78,20 +206,46 @@ public:
         }
     }
 
-private:
+    void initSwitchList() {
+        // count switch types for all molecular types
+        int count;
+        bool switchPartExist = false;
+        for(int i=0; i<MAXMT; i++) {
+            if(moleculeParam[i].particleTypes.empty())
+                break;
+            count =0;
+            for(unsigned int j=0; j<moleculeParam[i].switchTypes.size(); j++) {
+                if(moleculeParam[i].switchTypes[j] != -1) {
+                    count++;
+                    switchPartExist = true;
+                }
+            }
+            moleculeParam[i].switchCount = count;
+        }
 
-    MolIO* molecules;    ///< @brief List of AtomType parameters read from init.top
+        if (!switchPartExist){
+            cerr << "TOPOLOGY ERROR: No switchable particles found, but probability for a switch is not zero!" << endl;
+            exit(1);
+        }
+    }
 
-    char *sysnames[MAXN];   ///< @brief List of MoleculeType names of system
-    char *poolNames[MAXN];  ///< @brief List of MoleculeType names of pool
+    void initGCList() {
+        bool existGrand = false;
+        int i=0;
+        while(!moleculeParam[i].name.empty()) {
+            if(moleculeParam[i].activity != -1.0 )
+                existGrand = true;
+            i++;
+        }
+        if(!existGrand) {
+            cout << "In options nGrandCanon != 0, but no activity set for any species in top.init" << endl;
+            exit(1);
+        }
+    }
 
-    long  *sysmoln /*[MAXN]*/;
-    long  *poolMolNum /*[MAXN]*/;
+public:
 
-    bool poolConfig;
-    bool nGrandCanon;
-
-    void readTopoFile(bool exclusions[][MAXT], FileNames* files) {
+      void readTopoFile(FileNames* files) {
         char *dummy=NULL;
         char line[STRLEN], keystr[STRLEN], molname[STRLEN];
         unsigned size;
@@ -169,7 +323,7 @@ private:
                     }
                     if (!strcmp(keystr,"SYSTEM")) {
                         char name[9] = "system: ";
-                        if (!fillSystem(pline,sysnames,&sysmoln, name)) {
+                        if (!system.fillSystem(pline, name)) {
                             fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                             topDealoc();
                             free(pline); pline = NULL;
@@ -180,7 +334,7 @@ private:
                     if (!strcmp(keystr, "POOL")) {
                         poolConfig = true;
                         char name[7] = "pool: ";
-                        if (!fillSystem(pline,poolNames,&poolMolNum, name)) {
+                        if (!pool.fillSystem(pline, name)) {
                             fprintf (stderr, "\nTOPOLOGY ERROR: in reading system\n\n");
                             topDealoc();
                             free(pline); pline = NULL;
@@ -200,8 +354,9 @@ private:
                         continue;
                     }
                     if (!strcmp(keystr,"EXCLUDE")) {
+                        existExclusion = true;
                         fflush(stdout);
-                        if (!fillExclusions(&pline,exclusions)) {
+                        if (!fillExclusions(&pline)) {
                             DEBUG_INIT("Something went wrong with exclusions potential");
                             fprintf (stderr, "\nTOPOLOGY ERROR: in reading exclusions\n\n");
                             topDealoc();
@@ -234,19 +389,6 @@ private:
      */
     int convertGeotype(char *geotype);
 
-
-
-    /**
-     * @brief filling the system parameters
-     * @param pline
-     * @param sysnames
-     * @param sysmoln
-     * @return
-     */
-    int fillSystem(char *pline, char *sysnames[], long **sysmoln, char* name);
-
-
-
     /**
      * @brief filing the parameters for types from given strings. Returns 1 on succes.
      * @param pline
@@ -261,7 +403,7 @@ private:
      * @param (*exlusions)[][]
      * @return
      */
-    int fillExclusions(char **pline, bool exlusions[][MAXT]);
+    int fillExclusions(char **pline);
 
 
     /**

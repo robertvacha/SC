@@ -863,7 +863,7 @@ double MoveCreator::muVTMove() {
 
 int MoveCreator::getRandomMuVTType() {
     int molType = 0;
-    molType = ran2() * topo.gcSpecies;
+    molType = ran2() * topo.gcSpeciesCount;
 
     for(int i=0; i<conf->pvec.molTypeCount; i++) {
         if(topo.moleculeParam[i].activity != -1.0) {
@@ -877,7 +877,7 @@ int MoveCreator::getRandomMuVTType() {
 
     assert(topo.moleculeParam[molType].chemPot != -1.0);
     assert(molType >= 0);
-    assert(topo.gcSpecies >= 1 && "GrandCanonical with no defined activity, This should never happen");
+    assert(topo.gcSpeciesCount >= 1 && "GrandCanonical with no defined activity, This should never happen");
 
     return molType;
 }

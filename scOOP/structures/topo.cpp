@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
+void Topo::genParamPairs() {
     int a[2];
     int len;
     double length = 0; // The length of a PSC, currently only one is allow, ie implemented
@@ -68,10 +68,9 @@ void Topo::genParamPairs(bool exclusions[MAXT][MAXT]) {
                             ia_params[i][j].psinhalfi[k+2] = sqrt(1.0 - ia_params[i][j].pcoshalfi[k+2] * ia_params[i][j].pcoshalfi[k+2]);
                         }
                     }
-                    len = strlen(ia_params[i][i].name);
-                    strncpy(ia_params[i][j].name, ia_params[i][i].name, len + 1);
-                    len = strlen(ia_params[i][i].other_name);
-                    strncpy(ia_params[i][j].other_name, ia_params[i][i].other_name, len + 1);
+
+                    ia_params[i][j].name = ia_params[i][i].name;
+                    ia_params[i][j].other_name = ia_params[i][i].other_name;
 
                     ia_params[i][j].sigma   = AVER(ia_params[i][i].sigma,ia_params[j][j].sigma);
                     ia_params[i][j].sigmaSq   = ia_params[i][j].sigma * ia_params[i][j].sigma;
@@ -184,33 +183,7 @@ int Topo::convertGeotype(char *geotype) {
     return 0;
 }
 
-int Topo::fillSystem(char *pline, char *sysnames[], long **sysmoln, char *name) {
-    int i,fields;
-    char zz[STRLEN];
 
-    trim(pline);
-    if (!pline) {
-        fprintf (stderr, "TOPOLOGY ERROR: obtained empty line in fil system.\n\n");
-        return 0;
-    }
-    i=0;
-    while (sysnames[i]!=NULL) i++;
-
-    fields = sscanf(pline, "%s %ld", zz, &(*sysmoln)[i]);
-    sysnames[i] = (char*) malloc(strlen(zz)+1);
-    strcpy(sysnames[i],zz);
-
-    if (fields != 2) {
-        fprintf (stderr, "TOPOLOGY ERROR: failed reading system from (%s).\n\n", pline);
-        return 0;
-    }
-    /*if ((*sysmoln)[i] < 1) {
-            fprintf (stderr, "TOPOLOGY ERROR: cannot have %ld number of molecules.\n\n", (*sysmoln)[i]);
-            return 0;
-        }*/
-    fprintf (stdout, "%s %s %ld\n",name, sysnames[i],(*sysmoln)[i]);
-    return 1;
-}
 
 int Topo::fillTypes(char **pline) {
     int type;
@@ -297,8 +270,9 @@ int Topo::fillTypes(char **pline) {
         return 0;
     }
 
-    strcpy(ia_params[type][type].name, name);
-    strcpy(ia_params[type][type].other_name, name);
+    ia_params[type][type].type = type;
+    ia_params[type][type].name = name;
+    ia_params[type][type].other_name = name;
     ia_params[type][type].geotype[0] = geotype_i;
     ia_params[type][type].geotype[1] = geotype_i;
     ia_params[type][type].epsilon = param[0];
@@ -335,10 +309,10 @@ int Topo::fillTypes(char **pline) {
     if (fields > 2 && fields != 3) { // except SCA
         int i;
         for(i = 0; i < 2; i++){
-            ia_params[type][type].len[i] = param[6];
-            ia_params[type][type].half_len[i] = param[6] / 2;
             ia_params[type][type].pangl[i] = param[4];
             ia_params[type][type].panglsw[i] = param[5];
+            ia_params[type][type].len[i] = param[6];
+            ia_params[type][type].half_len[i] = param[6] / 2;
             ia_params[type][type].pcangl[i] = cos(param[4]/2.0/180*PI);                 // C1
             ia_params[type][type].pcanglsw[i] = cos((param[4]/2.0+param[5])/180*PI);    // C2
             //ia_params[type][type].pcangl[i] = ia_params[type][type].pcangl[i];
@@ -353,6 +327,7 @@ int Topo::fillTypes(char **pline) {
     if(fields == 7){
         int i;
         for(i = 0; i < 2; i++){
+            ia_params[type][type].chiral = param[8];
             ia_params[type][type].chiral_cos[i] = cos(param[8] / 360 * PI);
             ia_params[type][type].chiral_sin[i] = sqrt(1 - ia_params[type][type].chiral_cos[i] * ia_params[type][type].chiral_cos[i]);
             fprintf(stdout, "| chirality %g ", param[8]);
@@ -361,6 +336,7 @@ int Topo::fillTypes(char **pline) {
     if ((fields == 9)||(fields == 10)) {
         int i;
         for(i = 0; i < 2; i++){
+            ia_params[type][type].patchRot = param[8];
             ia_params[type][type].csecpatchrot[i] = cos(param[8] / 360 * PI);
             ia_params[type][type].ssecpatchrot[i] = sqrt(1 - ia_params[type][type].csecpatchrot[i] * ia_params[type][type].csecpatchrot[i]);
             //fprintf(stdout, " | %g %g", ia_params[type][type].csecpatchrot[0], ia_params[type][type].ssecpatchrot[0]);
@@ -379,6 +355,7 @@ int Topo::fillTypes(char **pline) {
     if(fields == 10){
         int i;
         for(i = 0; i < 2; i++){
+            ia_params[type][type].chiral = param[11];
             ia_params[type][type].chiral_cos[i] = cos(param[11] / 360 * PI);
             ia_params[type][type].chiral_sin[i] = sqrt(1 - ia_params[type][type].chiral_cos[i] * ia_params[type][type].chiral_cos[i]);
         }
@@ -399,7 +376,7 @@ int Topo::fillTypes(char **pline) {
     return 1;
 }
 
-int Topo::fillExclusions(char **pline, bool exlusions[][MAXT]) {
+int Topo::fillExclusions(char **pline) {
     long num1,num2;
     char *pline1, *pline2;
 
@@ -408,8 +385,8 @@ int Topo::fillExclusions(char **pline, bool exlusions[][MAXT]) {
     if ((int)strlen(pline2) > 0) {
         num2 = strtol(pline2, &pline1, 10);
         trim(pline1);
-        exlusions[num1][num2]=true;
-        exlusions[num2][num1]=true;
+        exclusions[num1][num2]=true;
+        exclusions[num2][num1]=true;
     } else {
         fprintf(stderr, "Error in readin Topology exclusions, probably there is not even number of types \n");
         return 0;
@@ -420,8 +397,8 @@ int Topo::fillExclusions(char **pline, bool exlusions[][MAXT]) {
         if ((int)strlen(pline2) > 0) {
             num2 = strtol(pline2, &pline1, 10);
             trim(pline1);
-            exlusions[num1][num2]=true;
-            exlusions[num2][num1]=true;
+            exclusions[num1][num2]=true;
+            exclusions[num2][num1]=true;
         } else {
             fprintf(stderr, "Error in readin Topology exclusions, probably there is not even number of types \n");
             return 0;
@@ -503,8 +480,7 @@ int Topo::fillMol(char *molname, char *pline, MolIO *molecules) {
         fprintf (stdout, "%d ",molecules[i].type[j]);
 
         if(j==0) {
-            moleculeParam[i].name = (char*) malloc(strlen(molname)+1);
-            strcpy(moleculeParam[i].name, molname);
+            moleculeParam[i].name = molname;
             moleculeParam[i].molType = i;
         }
 
@@ -517,8 +493,8 @@ int Topo::fillMol(char *molname, char *pline, MolIO *molecules) {
             fields = 3;
         } else{
             fprintf(stdout, "(with switchtype: %ld and delta_mu: %lf)", molecules[i].switchtype[j], molecules[i].delta_mu[j]);
-            moleculeParam[i].switchTypes.push_back(molecules[i].switchtype[j]);
-            moleculeParam[i].deltaMu.push_back(molecules[i].delta_mu[j]);
+            moleculeParam[i].switchTypes[j] = molecules[i].switchtype[j];
+            moleculeParam[i].deltaMu[j] = molecules[i].delta_mu[j];
         }
         if (fields != 3) {
             fprintf (stderr, "TOPOLOGY ERROR: could not read a pacticle.\n\n");
@@ -644,20 +620,4 @@ int Topo::fillMol(char *molname, char *pline, MolIO *molecules) {
 
 void Topo::topDealoc() {
     delete[] molecules;
-
-    if (sysmoln != NULL) free(sysmoln);
-    sysmoln=NULL;
-
-    if (poolMolNum != NULL) free(poolMolNum);
-    poolMolNum=NULL;
-
-    for (int i=0;i<MAXN;i++) {
-        if ((sysnames[i]) != NULL) free(sysnames[i]);
-        sysnames[i]=NULL;
-    }
-
-    for (int i=0;i<MAXN;i++) {
-        if ((poolNames[i]) != NULL) free(poolNames[i]);
-        poolNames[i]=NULL;
-    }
 }
