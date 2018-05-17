@@ -320,7 +320,7 @@ double MoveCreator::chainMove() {
 
     if (ran2() < 0.5) {
         //=== Displacement step of cluster/chain ===
-        ;//edriftchanges = chainDisplace(target);
+        edriftchanges = chainDisplace(target);
     } else {
         //=== Rotation step of cluster/chain ===
         edriftchanges = chainRotate(target);
