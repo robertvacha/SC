@@ -72,7 +72,7 @@ private:
 
         for (unsigned int i = 1; i < conf->pvec.size(); ++i) {
             for (unsigned long j = 0; j < i; ++j) {
-                assert(isSame(calcEnergy.eMat.energyMatrix->operator [](i)[j], calcEnergy.p2p(i,j)) && "EMat value != calculated energy");
+                //assert(isSame(calcEnergy.eMat.energyMatrix->operator [](i)[j], calcEnergy.p2p(i,j)) && "EMat value != calculated energy");
             }
         }
 

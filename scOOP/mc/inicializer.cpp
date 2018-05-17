@@ -14,9 +14,9 @@ extern MPI_Datatype MPI_vector, MPI_Particle, MPI_exchange;
 extern Topo topo;
 
 
-bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
+bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec, bool scale_to_box) {
 
-    int err,fields,tmp_type;
+    int err,fields,tmp_type, check=0;
     long j,current;
     char * line, line2[STRLEN];
     size_t line_size = (STRLEN + 1) * sizeof(char);
@@ -85,11 +85,12 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         //exit(1);
     }
 
-    DEBUG_INIT("Position of the particle");
     for(unsigned int i=0; i < pvec.size(); i++) {
-        if(myGetLine(&line, &line_size, *infile) == -1){
+        if(myGetLine(&line, &line_size, *infile) == -1)
             break;
-        }
+
+        ++check;
+
         strip_comment(line);
         trim(line);
 
@@ -98,6 +99,11 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
                         &pvec[i].dir.x, &pvec[i].dir.y, &pvec[i].dir.z,
                         &pvec[i].patchdir[0].x, &pvec[i].patchdir[0].y, &pvec[i].patchdir[0].z,
                         &pvec[i].switched);
+
+        if(fields < 9){
+            cerr << "Not enough particles in " << files->configurationInFile << endl;
+            exit(1);
+        }
 
         pvec[i].patchdir[1].x = pvec[i].patchdir[1].y = pvec[i].patchdir[1].z =0;
         pvec[i].chdir[0].x = pvec[i].chdir[0].y = pvec[i].chdir[0].z =0;
@@ -126,12 +132,14 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
         // For analysis of sheet
         //conf->geo.usePBC2(&pvec[i]); // range 0 - box
 
-        pvec[i].pos.x /= conf->geo.box.x;
-        pvec[i].pos.y /= conf->geo.box.y;
-        pvec[i].pos.z /= conf->geo.box.z;
+        if(scale_to_box) {
+            pvec[i].pos.x /= conf->geo.box.x;
+            pvec[i].pos.y /= conf->geo.box.y;
+            pvec[i].pos.z /= conf->geo.box.z;
 
-        // for compatibility unfortunately
-        conf->geo.usePBC(&pvec[i]);
+            // for compatibility unfortunately
+            conf->geo.usePBC(&pvec[i]);
+        }
 #endif
 
         if ((topo.ia_params[pvec[i].type][pvec[i].type].geotype[0]<SP)&&( DOT(pvec[i].dir, pvec[i].dir) < ZEROTOL )) {
@@ -165,6 +173,11 @@ bool Inicializer::initConfig(FILE** infile, std::vector<Particle > &pvec) {
 
         DEBUG_INIT("%ld:\t%lf\t%lf\t%lf", i, pvec[i].pos.x, pvec[i].pos.y, pvec[i].pos.z);
 
+    }
+
+    if(check+1 < conf->pvec.size()) {
+        cerr << "Not enough particles in " << files->configurationInFile << endl;
+        exit(1);
     }
     free(line);
     /*Make chains WHOLE*/
@@ -234,7 +247,7 @@ void Inicializer::testChains() {
     } else {
         for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(topo.moleculeParam[i].isGrandCanonical() && !topo.moleculeParam[i].isAtomic()) {
-                if(!poolConfig) {
+                if(!topo.poolConfig) {
                     mcout.get() << "ChainInsert with no Pool system stated! State [Pool] in top.init" << endl;
                     exit(1);
                 }

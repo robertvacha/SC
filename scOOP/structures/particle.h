@@ -77,9 +77,9 @@ public:
         else return false;
     }
 
-    string info() {
+    string toString() {
         std::ostringstream o;
-        o << "pos:" << pos.info() << "\ndir:" << dir.info() << "\npatchdir1:" << patchdir[0].info() << "\npatchdir2:" << patchdir[1].info()<<endl;
+        o << "pos:" << pos.toString() << "\ndir:" << dir.toString() << "\npatchdir1:" << patchdir[0].toString() << "\npatchdir2:" << patchdir[1].toString()<<endl;
         return o.str();
     }
 

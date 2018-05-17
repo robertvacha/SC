@@ -29,7 +29,7 @@ public:
     Vector(){}
     Vector(double x, double y, double z) : x(x), y(y), z(z) {}
 
-    std::string info() const {
+    std::string toString() const {
         std::ostringstream o;
         o << "(" <<x << ", " << y << ", " << z <<")";
         return o.str();

@@ -2,6 +2,7 @@
 
 #include "movecreator.h"
 #include <iomanip>
+#include <algorithm>
 
 #ifdef ENABLE_MPI
 # include <mpi.h>
@@ -319,7 +320,7 @@ double MoveCreator::chainMove() {
 
     if (ran2() < 0.5) {
         //=== Displacement step of cluster/chain ===
-        edriftchanges = chainDisplace(target);
+        ;//edriftchanges = chainDisplace(target);
     } else {
         //=== Rotation step of cluster/chain ===
         edriftchanges = chainRotate(target);
@@ -749,10 +750,6 @@ double MoveCreator::muVTMove() {
     int molType = getRandomMuVTType();
     molSize = topo.moleculeParam[molType].molSize();
 
-    /*assert(molType == 0 && "delete this assert, only of one atomic type simulation");
-    assert(molSize == 1 && "delete this assert, only of one atomic type simulation");
-
-    assert(conf->pvec.molCountOfType(molType) == (int)conf->pvec.size() && "should be true for one atom type simulation");*/
     assert(insert.empty() && "Insert vector must be empty at the begining of grand canonical move");
 
     sim->stat.grand[molType].muVtSteps++;
@@ -775,6 +772,15 @@ double MoveCreator::muVTMove() {
             // get configuration
             insert = conf->getRandomPoolConf(molType);
 
+            // Scale to box
+            for(auto &item : insert) {
+                item.pos.x /= conf->geo.box.x;
+                item.pos.y /= conf->geo.box.y;
+                item.pos.z /= conf->geo.box.z;
+
+                conf->geo.usePBC(&item);
+            }
+
             // randomize position
             for(unsigned int i=0; i<insert.size(); i++)
                 insert[i].pos += displace;
@@ -786,7 +792,7 @@ double MoveCreator::muVTMove() {
                 insert[i].init(&(topo.ia_params[insert[i].type][insert[i].type]));
         }
 
-        assert(!insert.empty());
+        assert(!insert.empty() && "Insert vector must contain a particle");
 
         // calc energ
         energy = calcEnergy->mol2others(insert);
@@ -1076,6 +1082,7 @@ double MoveCreator::chainDisplace(long target) {
 
 double MoveCreator::chainRotate(long target) {
     Molecule chain = conf->pvec.getChain(target);
+    double testE = calcEnergy->chainInner(chain);
     double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
     int reject=0;
     Particle chorig[MAXCHL];
@@ -1087,88 +1094,9 @@ double MoveCreator::chainRotate(long target) {
     }
 
     energy += calcEnergy->mol2others(chain);
-/*double test=0.0;
-    if(verbose) {
-        cout << "\n\nNEW\n" << endl;
-        calcEnergy->pairE.verbose=true;
-        test = calcEnergy->p2p(23,20);
-        calcEnergy->pairE.verbose=false;
-
-    }
-    Particle p1 = conf->pvec[20];
-    Particle p2 = conf->pvec[23];*/
 
     //do actual rotations around geometrical center
     clusterRotate(chain, sim->stat.chainr[conf->pvec[chain[0]].molType].angle);
-
-    /*if(verbose) {
-        calcEnergy->pairE.verbose=true;
-        double test2 = calcEnergy->p2p(23,20);
-        calcEnergy->pairE.verbose=false;
-        Particle p3 = conf->pvec[20];
-        Particle p4 = conf->pvec[23];
-
-        //////////////////////////////////////////
-
-        cout << "\n BOX: " << calcEnergy->pairE.pbc->box.x << " " << calcEnergy->pairE.pbc->box.y << " " << calcEnergy->pairE.pbc->box.z << "\n"<< endl;
-
-        Vector r1 = p1.pos;
-        Vector r2 = p2.pos;
-        cout << r1.info() << endl;
-        cout << r2.info() << endl;
-        Vector r_cm( r1.x - r2.x, r1.y - r2.y, r1.z - r2.z );
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << round(r_cm.x) << " " << round(r_cm.y) << " " << round(r_cm.z) << endl;
-
-        r_cm.x = (r_cm.x - round(r_cm.x) );
-        r_cm.y = (r_cm.y - round(r_cm.y) );
-        r_cm.z = (r_cm.z - round(r_cm.z) );
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << r_cm.dot(r_cm) << endl;
-
-        r_cm.x *= calcEnergy->pairE.pbc->box.x;
-        r_cm.y *= calcEnergy->pairE.pbc->box.y;
-        r_cm.z *= calcEnergy->pairE.pbc->box.z;
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << r_cm.dot(r_cm) << endl;
-
-        ////////////////////////////////////////////
-
-        cout << endl;
-
-        r1 = p3.pos;
-        r2 = p4.pos;
-        cout << r1.info() << endl;
-        cout << r2.info() << endl;
-        r_cm = Vector( r1.x - r2.x, r1.y - r2.y, r1.z - r2.z );
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << round(r_cm.x) << " " << round(r_cm.y) << " " << round(r_cm.z) << endl;
-
-        r_cm.x = (r_cm.x - round(r_cm.x) );
-        r_cm.y = (r_cm.y - round(r_cm.y) );
-        r_cm.z = (r_cm.z - round(r_cm.z) );
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << r_cm.dot(r_cm) << endl;
-
-        r_cm.x *= calcEnergy->pairE.pbc->box.x;
-        r_cm.y *= calcEnergy->pairE.pbc->box.y;
-        r_cm.z *= calcEnergy->pairE.pbc->box.z;
-
-        cout << (r_cm.x) << " " << (r_cm.y) << " " << (r_cm.z) << endl;
-        cout << r_cm.dot(r_cm) << endl;
-
-        ////////////////////////////////////////////
-
-        if(fabs(test-test2) > 0.000000001) {
-            cout << "Energy: " << test << " " << test2 << endl;
-        }
-        assert(fabs(test-test2) < 0.000000001 );
-    }*/
 
     if(wl.wlm[0] > 0)
         wlener = wl.runChainRot(reject, chorig, radiusholemax_orig, chain);

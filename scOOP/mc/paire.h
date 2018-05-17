@@ -150,7 +150,10 @@ public:
 
     bool findIntersectPlaneUni(const Vector& dirA, const Vector& dirB, double halfl,
                                                  const Vector& r_cm, Vector w_vec, double cospatch, double& ti, double& c, double& d) {
-        assert(fabs(w_vec.size() - 1.0) < 1e-13 || !(cout << "w_vec isnt normalised" << endl));
+
+        assert(fabs(dirA.size() - 1.0) < 1e-10 || !(cout << "dirA isnt normalised, " << dirA.size() << " " << dirA.toString() << endl));
+        assert(fabs(dirB.size() - 1.0) < 1e-10 || !(cout << "dirB isnt normalised, " << dirB.size() << " " << dirB.toString() << endl));
+        assert(fabs(w_vec.size() - 1.0) < 1e-10 || !(cout << "w_vec isnt normalised, " << w_vec.size() << " " << w_vec.toString() << endl));
 
         double a;
         Vector d_vec, nplane = vecCrossProduct(dirA, w_vec);

@@ -28,7 +28,7 @@ public:
     }
 
     void info() {
-        cout << "Box: " << this->box.info() << endl;
+        cout << "Box: " << this->box.toString() << endl;
     }
 
     inline double volume() {
@@ -168,7 +168,7 @@ public:
     Wedge(){cout << "NO PARAMETERS GIVEN !!!" << endl;}
     Wedge(double z, double angle, double outerR, double innerR) : angleDeg(angle) {
         this->box = Vector(outerR, outerR, z);
-        cout << "Wedge: box: " << this->box.info() << " Angle:" << angleDeg
+        cout << "Wedge: box: " << this->box.toString() << " Angle:" << angleDeg
              << " Inner radius: " << innerR << " Outer radius: " << outerR << endl;
         if(innerR > outerR) {
             cout << "Mixed Inner and outer radius!!!" << endl;

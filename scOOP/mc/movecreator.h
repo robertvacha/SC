@@ -27,7 +27,7 @@ private:
     Sim* sim;                  // Should contain the simulation options.
     Conf* conf;                // Should contain fast changing particle and box(?) information  
 
-    std::vector<Particle > insert;  // insert vector for muVt -> malloc() error when in muVTmove()
+    ParticleVector insert;  // insert vector for muVt -> malloc() error when in muVTmove()
     Particle chorig[MAXCHL];
 
 public:

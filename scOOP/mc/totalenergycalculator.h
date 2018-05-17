@@ -230,29 +230,16 @@ public:
     /**
      * @brief Calculates inner chain energy
      */
-    double chainInner(vector<Particle >& chain) {
+    double chainInner(ParticleVector& chain) {
         double energy = 0.0;
+        ConList conlist;
 
-        vector<ConList> con;
-        for(unsigned int j=0; j<chain.size(); j++) {
-            con.push_back(ConList() );
-
-            if (j > 0) //if this is not first particle fill tail bond
-                con[j].conlist[0] = &chain[j-1];
-
-            if ( j+1 < chain.size() ) //if there is a next particle fill it to head bond
-                con[j].conlist[1] = &chain[j+1];
-
-            if (j > 1) //if this is not second or first particle fill second tail bond
-                con[j].conlist[2] = &chain[j-2];
-
-            if ( j+2 < chain.size() ) //if there is a second next particle fill it second neighbour
-                con[j].conlist[3] = &chain[j+2];
+        for (unsigned int i=0; i<chain.size(); i++) {
+            for (unsigned int j=i+1; j<chain.size(); j++) {
+                conlist = chain.getConlist( i );
+                energy += (pairE)(&chain[i], &chain[j],  &conlist);
+            }
         }
-
-        for (unsigned int i=0; i<chain.size(); i++)
-            for (unsigned int j=i+1; j<chain.size(); j++)
-                energy += (pairE)(&chain[i], &chain[j],  &con[i]);
 
         return energy;
     }
@@ -382,7 +369,6 @@ public:
 
     double oneToAllTrial(int target) override {
         assert(target >= 0 && target < conf->pvec.size());
-        assert(changes != NULL);
 
         double energy=0.0;
         long i;
@@ -587,17 +573,15 @@ public:
     }
 
     double mol2others(Molecule &mol) override {
-        ConList conlist; // Empty conlist
+        ConList conlist; // Empty conlist, looping over particles that arent in the molecule
         double energy=0.0;
         long i = 0;
 
         if (pairListUpdate) {
-
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
-                for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++) {
+                for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++)
                     if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i])
                         energy += pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]], &conlist);
-                }
 
                 if (topo.exter.exist) //add interaction with external potential
                     energy += this->exterE.extere2(&conf->pvec[mol[j]]);

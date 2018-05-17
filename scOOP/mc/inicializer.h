@@ -39,7 +39,7 @@ public:
 
        @return True - successful, False - unsuccessful
      */
-    bool initConfig(FILE** infile, std::vector<Particle > &pvec);
+    bool initConfig(FILE** infile, std::vector<Particle > &pvec, bool scale_to_box = true);
 
     /// @brief test if simulation contains Chains, sets probability of chain move to 0 if no chains
     void testChains();

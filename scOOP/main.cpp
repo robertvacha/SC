@@ -66,10 +66,7 @@ int main(int argc, char** argv) {
     /********************************************************/
 
     Inicializer init(&sim, &conf, &files);
-
     init.poolConfig = topo.poolConfig;
-    mcout.get() << "\nTopology succesfully read. Generating pair interactions..." << endl;
-
     init.setParticlesParams(); // sets dummy pool and pvec
     init.initGroupLists(); // Only happens in Pvec and Pool, needs to happen after setPartParams
 
@@ -78,12 +75,11 @@ int main(int argc, char** argv) {
         conf.sysvolume += topo.ia_params[conf.pvec[i].type][conf.pvec[i].type].volume;
 
 
-    init.testChains(); // if no chains -> move probability of chains 0
-
 #ifdef ENABLE_MPI  // Parallel tempering check
     // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
     mcout.get() << "Probability to switch replicas is roughly: " << exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) << endl;
 #endif
+    init.testChains(); // if no chains -> move probability of chains 0
 
     mcout.get() << "\nReading configuration...\n";
     if(init.poolConfig) {
@@ -92,7 +88,7 @@ int main(int argc, char** argv) {
             fprintf (stderr, "\nERROR: Could not open %s file.\n\n", files.configurationPool);
             exit (1);
         }
-        if(!init.initConfig(&infile, conf.pool))
+        if(!init.initConfig(&infile, conf.pool, false))
             exit(1);
         fclose (infile);
     }

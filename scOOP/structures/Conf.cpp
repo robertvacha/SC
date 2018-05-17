@@ -62,9 +62,9 @@ void Conf::removeMolecule(Molecule &target) {
 #endif
 }
 
-std::vector<Particle> Conf::getRandomPoolConf(int molType) {
+ParticleVector Conf::getRandomPoolConf(int molType) {
     long target;
-    vector<Particle> vec;
+    ParticleVector vec;
 
     target = ran2() * pool.molCountOfType(molType);
     target = pool.getStoreIndex(molType, target);

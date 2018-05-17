@@ -108,6 +108,9 @@ public:
         molecules = new MolIO[MAXMT];
 
         readTopoFile(files);
+
+        mcout.get() << "\nTopology succesfully read. Generating pair interactions..." << endl;
+
         genParamPairs();
         genTopoParams();
 

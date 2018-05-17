@@ -28,6 +28,14 @@ public:
 
     // tail, head, second neighbor tail, second neighbor head
     Particle* conlist[4] = {nullptr};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+
+    string toString() {
+        stringstream ss;
+
+        ss << conlist[0] << " " << conlist[1] << " " << conlist[2] << " " << conlist[3];
+
+        return ss.str();
+    }
 };
 
 
@@ -38,11 +46,11 @@ class ParticleVector : public std::vector<Particle > {
 public:
     /// @brief first Index(of pvec) of first particle of molecule type, array over molecular types
     /// on [molTypeCount] == size of vector
-    int first[MAXMT+1];
+    std::array<int, MAXMT+1> first;
 
     /// \brief chainIndex of first chain of molType
     /// on [molTypeCount] == number of all chains
-    int chainCount[MAXMT+1];
+    std::array<int, MAXMT+1> chainCount;
 
     int molTypeCount;   ///< \brief Count of molecular types in use
 
@@ -52,6 +60,17 @@ public:
         for(int i=0; i<MAXMT; i++) {
             first[i] = 0; chainCount[i]=0;
         }
+    }
+
+    ParticleVector& operator=(const ParticleVector& o) {
+
+        if(this != &o) { // self-assignment check expected
+            std::copy(o.begin(), o.end(), std::back_inserter(*this));
+            this->first = o.first;
+            this->chainCount = o.chainCount;
+            this->molTypeCount = o.molTypeCount;
+        }
+        return *this;
     }
 
     inline int getChainCount() {return chainCount[molTypeCount];}
@@ -437,7 +456,7 @@ public:
      */
     void removeMolecule(Molecule &target);
 
-    std::vector<Particle> getRandomPoolConf(int molType);
+    ParticleVector getRandomPoolConf(int molType);
 
     /**
      * @brief massCenter
