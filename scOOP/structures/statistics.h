@@ -4,8 +4,11 @@
 #define STATISTICS_H
 
 #include <iomanip>
-
+#include <array>
 #include "macros.h"
+#include "topo.h"
+
+extern Topo topo;
 
 class StatsGrand {
 public:
@@ -106,11 +109,11 @@ public:
     StatsGrand grand[MAXMT];
 
     Disp edge;                  ///< \brief Maximum box length change and statistics -> Pressure move
-    Disp rot[MAXT];             ///< \brief Maximum rotation and statistics
-    Disp trans[MAXT];           ///< \brief Maximum translation  and statistics
-    Disp switchMv[MAXT];        ///< \brief Switch move statistics
-    Disp chainm[MAXMT];         ///< \brief Maximum translation for chain  and statistics
-    Disp chainr[MAXMT];         ///< \brief Maximum rotation for chain and statistics
+    array<Disp, MAXT> rot;      ///< \brief Maximum rotation and statistics
+    array<Disp, MAXT> trans;    ///< \brief Maximum translation  and statistics
+    array<Disp, MAXT> switchMv; ///< \brief Switch move statistics
+    array<Disp, MAXMT> chainm;  ///< \brief Maximum translation for chain  and statistics
+    array<Disp, MAXMT> chainr;  ///< \brief Maximum rotation for chain and statistics
     Disp mpiexch;               ///< \brief MPI statistics
 
     void print() {
@@ -120,32 +123,32 @@ public:
         mcout.get() << "******************************************************************************" << endl;
         mcout.get() << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
 
-        if(stepsSTrans() > 0) {
+        if(steps<MAXT>(trans) > 0) {
             mcout.get() << setw(30) << "Single particle translation: "
-                        << setw(10) <<  (double)accSTrans()/stepsSTrans()*100.0
-                        << setw(10) << (double)rejSTrans()/stepsSTrans()*100.0
-                        << setw(10) << stepsSTrans() << endl;
+                        << setw(10) <<  (double)acc<MAXT>(trans)/steps<MAXT>(trans)*100.0
+                        << setw(10) << (double)rej<MAXT>(trans)/steps<MAXT>(trans)*100.0
+                        << setw(10) << steps<MAXT>(trans) << endl;
         }
 
-        if(stepsSRot() > 0) {
+        if(steps<MAXT>(rot) > 0) {
             mcout.get() << setw(30) << "Single particle rotation: "
-                        << setw(10) << 100.0*accSRot()/stepsSRot()
-                        << setw(10) << (double)rejSRot()/stepsSRot()*100.0
-                        << setw(10) << stepsSRot() << endl;
+                        << setw(10) << 100.0*acc<MAXT>(rot)/steps<MAXT>(rot)
+                        << setw(10) << (double)rej<MAXT>(rot)/steps<MAXT>(rot)*100.0
+                        << setw(10) << steps<MAXT>(rot) << endl;
         }
 
-        if(stepsCTrans() > 0) {
+        if(steps<MAXMT>(chainm) > 0) {
             mcout.get() << setw(30) << "Chain translation: "
-                        << setw(10) <<  (double)accCTrans()/stepsCTrans()*100.0
-                        << setw(10) << (double)rejCTrans()/stepsCTrans()*100.0
-                        << setw(10) << stepsCTrans() << endl;
+                        << setw(10) <<  (double)acc<MAXMT>(chainm)/steps<MAXMT>(chainm)*100.0
+                        << setw(10) << (double)rej<MAXMT>(chainm)/steps<MAXMT>(chainm)*100.0
+                        << setw(10) << steps<MAXMT>(chainm) << endl;
         }
 
-        if(stepsCRot() > 0) {
+        if(steps<MAXMT>(chainr) > 0) {
             mcout.get() << setw(30) << "Chain rotation: "
-                        << setw(10) <<  (double)accCRot()/stepsCRot()*100.0
-                        << setw(10) << (double)rejCRot()/stepsCRot()*100.0
-                        << setw(10) << stepsCRot() << endl;
+                        << setw(10) <<  (double)acc<MAXMT>(chainr)/steps<MAXMT>(chainr)*100.0
+                        << setw(10) << (double)rej<MAXMT>(chainr)/steps<MAXMT>(chainr)*100.0
+                        << setw(10) << steps<MAXMT>(chainr) << endl;
         }
 
         if(edge.acc + edge.rej > 0) {
@@ -155,11 +158,11 @@ public:
                         << setw(10) << (edge.acc + edge.rej) << endl;
         }
 
-        if(stepsSwitch() > 0) {
+        if(steps<MAXT>(switchMv) > 0) {
             mcout.get() << setw(30) << "Switch type move: "
-                        << setw(10) <<  (double)accSwitch()/stepsSwitch()*100.0
-                        << setw(10) << (double)rejSwitch()/stepsSwitch()*100.0
-                        << setw(10) << stepsSwitch() << endl;
+                        << setw(10) <<  (double)acc<MAXT>(switchMv)/steps<MAXT>(switchMv)*100.0
+                        << setw(10) << (double)rej<MAXT>(switchMv)/steps<MAXT>(switchMv)*100.0
+                        << setw(10) << steps<MAXT>(switchMv) << endl;
         }
 
         for(int i=0; i<MAXT; ++i) {
@@ -167,117 +170,57 @@ public:
                 mcout.get() << setw(30) << "Single particle translation:"
                             << setw(10) << (double) trans[i].acc / (trans[i].acc + trans[i].rej) * 100.0
                             << setw(10) << (double) trans[i].rej / (trans[i].acc + trans[i].rej) * 100.0
-                            << setw(10) << (trans[i].acc + trans[i].rej) << " type " << i << " name.get()" << endl;
+                            << setw(10) << (trans[i].acc + trans[i].rej) << " type " << i << topo.ia_params[i][i].name << endl;
             }
         }
     }
 
-    int accSwitch() {
+    template<std::size_t SIZE>
+    int acc(std::array<Disp, SIZE>& disp) {
         int var=0;
-        for(int i=0; i<MAXT; i++)
-            var += switchMv[i].acc;
+        for(unsigned int i=0; i<SIZE; ++i)
+            var += disp[i].acc;
         return var;
     }
 
-    int rejSwitch() {
+    template<std::size_t SIZE>
+    int rej(std::array<Disp, SIZE>& disp) {
         int var=0;
-        for(int i=0; i<MAXT; i++)
-            var += switchMv[i].rej;
+        for(unsigned int i=0; i<SIZE; ++i)
+            var += disp[i].rej;
         return var;
     }
 
-    int accSTrans() {
-        int var=0;
-        for(int i=0; i<MAXT; i++)
-            var += trans[i].acc;
-        return var;
+    template<std::size_t SIZE>
+    int steps(std::array<Disp, SIZE>& disp) {
+        return acc<SIZE>(disp) + rej<SIZE>(disp);
     }
 
-    int rejSTrans() {
-        int var=0;
-        for(int i=0; i<MAXT; i++)
-            var += trans[i].rej;
-        return var;
-    }
-
-    int stepsSTrans() { return accSTrans() + rejSTrans(); }
-    int stepsSwitch() { return accSwitch() + rejSwitch(); }
-
-    int accCTrans() {
-        int var=0;
-        for(int i=0; i<MAXMT; i++)
-            var += chainm[i].acc;
-        return var;
-    }
-
-    int rejCTrans() {
-        int var=0;
-        for(int i=0; i<MAXMT; i++)
-            var += chainm[i].rej;
-        return var;
-    }
-
-    int stepsCTrans() { return accCTrans() + rejCTrans(); }
-
-    int accSRot() {
-        int var=0;
-        for(int i=0; i<MAXT; i++) {
-            var += rot[i].acc;
-        }
-        return var;
-    }
-
-    int rejSRot() {
-        int var=0;
-        for(int i=0; i<MAXT; i++) {
-            var += rot[i].rej;
-        }
-        return var;
-    }
-
-    int stepsSRot() { return accSRot() + rejSRot(); }
-
-    int accCRot() {
-        int var=0;
-        for(int i=0; i<MAXMT; i++) {
-            var += chainr[i].acc;
-        }
-        return var;
-    }
-
-    int rejCRot() {
-        int var=0;
-        for(int i=0; i<MAXMT; i++) {
-            var += chainr[i].rej;
-        }
-        return var;
-    }
-
-    int stepsCRot() { return accCRot() + rejCRot(); }
-
-    void printEqStat(Disp *dat, double scale, int length) {
-        for(int i=0; i<length; i++) {
+    template<std::size_t SIZE>
+    void printEqStat(array<Disp, SIZE> dat, double scale) {
+        for(unsigned int i=0; i<SIZE; ++i) {
             if (RATIO(dat[i]) > 0)
                 printf ("   TYPE %d           %.6f  /  %.6f\n", i, dat[i].mx/scale,RATIO(dat[i]));
         }
     }
 
+
     void printEqStat() {
 
         printf ("   Equilibrated maximum displacement / acceptance ratio:            \n");
-        printEqStat(trans,2.0,MAXT);
+        printEqStat<MAXT>(trans,2.0);
 
         printf ("   Equilibrated maximum rotation / acceptance ratio:                       \n");
-        printEqStat(rot,1.0,MAXT);
+        printEqStat<MAXT>(rot,1.0);
 
         printf ("   Equilibrated maximum box length change / acceptance ratio:              \n");
         printf ("                     %.6e  /  %.6e\n", edge.mx/2.0,RATIO(edge));
 
         printf ("   Equilibrated maximum displacement of chain / acceptance ratio:   \n");
-        printEqStat(chainm,2.0,MAXMT);
+        printEqStat<MAXMT>(chainm,2.0);
 
         printf ("   Equilibrated maximum rotation of chain / acceptance ratio:              \n");
-        printEqStat(chainr,1.0,MAXMT);
+        printEqStat<MAXMT>(chainr,1.0);
         printf ("\n");
     }
 

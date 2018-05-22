@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 
     FileNames files(rank);
     Conf conf;                // Should contain fast changing particle and box(?) information
-    Sim sim(&conf, &files, rank, procs);                  // Should contain the simulation options.
+    Sim sim( files.optionsfile, rank, procs );                  // Should contain the simulation options.
     topo = Topo( (sim.switchprob > 0.0), (sim.nGrandCanon != 0), &files);
 
     /********************************************************/
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_MPI  // Parallel tempering check
     // probability to switch replicas = exp ( -0.5 * dT*dT * N / (1 + dT) )
-    mcout.get() << "Probability to switch replicas is roughly: " << exp(-0.5 * conf->pvec.size() * sim->dtemp * sim->dtemp / (1.0 + sim->dtemp)) << endl;
+    mcout.get() << "Probability to switch replicas is roughly: " << exp(-0.5 * conf.pvec.size() * sim.dtemp * sim.dtemp / (1.0 + sim.dtemp)) << endl;
 #endif
     init.testChains(); // if no chains -> move probability of chains 0
 

@@ -147,7 +147,7 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
-        if(nsweeps>=10 && sweep%(nsweeps/10) == 0) {
+        if(sim->thermo>0 && sweep%(sim->thermo) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
@@ -248,17 +248,17 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
         if (sweep == next_adjust) {
             for (int i = 0; i < MAXT ;i++) {
                 if ((sim->stat.trans[i].acc > 0)||(sim->stat.trans[i].rej >0))
-                    optimizeStep (sim->stat.trans + i, 1.5, 0.0);
+                    optimizeStep (sim->stat.trans[i], 1.5, 0.0);
                 if ((sim->stat.rot[i].acc > 0)||(sim->stat.rot[i].rej >0))
-                    optimizeRot (sim->stat.rot + i, 5.0, 0.01);
+                    optimizeRot (sim->stat.rot[i], 5.0, 0.01);
             }
             for (int i = 0; i < MAXMT; i++) {
                 if ((sim->stat.chainm[i].acc > 0)||(sim->stat.chainm[i].rej > 0))
-                    optimizeStep (sim->stat.chainm + i, 1.5, 0.0);
+                    optimizeStep (sim->stat.chainm[i], 1.5, 0.0);
                 if ((sim->stat.chainr[i].acc > 0)||(sim->stat.chainr[i].rej > 0))
-                    optimizeRot (sim->stat.chainr + i, 5.0, 0.01);
+                    optimizeRot (sim->stat.chainr[i], 5.0, 0.01);
             }
-            optimizeStep (&(sim->stat.edge), 1.0, 0.0);
+            optimizeStep ( sim->stat.edge, 1.0, 0.0);
             next_adjust += adjust;
         }
 
@@ -363,8 +363,6 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
     sim->stat.print();
 
-
-
     if(sim->nGrandCanon != 0) {
         for(int i=0; i<conf->pvec.molTypeCount; i++) {
             if(sim->stat.grand[i].insAcc + sim->stat.grand[i].insRej > 0) {
@@ -402,76 +400,76 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
 
 
 
-void Updater::optimizeStep(Disp *x, double hi, double lo) {
+void Updater::optimizeStep(Disp& x, double hi, double lo) {
     double newrmsd;
 
-    newrmsd = (*x).mx * RATIO(*x);
-    if ((*x).oldrmsd > 0) {
-        if ( newrmsd  < (*x).oldrmsd ) {
-            if ( (*x).oldmx > 1 ) {
-                (*x).mx /= 1.05;
-                (*x).oldmx = 0.95;
+    newrmsd = x.mx * x.ratio();
+    if (x.oldrmsd > 0) {
+        if ( newrmsd  < x.oldrmsd ) {
+            if ( x.oldmx > 1 ) {
+                x.mx /= 1.05;
+                x.oldmx = 0.95;
             } else {
-                (*x).mx *= 1.05;
-                (*x).oldmx = 1.05;
+                x.mx *= 1.05;
+                x.oldmx = 1.05;
             }
         } else {
-            if ( (*x).oldmx > 1 ) {
-                (*x).mx *= 1.05;
-                (*x).oldmx = 1.05;
+            if ( x.oldmx > 1 ) {
+                x.mx *= 1.05;
+                x.oldmx = 1.05;
             } else {
-                (*x).mx /= 1.05;
-                (*x).oldmx = 0.95;
+                x.mx /= 1.05;
+                x.oldmx = 0.95;
             }
         }
     }
-    if (newrmsd > 0 ) (*x).oldrmsd = newrmsd;
+    if (newrmsd > 0 ) x.oldrmsd = newrmsd;
     else {
-        (*x).oldrmsd = 0.0;
-        (*x).mx /= 1.05;
-        (*x).oldmx = 0.95;
+        x.oldrmsd = 0.0;
+        x.mx /= 1.05;
+        x.oldmx = 0.95;
     }
 
-    if ( (*x).mx > hi ) (*x).mx = hi;
-    if ( (*x).mx < lo ) (*x).mx = lo;
+    if ( x.mx > hi ) x.mx = hi;
+    if ( x.mx < lo ) x.mx = lo;
 
-    (*x).acc = (*x).rej = 0;
+    x.acc = x.rej = 0;
 }
 
-void Updater::optimizeRot(Disp *x, double hi, double lo) {
+void Updater::optimizeRot(Disp& x, double hi, double lo) {
     double newrmsd;
 
-    newrmsd = (*x).mx * x->ratio() ;
-    if ((*x).oldrmsd > 0) {
-        if ( newrmsd  > (*x).oldrmsd ) {
-            if ( (*x).oldmx > 1) {
-                (*x).mx *= 0.99;
-                (*x).oldmx *= 0.99;
+    newrmsd = x.mx * x.ratio() ;
+    if (x.oldrmsd > 0) {
+        if ( newrmsd  > x.oldrmsd ) {
+            if ( x.oldmx > 1) {
+                x.mx *= 0.99;
+                x.oldmx *= 0.99;
             } else {
-                (*x).mx *= 1.01;
-                (*x).oldmx *= 1.01;
+                x.mx *= 1.01;
+                x.oldmx *= 1.01;
             }
         } else {
-            if ( (*x).oldmx > 1) {
-                (*x).mx *= 1.01;
-                (*x).oldmx *= 1.01;
+            if ( x.oldmx > 1) {
+                x.mx *= 1.01;
+                x.oldmx *= 1.01;
             } else {
-                (*x).mx *= 0.99;
-                (*x).oldmx *= 0.99;
+                x.mx *= 0.99;
+                x.oldmx *= 0.99;
             }
         }
     }
-    if (newrmsd > 0 ) (*x).oldrmsd = newrmsd;
+    if (newrmsd > 0 ) x.oldrmsd = newrmsd;
     else {
-        (*x).oldrmsd = 0.0;
-        (*x).mx *= 1.01;
-        (*x).oldmx = 1.01;
+        x.oldrmsd = 0.0;
+        x.mx *= 1.01;
+        x.oldmx = 1.01;
     }
 
-    if ( (*x).mx > hi ) (*x).mx = hi;
-    if ( (*x).mx < lo ) (*x).mx = lo;
+    if ( x.mx > hi ) x.mx = hi;
+    if ( x.mx < lo ) x.mx = lo;
 
-    (*x).acc = (*x).rej = 0;
+    x.acc = x.rej = 0;
 }
 
 double Updater::alignmentOrder() {
@@ -560,18 +558,3 @@ void Updater::genSimplePairList() {
     //    }
     //}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -102,7 +102,7 @@ private:
      * @param hi
      * @param lo
      */
-    void optimizeStep(Disp *x, double hi, double lo);
+    void optimizeStep(Disp &x, double hi, double lo);
 
     /**
      * @brief optimizerot Optimize the maximum rotation within the specified limits and resets the
@@ -112,7 +112,7 @@ private:
      * @param hi
      * @param lo
      */
-    void optimizeRot(Disp *x, double hi, double lo);
+    void optimizeRot(Disp &x, double hi, double lo);
 
     /**
      * @brief alignment_order alignment ORDER PARAMETER

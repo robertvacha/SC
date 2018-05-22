@@ -4,130 +4,187 @@
 #define SIM_H
 
 #include <tuple>
-#include "structures.h"
 #include "Conf.h"
 #include "../mc/mygetline.h"
 #include "../structures/statistics.h"
+
+
+/**
+ * @brief Holds the type of a variable in struct option
+ */
+typedef enum {
+    Int,
+    Int2,
+    Long,
+    Double,
+    Tuple
+} Type;
+
+typedef struct {        // for reading in the options
+    const char *id;     // The name of the value in the option file
+    Type type;          // The type (int, double or long)
+    bool set;           // Whether the variable has been set
+    void *var;          // The variable
+} Option;
 
 /**
  * @brief Should contain mostly all the simulation options and variables
  */
 class Sim {
 public:
-    //
-    //  Simulation constants (exchange in replica exchange moves)
-    //
-    double press;               ///< \brief Pressure
-    double temper;              ///< \brief Temperature
-    int pseudoRank;             ///< \brief For MPI i/o, changes depending on temp
+    ///
+    ///  Equilibration setting
+    ///
+    long nequil = 0;                ///< \brief Number of equilibration sweeps
+    long adjust = 0;                ///< \brief Number of sweeps between step size adjustments
+
+    ///
+    /// Production setting
+    ///
+    long nsweeps = 0;               ///< \brief Number of production sweeps
+    double temper = 0.0;              ///< \brief Temperature
+    int pairlist_update = 0;        ///< \brief Number of sweep per updating the pairlist
+    long int seed = 0;
+
+    ///
+    /// Barostat setting
+    ///
+    int ptype = 0;                  ///< \brief Type of pressure coupling
+    double press = 0.0;               ///< \brief Pressure
+    double shave = 0.0;               ///< \brief Average number of volume changes to attempt per sweep
+    double shprob = 0.0;              ///< \brief Probability of attempting a volume change
+
+    ///
+    /// Wang-Landau method
+    ///
+    int wlm[2];                ///< \brief Wang landau method (wl)
+    int wlmtype;            ///< \brief Atom type for the Wang landau method (wl)
+
+    ///
+    /// Parallel Tempering setting
+    ///
+    long nrepchange = 0;            ///< \brief Number of sweeps between replica exchanges
+    double paraltemper = 0.0;         ///< \brief Temperature for parallel tempering
+    double paralpress = 0.0;          ///< \brief Parallel pressure for replica exachnge
+    double dtemp = 0.0;               ///< \brief Temprature step
+    double dpress = 0.0;		      ///< \brief Pressure change for replica exchange
+    vector<double> pTemp;       ///< \brief Exact temperatures for paralel tempering
+
+
+    ///
+    /// GrandCanonical setting
+    ///
+    long nGrandCanon = 0;           ///< \brief Number of sweeps between particle insert/delete
+
+    ///
+    /// Simulation settings
+    ///
+    long nClustMove = 0;            ///< \brief Number of sweeps between cluster moves
+    double switchprob = 0.0;          ///< \brief Average number of type switch attempt per sweep
+    double chainprob = 0.0;           ///< \brief Average number of chain move attempt per sweep
+    double transmx = 0.0;
+    std::vector<tuple<int,double>> transmx_type;
+    double rotmx = 0.0;
+    double coneAngle = 0.0;             ///< \brief Prephere rotation around axis of spherocylinder in particular angle from axis
+    double edge_mx = 0.0;
+    double chainmmx = 0.0;
+    double chainrmx = 0.0;
+
+    ///
+    /// Output setting
+    ///
+    int thermo = 0;
+    long paramfrq = 0;              ///< \brief Number of sweeps between order parameter samples
+    long report = 0;                ///< \brief Number of sweeps between statistics reports
+    long movie = 0;                 ///< \brief Number of sweeps between movie frames
+    long write_cluster;         ///< \brief Number of sweeps per writing out cluster info
 
     //
     //  Statistics (exchange in replica exchange moves)
     //
     Statistics stat;
 
-    //
-    //  Read only variables NOTE: should change to constzz
-    //
-    double paralpress;          ///< \brief Parallel pressure for replica exachnge
-    double dpress;		        ///< \brief Pressure change for replica exchange
-    double shave;               ///< \brief Average number of volume changes to attempt per sweep
-    double shprob;              ///< \brief Probability of attempting a volume change
-    double chainprob;           ///< \brief Average number of chain move attempt per sweep
-    double switchprob;          ///< \brief Average number of type switch attempt per sweep
-    int pairlist_update;        ///< \brief Number of sweep per updating the pairlist
-    double paraltemper;         ///< \brief Temperature for parallel tempering
-    double dtemp;               ///< \brief Temprature step
-    vector<double> pTemp;       ///< \brief Exact temperatures for paralel tempering
-    int ptype;                  ///< \brief Type of pressure coupling
-    long adjust;                ///< \brief Number of sweeps between step size adjustments
-    long movie;                 ///< \brief Number of sweeps between movie frames
-    long nequil;                ///< \brief Number of equilibration sweeps
-    long nsweeps;               ///< \brief Number of production sweeps
-    long paramfrq;              ///< \brief Number of sweeps between order parameter samples
-    long report;                ///< \brief Number of sweeps between statistics reports
-    //long terms;                 ///< \brief Number of Fourier terms as smectic order parameters
-    long nrepchange;            ///< \brief Number of sweeps between replica exchanges
-    long nGrandCanon;           ///< \brief Number of sweeps between particle insert/delete
-    long nClustMove;            ///< \brief Number of sweeps between cluster moves
-    double coneAngle;             ///< \brief Prephere rotation around axis of spherocylinder in particular angle from axis
-    long write_cluster;         ///< \brief Number of sweeps per writing out cluster info
-
-
+    int pseudoRank;             ///< \brief For MPI i/o, changes depending on temp
     int mpirank;                ///< \brief MPI number for given process, identical to calling MPI_Comm_rank, constant during simulation
     int mpinprocs;              ///< \brief MPI number of processes
 
-    double cell;                  ///< \brief Maximum translation of all types
+    double cell = 0.0;                  ///< \brief Maximum translation of all types
     double max_dist_squared[MAXT][MAXT]; ///< \brief Stored cutoffs of all particle types for pairList
 
-    int wlm[2];                ///< \brief Wang landau method (wl)
-    int wlmtype;            ///< \brief Atom type for the Wang landau method (wl)
+    size_t pairList = 0;
+    size_t all = 0;
 
-    size_t pairList;
-    //size_t energyCalc;
-    //size_t move;
-    size_t all;
-
-    Sim(Conf* conf, FileNames* files, int rank=0, int procs=1): press(0.0), temper(0.0), pseudoRank(rank), paralpress(0.0), dpress(0.0), shave(0.0), shprob(0.0), chainprob(0.0), switchprob(0.0), pairlist_update(0),
-        paraltemper(0.0), dtemp(0.0), ptype(0), adjust(0), movie(0), nequil(0), nsweeps(0),paramfrq(0), report(0),
-        nrepchange(0), nGrandCanon(0), nClustMove(0), coneAngle(0.0), mpirank(rank), mpinprocs(procs), cell(0.0), pairList(0), /*energyCalc(0), move(0),*/ all(0) {
-
-        readOptions(files);
+    Sim(string optionsfile, int rank=0, int procs=1): pseudoRank(rank), mpirank(rank), mpinprocs(procs) {
+        readOptions(optionsfile);
     }
 
-    void info() {
-        mcout.get() << " Pressure coupling type:                             " << ptype << endl;
-        mcout.get() << " Pressure:                                           " << press << endl;
-        mcout.get() << " Replica exchange pressure:                          " << paralpress << endl;
-        mcout.get() << " Average volume change attempts per sweep:           " << shave << endl;
-        mcout.get() << " Equilibration sweeps:                               " << nequil << endl;
-        mcout.get() << " Sweeps between step size adjustments:               " << adjust << endl;
-        mcout.get() << " Production sweeps:                                  " << nsweeps << endl;
-        mcout.get() << " Sweeps between statistics samples:                  " << paramfrq << endl;
-        mcout.get() << " Sweeps between statistics reports:                  " << report << endl;
-        mcout.get() << " Average chain move attempts per sweep:              " << chainprob << endl;
-        mcout.get() << " Inititial maximum angular cone angle (degrees):     " << coneAngle << endl;
-        mcout.get() << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
-        mcout.get() << " Temperature in kT/e:                                " << temper << endl;
-        mcout.get() << " Parallel tempering temperature in kT/e:             " << paraltemper << endl;
-        mcout.get() << " Sweeps between replica exchange:                    " << nrepchange << endl;
-        mcout.get() << " Sweeps between Grand-Canonical move:                " << nGrandCanon << endl;
-        mcout.get() << " Sweeps between Cluster moves:                       " << nClustMove << endl;
-        mcout.get() << " Wang-Landau method:                                 " << wlm[0] << " "  << wlm[1] << endl;
-        mcout.get() << " Calculate the Wang-Landau method for atom type:     " << wlmtype << endl;
-        mcout.get() << " Average type switch attempts per sweep:             " << switchprob << endl;
-        mcout.get() << " Number of Sweeps per pairlist update:               " << pairlist_update << endl;
-        mcout.get() << " Number of sweeps per writing out cluster info:      " << write_cluster << endl;
+    string toString() {
+        std::ostringstream o;
+
+        o << "###  Equilibration setting" << endl;
+        o << " Equilibration sweeps:                               " << nequil << endl;
+        o << " Sweeps between step size adjustments:               " << adjust << endl;
+
+        o << "### Production setting" << endl;
+        o << " Production sweeps:                                  " << nsweeps << endl;
+        o << " Temperature in kT/e:                                " << temper << endl;
+        o << " Number of Sweeps per pairlist update:               " << pairlist_update << endl;
+        o << " Random number seed:                                 " << seed << endl;
+
+        o << "### Barostat setting" << endl;
+        o << " Pressure coupling type:                             " << ptype << endl;
+        o << " Pressure:                                           " << press << endl;
+        o << " Average volume change attempts per sweep:           " << shave << endl;
+
+        o << "### Wang-Landau method" << endl;
+        o << " Wang-Landau method:                                 " << wlm[0] << " "  << wlm[1] << endl;
+        o << " Calculate the Wang-Landau method for atom type:     " << wlmtype << endl;
+
+        o << "### Parallel Tempering setting" << endl;
+        o << " Sweeps between replica exchange:                    " << nrepchange << endl;
+        o << " Parallel tempering temperature in kT/e:             " << paraltemper << endl;
+        o << " Replica exchange pressure:                          " << paralpress << endl;
+
+        o << "### GrandCanonical setting" << endl;
+        o << " Sweeps between Grand-Canonical move:                " << nGrandCanon << endl;
+
+        o << "### Simulation settings" << endl;
+        o << " Sweeps between Cluster moves:                       " << nClustMove << endl;
+        o << " Average type switch attempts per sweep:             " << switchprob << endl;
+        o << " Average chain move attempts per sweep:              " << chainprob << endl;
+        o << " Initial maximum displacement:                       " << transmx << endl;
+        o << " Initial maximum displacement type specific:         ";
+        for(auto& item : transmx_type)
+            o << std::get<0>(item) << " " << std::get<1>(item);
+        o << endl;
+        o << " Initial maximum orientation change:                 " << rotmx << endl;
+        o << " Inititial maximum angular cone angle (degrees):     " << coneAngle << endl;
+        o << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
+        o << " Initial maximum chain displacement:                 " << chainmmx << endl;
+        o << " Initial maximum chain rotation change:              " << chainrmx << endl;
+
+        o << "### Output setting" << endl;
+        o << " Sweeps between between reports to stdout:           " << thermo << endl;
+        o << " Sweeps between statistics samples:                  " << paramfrq << endl;
+        o << " Sweeps between statistics reports:                  " << report << endl;
+        o << " Number of sweeps between movie frames:              " << movie << endl;
+        o << " Number of sweeps per writing out cluster info:      " << write_cluster << endl;
+
+        return o.str();
     }
 
 private:
-    int deallocPairlist() {  // deprecated, done in memoryDealloc()
-        /*long i;
-        if(sim.pairlist != NULL){
-            for(i = 0; i < topo.npart; i++){
-                if(sim.pairlist[i].pairs != NULL){
-                    free(sim.pairlist[i].pairs);
-                }
-            }
-            free(sim.pairlist);
-        }*/
-        return 0;
-    }
-
-
     /**
      * @brief Reads the run parameters from the external file "options".  See the end of the
        code for a template. All comments starting with '#' are stripped out.  The
        options are summarised on standard output and checked for validity of range.
      */
-    void readOptions(FileNames* files) {
+    void readOptions(string optionsfile) {
 
         mcout.get() << "Reading options..." << endl;
 
         int num_options = -1;
-        double transmx, rotmx, chainmmx, chainrmx, angle, chain_angle;
-        std::vector<tuple<int,double>> transmx_type;
-        long int seed;
+        double angle, chain_angle;
 
         char *id, *value, *num, *tokLine, *line;
         FILE *infile;
@@ -151,18 +208,19 @@ private:
             {"wlmtype",             Int,    false, &wlmtype},
             {"press",               Double, false, &press},
             {"paralpress",          Double, false, &paralpress},
-            {"edge_mx",             Double, false, &stat.edge.mx},
+            {"edge_mx",             Double, false, &edge_mx},
             {"shave",               Double, false, &shave},
             {"chainprob",           Double, false, &chainprob},
             {"switchprob",          Double, false, &switchprob},
             {"temper",              Double, false, &temper},
             {"paraltemper",         Double, false, &paraltemper},
             {"transmx",             Double, false, &transmx},
-            {"transmx_type",        Tuple, true, &transmx_type}, // default se by transmx
+            {"transmx_type",        Tuple,  true,  &transmx_type}, // default set by transmx
             {"rotmx",               Double, false, &rotmx},
-            {"coneAngle",           Double, true, &coneAngle}, // default value given in constructor of sim
+            {"coneAngle",           Double, true,  &coneAngle}, // default value given in constructor of sim
             {"chainmmx",            Double, false, &chainmmx},
             {"chainrmx",            Double, false, &chainrmx},
+            {"thermo",              Int,    true,  &thermo}, // default 0
             {"last",                Int,    false, NULL}
         };
         while(options[++num_options].var != NULL)
@@ -172,7 +230,7 @@ private:
         size_t line_size = (STRLEN + 1) * sizeof(char);
         line = (char *) malloc(line_size);
 
-        infile = fopen(files->optionsfile, "r");
+        infile = fopen( optionsfile.c_str(), "r");
         if (infile == NULL) {
             fprintf (stderr, "\nERROR: Could not open options file.\n\n");
             exit (1);
@@ -278,41 +336,7 @@ private:
         //--- 2. Summarize results on standard output ---
         // Density of close-packed spherocylinders
         //   rho_cp = 2.0/(sqrt(2.0) + *length * sqrt(3.0));
-
-        mcout.get() << " Pressure coupling type:                             " << ptype << endl;
-        mcout.get() << " Pressure:                                           " << press << endl;
-        mcout.get() << " Replica exchange pressure:                          " << paralpress << endl;
-        mcout.get() << " Average volume change attempts per sweep:           " << shave << endl;
-        mcout.get() << " Equilibration sweeps:                               " << nequil << endl;
-        mcout.get() << " Sweeps between step size adjustments:               " << adjust << endl;
-        mcout.get() << " Production sweeps:                                  " << nsweeps << endl;
-        mcout.get() << " Sweeps between statistics samples:                  " << paramfrq << endl;
-        mcout.get() << " Sweeps between statistics reports:                  " << report << endl;
-        mcout.get() << " Average chain move attempts per sweep:              " << chainprob << endl;
-        mcout.get() << " Initial maximum displacement:                       " << transmx << endl;
-        mcout.get() << " Inititial maximum angular change (degrees):         " << rotmx << endl;
-        mcout.get() << " Inititial maximum angular cone angle (degrees):     " << coneAngle << endl;
-        mcout.get() << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
-        mcout.get() << " Initial maximum chain displacement:                 " << chainmmx << endl;
-        mcout.get() << " Inititial maximum chain angular change (degrees):   " << chainrmx << endl;
-        mcout.get() << " Temperature in kT/e:                                " << temper << endl;
-        mcout.get() << " Parallel tempering temperature in kT/e:             " << paraltemper << endl;
-        mcout.get() << " Sweeps between replica exchange:                    " << nrepchange << endl;
-        mcout.get() << " Sweeps between Grand-Canonical move:                " << nGrandCanon << endl;
-        mcout.get() << " Sweeps between Cluster moves:                       " << nClustMove << endl;
-        mcout.get() << " Wang-Landau method:                                 " << wlm[0] << " "  << wlm[1] << endl;
-        mcout.get() << " Calculate the Wang-Landau method for atom type:     " << wlmtype << endl;
-        mcout.get() << " Average type switch attempts per sweep:             " << switchprob << endl;
-        mcout.get() << " Number of Sweeps per pairlist update:               " << pairlist_update << endl;
-        mcout.get() << " Random number seed:                                 " << seed << endl;
-        mcout.get() << " Number of sweeps per writing out cluster info:      " << write_cluster << endl;
-
-        if (movie > 0) {
-            mcout.get() << " Sweeps between movie frames:                      " << movie << endl;
-        } else {
-            mcout.get() <<" No movie" << endl;
-        }
-        mcout.get() << endl;
+        mcout.get() << toString() << endl;
 
         if(pairlist_update){
             mcout.get() << " A pairlist will be generated every " << pairlist_update << " steps. This is a greedy"
@@ -320,6 +344,49 @@ private:
         }
 
         //--- 3. Validity checks ---
+        checkValidity();
+
+        stat.edge.mx = 2.0 * edge_mx;   // The full range is -maxl to +maxl, i.e. spanning 2*maxl
+        coneAngle *= DEGTORAD; // Now transfer angle in degrees into radians
+        for (int i=0;i<MAXT;i++) {
+            stat.trans[i].mx = 2.0*transmx; // The full range is -maxr to +maxr, i.e. spanning 2*maxr
+            stat.rot[i].mx = cos( rotmx * DEGTORAD * 0.5 );
+            stat.rot[i].angle = rotmx * DEGTORAD * 0.5 * 0.5;
+        }
+        for(unsigned int i = 0; i<transmx_type.size(); ++i) {
+            stat.trans[ std::get<0>(transmx_type[i]) ].mx = std::get<1>(transmx_type[i]);
+        }
+        for (int i=0;i<MAXMT;i++) {
+            stat.chainm[i].mx = 2.0*chainmmx; // The full range is -maxr to +maxr, i.e. spanning 2*maxr
+            stat.chainr[i].mx = cos( chainrmx * DEGTORAD * 0.5 );
+            stat.chainr[i].angle = chainrmx * DEGTORAD * 0.5;
+        }
+
+        //parallel tempering
+#ifdef ENABLE_MPI
+        if ( (temper != paraltemper) && (mpinprocs <2) ) {
+            cerr << "ERROR: Paralllel tempering at single core does not work.\n" << endl;
+            exit(1);
+        }
+        dtemp = ((1.0/temper)-(1.0/paraltemper))/(mpinprocs-1);
+        for(int i=0; i<mpinprocs; i++) {
+            pTemp.push_back( temper/(1.0-i*temper*dtemp) );
+        }
+        temper =  temper/(1.0-mpirank*temper*dtemp);
+        if ( (press != paralpress) && (mpinprocs <2) ) {
+            cerr << "ERROR: Pressure replica exchange at single core does not work.\n" << endl;
+            exit(1);
+        }
+        dpress = (paralpress - press )/(mpinprocs-1);
+        press += dpress * mpirank;
+        seed += mpirank;
+        stat.mpiexch.mx = dtemp;
+        stat.mpiexch.angle = dpress;
+#endif
+        ran2.setSeed(seed);
+    }
+
+    void checkValidity() {
         if (rotmx < 0.0 || rotmx > 180) {
             fprintf (stderr, "ERROR: Maximum orientation change must be in range 0 to 180.\n\n");
             exit (1);
@@ -354,54 +421,6 @@ private:
                 exit (1);
             }
         }
-
-        // we store maximum rotation as half angle - useful for quaterions
-        angle = rotmx / 180.0 * PIH *0.5;
-        rotmx = cos((rotmx)/180.0*PIH);
-        chain_angle = chainrmx / 180.0 * PIH;
-        chainrmx = cos((chainrmx)/180.0*PIH);
-        stat.edge.mx *= 2.0;   // The full range is -maxl to +maxl, i.e. spanning 2*maxl
-        transmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
-        chainmmx *= 2.0;   // The full range is -maxr to +maxr, i.e. spanning 2*maxr
-        coneAngle *= DEGTORAD; // Now transfer angle in degrees into radians
-
-        for (int i=0;i<MAXT;i++) {
-            stat.trans[i].mx = transmx;
-            stat.rot[i].mx = rotmx;
-            stat.rot[i].angle = angle;
-        }
-        for(unsigned int i = 0; i<transmx_type.size(); ++i) {
-            stat.trans[ std::get<0>(transmx_type[i]) ].mx = std::get<1>(transmx_type[i]);
-        }
-        for (int i=0;i<MAXMT;i++) {
-            stat.chainm[i].mx = chainmmx;
-            stat.chainr[i].mx = chainrmx;
-            stat.chainr[i].angle = chain_angle;
-        }
-
-        //parallel tempering
-#ifdef ENABLE_MPI
-        if ( (temper != paraltemper) && (mpinprocs <2) ) {
-            cerr << "ERROR: Paralllel tempering at single core does not work.\n" << endl;
-            exit(1);
-        }
-        dtemp = ((1.0/temper)-(1.0/paraltemper))/(mpinprocs-1);
-        for(int i=0; i<mpinprocs; i++) {
-            pTemp.push_back( temper/(1.0-i*temper*dtemp) );
-        }
-        temper =  temper/(1.0-mpirank*temper*dtemp);
-        if ( (press != paralpress) && (mpinprocs <2) ) {
-            cerr << "ERROR: Pressure replica exchange at single core does not work.\n" << endl;
-            exit(1);
-        }
-        dpress = (paralpress - press )/(mpinprocs-1);
-        press += dpress * mpirank;
-        seed += mpirank;
-        stat.mpiexch.mx = dtemp;
-        stat.mpiexch.angle = dpress;
-#endif
-
-        ran2.setSeed(seed);
     }
 
     /**

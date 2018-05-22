@@ -57,29 +57,6 @@ public:
 
 
 
-/**
- * @brief Holds the type of a variable in struct option
- */
-typedef enum {
-    Int,
-    Int2,
-    Long,
-    Double,
-    Tuple
-} Type;
-
-
-
-
-typedef struct {        // for reading in the options
-    const char *id;     // The name of the value in the option file
-    Type type;          // The type (int, double or long)
-    bool set;           // Whether the variable has been set
-    void *var;          // The variable
-} Option;
-
-
-
 
 class FileNames{
 public:
