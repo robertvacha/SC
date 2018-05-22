@@ -123,56 +123,54 @@ public:
         mcout.get() << "******************************************************************************" << endl;
         mcout.get() << setw(30) << "Move" << setw(10) << "Acc (%)" << setw(10) << "Rej (%)" << setw(10) << "Steps" << endl;
 
-        if(steps<MAXT>(trans) > 0) {
-            mcout.get() << setw(30) << "Single particle translation: "
-                        << setw(10) <<  (double)acc<MAXT>(trans)/steps<MAXT>(trans)*100.0
-                        << setw(10) << (double)rej<MAXT>(trans)/steps<MAXT>(trans)*100.0
-                        << setw(10) << steps<MAXT>(trans) << endl;
-        }
+        if(steps<MAXT>(trans) > 0)
+            mcout.get() << moveInfo<MAXT>(trans, "Single particle translation: ") << endl;
 
-        if(steps<MAXT>(rot) > 0) {
-            mcout.get() << setw(30) << "Single particle rotation: "
-                        << setw(10) << 100.0*acc<MAXT>(rot)/steps<MAXT>(rot)
-                        << setw(10) << (double)rej<MAXT>(rot)/steps<MAXT>(rot)*100.0
-                        << setw(10) << steps<MAXT>(rot) << endl;
-        }
+        if(steps<MAXT>(rot) > 0)
+            mcout.get() << moveInfo<MAXT>(rot, "Single particle rotation: ") << endl;
 
-        if(steps<MAXMT>(chainm) > 0) {
-            mcout.get() << setw(30) << "Chain translation: "
-                        << setw(10) <<  (double)acc<MAXMT>(chainm)/steps<MAXMT>(chainm)*100.0
-                        << setw(10) << (double)rej<MAXMT>(chainm)/steps<MAXMT>(chainm)*100.0
-                        << setw(10) << steps<MAXMT>(chainm) << endl;
-        }
+        if(steps<MAXMT>(chainm) > 0)
+            mcout.get() << moveInfo<MAXMT>(chainm, "Chain translation: ") << endl;
 
-        if(steps<MAXMT>(chainr) > 0) {
-            mcout.get() << setw(30) << "Chain rotation: "
-                        << setw(10) <<  (double)acc<MAXMT>(chainr)/steps<MAXMT>(chainr)*100.0
-                        << setw(10) << (double)rej<MAXMT>(chainr)/steps<MAXMT>(chainr)*100.0
-                        << setw(10) << steps<MAXMT>(chainr) << endl;
-        }
+        if(steps<MAXMT>(chainr) > 0)
+            mcout.get() << moveInfo<MAXMT>(chainr, "Chain rotation: ") << endl;
 
-        if(edge.acc + edge.rej > 0) {
-            mcout.get() << setw(30) << "Pressure move: "
-                        << setw(10) << (double)edge.acc / (edge.acc + edge.rej)*100.0
-                        << setw(10) << (double)edge.rej / (edge.acc + edge.rej)*100.0
-                        << setw(10) << (edge.acc + edge.rej) << endl;
-        }
+        if(edge.acc + edge.rej > 0)
+            mcout.get() << moveInfo(edge, "Pressure move: ") << endl;
 
-        if(steps<MAXT>(switchMv) > 0) {
-            mcout.get() << setw(30) << "Switch type move: "
-                        << setw(10) <<  (double)acc<MAXT>(switchMv)/steps<MAXT>(switchMv)*100.0
-                        << setw(10) << (double)rej<MAXT>(switchMv)/steps<MAXT>(switchMv)*100.0
-                        << setw(10) << steps<MAXT>(switchMv) << endl;
-        }
+        if(steps<MAXT>(switchMv) > 0)
+            mcout.get() << moveInfo<MAXT>(switchMv, "Switch type move: ") << endl;
 
         for(int i=0; i<MAXT; ++i) {
             if(trans[i].acc + trans[i].rej > 0) {
-                mcout.get() << setw(30) << "Single particle translation:"
-                            << setw(10) << (double) trans[i].acc / (trans[i].acc + trans[i].rej) * 100.0
-                            << setw(10) << (double) trans[i].rej / (trans[i].acc + trans[i].rej) * 100.0
-                            << setw(10) << (trans[i].acc + trans[i].rej) << " type " << i << topo.ia_params[i][i].name << endl;
+                mcout.get() << moveInfo(trans[i], "Single particle translation: ") << " type " << i << topo.ia_params[i][i].name << endl;
             }
         }
+    }
+
+    string moveInfo(Disp& disp, string name) {
+        stringstream ss;
+
+        ss << std::setprecision(3) << std::left;
+        ss << setw(30) << name
+           << setw(10) << (double)disp.acc / (disp.acc + disp.rej) * 100.0
+           << setw(10) << (double)disp.rej / (disp.acc + disp.rej) * 100.0
+           << setw(10) << (disp.acc + disp.rej);
+
+        return ss.str();
+    }
+
+    template<std::size_t SIZE>
+    string moveInfo(std::array<Disp, SIZE>& disp, string name) {
+        stringstream ss;
+
+        ss << std::setprecision(3) << std::left;
+        ss << setw(30) << name
+           << setw(10) <<  (double)acc<SIZE>(disp)/steps<SIZE>(disp)*100.0
+           << setw(10) << (double)rej<SIZE>(disp)/steps<SIZE>(disp)*100.0
+           << setw(10) << steps<SIZE>(disp);
+
+        return ss.str();
     }
 
     template<std::size_t SIZE>
