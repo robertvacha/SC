@@ -305,9 +305,9 @@ double MoveCreator::switchTypeMove() {
 
 double MoveCreator::chainMove() {
 
-    //
-    //  TODO: Check that moves dont change intenal chain energy
-    //
+#ifndef NDEBUG
+    double testE = calcEnergy->allToAllTrial();
+#endif
 
     double edriftchanges =0.0;
     long target;
@@ -318,13 +318,13 @@ double MoveCreator::chainMove() {
     //=== This is a chain move step ===
     target = ran2() * conf->pvec.getChainCount();
 
-    if (ran2() < 0.5) {
-        //=== Displacement step of cluster/chain ===
+    if (ran2() < 0.5) { //=== Displacement step of cluster/chain ===
         edriftchanges = chainDisplace(target);
-    } else {
-        //=== Rotation step of cluster/chain ===
+        assert(fabs( testE - calcEnergy->allToAllTrial() + edriftchanges) < 0.000001 || !(cerr << "Drift chainMove translate: " << testE - calcEnergy->allToAllTrial() + edriftchanges << endl) );
+    } else {            //=== Rotation step of cluster/chain ===
         edriftchanges = chainRotate(target);
-    } // ==== END OF CHAIN MOVES =====
+        assert(fabs( testE - calcEnergy->allToAllTrial() + edriftchanges) < 0.000001 || !(cerr << "Drift chainMove rotate: " << testE - calcEnergy->allToAllTrial() + edriftchanges << endl) );
+    }
     return edriftchanges;
 }
 
@@ -1018,6 +1018,9 @@ double MoveCreator::partAxialRotate(long target){
 
 double MoveCreator::chainDisplace(long target) {
     Molecule chain = conf->pvec.getChain(target);
+#ifndef NDEBUG
+    double testE = calcEnergy->chainInner(chain);
+#endif
     assert(chain.size() > 1);
     double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
     Vector dr, origsyscm = conf->syscm;
@@ -1077,12 +1080,16 @@ double MoveCreator::chainDisplace(long target) {
         edriftchanges = enermove - energy;
     }
 
+    assert( fabs( testE - calcEnergy->chainInner(chain) ) < 0.00001 || !(cerr << testE - calcEnergy->chainInner(chain) << " Inner energy changed, chainDisplace" << endl));
+
     return edriftchanges;
 }
 
 double MoveCreator::chainRotate(long target) {
     Molecule chain = conf->pvec.getChain(target);
+#ifndef NDEBUG
     double testE = calcEnergy->chainInner(chain);
+#endif
     double edriftchanges=0.0, energy=0.0, enermove=0.0, wlener=0.0;
     int reject=0;
     Particle chorig[MAXCHL];
@@ -1117,6 +1124,8 @@ double MoveCreator::chainRotate(long target) {
 
         calcEnergy->update(chain);
     }
+
+    assert( fabs( testE - calcEnergy->chainInner(chain) ) < 0.00001 || !(cerr << testE - calcEnergy->chainInner(chain) << " Inner energy change" << endl));
 
     return edriftchanges;
 }

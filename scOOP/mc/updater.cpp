@@ -145,24 +145,33 @@ void Updater::simulate(long nsweeps, long adjust, long paramfrq, long report) {
     /*                 Simulation Loop                      */
     /********************************************************/
     time = clock();
+    mcout.get() << std::left;
+    mcout.get() << setw(10)  << "sweeps" << " "
+                << setw(10) << "particles" << " "
+                << setw(14) << "Drift" << " "
+                << setw(14) << "PE" << " "
+                << setw(8) << "Sweeps per hour" << endl;
+    time = clock();
     for (sweep=1; sweep <= nsweeps; sweep++) {
 
+        // SIMULATION LOG
         if(sim->thermo>0 && sweep%(sim->thermo) == 0) {
             volume = conf->geo.volume();
             edriftend = calcEnergy.allToAll();
             pvdriftend =  sim->press * volume - (double)conf->pvec.size() * log(volume) * sim->temper;
             time = clock()-time;
-            mcout.get() << "sweep: " << sweep << " particles: " << conf->pvec.size()
-                 << " drift: " << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart;
-            mcout.get() <<"\nInteractionEnergy: " << edriftend;
-            mcout.get() << ", sweeps per hour: " << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10<< "\n" << endl;
+            mcout.get() << std::left;
+            mcout.get() << setw(10)  << sweep << " "
+                        << setw(10) << conf->pvec.size() << " "
+                        << setw(14) << edriftend - edriftstart - edriftchanges +pvdriftend -pvdriftstart << " "
+                        << setw(14) << edriftend << " "
+                        << setw(8) << (3600.0)/((double)time/CLOCKS_PER_SEC)*nsweeps/10 << endl;
             time = clock();
         }
 
         //____________Replica Exchange Move____________
         if((sim->nrepchange) && (sweep % sim->nrepchange == 0)){
-
-            edriftchanges += move.replicaExchangeMove(sweep); // sending reference to pvdriftstart
+            edriftchanges += move.replicaExchangeMove(sweep); // sending reference to pvdriftstart        
             files->initMPIRank(sim->pseudoRank);
 
             if(sim->pairlist_update) {
