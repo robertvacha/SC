@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <map>
 #include "geometry.h"
+#include <array>
 
 extern Topo topo;
 
@@ -16,9 +17,9 @@ using namespace std;
 
 class ConList {
 public:
-    ConList() : isEmpty(true) {}
+    ConList() {}
 
-    bool isEmpty;
+    bool isEmpty = true;
 
     // these additional variables neccesary to unite Harmonic bond calculation
     double sp;                          ///< \brief Harmonic bond equilibrium distance
@@ -27,7 +28,7 @@ public:
     double eq[2];
 
     // tail, head, second neighbor tail, second neighbor head
-    Particle* conlist[4] = {nullptr};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
+    std::array<Particle*, 4> conlist = {};    ///< \brief Connectivity list, we have connection to tail and head and secon neighbours so far
 
     string toString() {
         stringstream ss;

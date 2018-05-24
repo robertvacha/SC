@@ -580,8 +580,9 @@ public:
         if (pairListUpdate) {
             for(unsigned int j=0; j<mol.size(); j++) { // for all particles in molecule
                 for (i = 0; i < conf->neighborList[mol[j]].neighborCount; i++)
-                    if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i])
+                    if(mol[0] > conf->neighborList[mol[j]].neighborID[i] || mol.back() < conf->neighborList[mol[j]].neighborID[i]) {
                         energy += pairE(&conf->pvec[mol[j]], &conf->pvec[conf->neighborList[mol[j]].neighborID[i]], &conlist);
+                    }
 
                 if (topo.exter.exist) //add interaction with external potential
                     energy += this->exterE.extere2(&conf->pvec[mol[j]]);
@@ -705,11 +706,11 @@ public:
         return fabs(a - b) > 1e-7;
     }
 
-    double allToAll(EnergyMatrix::TEmVector* energyMatrix) override {
+    double allToAllTrial() override {
         double e = 0.0, eControl = 0.0;
 
-        e = TotE::allToAll(energyMatrix);
-        eControl = control.allToAll(energyMatrix);
+        e = TotE::allToAllTrial();
+        eControl = control.allToAllTrial();
 
         if(test(e,eControl))
             cout << std::setprecision(10) << "Error(e), allToAll energy: " << e << " control: " << eControl << endl;
@@ -729,11 +730,11 @@ public:
         return e;
     }
 
-    double oneToAll(int target, vector<double> *changes) override {
+    double oneToAllTrial(int target) override {
         double e = 0.0, eControl = 0.0;
 
-        e = TotE::oneToAll(target, changes);
-        eControl = control.oneToAll(target, changes);
+        e = TotE::oneToAllTrial(target);
+        eControl = control.oneToAllTrial(target);
 
         if(test(e,eControl))
             cout << std::setprecision(10) << "Error(c), oneToAll(change) energy: " << e << " control: " << eControl << endl;
@@ -748,20 +749,30 @@ public:
         eControl = control.oneToAll(target);
 
         if(test(e,eControl)) {
-            vector<double> *changes;
-            changes = new vector<double>();
-            cout << std::setprecision(10) << "Error, oneToAll() energy: " << e << " control: " << eControl << ", itself calculated: " << TotE::oneToAll(target, changes) << endl;
-            delete changes;
+            cout << std::setprecision(10) << "Error, oneToAll() energy: " << e << " control: " << eControl << ", itself calculated: " << TotE::oneToAllTrial(target) << endl;
         }
 
         return e;
     }
 
-    double mol2others(Molecule &mol, vector<double> *changes) override {
+    double mol2others(Molecule &mol, vector<double> *changes) {
         double e = 0.0, eControl = 0.0;
 
         e = TotE::mol2others(mol, changes);
         eControl = control.mol2others(mol, changes);
+
+        if(test(e,eControl))
+            cout << std::setprecision(10) << "Error, mol2others energy: " << e << " control: " << eControl << endl;
+
+        return e;
+    }
+
+
+    double mol2othersTrial(Molecule &mol) override {
+        double e = 0.0, eControl = 0.0;
+
+        e = TotE::mol2othersTrial(mol);
+        eControl = control.mol2othersTrial(mol);
 
         if(test(e,eControl))
             cout << std::setprecision(10) << "Error, mol2others energy: " << e << " control: " << eControl << endl;
@@ -1208,8 +1219,8 @@ public:
 //
 //typedef TotalE<PairE> TotalEnergyCalculator;                        // Empty Energy
 //typedef TotalEFull<PairEnergyCalculator> TotalEnergyCalculator;         // Energy matrix optimization
-//typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
-typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
+typedef TotalEMatrix<PairE> TotalEnergyCalculator;                        // Energy matrix optimization
+//typedef TotalEFull<PairE> TotalEnergyCalculator;                          // Full calculation
 //typedef TestE< TotalEMatrix<PairE>, TotalEFull<PairE> > TotalEnergyCalculator;         // Test of Pair energy
 //typedef TotalEFullSymetry<PairE> TotalEnergyCalculator;         // Test of Pair energy symetry
 

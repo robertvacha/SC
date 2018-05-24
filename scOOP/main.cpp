@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     //
     for(int i=0; i< MAXT; i++) {
         for(int j=0; j<MAXT; j++) {
-            sim.max_dist_squared[i][j] = AVER(sim.stat.trans[i].mx, sim.stat.trans[j].mx);
+            sim.max_dist_squared[i][j] = ( (sim.customCutoff == 0.0) ? AVER(sim.stat.trans[i].mx, sim.stat.trans[j].mx) : sim.customCutoff );
             sim.max_dist_squared[i][j] *= (1 + sim.pairlist_update) * 2;
             sim.max_dist_squared[i][j] += topo.maxcut;
             sim.max_dist_squared[i][j] *= sim.max_dist_squared[i][j]; // squared

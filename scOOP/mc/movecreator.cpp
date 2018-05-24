@@ -1019,7 +1019,8 @@ double MoveCreator::partAxialRotate(long target){
 double MoveCreator::chainDisplace(long target) {
     Molecule chain = conf->pvec.getChain(target);
 #ifndef NDEBUG
-    double testE = calcEnergy->chainInner(chain);
+    double innerE = calcEnergy->chainInner(chain);
+    double allE = calcEnergy->allToAllTrial();
 #endif
     assert(chain.size() > 1);
     double edriftchanges=0.0,energy=0.0,enermove=0.0,wlener=0.0;
@@ -1029,7 +1030,6 @@ double MoveCreator::chainDisplace(long target) {
     double radiusholemax_orig=0.0;
 
     //=== Displacement step of cluster/chain ===
-    //printf ("move chain\n\n");
     for(unsigned int i=0; i<chain.size(); i++) // store old configuration
         chorig[i].pos = conf->pvec[chain[i]].pos;
 
@@ -1071,6 +1071,8 @@ double MoveCreator::chainDisplace(long target) {
             conf->syscm = origsyscm;
         wl.reject(radiusholemax_orig, wl.wlm);
 
+        assert( fabs( allE - calcEnergy->allToAllTrial()) < 0.00001
+                || !(cerr << allE << " " << calcEnergy->allToAllTrial() << " allToAll energy changed on reject, chainDisplace" << endl));
     } else { // move was accepted
         sim->stat.chainm[conf->pvec[chain[0]].molType].acc++;
         wl.accept(wl.wlm[0]);
@@ -1078,9 +1080,11 @@ double MoveCreator::chainDisplace(long target) {
         calcEnergy->update(chain);
 
         edriftchanges = enermove - energy;
+        assert( fabs( allE - calcEnergy->allToAllTrial() + edriftchanges ) < 0.00001
+                || !(cerr << allE << " " << calcEnergy->allToAllTrial() << " " << edriftchanges << " allToAll energy not match, chainDisplace" << endl));
     }
 
-    assert( fabs( testE - calcEnergy->chainInner(chain) ) < 0.00001 || !(cerr << testE - calcEnergy->chainInner(chain) << " Inner energy changed, chainDisplace" << endl));
+    assert( fabs( innerE - calcEnergy->chainInner(chain) ) < 0.00001 || !(cerr << innerE - calcEnergy->chainInner(chain) << " Inner energy changed, chainDisplace" << endl));
 
     return edriftchanges;
 }

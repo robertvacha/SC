@@ -503,14 +503,12 @@ void Updater::genSimplePairList() {
     int pos=-1;
     double r_cm2;
     bool bonded = false;
-    // Set the pairlist to zero
-    //DEBUG_INIT("Gen Pairlist")
+
     for(unsigned int i = 0; i < conf->neighborList.size(); i++){
-        //DEBUG_INIT("%ld", i);
         conf->neighborList[i].neighborCount = 0;
     }
 
-    if(conf->pvec.size() <= 0)
+    if(conf->pvec.empty())
         return;
 
     for(unsigned int i = 0; i < conf->pvec.size()-1; i++){
@@ -558,12 +556,4 @@ void Updater::genSimplePairList() {
             }
         }
     }
-    ////Check for too many pairs
-    //for(i = 0; i < (long)conf->pvec.size(); i++){
-    //    //if (sim->pairlist.list[i].num_pairs >= (long)conf->pvec.size())
-    //    if (sim->pairlist[i].num_pairs >= (long)conf->pvec.size()){
-    //        fprintf(stderr, "ERROR: Too many pairs for particle %ld!!!\n", i);
-    //        exit(1);
-    //    }
-    //}
 }

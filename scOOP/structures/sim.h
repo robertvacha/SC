@@ -110,6 +110,7 @@ public:
 
     double cell = 0.0;                  ///< \brief Maximum translation of all types
     double max_dist_squared[MAXT][MAXT]; ///< \brief Stored cutoffs of all particle types for pairList
+    double customCutoff = 0.0;
 
     size_t pairList = 0;
     size_t all = 0;
@@ -162,6 +163,8 @@ public:
         o << " Inititial maximum geo.box edge change:              " << stat.edge.mx << endl;
         o << " Initial maximum chain displacement:                 " << chainmmx << endl;
         o << " Initial maximum chain rotation change:              " << chainrmx << endl;
+        if(customCutoff != 0.0)
+            o << " Custom cutoff:                                      " << customCutoff << endl;
 
         o << "### Output setting" << endl;
         o << " Sweeps between between reports to stdout:           " << thermo << endl;
@@ -221,6 +224,7 @@ private:
             {"chainmmx",            Double, false, &chainmmx},
             {"chainrmx",            Double, false, &chainrmx},
             {"thermo",              Int,    true,  &thermo}, // default 0
+            {"custom_cut",          Double,    true, &customCutoff}, // default 0.0
             {"last",                Int,    false, NULL}
         };
         while(options[++num_options].var != NULL)
