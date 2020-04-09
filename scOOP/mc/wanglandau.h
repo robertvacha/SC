@@ -309,7 +309,8 @@ private:
 
     inline void holeXYPlane(int wli) {
         origmesh = mesh;
-        neworder[wli] = (long) (mesh.meshInit(wl_meshsize, conf->pvec.size(), wlmtype, conf->geo.box, &conf->pvec) - minorder[wli]);
+        neworder[wli] = (long) 
+        ((mesh.meshInit(wl_meshsize, conf->pvec.size(), wlmtype, conf->geo.box, &conf->pvec) - minorder[wli])/dorder[wli]);
     }
 
 

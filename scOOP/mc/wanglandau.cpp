@@ -40,7 +40,7 @@ long WangLandau::meshOrderMoveMolecule(Molecule &target, Particle chorig[], Mesh
     if ( !change ) {
         // fill the mesh with particles
         mesh->meshFill(conf->pvec.size(), wlmtype, &conf->pvec);
-        return (long) (mesh->findHoles() - minorder[wli]);
+        return (long) ((mesh->findHoles() - minorder[wli])/dorder[wli]);
     }
 
     return currorder[wli];
@@ -85,10 +85,10 @@ void WangLandau::init(char wlinfile[30]) {
                 mesh.tmp = NULL;
                 origmesh.data = NULL;
                 origmesh.tmp = NULL;
-                currorder[wli] = (long) (mesh.meshInit(wl_meshsize,
+                currorder[wli] = (long) ((mesh.meshInit(wl_meshsize,
                                                        (long)conf->pvec.size(),
                                                        wlmtype, conf->geo.box,
-                                                       &conf->pvec) - minorder[wli]);
+                                                       &conf->pvec) - minorder[wli])/dorder[wli]);
                 break;
             case 3:
                 currorder[wli] = (long) floor( (conf->pvec[0].dir.z - minorder[wli])/ dorder[wli] );
@@ -360,7 +360,7 @@ long WangLandau::meshOrderMoveOne(Vector oldpos, Vector newpos, Mesh *mesh, long
     if ( !change ) {
         /* fill the mesh with particles*/
         mesh->meshFill(npart, wlmtype, &conf->pvec);
-        return (long) (mesh->findHoles() - minorder[wli]);
+        return (long) ((mesh->findHoles() - minorder[wli])/dorder[wli]);
     }
     return currorder[wli];
 }
@@ -386,7 +386,7 @@ long WangLandau::meshOrderMoveChain(Molecule chain, Mesh *mesh, long npart, Part
     if ( !change ) {
         /* fill the mesh with particles*/
         mesh->meshFill(npart, wlmtype, &conf->pvec);
-        return (long) (mesh->findHoles() - minorder[wli]);
+        return (long) ((mesh->findHoles() - minorder[wli])/dorder[wli]);
     }
 
     return currorder[wli];
