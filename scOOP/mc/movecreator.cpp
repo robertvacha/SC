@@ -332,7 +332,7 @@ double MoveCreator::pressureMove() {
     int reject=0;
     double old_side;   // geo.box length before attempted change
     double *side;      // geo.box dimension to try changing
-    double psch;       // Size of a geo.box change during pressure
+    double psch,psx,psy;// Size of a geo.box change during pressure
     double pvol;       // Size of a volume during pressure
     double pvoln;      // Size of a new volume during pressure
     double rsave;      // Saved random number

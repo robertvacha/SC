@@ -328,16 +328,17 @@ private:
             fprintf (stderr, "ERROR: Maximum orientation change for chains must be in range 0 to 180.\n\n");
             exit (1);
         }
-        if ( (ptype <0) || (ptype>3) ) {
+        if ( (ptype <0) || (ptype>5) ) {
             fprintf (stderr, "ERROR: Unknown pressure coupling %d. Program only knows: 0 - anisotropic coupling, \
-                    1 - isotropic coupling, 2 - isotropic in xy z=const, 3 - isotropic xy V=const.\n\n",ptype);
+                    1 - isotropic coupling, 2 - isotropic in xy and z=const, 3 - isotropic xy and  V=const, 4 = anisotropic in xy and z=const; 5 - anisotropic in y and xz=const.\n\n",ptype);
             exit (1);
         }
-        if ( (wlm[0] <0) || (wlm[0] > 7) || (wlm[1] <0) || (wlm[1] > 7)  ) {
+        if ( (wlm[0] <0) || (wlm[0] > 9) || (wlm[1] <0) || (wlm[1] > 9)  ) {
             fprintf (stderr, "ERROR: Unknown Wang-Landau method %d %d. Program only knows: 0 - none, \
                     1 - z-direction od 1st particle, 2 - pore in membrane, 3 - zorientation of 0th particle,\
                     4 - distance of fist two particles, 5 - pore around z-axis above CM,\
-                    6 - pore around z-axis above 0th particle, 7 - number of particles in contact \n\n",wlm[0],wlm[1]);
+                    6 - pore around z-axis above 0th particle, 7 - number of particles in contact,\
+                    8 - sampling of box length in x, 9 - sampling of box length in y \n\n",wlm[0],wlm[1]);
             exit (1);
         }
         if ( (wlm[0] == 0) && (wlm[1] > 0)  ) {
