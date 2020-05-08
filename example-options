@@ -1,10 +1,12 @@
 # Pressure couplings:
-#   0 = anisotropic coupling, 1 = isotropic coupling, 2 = isotropic in xy z=const, 3 = isotropic
+#   0 = anisotropic coupling; 1 = isotropic (dx=dy=dz); 2 = isotropic in xy and z=const; 3 - isotropic in xy and V=const;
+#   4 = anisotropic in xy and z=const; 5 - anisotropic in y and xz=const
 #   xy and keep Volume constant
 # Wang-Landau method: (with constant decrease of bias addition by factor of 2, until less than WL_ALPHATOL)
 #   O = none, 1 = z-direction of 1st paticle, 2 = hole in xyplane, 3 = z-orientation of 0th particle
 #   4 = distance of first two particles, 5 = pore around z axis and above CM, 6 = pore around z axis and above 0th particle
-#   7 = number of particles in contact (within distance sqrt(WL_CONTACTS))
+#   7 = number of particles in contact (within distance sqrt(WL_CONTACTS)), 8 = sampling of box length in x, 
+#   9 = sampling of box length in y 
 ptype = 0               #  Pressure coupling type (0-anisotropic xyz, 1-isotropic xyz, 2 - isotropic in xy z=const, 3 - isotropic in xy and V=const)
 press = 0               #  Pressure
 paralpress = 0          #  Parallel pressure for replica exchange

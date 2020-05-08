@@ -477,6 +477,67 @@ double MoveCreator::pressureMove() {
             edriftchanges = enermove - energy;
         }
         break;
+    case 4:
+        // Anisotropic pressure coupling in xy, z const
+        pvol = conf->geo.box.x * conf->geo.box.y;
+	psx = 0.0;
+	psy = 0.0;
+	if (ran2() - 0.5) psx = sim->stat.edge.mx * (ran2() - 0.5);
+	else psy = sim->stat.edge.mx * (ran2() - 0.5);
+        conf->geo.box.x += psx;
+        conf->geo.box.y += psy;
+        pvoln = conf->geo.box.x * conf->geo.box.y;
+
+        reject = 0;
+        if (wl.wlm[0] > 0) {  // get new neworder for wang-landau
+            wlener = wl.runPress(reject, radiusholemax_orig, true);
+        }
+        if (!reject) { // wang-landaou ok, try move - calculate energy
+            // enermove = (p*(V_new - V_old)       - N * k * T * ln(V_new / V_old)
+            enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * sim->temper * log(pvoln/pvol);
+
+            enermove += calcEnergy->allToAllTrial();
+        }
+        if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
+            conf->geo.box.x -= psx;
+            conf->geo.box.y -= psy;
+            sim->stat.edge.rej++;
+            wl.reject(radiusholemax_orig, wl.wlm);
+        } else { // move was accepted
+            sim->stat.edge.acc++;
+            wl.accept(wl.wlm[0]);
+            calcEnergy->update();
+            edriftchanges = enermove - energy;
+        }
+        break;
+    case 5:
+        // Box size change only in y direction
+        pvol = conf->geo.box.y;
+	psy = sim->stat.edge.mx * (ran2() - 0.5);
+        conf->geo.box.y += psy;
+        pvoln =  conf->geo.box.y;
+
+        reject = 0;
+        if (wl.wlm[0] > 0) {  // get new neworder for wang-landau
+            wlener = wl.runPress(reject, radiusholemax_orig, true);
+        }
+        if (!reject) { // wang-landaou ok, try move - calculate energy
+            // enermove = (p*(V_new - V_old)       - N * k * T * ln(V_new / V_old)
+            enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * sim->temper * log(pvoln/pvol);
+
+            enermove += calcEnergy->allToAllTrial();
+        }
+        if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
+            conf->geo.box.y -= psy;
+            sim->stat.edge.rej++;
+            wl.reject(radiusholemax_orig, wl.wlm);
+        } else { // move was accepted
+            sim->stat.edge.acc++;
+            wl.accept(wl.wlm[0]);
+            calcEnergy->update();
+            edriftchanges = enermove - energy;
+        }
+        break;
 
     default:
         fprintf (stderr, "ERROR: unknown type of pressure coupling %d",sim->ptype);
