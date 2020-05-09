@@ -112,6 +112,13 @@ void WangLandau::init(char wlinfile[30]) {
                 case 7:
                     currorder[wli] = contParticlesAll(wli);
                     break;
+                case 8:
+                    currorder[wli] = ceil( (conf->geo.box.x - minorder[wli]) / dorder[wli]);
+                    break;
+                case 9:
+                    currorder[wli] = ceil( (conf->geo.box.y - minorder[wli]) / dorder[wli]);
+                    break;
+                    
                 default:
                     currorder[wli] = 0;
                     break;

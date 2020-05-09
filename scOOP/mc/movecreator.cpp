@@ -490,7 +490,7 @@ double MoveCreator::pressureMove() {
 
         reject = 0;
         if (wl.wlm[0] > 0) {  // get new neworder for wang-landau
-            wlener = wl.runPress(reject, radiusholemax_orig, true);
+            wlener = wl.runPress(reject, radiusholemax_orig);
         }
         if (!reject) { // wang-landaou ok, try move - calculate energy
             // enermove = (p*(V_new - V_old)       - N * k * T * ln(V_new / V_old)
@@ -516,17 +516,18 @@ double MoveCreator::pressureMove() {
 	psy = sim->stat.edge.mx * (ran2() - 0.5);
         conf->geo.box.y += psy;
         pvoln =  conf->geo.box.y;
-
+      
         reject = 0;
         if (wl.wlm[0] > 0) {  // get new neworder for wang-landau
-            wlener = wl.runPress(reject, radiusholemax_orig, true);
+            wlener = wl.runPress(reject, radiusholemax_orig);
         }
         if (!reject) { // wang-landaou ok, try move - calculate energy
             // enermove = (p*(V_new - V_old)       - N * k * T * ln(V_new / V_old)
-            enermove = sim->press * conf->geo.box.z * (pvoln - pvol) - (double)conf->pvec.size() * sim->temper * log(pvoln/pvol);
+            enermove = sim->press * conf->geo.box.z * conf->geo.box.x * (pvoln - pvol) - (double)conf->pvec.size() * sim->temper * log(pvoln/pvol);
 
             enermove += calcEnergy->allToAllTrial();
         }
+        
         if ( reject || moveTry(energy+wlener,enermove,sim->temper) )  { // probability acceptance
             conf->geo.box.y -= psy;
             sim->stat.edge.rej++;

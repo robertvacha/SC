@@ -185,6 +185,7 @@ public:
                 case 9:     boxSize_y(wli);                      break;
                 default:    def(wli);                           break;
             }
+            
             if ( (neworder[wli] < 0) || (neworder[wli] >= length[wli]) ) reject = 1;
         }
         if (!reject) {
